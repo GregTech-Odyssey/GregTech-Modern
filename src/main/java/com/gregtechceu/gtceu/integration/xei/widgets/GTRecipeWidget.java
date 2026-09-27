@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.integration.xei.widgets;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
@@ -13,20 +12,18 @@ import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayouts;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeTierPreview;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.elements.Button;
-import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
-import com.gregtechceu.gtceu.uipro.elements.Stepper;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeInfoLines;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeSpecPanel;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeTierChip;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -35,7 +32,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -44,6 +41,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
+import dev.vfyjxf.taffy.style.TaffyPosition;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,20 +53,7 @@ import java.util.function.Supplier;
 import static com.gregtechceu.gtceu.api.GTValues.*;
 
 /**
- * 配方查看器（EMI）里的一页配方，用新式界面框架（uipro）搭成，纯客户端控件：
- *
- * <pre>
- *   ┌──────────────────────────────────────┐
- *   │ ┌──────────────────────────────────┐ │
- *   │ │     [输入] ──进度──▶ [输出]        │ │  舞台：槽位区（配方类型的排布）居中，吃掉剩余高度
- *   │ └──────────────────────────────────┘ │
- *   │ ┌ 超频预览 ──────── (i) [&lt; LV &gt;] ┐    │  参数表：电压档预览、核心参数、配方数据与条件
- *   │ │ 耗时 ……………………………… 21.9 秒 │  ▢ │
- *   │ │ 耗能功率 …… 30 EU/t          │  ▢ │  右下角缺口：配方查看器自己的按钮（填充配方、合成树、默认配方……）
- *   │ └─────────────────────────────┘  ▢ │
- *   │ [线圈] [维度]               [ID]     │  底栏：额外展示槽 / 开发环境复制 ID
- *   └───────────────────────────────┘
- * </pre>
+ * 配方查看器（EMI）里的一页配方，用新式界面框架（uipro）搭成，纯客户端控件
  *
  * 外框由 {@link PageFrame} 决定：最小宽度、要填满的高度、缺口里有几个按钮、是否画卡片。尺寸不必建控件就能算出（{@link #getPageSize}）。
  * 页面没有服务端（{@link ILocalUI}）：参数表、步进器的"服务端"取值与回调都在本端执行。
@@ -77,16 +62,9 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     private static final String DURATION = "gtceu.recipe.info.duration";
     private static final String SECONDS = "gtceu.recipe.info.seconds";
-    private static final String TOTAL_EU = "gtceu.recipe.info.total_eu";
-    private static final String MAX_EU = "gtceu.recipe.info.max_eu";
-    private static final String EU_USAGE = "gtceu.recipe.info.eu_usage";
-    private static final String EU_GENERATION = "gtceu.recipe.info.eu_generation";
-    private static final String OVERCLOCK_INFO = "gtceu.recipe.info.overclock";
-    private static final String OVERCLOCK_PERFECT = "gtceu.recipe.info.overclock_perfect";
     private static final String PREVIEW_TIER = "gtceu.recipe.info.preview_tier";
 
-    /** 电压档步进器中间数值框的宽度。 */
-    private static final int TIER_VALUE_WIDTH = UISizes.VALUE_WIDTH;
+    private static final int INLINE_SLOT_GAP = 6;
 
     // ==================== 卡片与缺口的几何 ====================
     /** 卡片外缘比页面四周多出的宽度（配方查看器在页面外留有这么宽的边）。 */
@@ -131,15 +109,13 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     private final GTRecipeDefinition recipe;
     private final PageFrame frame;
+    @Nullable
+    private final RecipeTierPreview preview;
     private final int minTier;
-    /// 超频预览：当前电压档、是否按无损超频计算
     private int tier;
     private boolean perfectOverclock;
-    /// 当前电压档下各行的显示值，只在切换电压档时重算（参数表每帧取值）
     private Component durationText = Component.empty();
-    private Component energyText = Component.empty();
-    private Component powerText = Component.empty();
-    private String tierText = "";
+    private Component[] rowTexts = new Component[0];
     /// 各槽位对应的配方内容，与带内容的槽位（切换电压档时只刷新它们）
     private final Table<IO, RecipeInfo, List<Content>> contents = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap::new);
     private final List<Widget> contentSlots = new ArrayList<>();
@@ -151,25 +127,40 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     public GTRecipeWidget(GTRecipeDefinition recipe, PageFrame frame) {
         this.recipe = recipe;
         this.frame = frame;
-        this.minTier = recipe.tier;
-        this.tier = recipe.tier;
+        this.preview = RecipeTierPreview.create(recipe);
+        this.minTier = preview == null ? recipe.tier : preview.minTier();
+        this.tier = minTier;
         var size = getPageSize(recipe, frame);
         layout(l -> l.column().size(size.width, size.height).gapAll(UISizes.SECTION_GAP));
         setClientSideWidget();
         refreshPreview();
 
+        var info = new RecipeInfoLines();
+        appendInfo(recipe, info, this, preview);
+        boolean inline = inlineSlots(recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe).width, info.slots().size(), size.width);
+
         var stage = new UIElement().layout(l -> l.column().flexGrow(1).alignCenter().justifyContent(AlignContent.CENTER)
                 .paddingHorizontal(UITheme.PANEL_PADDING));
         stage.setBackground(UITheme.PANEL);
-        stage.addChild(createSlotArea());
+        if (inline) {
+            var row = new UIElement().layout(l -> l.row().gapAll(INLINE_SLOT_GAP).alignCenter());
+            row.addChild(RecipeSlotLayouts.grid(createSlots(info), info.slots().size()));
+            row.addChild(createSlotArea());
+            stage.addChild(row);
+        } else {
+            stage.addChild(createSlotArea());
+        }
+        if (hasIdButton()) {
+            var id = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(1).top(1));
+            id.addChild(new IdLink());
+            stage.addChild(id);
+        }
         addChild(stage);
 
-        var info = new RecipeInfoLines();
-        appendInfo(recipe, info, this);
         var left = new UIElement().layout(l -> l.column().flexGrow(1).flexShrink(1).minWidth(0).gapAll(UISizes.SECTION_GAP));
-        var panel = createPanel(info);
+        var panel = createPanel(info, frame.besideNotch(size.width));
         if (panel != null) left.addChild(panel);
-        var footer = createFooter(info, size.width);
+        var footer = createFooter(inline ? new RecipeInfoLines() : info, size.width);
         if (footer != null) left.addChild(footer);
         if (panel == null && footer == null && frame.sideButtons() == 0) return;
         var lower = new UIElement().layout(l -> l.row().gapAll(UISizes.SECTION_GAP).minHeight(frame.notchHeight()));
@@ -182,30 +173,32 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     /** 配方页的尺寸，不建控件：舞台（槽位区每个配方类型量一次）+ 参数表行数 + 底栏，再按外框放大。 */
     public static Size getPageSize(GTRecipeDefinition recipe, PageFrame frame) {
-        var slotArea = recipe.recipeType.getRecipeUI().getSlotAreaSize();
+        var slotArea = recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe);
         // 宽度取偶数：配方查看器会把页面宽度补成偶数，奇数宽的卡片会偏 1 像素
         int width = Math.max(slotArea.width + 2 * UITheme.PANEL_PADDING, frame.minWidth());
         width += width & 1;
         var counter = new RecipeInfoLines.Counter();
-        appendInfo(recipe, counter, null);
-        int stage = stageHeight(recipe);
-        int left = panelHeight(recipe, counter.labeled(), counter.sentences());
-        int footer = footerHeight(counter.slots(), frame.besideNotch(width), idInFooter(recipe));
+        var preview = RecipeTierPreview.create(recipe);
+        appendInfo(recipe, counter, null, preview);
+        boolean inline = inlineSlots(slotArea.width, counter.slots(), width);
+        int stage = inline ? Math.max(slotArea.height, UISizes.SLOT) : slotArea.height;
+        int left = panelHeight(preview != null && preview.hasStepper(), counter.labeled(), counter.sentenceRows(frame.besideNotch(width)));
+        int footer = footerHeight(inline ? 0 : counter.slots(), frame.besideNotch(width));
         if (footer > 0) left += (left > 0 ? UISizes.SECTION_GAP : 0) + footer;
         int lower = Math.max(left, frame.notchHeight());
         int height = stage + (lower > 0 ? UISizes.SECTION_GAP + lower : 0);
         return new Size(width, Math.max(height, frame.fillHeight()));
     }
 
-    private static int stageHeight(GTRecipeDefinition recipe) {
-        return recipe.recipeType.getRecipeUI().getSlotAreaSize().height;
+    private static boolean inlineSlots(int slotAreaWidth, int slots, int width) {
+        return slots > 0 && slotAreaWidth + INLINE_SLOT_GAP + slots * UISizes.SLOT <= width - 2 * UITheme.PANEL_PADDING;
     }
 
     /** 参数表高度；没有任何内容时为 0（不显示）。 */
-    private static int panelHeight(GTRecipeDefinition recipe, int values, int sentences) {
-        boolean header = hasTierStepper(recipe);
-        if (!header && values + sentences == 0) return 0;
-        return RecipeSpecPanel.heightFor(header, values, sentences);
+    private static int panelHeight(boolean stepper, int values, int sentences) {
+        if (stepper) values++;
+        if (values + sentences == 0) return 0;
+        return RecipeSpecPanel.heightFor(false, values, sentences);
     }
 
     // ==================== 卡片 ====================
@@ -266,8 +259,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private Widget createSlotArea() {
         var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
         collectStorage(storages, contents, recipe);
-        var slotArea = recipe.recipeType.getRecipeUI().createUITemplate(ProgressWidget.JEIProgress, storages,
-                recipe.data.clone(), List.of(recipe.conditions));
+        var slotArea = recipe.recipeType.getRecipeUI().createRecipeTemplate(recipe, storages);
         collectContentSlots(slotArea);
         applyContentInfo();
         return slotArea;
@@ -329,14 +321,15 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     /**
      * 往信息区追加全部内容（{@code page} 为 null 时只用于数数）：核心参数、配方类型的数据行、扩展、条件、修饰器、配方类型的附加内容。
      */
-    private static void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info, @Nullable GTRecipeWidget page) {
-        long inputEUt = recipe.getInputEUt();
-        long outputEUt = recipe.getOutputEUt();
-        long eut = inputEUt == 0 ? outputEUt : inputEUt;
+    private static void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info, @Nullable GTRecipeWidget page,
+                                   @Nullable RecipeTierPreview preview) {
         if (!recipe.data.getBoolean(GTRecipeDataKeys.HIDE_DURATION)) previewLine(info, DURATION, () -> page.durationText);
-        if (eut > 0) {
-            previewLine(info, isTotalCwu(recipe) ? MAX_EU : TOTAL_EU, () -> page.energyText);
-            previewLine(info, inputEUt != 0 ? EU_USAGE : EU_GENERATION, () -> page.powerText);
+        if (preview != null) {
+            var labels = preview.rowLabels();
+            for (int i = 0; i < labels.size(); i++) {
+                int row = i;
+                previewLine(info, labels.get(i), () -> page.rowTexts[row]);
+            }
         }
         for (var dataInfo : recipe.recipeType.getDataInfos()) {
             // 与电压档无关，取一次
@@ -344,8 +337,12 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
             if (text.isBlank()) continue;
             info.sentence(Component.literal(text));
         }
-        for (var extension : recipe.recipeExtensions) extension.appendInfo(recipe, info);
-        for (var extension : recipe.tickRecipeExtensions) extension.appendInfo(recipe, info);
+        for (var extension : recipe.recipeExtensions) {
+            if (preview == null || !preview.replaces(extension)) extension.appendInfo(recipe, info);
+        }
+        for (var extension : recipe.tickRecipeExtensions) {
+            if (preview == null || !preview.replaces(extension)) extension.appendInfo(recipe, info);
+        }
         for (var condition : recipe.conditions) condition.appendInfo(recipe, info);
         for (var modifier : recipe.recipeModifiers) modifier.appendInfo(recipe, info);
         recipe.recipeType.getRecipeUI().appendInfo(recipe, info);
@@ -353,19 +350,14 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     /** 参数表：电压档预览（有耗电时）、核心参数与数据行，再是整句说明；什么都没有时返回 null。 */
     @Nullable
-    private Widget createPanel(RecipeInfoLines info) {
-        boolean header = hasTierStepper(recipe);
-        if (!header && info.lines().isEmpty()) return null;
+    private Widget createPanel(RecipeInfoLines info, int panelWidth) {
+        boolean stepper = preview != null && preview.hasStepper();
+        if (!stepper && info.lines().isEmpty()) return null;
         var panel = new RecipeSpecPanel();
         panel.layout(l -> l.flexGrow(1));
-        if (header) {
-            var overclockInfo = new InfoIcon(InfoIcon.Kind.INFO,
-                    Component.translatable(OVERCLOCK_INFO, VNF[minTier]),
-                    Component.translatable(OVERCLOCK_PERFECT).withStyle(ChatFormatting.GRAY));
-            var stepper = new Stepper(TIER_VALUE_WIDTH, () -> tier, this::setTier, minTier, GTValues.MAX, false,
-                    value -> value == tier ? tierText : VN[value]);
-            if (hasIdButton()) panel.header(Component.translatable(PREVIEW_TIER), overclockInfo, stepper, createIdButton());
-            else panel.header(Component.translatable(PREVIEW_TIER), overclockInfo, stepper);
+        if (stepper) {
+            var chip = new RecipeTierChip(() -> tier, this::setTier, preview.minTier(), preview.maxTier(), this::tierName, preview.tooltip());
+            panel.control(Component.translatable(PREVIEW_TIER), chip);
         }
         boolean values = false, sentences = false;
         for (var line : info.lines()) {
@@ -377,10 +369,19 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
             panel.value(Component.translatable(line.labelKey()), line.value());
         }
         if (values && sentences) panel.divider();
-        for (var line : info.lines()) {
-            if (line.labelKey() != null) continue;
-            if (line.onClick() != null) panel.link(line.value(), line.onClick());
-            else panel.sentence(line.value());
+        var sentenceLines = new ArrayList<RecipeInfoLines.Line>();
+        for (var line : info.lines()) if (line.labelKey() == null) sentenceLines.add(line);
+        for (int i = 0; i < sentenceLines.size(); i++) {
+            var line = sentenceLines.get(i);
+            var next = i + 1 < sentenceLines.size() ? sentenceLines.get(i + 1) : null;
+            if (line.onClick() != null) {
+                panel.link(line.value(), line.onClick());
+            } else if (next != null && next.onClick() == null && RecipeSpecPanel.fitsPair(line.value().get(), next.value().get(), panelWidth)) {
+                panel.sentences(line.value(), next.value());
+                i++;
+            } else {
+                panel.sentence(line.value());
+            }
         }
         return panel;
     }
@@ -391,100 +392,94 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         else info.line(labelKey, value);
     }
 
-    /** 算力配方：耗时一栏代表总计算量，耗能按总算力折算成最多耗能。 */
-    private static boolean isTotalCwu(GTRecipeDefinition recipe) {
-        return recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU) && recipe.data.containsKey(GTRecipeDataKeys.CWUT);
-    }
-
     // ==================== 底栏：额外展示槽 ====================
-
-    private static boolean hasTierStepper(GTRecipeDefinition recipe) {
-        return recipe.getInputEUt() > 0;
-    }
 
     private static boolean hasIdButton() {
         return !FMLLoader.isProduction();
     }
 
-    private static boolean idInFooter(GTRecipeDefinition recipe) {
-        return hasIdButton() && !hasTierStepper(recipe);
+    private static int slotsPerRow(int width) {
+        return Math.max(1, (width - UISizes.GAP) / UISizes.SLOT);
     }
 
-    /** 额外展示槽一行放几个：底栏是 {@code [槽网格][弹性空白][ID 按钮]}，相邻子元素之间各有一个 GAP。 */
-    private static int slotsPerRow(int width, boolean idButton) {
-        int available = width - UISizes.GAP - (idButton ? Button.ICON_SIZE + UISizes.GAP : 0);
-        return Math.max(1, available / UISizes.SLOT);
-    }
-
-    private static int footerHeight(int slots, int width, boolean idButton) {
-        int perRow = slotsPerRow(width, idButton);
-        int rows = slots == 0 ? 0 : (slots + perRow - 1) / perRow;
-        return Math.max(idButton ? UISizes.CONTROL_HEIGHT : 0, rows * UISizes.SLOT);
+    private static int footerHeight(int slots, int width) {
+        int perRow = slotsPerRow(width);
+        return slots == 0 ? 0 : (slots + perRow - 1) / perRow * UISizes.SLOT;
     }
 
     @Nullable
     private Widget createFooter(RecipeInfoLines info, int width) {
-        boolean idButton = idInFooter(recipe);
-        if (info.slots().isEmpty() && !idButton) return null;
+        if (info.slots().isEmpty()) return null;
         var footer = new UIElement().layout(l -> l.row().gapAll(UISizes.GAP).alignItems(AlignItems.END));
-        if (!info.slots().isEmpty()) {
-            var slots = new ArrayList<Widget>(info.slots().size());
-            for (var slot : info.slots()) slots.add(slot.get());
-            footer.addChild(RecipeSlotLayouts.grid(slots, slotsPerRow(frame.besideNotch(width), idButton)));
-        }
-        footer.addChild(UIElement.flexSpacer());
-        if (idButton) footer.addChild(createIdButton());
+        footer.addChild(RecipeSlotLayouts.grid(createSlots(info), slotsPerRow(frame.besideNotch(width))));
         return footer;
     }
 
-    private Widget createIdButton() {
-        return Button.glyph("ID")
-                .setOnClientClick(() -> Minecraft.getInstance().keyboardHandler.setClipboard(recipe.id.toString()))
-                .setHoverTooltips(Component.literal("click to copy: " + recipe.id));
+    private static List<Widget> createSlots(RecipeInfoLines info) {
+        var slots = new ArrayList<Widget>(info.slots().size());
+        for (var slot : info.slots()) slots.add(slot.get());
+        return slots;
+    }
+
+    private final class IdLink extends UIElement {
+
+        private static final String TEXT = "ID";
+
+        private IdLink() {
+            layout(l -> l.size(Minecraft.getInstance().font.width(TEXT) + 2, UISizes.TEXT_HEIGHT + 1));
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            var font = Minecraft.getInstance().font;
+            boolean hovered = isMouseOverElement(mouseX, mouseY);
+            int color = hovered ? UITheme.LINK_TEXT : UITheme.PLACEHOLDER_TEXT;
+            int x = getPositionX() + 1, y = getPositionY() + 1;
+            graphics.drawString(font, TEXT, x, y, color, false);
+            if (hovered) graphics.fill(x, y + 8, x + font.width(TEXT), y + 9, color);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+            if (gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
+            gui.getModularUIGui().setHoverTooltip(List.of(Component.literal("click to copy: " + recipe.id)), ItemStack.EMPTY, null, null);
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (button != 0 || !isMouseOverElement(mouseX, mouseY)) return super.mouseClicked(mouseX, mouseY, button);
+            playButtonClickSound();
+            Minecraft.getInstance().keyboardHandler.setClipboard(recipe.id.toString());
+            return true;
+        }
     }
 
     // ==================== 超频预览 ====================
 
-    /** 切换电压档（纯客户端）。按住 Shift 切换时按无损超频计算耗时。 */
     private void setTier(int tier) {
-        this.tier = Math.clamp(tier, minTier, GTValues.MAX);
-        this.perfectOverclock = GTUtil.isShiftDown();
+        if (preview == null) return;
+        this.tier = Math.clamp(tier, preview.minTier(), preview.maxTier());
+        this.perfectOverclock = preview.supportsPerfect() && GTUtil.isShiftDown();
         refreshPreview();
         applyContentInfo();
     }
 
-    /** 按当前电压档重算各行的显示值。 */
+    private Component tierName(int tier) {
+        var name = preview.tierName(tier);
+        return perfectOverclock && tier == this.tier && tier > minTier ? name.copy().append("*") : name;
+    }
+
     private void refreshPreview() {
-        int duration = previewDuration();
-        long eut = previewEUt();
+        int duration = preview == null ? recipe.duration : preview.duration(tier, perfectOverclock);
         durationText = Component.translatable(SECONDS, FormattingUtil.formatNumbers(duration / 20f));
-        long energy = eut * duration;
-        if (isTotalCwu(recipe)) energy /= Math.max(recipe.data.getLong(GTRecipeDataKeys.CWUT), 1);
-        energyText = Component.literal(FormattingUtil.formatNumbers(energy) + " EU");
-        int voltageTier = GTUtil.getTierByVoltage(eut);
-        var amperageText = Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places((float) eut / V[voltageTier]), VN[voltageTier]);
-        powerText = Component.literal(FormattingUtil.formatNumbers(eut) + " EU/t")
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, amperageText)));
-        // 超过最低电压且按无损超频计算时，档位后加 * 提示
-        tierText = perfectOverclock && tier > minTier ? VN[tier] + "*" : VN[tier];
-    }
-
-    private int overclocks() {
-        return recipe.getInputEUt() != 0 ? tier - minTier : 0;
-    }
-
-    /** 当前电压档下的耗时（tick）。 */
-    private int previewDuration() {
-        int ocs = overclocks();
-        if (ocs <= 0) return recipe.duration;
-        return Math.max(1, (int) (recipe.duration / Math.pow(perfectOverclock ? 4 : 2, ocs)));
-    }
-
-    /** 当前电压档下的功率。 */
-    private long previewEUt() {
-        long inputEUt = recipe.getInputEUt();
-        if (inputEUt == 0) return recipe.getOutputEUt();
-        return (long) (inputEUt * Math.pow(4, overclocks()));
+        if (preview == null) return;
+        int rows = preview.rowLabels().size();
+        if (rowTexts.length != rows) rowTexts = new Component[rows];
+        for (int i = 0; i < rows; i++) rowTexts[i] = preview.rowValue(i, tier, perfectOverclock);
     }
 
     // ==================== 公共工具 ====================

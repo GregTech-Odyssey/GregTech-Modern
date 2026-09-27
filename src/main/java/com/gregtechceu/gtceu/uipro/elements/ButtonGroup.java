@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import dev.vfyjxf.taffy.style.FlexWrap;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,7 +141,7 @@ public class ButtonGroup extends UIElement {
 
         private IconOption(int index, IGuiTexture icon, Component[] tooltip, IntPredicate serverSelected, IntConsumer serverClick) {
             super(UISizes.SLOT, UISizes.SLOT, null, icon);
-            var selected = addSyncValue(SyncValue.of(() -> serverSelected.test(index), SyncValue.BOOLEAN, false));
+            var selected = addSyncValue(SyncValue.of(() -> serverSelected.test(index), ByteStreamCodec.BOOLEAN_CODEC, false));
             setVariant(() -> selected.getValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
             setOnServerClick(() -> serverClick.accept(index));
             setHoverTooltips(tooltip);
@@ -198,7 +199,7 @@ public class ButtonGroup extends UIElement {
         private Option(int index, Component label, IntPredicate serverSelected, IntConsumer serverClick) {
             super(LayoutStyle.AUTO, OPTION_HEIGHT, null, null);
             this.label = label;
-            this.selected = addSyncValue(SyncValue.of(() -> serverSelected.test(index), SyncValue.BOOLEAN, false));
+            this.selected = addSyncValue(SyncValue.of(() -> serverSelected.test(index), ByteStreamCodec.BOOLEAN_CODEC, false));
             setOnServerClick(() -> serverClick.accept(index));
             setHoverTooltips(label);
         }

@@ -38,12 +38,17 @@ public final class MachineDisplay {
 
     /** 显示窗滚动区的 id：所有机器共用，玩家锁定的高度对所有多方块生效。 */
     public static final String SCROLLER_ID = "machine.display";
+    public static final int DETAILS_HEIGHT = UISizes.MACHINE_PAGE_HEIGHT + UISizes.PLAYER_INVENTORY_HEIGHT;
 
     private MachineDisplay() {}
 
     /** 多方块控制器的主页：一个显示窗。需要在显示窗下方加东西的机器可以往返回的纵向容器里继续加。 */
     public static UIElement page(IDisplayUIMachine machine) {
         return column().addChild(display(machine));
+    }
+
+    public static UIElement detailsPage(IDisplayUIMachine machine) {
+        return column().addChild(display(machine, DETAILS_HEIGHT));
     }
 
     /** 同样写法的其他机器：{@code text} 只在服务端调用，{@code click} 可为 null。 */
@@ -57,21 +62,25 @@ public final class MachineDisplay {
     }
 
     public static ScrollerView display(IDisplayUIMachine machine) {
+        return display(machine, UISizes.MACHINE_PAGE_HEIGHT);
+    }
+
+    public static ScrollerView display(IDisplayUIMachine machine, int height) {
         var text = new RichText();
         text.setTextData(machine::writeClientTextData, machine::readClientTextData);
         text.textSupplier(machine.self().isRemote() ? null : machine::addDisplayText).clickHandler(machine::handleDisplayClick);
-        return wrap(text);
+        return wrap(text, height);
     }
 
     public static ScrollerView display(MetaMachine machine, Consumer<List<Component>> text, @Nullable BiConsumer<String, ClickData> click) {
         var richText = new RichText();
         richText.textSupplier(machine.isRemote() ? null : text);
         if (click != null) richText.clickHandler(click);
-        return wrap(richText);
+        return wrap(richText, UISizes.MACHINE_PAGE_HEIGHT);
     }
 
-    private static ScrollerView wrap(RichText text) {
-        var scroller = new ScrollerView(SCROLLER_ID, UISizes.CONTENT_WIDTH, UISizes.MACHINE_PAGE_HEIGHT)
+    private static ScrollerView wrap(RichText text, int height) {
+        var scroller = new ScrollerView(SCROLLER_ID, UISizes.CONTENT_WIDTH, height)
                 .layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
         scroller.setBackground(UITheme.DISPLAY_SCREEN);
         scroller.addScrollViewChild(text.darkBackground());

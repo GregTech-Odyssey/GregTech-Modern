@@ -17,6 +17,7 @@ public final class WidgetIcons {
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
     public static final IGuiTexture POWER_ON = ATLAS.icon(0, 1);
+    public static final IGuiTexture STATUS_DISABLED = ATLAS.pixelIcon(0, 0);
 
     /// 销毁模式：不销毁 / 物品 / 流体 / 全部（与 {@code VoidingMode} 顺序一致）
     public static IGuiTexture voiding(int mode) {

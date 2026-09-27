@@ -75,6 +75,7 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
         private int labeled;
         private int sentences;
         private int slots;
+        private final List<@Nullable Supplier<Component>> sentenceTexts = new ArrayList<>();
 
         @Override
         public Counter line(String labelKey, Supplier<Component> value) {
@@ -85,6 +86,14 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
         @Override
         public Counter sentence(Supplier<Component> text) {
             sentences++;
+            sentenceTexts.add(text);
+            return this;
+        }
+
+        @Override
+        public Counter link(Supplier<Component> text, Runnable onClick) {
+            sentences++;
+            sentenceTexts.add(null);
             return this;
         }
 
@@ -106,6 +115,16 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
 
         public int slots() {
             return slots;
+        }
+
+        public int sentenceRows(int panelWidth) {
+            int rows = 0;
+            for (int i = 0; i < sentenceTexts.size(); i++, rows++) {
+                var first = sentenceTexts.get(i);
+                var second = i + 1 < sentenceTexts.size() ? sentenceTexts.get(i + 1) : null;
+                if (first != null && second != null && RecipeSpecPanel.fitsPair(nonNull(first.get()), nonNull(second.get()), panelWidth)) i++;
+            }
+            return rows;
         }
     }
 }

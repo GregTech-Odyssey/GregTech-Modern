@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.integration.emi;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTFluids;
 import com.gregtechceu.gtceu.common.data.GTItems;
@@ -50,11 +49,11 @@ public class GTEMIPlugin implements EmiPlugin {
         registry.addCategory(GTBedrockFluidEmiCategory.CATEGORY);
         if (ConfigHolder.INSTANCE.machines.doBedrockOres)
             registry.addCategory(GTBedrockOreEmiCategory.CATEGORY);
-        for (GTRecipeCategory category : GTRegistries.RECIPE_CATEGORIES) {
+        GTRegistries.RECIPE_CATEGORIES.forEachKeyValue((id, category) -> {
             if (category.shouldRegisterDisplays()) {
                 registry.addCategory(GTRecipeEMICategory.CATEGORIES.apply(category));
             }
-        }
+        });
         registry.addRecipeHandler(ModularUIContainer.MENUTYPE, new GTEmiRecipeHandler());
         registry.addRecipeHandler(PatternEncodingTermMenu.TYPE, new Ae2PatternTerminalHandler<>());
         if (GTCEu.isModLoaded(GTValues.MODID_AE2WTLIB)) {

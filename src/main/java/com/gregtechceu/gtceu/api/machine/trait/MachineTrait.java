@@ -5,13 +5,13 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
 import lombok.Getter;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -46,12 +46,11 @@ public abstract class MachineTrait implements IFieldDataHolder {
         return machine.holder.getOffsetTimer();
     }
 
-
-    public boolean isRemoved(){
+    public boolean isRemoved() {
         return machine.holder.isRemoved();
     }
 
-    public  boolean isRemote(){
+    public boolean isRemote() {
         return machine.isRemote();
     }
 
@@ -59,11 +58,11 @@ public abstract class MachineTrait implements IFieldDataHolder {
         return machine.holder.pos();
     }
 
-    public Level getLevel(){
+    public Level getLevel() {
         return machine.holder.getLevel();
     }
 
-    public UUID getOwnerUUID(){
+    public UUID getOwnerUUID() {
         return machine.getOwnerUUID();
     }
 

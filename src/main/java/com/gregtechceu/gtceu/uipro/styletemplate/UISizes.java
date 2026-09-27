@@ -119,6 +119,16 @@ public final class UISizes {
     public static final int CANVAS_MINIMAP_MIN_HEIGHT = SLOT + GAP * 3;
     public static final int CANVAS_MINIMAP_MAX_HEIGHT = 4 * SLOT;
     public static final int CANVAS_MINIMAP_MARGIN = 3;
+    public static final int FLOW_PADDING = 4;
+    public static final int FLOW_COLUMN_GAP = 8;
+    public static final int FLOW_CHANNEL = CONTROL_HEIGHT;
+    public static final int FLOW_WIRE = 2;
+    public static final int FLOW_ARROW = 3;
+    public static final int FLOW_JUNCTION = 4;
+    public static final int FLOW_GUTTER = 8;
+    public static final int FLOW_DETOUR_INSET = 12;
+    public static final int FLOW_NODE_PADDING = 3;
+    public static final int FLOW_NODE_PADDING_TOP = 6;
     /** 窗口左侧配置按钮（GTM 配置面板）的方块边长。 */
     public static final int SIDE_TAB = 24;
     /** 窗口顶部页面标签：宽、高（未选中时），选中时再向上高出 {@link #PAGE_TAB_RAISE}、向下伸进窗口顶边 {@link #PAGE_TAB_OVERLAP}。 */

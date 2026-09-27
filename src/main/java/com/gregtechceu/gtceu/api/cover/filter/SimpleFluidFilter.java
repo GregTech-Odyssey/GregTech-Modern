@@ -23,6 +23,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -108,7 +109,7 @@ public class SimpleFluidFilter implements FluidFilter {
     @Override
     public Widget createConfigUI() {
         var grid = UIElement.column(LayoutStyle.AUTO);
-        var showAmount = grid.addSyncValue(SyncValue.of(() -> maxStackSize > 1, SyncValue.BOOLEAN, false));
+        var showAmount = grid.addSyncValue(SyncValue.of(() -> maxStackSize > 1, ByteStreamCodec.BOOLEAN_CODEC, false));
         for (int row = 0; row < 3; row++) {
             var line = UIElement.row(UISizes.SLOT);
             for (int col = 0; col < 3; col++) {

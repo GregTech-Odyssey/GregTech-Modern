@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.util.StreamCodecs;
 import dev.vfyjxf.taffy.style.AlignItems;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ public class RecipeSpecPanel extends UIElement {
     private static final int LINK_ARROW_WIDTH = 4;
     private static final int LINK_ARROW_SPACE = LINK_ARROW_WIDTH + 3;
     private static final String LINK_HINT = "gtceu.recipe.info.link";
+    private static final int PAIR_GAP = 6;
 
     private int rows;
 
@@ -76,7 +78,7 @@ public class RecipeSpecPanel extends UIElement {
      */
     public RecipeSpecPanel header(Component title, Widget... controls) {
         var row = new UIElement().layout(l -> l.row().height(HEADER_HEIGHT).gapAll(UISizes.GAP).alignCenter().alignSelf(AlignItems.STRETCH));
-        row.addChild(new Title(title));
+        row.addChild(new Title(title, HEADER_HEIGHT));
         row.addChildren(controls);
         addChild(row);
         return divider();
@@ -85,6 +87,24 @@ public class RecipeSpecPanel extends UIElement {
     /** 一条分隔线（数值行与说明行之间）。 */
     public RecipeSpecPanel divider() {
         addChild(new Divider());
+        return this;
+    }
+
+    public RecipeSpecPanel control(Component label, Widget... controls) {
+        boolean striped = rows++ % 2 == 1;
+        var row = new UIElement() {
+
+            @Override
+            @OnlyIn(Dist.CLIENT)
+            public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+                if (striped) graphics.fill(getPositionX(), getPositionY(), getPositionX() + getSizeWidth(), getPositionY() + ROW_HEIGHT, STRIPE_COLOR);
+                super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+            }
+        };
+        row.layout(l -> l.row().height(ROW_HEIGHT).gapAll(UISizes.GAP).alignCenter().alignSelf(AlignItems.STRETCH).paddingHorizontal(ROW_INSET));
+        row.addChild(new Title(label, ROW_HEIGHT));
+        row.addChildren(controls);
+        addChild(row);
         return this;
     }
 
@@ -98,6 +118,21 @@ public class RecipeSpecPanel extends UIElement {
     public RecipeSpecPanel sentence(Supplier<Component> text) {
         addChild(new Row(null, text, false, null));
         return this;
+    }
+
+    public RecipeSpecPanel sentences(Supplier<Component> first, Supplier<Component> second) {
+        var row = new UIElement().layout(l -> l.row().height(ROW_HEIGHT).gapAll(PAIR_GAP).alignSelf(AlignItems.STRETCH));
+        row.addChild(new Row(null, first, false, null).layout(l -> l.flexGrow(1).flexShrink(1).flexBasis(0).minWidth(0)));
+        row.addChild(new Row(null, second, false, null).layout(l -> l.flexGrow(1).flexShrink(1).flexBasis(0).minWidth(0)));
+        addChild(row);
+        return this;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static boolean fitsPair(Component first, Component second, int panelWidth) {
+        var font = Minecraft.getInstance().font;
+        int half = (panelWidth - 2 * UITheme.PANEL_PADDING - PAIR_GAP) / 2 - 2 * ROW_INSET - BULLET_SPACE;
+        return font.width(first) <= half && font.width(second) <= half;
     }
 
     public RecipeSpecPanel link(Supplier<Component> text, Runnable onClick) {
@@ -140,11 +175,13 @@ public class RecipeSpecPanel extends UIElement {
     private static final class Title extends UIElement {
 
         private final Component text;
+        private final int height;
         private final CachedText cache = new CachedText();
 
-        private Title(Component text) {
+        private Title(Component text, int height) {
             this.text = text;
-            layout(l -> l.flexGrow(1).flexShrink(1).minWidth(0).height(HEADER_HEIGHT));
+            this.height = height;
+            layout(l -> l.flexGrow(1).flexShrink(1).minWidth(0).height(height));
         }
 
         @Override
@@ -152,7 +189,7 @@ public class RecipeSpecPanel extends UIElement {
         public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             var font = Minecraft.getInstance().font;
             cache.update(font, text);
-            graphics.drawString(font, cache.clip(font, getSizeWidth()), getPositionX(), getPositionY() + (HEADER_HEIGHT - TEXT_LINE) / 2,
+            graphics.drawString(font, cache.clip(font, getSizeWidth()), getPositionX(), getPositionY() + (height - TEXT_LINE) / 2,
                     UITheme.TEXT_SECONDARY, false);
         }
 
@@ -198,7 +235,7 @@ public class RecipeSpecPanel extends UIElement {
             this.striped = striped;
             this.onClick = onClick;
             layout(l -> l.height(ROW_HEIGHT).alignSelf(AlignItems.STRETCH));
-            this.value = addSyncValue(SyncValue.of(value, SyncValue.COMPONENT, Component.empty()));
+            this.value = addSyncValue(SyncValue.of(value, StreamCodecs.COMPONENT_CODEC, Component.empty()));
         }
 
         @Override

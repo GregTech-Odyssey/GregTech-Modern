@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -31,6 +30,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -38,8 +38,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-public record VeinInfo(Component name, int weight, List<Entry> entries, FluidStack fluid, ResourceLocation rock, List<Spec> specs,
-                       @Nullable List<DimensionMarker> dimensions) {
+public record VeinInfo(Component name, int weight, List<Entry> entries, FluidStack fluid, List<Spec> specs,
+                       @Nullable List<DimensionMarker> dimensions, @Nullable VeinPreview preview) {
 
     private static final String WEIGHT = "gtceu.jei.ore_vein_diagram.weight";
     private static final String HEIGHT = "gtceu.jei.vein.height";
@@ -51,11 +51,8 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
     private static final String OPERATIONS = "gtceu.jei.vein.operations";
     private static final String OPERATIONS_ABOUT = "gtceu.jei.vein.operations_about";
     private static final String INFINITE = "gtceu.jei.vein.infinite";
-    private static final String CHUNKS = "gtceu.jei.vein.chunks";
     private static final String RANGE = "%s ~ %s";
     private static final int BLOCK_COLOR = 0x8B8B8B;
-    private static final ResourceLocation STONE = new ResourceLocation("block/stone");
-    private static final ResourceLocation BEDROCK = new ResourceLocation("block/bedrock");
 
     public record Entry(ItemStack stack, int weight, int color) {}
 
@@ -77,20 +74,28 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
         for (var entry : definition.veinGenerator().getAllEntries()) {
             weights.addTo(entry.vein().<Object>map(BlockState::getBlock, material -> material), entry.chance());
         }
+        var indices = new Object2IntOpenHashMap<Object>();
+        indices.defaultReturnValue(-1);
         for (var entry : weights.object2IntEntrySet()) {
             if (entry.getKey() instanceof Material material) {
+                indices.put(material, entries.size());
                 entries.add(new Entry(ChemicalHelper.get(TagPrefix.rawOre, material), entry.getIntValue(), material.getMaterialRGB()));
             } else if (entry.getKey() instanceof Block block) {
+                indices.put(block, entries.size());
                 entries.add(new Entry(block.asItem().getDefaultInstance(), entry.getIntValue(), blockColor(block.defaultBlockState())));
             }
         }
         var specs = new ArrayList<Spec>();
         specs.add(new Spec(HEIGHT, height(definition.range())));
-        specs.add(new Spec(DENSITY, Component.literal(FormattingUtil.formatNumbers(Math.round(definition.density() * 100)) + "%")));
         var size = definition.clusterSize();
         specs.add(new Spec(SIZE, range(size.getMinValue(), size.getMaxValue())));
-        var name = Component.translatable("gtceu.jei.ore_vein." + GTOreVeinWidget.getOreName(definition));
-        return new VeinInfo(name, definition.weight(), entries, FluidStack.EMPTY, STONE, specs, dimensions(definition.dimensionFilter()));
+        specs.add(new Spec(DENSITY, Component.literal(FormattingUtil.formatNumbers(Math.round(definition.density() * 100)) + "%")));
+        String id = GTOreVeinWidget.getOreName(definition);
+        var name = Component.translatable("gtceu.jei.ore_vein." + id);
+        var preview = VeinPreview.of(definition, entries, target -> target.map(
+                states -> states.isEmpty() ? -1 : indices.getInt(states.getFirst().state.getBlock()),
+                indices::getInt), id.hashCode());
+        return new VeinInfo(name, definition.weight(), entries, FluidStack.EMPTY, specs, dimensions(definition.dimensionFilter()), preview);
     }
 
     public static VeinInfo of(BedrockFluidDefinition definition) {
@@ -102,7 +107,7 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
         specs.add(new Spec(RESERVE, reserve(BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS, definition.getDepletionAmount(), definition.getDepletionChance())));
         var name = Component.translatable("gtceu.jei.bedrock_fluid." + GTOreVeinWidget.getFluidName(definition));
         var fluid = new FluidStack(definition.getStoredFluid().get(), 1000);
-        return new VeinInfo(name, definition.getWeight(), List.of(), fluid, BEDROCK, specs, dimensions(definition.getDimensionFilter()));
+        return new VeinInfo(name, definition.getWeight(), List.of(), fluid, specs, dimensions(definition.getDimensionFilter()), null);
     }
 
     public static VeinInfo of(BedrockOreDefinition definition) {
@@ -117,9 +122,10 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
         specs.add(new Spec(YIELD, range(yield.getMinValue(), yield.getMaxValue())));
         specs.add(new Spec(DEPLETED_YIELD, Component.literal(FormattingUtil.formatNumbers(definition.depletedYield()))));
         specs.add(new Spec(RESERVE, reserve(BedrockOreVeinSavedData.MAXIMUM_VEIN_OPERATIONS, definition.depletionAmount(), definition.depletionChance())));
-        specs.add(new Spec(SIZE, Component.translatable(CHUNKS, FormattingUtil.formatNumbers(definition.size()))));
-        var name = Component.translatable("gtceu.jei.bedrock_ore." + GTOreVeinWidget.getBedrockOreName(definition));
-        return new VeinInfo(name, definition.weight(), entries, FluidStack.EMPTY, BEDROCK, specs, dimensions(definition.dimensionFilter()));
+        String id = GTOreVeinWidget.getBedrockOreName(definition);
+        var name = Component.translatable("gtceu.jei.bedrock_ore." + id);
+        var preview = VeinPreview.of(definition, entries, id.hashCode());
+        return new VeinInfo(name, definition.weight(), entries, FluidStack.EMPTY, specs, dimensions(definition.dimensionFilter()), preview);
     }
 
     private static int blockColor(BlockState state) {

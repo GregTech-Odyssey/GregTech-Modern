@@ -25,6 +25,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -51,7 +52,7 @@ final class EnderLinkUI {
         var list = listPage(ctx);
         list.setDisplay(false);
         var root = CoverUIs.page();
-        root.addSyncValue(SyncValue.of(ctx::listShown, SyncValue.BOOLEAN, false).onChanged(shown -> {
+        root.addSyncValue(SyncValue.of(ctx::listShown, ByteStreamCodec.BOOLEAN_CODEC, false).onChanged(shown -> {
             main.setDisplay(!shown);
             list.setDisplay(shown);
         }));
@@ -137,7 +138,7 @@ final class EnderLinkUI {
     private static UIElement channelRow(Context ctx, String key) {
         var cover = ctx.cover;
         var row = UIElement.row(ROW_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
-        var current = row.addSyncValue(SyncValue.of(() -> ctx.isCurrent(key), SyncValue.BOOLEAN, false));
+        var current = row.addSyncValue(SyncValue.of(() -> ctx.isCurrent(key), ByteStreamCodec.BOOLEAN_CODEC, false));
 
         var colorText = key.substring(Math.min(key.length(), cover.identifier().length()));
         var name = TextLine.constant(LayoutStyle.AUTO, Component.literal(colorText)).setSmall().setColor(UITheme.PANEL_TEXT);

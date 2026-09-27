@@ -107,7 +107,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
         super(0, 0, width, height);
         this.mainPage = mainPage;
         addWidget(this.pageContainer = new PageContainer(0, 0, width, height));
-        if (mainPage.hasPlayerInventory()) {
+        if (mainPage.windowHasPlayerInventory()) {
             addWidget(this.playerInventory = new PlayerInventoryWidget());
             this.playerInventory.setSelfPosition(new Position(2, height - 86));
             this.playerInventory.setBackground((IGuiTexture) null);

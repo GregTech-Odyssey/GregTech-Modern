@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +48,7 @@ public class TextLine extends UIElement {
 
     public TextLine(int width, Supplier<Component> text, Component initial) {
         layout(l -> l.size(width, HEIGHT));
-        this.text = addSyncValue(SyncValue.of(text, SyncValue.COMPONENT, initial));
+        this.text = addSyncValue(SyncValue.of(text, StreamCodecs.COMPONENT_CODEC, initial));
     }
 
     /** 服务端取值下发的文字。 */

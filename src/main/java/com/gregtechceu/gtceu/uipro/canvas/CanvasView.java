@@ -62,17 +62,13 @@ public class CanvasView extends UIElement {
 
     /// 视口相对外框的内缩（1 像素斜面边）
     private static final int FRAME = 1;
-    /// 按下后移动超过这么多界面像素才算拖动
-    private static final double DRAG_THRESHOLD = 3;
-    private static final float WHEEL_ZOOM_STEP = 1.15f;
+    public static final float WHEEL_ZOOM_STEP = 1.15f;
     /** 按钮缩放一次的倍数。 */
     public static final float BUTTON_ZOOM_STEP = 1.5f;
     private static final int MIN_SIZE = UISizes.CANVAS_MIN_SIZE;
     private static final Animation VIEW_ANIMATION = Animation.of(0.25f, Eases.CUBIC_OUT);
     /// 悬浮层、缩略图、缩放角的绘制高度：高于物品图标（约 150~160）与选中框（300）
     private static final int OVERLAY_Z = 310;
-    /// 网格每级最多画的线数：配置出错时也不至于每帧画上千条线
-    private static final int MAX_GRID_LINES = 512;
     /// 不在任何子控件上的鼠标坐标
     private static final int OUTSIDE = -100000;
 
@@ -93,8 +89,7 @@ public class CanvasView extends UIElement {
     private float lodSimplifiedPixelScale = 0.5f, lodBlockPixelScale = 0.2f;
     private boolean allowPan = true, allowZoom = true;
     @Nullable
-    private CanvasGrid grid = new CanvasGrid(UISizes.CANVAS_GRID_SIZE, UISizes.CANVAS_GRID_MIN_PIXELS, 4,
-            UITheme.CANVAS_GRID_LINE, UITheme.CANVAS_GRID_ACCENT);
+    private CanvasGrid grid = CanvasGrid.standard();
 
     // ==================== 视图（客户端） ====================
     private float offsetX, offsetY, scale = 1;
@@ -127,11 +122,7 @@ public class CanvasView extends UIElement {
     // ==================== 交互（客户端） ====================
     @Nullable
     private CanvasItem hovered;
-    private int pressButton = -1;
-    /// 按下时的鼠标位置与视图偏移：平移按"按下时的偏移 + 鼠标总位移"重算（同 LDLib2），不逐帧累加，始终跟手
-    private double pressX, pressY;
-    private float pressOffsetX, pressOffsetY;
-    private boolean panning;
+    private final PanGesture pan = new PanGesture();
     @Nullable
     private CanvasItem pressedItem;
     private boolean minimapDragging;
@@ -595,7 +586,7 @@ public class CanvasView extends UIElement {
 
         boolean overOverlay = isOverOverlay(mouseX, mouseY);
         boolean inside = isInViewport(mouseX, mouseY) && !overOverlay && !isOverMinimap(mouseX, mouseY) && !isOverGrip(mouseX, mouseY);
-        hovered = inside && !panning && !resizing ? pick(toWorldX(mouseX), toWorldY(mouseY)) : null;
+        hovered = inside && !pan.isPanning() && !resizing ? pick(toWorldX(mouseX), toWorldY(mouseY)) : null;
 
         var pose = graphics.pose();
         var matrix = pose.last().pose();
@@ -606,7 +597,7 @@ public class CanvasView extends UIElement {
         if (grid != null) {
             // 网格按屏幕坐标画：画笔先以屏幕空间开始本帧
             painter.begin(graphics, 1, CanvasLod.FULL, CanvasRect.of(vx, vy, vw, vh), Float.NaN, Float.NaN, null);
-            drawGrid(graphics, grid, vx, vy, vw, vh);
+            grid.draw(painter, scale, offsetX, offsetY, vx, vy, vw, vh);
         }
 
         float margin = UISizes.SLOT / scale;
@@ -648,33 +639,6 @@ public class CanvasView extends UIElement {
             UITheme.drawResizeGrip(graphics, x + w, y + h, resizing || isOverGrip(mouseX, mouseY), isLocked());
             pose.popPose();
         }
-    }
-
-    /** 背景网格：屏幕空间按世界坐标对齐画 1 像素线（见 {@link CanvasGrid}），所有线攒成一批提交。 */
-    @OnlyIn(Dist.CLIENT)
-    private void drawGrid(GuiGraphics graphics, CanvasGrid grid, int vx, int vy, int vw, int vh) {
-        var levels = grid.levels(scale);
-        for (int l = 0; l < levels.size(); l++) {
-            var level = levels.get(l);
-            int color = level.color();
-            float cell = level.cellSize();
-            if ((color >>> 24) == 0 || cell * scale < 2) continue;
-            long firstX = (long) Math.floor(offsetX / cell), lastX = (long) Math.ceil((offsetX + vw / scale) / cell);
-            long firstY = (long) Math.floor(offsetY / cell), lastY = (long) Math.ceil((offsetY + vh / scale) / cell);
-            if (lastX - firstX > MAX_GRID_LINES || lastY - firstY > MAX_GRID_LINES) continue;
-            int skip = level.skipEvery();
-            for (long i = firstX; i <= lastX; i++) {
-                if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
-                float sx = PixelSnap.snap(vx + (i * cell - offsetX) * scale);
-                painter.fill(sx, vy, sx + 1, vy + vh, color);
-            }
-            for (long i = firstY; i <= lastY; i++) {
-                if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
-                float sy = PixelSnap.snap(vy + (i * cell - offsetY) * scale);
-                painter.fill(vx, sy, vx + vw, sy + 1, color);
-            }
-        }
-        painter.flush();
     }
 
     /** 右侧卡片的高度上限：从上边距到底部悬浮层（再隔一个边距）；没有悬浮层时到下边距。 */
@@ -789,7 +753,7 @@ public class CanvasView extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
-        if (gui == null || gui.getModularUIGui() == null || panning || resizing) return;
+        if (gui == null || gui.getModularUIGui() == null || pan.isPanning() || resizing) return;
         if (isOverGrip(mouseX, mouseY)) {
             var lines = isLocked() ?
                     List.<Component>of(Component.translatable(GRIP_LOCKED), Component.translatable(GRIP_UNLOCK).withStyle(ChatFormatting.GRAY)) :
@@ -841,12 +805,7 @@ public class CanvasView extends UIElement {
             }
             return true;
         }
-        pressButton = button;
-        pressX = mouseX;
-        pressY = mouseY;
-        pressOffsetX = offsetX;
-        pressOffsetY = offsetY;
-        panning = false;
+        pan.press(button, mouseX, mouseY, offsetX, offsetY);
         pressedItem = pick(toWorldX(mouseX), toWorldY(mouseY));
         return true;
     }
@@ -862,12 +821,10 @@ public class CanvasView extends UIElement {
             navigateMinimap(mouseX, mouseY);
             return true;
         }
-        if (pressButton >= 0) {
-            double dx = mouseX - pressX, dy = mouseY - pressY;
-            if (!panning && allowPan && (pressButton == 0 || pressButton == 2) && Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD) panning = true;
-            if (panning) {
-                offsetX = pressOffsetX - (float) dx / scale;
-                offsetY = pressOffsetY - (float) dy / scale;
+        if (pan.isPressed()) {
+            if (pan.drag(mouseX, mouseY, allowPan)) {
+                offsetX = pan.offsetX(mouseX, scale);
+                offsetY = pan.offsetY(mouseY, scale);
                 clampView();
             }
             return true;
@@ -888,12 +845,11 @@ public class CanvasView extends UIElement {
             minimapDragging = false;
             return true;
         }
-        if (pressButton >= 0) {
-            boolean wasPanning = panning;
-            int pressed = pressButton;
+        if (pan.isPressed()) {
+            boolean wasPanning = pan.isPanning();
+            int pressed = pan.button();
             var item = pressedItem;
-            pressButton = -1;
-            panning = false;
+            pan.release();
             pressedItem = null;
             if (!wasPanning && pressed == button && isInViewport(mouseX, mouseY)) {
                 var released = pick(toWorldX(mouseX), toWorldY(mouseY));

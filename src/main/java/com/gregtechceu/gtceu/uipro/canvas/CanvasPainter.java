@@ -31,8 +31,11 @@ public final class CanvasPainter {
     @Nullable
     private CanvasItem hovered;
 
-    /** 画布持有一个画笔、每帧 {@link #begin} 重设一次（不每帧新建）。 */
-    CanvasPainter() {}
+    public CanvasPainter() {}
+
+    public CanvasPainter beginScreen(GuiGraphics graphics, CanvasRect visible) {
+        return begin(graphics, 1, CanvasLod.FULL, visible, Float.NaN, Float.NaN, null);
+    }
 
     CanvasPainter begin(GuiGraphics graphics, float scale, CanvasLod lod, CanvasRect visible, float mouseX, float mouseY, @Nullable CanvasItem hovered) {
         this.graphics = graphics;
@@ -168,6 +171,66 @@ public final class CanvasPainter {
             if (y0 == y1) hLine(x0, x1, y0, thickness, color);
             else vLine(x0, y0, y1, thickness, color);
         }
+    }
+
+    public static float pathLength(float[] points) {
+        float length = 0;
+        for (int i = 0; i + 3 < points.length; i += 2) {
+            length += Math.abs(points[i + 2] - points[i]) + Math.abs(points[i + 3] - points[i + 1]);
+        }
+        return length;
+    }
+
+    public void pathSpan(float[] points, float from, float to, float thickness, int color) {
+        if (to <= from) return;
+        float half = atLeastPixel(thickness) / 2;
+        float start = 0;
+        int last = points.length - 4;
+        for (int i = 0; i <= last; i += 2) {
+            float x0 = points[i], y0 = points[i + 1], x1 = points[i + 2], y1 = points[i + 3];
+            float length = Math.abs(x1 - x0) + Math.abs(y1 - y0);
+            float end = start + length;
+            float a = Math.max(from, start), b = Math.min(to, end);
+            if (length > 0 && b > a) {
+                float s = (a - start) / length, e = (b - start) / length;
+                float head = a <= start && i > 0 ? half : 0;
+                float tail = b >= end && i < last ? half : 0;
+                if (y0 == y1) {
+                    float dir = Math.signum(x1 - x0);
+                    float xs = x0 + (x1 - x0) * s - dir * head, xe = x0 + (x1 - x0) * e + dir * tail;
+                    fill(Math.min(xs, xe), y0 - half, Math.max(xs, xe), y0 + half, color);
+                } else {
+                    float dir = Math.signum(y1 - y0);
+                    float ys = y0 + (y1 - y0) * s - dir * head, ye = y0 + (y1 - y0) * e + dir * tail;
+                    fill(x0 - half, Math.min(ys, ye), x0 + half, Math.max(ys, ye), color);
+                }
+            }
+            start = end;
+            if (start >= to) break;
+        }
+    }
+
+    public void arrow(float tipX, float tipY, int dirX, int dirY, float width, int depth, int color) {
+        float p = px(1);
+        float base = atLeastPixel(width) / 2;
+        for (int k = 0; k < depth; k++) {
+            float half = base + k * p;
+            float near = k * p, far = (k + 1) * p;
+            if (dirX == 0) {
+                float y0 = tipY - dirY * near, y1 = tipY - dirY * far;
+                fill(tipX - half, Math.min(y0, y1), tipX + half, Math.max(y0, y1), color);
+            } else {
+                float x0 = tipX - dirX * near, x1 = tipX - dirX * far;
+                fill(Math.min(x0, x1), tipY - half, Math.max(x0, x1), tipY + half, color);
+            }
+        }
+    }
+
+    public void junction(float x, float y, float size, int color) {
+        float half = size / 2, cut = Math.min(px(1), half);
+        fill(x - half, y - half + cut, x + half, y + half - cut, color);
+        fill(x - half + cut, y - half, x + half - cut, y - half + cut, color);
+        fill(x - half + cut, y + half - cut, x + half - cut, y + half, color);
     }
 
     /** 线宽至少 1 个屏幕像素。 */

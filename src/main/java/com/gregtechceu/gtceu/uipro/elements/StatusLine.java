@@ -18,6 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -107,7 +109,7 @@ public class StatusLine extends UIElement {
     public StatusLine(int width, Component label, Supplier<Component> value) {
         this.label = label;
         layout(l -> l.size(width, HEIGHT));
-        this.value = addSyncValue(SyncValue.of(value, SyncValue.COMPONENT, Component.empty()));
+        this.value = addSyncValue(SyncValue.of(value, StreamCodecs.COMPONENT_CODEC, Component.empty()));
         this.level = addSyncValue(SyncValue.ofInt(() -> levelGetter.get().ordinal(), Level.NORMAL.ordinal()));
     }
 
@@ -132,7 +134,7 @@ public class StatusLine extends UIElement {
      * 两端建页时都要以同样顺序调用（它会注册一个同步值）。
      */
     public StatusLine detail(Supplier<Component> detail) {
-        this.detail = addSyncValue(SyncValue.of(detail, SyncValue.COMPONENT, Component.empty()));
+        this.detail = addSyncValue(SyncValue.of(detail, StreamCodecs.COMPONENT_CODEC, Component.empty()));
         return this;
     }
 
@@ -160,7 +162,7 @@ public class StatusLine extends UIElement {
      * 点击后服务端再检查一次 {@code enabled}，再对打开界面的玩家执行 {@code action}。两端建页时都要以同样顺序调用。
      */
     public StatusLine onClick(Component hint, BooleanSupplier enabled, Consumer<Player> action) {
-        this.clickable = addSyncValue(SyncValue.of(enabled::getAsBoolean, SyncValue.BOOLEAN, false));
+        this.clickable = addSyncValue(SyncValue.of(enabled::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false));
         this.onClick = player -> {
             if (enabled.getAsBoolean()) action.accept(player);
         };

@@ -48,6 +48,12 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
     /// 快速点击时按下态至少保持这么久，看得见
     private static final long PRESS_HOLD_MS = 120;
 
+    private static final long BUSY_STEP_MS = 80;
+    private static final int[][] BUSY_ORBIT = {
+            { 2, 0 }, { 2, 1 }, { 1, 2 }, { 0, 2 }, { -1, 2 }, { -2, 1 },
+            { -2, 0 }, { -2, -1 }, { -1, -2 }, { 0, -2 }, { 1, -2 }, { 2, -1 }
+    };
+
     private final AnimationEngine animations = new AnimationEngine();
     private final Map<Widget, AnimationEngine.Playback> moving = new IdentityHashMap<>();
     private final Map<Widget, Motion> motions = new IdentityHashMap<>();
@@ -266,6 +272,8 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
         /// 按钮类（开关、一次性动作）才有按下态；展开类点下即展开
         private final boolean button;
         @Nullable
+        private final IFancyConfiguratorButton fancyButton;
+        @Nullable
         private final IFancyConfiguratorButton persistent;
         private boolean held;
         /// 按下态至少保持到这个时刻（初值远在过去，比较不会溢出）
@@ -276,11 +284,16 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
         private TabFeedback(Tab tab, IFancyConfigurator configurator) {
             this.tab = tab;
             this.button = configurator instanceof IFancyConfiguratorButton;
+            this.fancyButton = configurator instanceof IFancyConfiguratorButton b ? b : null;
             this.persistent = configurator instanceof IFancyConfiguratorButton b && b.isPersistent() ? b : null;
         }
 
+        private boolean busy() {
+            return fancyButton != null && fancyButton.isBusy();
+        }
+
         private boolean active() {
-            return button && !moving.containsKey(tab) && tab.getSizeWidth() == getTabSize() &&
+            return button && !busy() && !moving.containsKey(tab) && tab.getSizeWidth() == getTabSize() &&
                     tab.getSizeHeight() == getTabSize();
         }
 
@@ -315,9 +328,18 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
             };
         }
 
+        int iconOffsetX() {
+            return busy() ? busyOrbit()[0] : 0;
+        }
+
         int iconOffsetY() {
+            if (busy()) return busyOrbit()[1];
             if (state != TabState.PRESSED) return 0;
             return persistent != null ? UITheme.CONFIGURATOR_TAB_LATCH_DEPTH : UITheme.CONFIGURATOR_TAB_PRESS_DEPTH;
+        }
+
+        private static int[] busyOrbit() {
+            return BUSY_ORBIT[(int) (Util.getMillis() / BUSY_STEP_MS % BUSY_ORBIT.length)];
         }
     }
 
@@ -379,6 +401,12 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
             var texture = feedback.background(mouseX, mouseY);
             if (texture == null) super.drawTabBackground(graphics, mouseX, mouseY);
             else texture.draw(graphics, mouseX, mouseY, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        protected int getIconOffsetX() {
+            return feedback.iconOffsetX();
         }
 
         @Override

@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -73,7 +74,7 @@ public final class ElementState {
     public void setDisabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
         if (disabledValue != null) throw new IllegalStateException("disabled can only be set once per element");
         this.disabledCondition = serverCondition;
-        this.disabledValue = register.apply(SyncValue.of(serverCondition::getAsBoolean, SyncValue.BOOLEAN, false));
+        this.disabledValue = register.apply(SyncValue.of(serverCondition::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false));
         this.disabledReason = reasonKey == null ? null : Component.translatable(reasonKey);
     }
 

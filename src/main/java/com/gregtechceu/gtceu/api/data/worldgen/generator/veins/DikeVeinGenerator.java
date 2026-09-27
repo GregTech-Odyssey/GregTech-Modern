@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
@@ -11,12 +10,11 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -25,6 +23,7 @@ import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration.TargetBlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 
@@ -33,6 +32,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,59 +60,83 @@ public class DikeVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
-        WorldgenRandom worldgenRandom = new WorldgenRandom(new LegacyRandomSource(level.getSeed()));
-        NormalNoise normalNoise = NormalNoise.create(worldgenRandom, -2, 4.0);
+        NormalNoise normalNoise = createNoise(level.getSeed());
         ChunkPos chunkPos = new ChunkPos(origin);
+        int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
+        int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
+        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> generatedBlocks
+                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, pos, entry)));
+        return generatedBlocks;
+    }
+
+    @Override
+    public boolean sample(GTOreDefinition entry, RandomSource random, BlockPos origin, BoundingBox area, SampleSink sink) {
+        trace(random, entry, createNoise(random.nextLong()), origin.getX(), origin.getZ(), area, new DikeSink() {
+
+            @Override
+            public void place(BlockPos pos, long randomSeed) {
+                var block = chooseBlock(new XoroshiroRandomSource(randomSeed), pos.getY());
+                sink.accept(pos, block == null ? null : block.block());
+            }
+
+            @Override
+            public void skip(BlockPos pos) {
+                sink.accept(pos, null);
+            }
+        });
+        return true;
+    }
+
+    @FunctionalInterface
+    private interface DikeSink {
+
+        void place(BlockPos pos, long randomSeed);
+
+        default void skip(BlockPos pos) {}
+    }
+
+    private static NormalNoise createNoise(long seed) {
+        return NormalNoise.create(new WorldgenRandom(new LegacyRandomSource(seed)), -2, 4.0);
+    }
+
+    private void trace(RandomSource random, GTOreDefinition entry, NormalNoise normalNoise, int xPos, int zPos,
+                       @Nullable BoundingBox area, DikeSink sink) {
         float density = entry.density();
         int size = entry.clusterSize().sample(random);
         int radius = Mth.ceil(size / 2.0F);
-        int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
-        int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
-        int yTop = maxYLevel;
-        int yBottom = minYLevel;
-        BlockPos basePos = new BlockPos(xPos, yBottom, zPos);
+        int yBottom = clipFrom(area, Direction.Axis.Y, 0, minYLevel), yTop = clipTo(area, Direction.Axis.Y, 0, maxYLevel);
+        int xFrom = clipFrom(area, Direction.Axis.X, xPos, -radius), xTo = clipTo(area, Direction.Axis.X, xPos, radius);
+        int zFrom = clipFrom(area, Direction.Axis.Z, zPos, -radius), zTo = clipTo(area, Direction.Axis.Z, zPos, radius);
         for (int dY = yBottom; dY <= yTop; dY++) {
-            for (int dX = -radius; dX <= radius; dX++) {
-                for (int dZ = -radius; dZ <= radius; dZ++) {
+            for (int dX = xFrom; dX <= xTo; dX++) {
+                for (int dZ = zFrom; dZ <= zTo; dZ++) {
                     float dist = (dX * dX) + (dZ * dZ);
                     if (dist > radius * 2) {
                         continue;
                     }
-                    BlockPos pos = new BlockPos(basePos.getX() + dX, dY, basePos.getZ() + dZ);
+                    BlockPos pos = new BlockPos(xPos + dX, dY, zPos + dZ);
                     if (normalNoise.getValue(dX, dY, dZ) >= 0.5 && random.nextFloat() <= density) {
                         final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                        generatedBlocks.put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, pos, entry));
+                        sink.place(pos, randomSeed);
+                    } else {
+                        sink.skip(pos);
                     }
                 }
             }
         }
-        return generatedBlocks;
     }
 
-    private void placeBlock(BulkSectionAccess level, LevelChunkSection section, long randomSeed, BlockPos pos, GTOreDefinition entry) {
-        var rand = new XoroshiroRandomSource(randomSeed);
-        DikeBlockDefinition blockDefinition = GTUtil.getRandomItem(rand, blocks);
-        BlockState current = level.getBlockState(pos);
-        int x = SectionPos.sectionRelative(pos.getX());
-        int y = SectionPos.sectionRelative(pos.getY());
-        int z = SectionPos.sectionRelative(pos.getZ());
-        if (pos.getY() >= blockDefinition.minY() && pos.getY() <= blockDefinition.maxY()) {
-            blockDefinition.block.ifLeft(blockStates -> {
-                for (TargetBlockState targetState : blockStates) {
-                    if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, rand, entry, targetState, pos.mutable())) continue;
-                    if (targetState.state.isAir()) continue;
-                    section.setBlockState(x, y, z, targetState.state, false);
-                    break;
-                }
-            }).ifRight(material -> {
-                if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, rand, entry, pos.mutable())) return;
-                BlockState currentState = level.getBlockState(pos);
-                var prefix = ChemicalHelper.getOrePrefix(currentState);
-                if (prefix.isEmpty()) return;
-                Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-                if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
-                section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
-            });
+    @Nullable
+    private DikeBlockDefinition chooseBlock(RandomSource random, int y) {
+        DikeBlockDefinition blockDefinition = GTUtil.getRandomItem(random, blocks);
+        return blockDefinition != null && y >= blockDefinition.minY() && y <= blockDefinition.maxY() ? blockDefinition : null;
+    }
+
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, BlockPos pos, GTOreDefinition entry) {
+        var random = new XoroshiroRandomSource(randomSeed);
+        DikeBlockDefinition blockDefinition = chooseBlock(random, pos.getY());
+        if (blockDefinition != null) {
+            OreVeinUtil.placeOre(blockDefinition.block, access.getBlockState(pos), access, section, random, pos, entry);
         }
     }
 

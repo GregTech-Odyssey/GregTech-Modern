@@ -41,17 +41,17 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
                 .addChildren(popupTitle(popup), UIElement.flexSpacer(), closeButton);
 
         // 内容至少一个 9 槽区块宽（按 getContentWidth 定宽的页面照旧），里面的滚动区被拖宽时跟着变宽
-        var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
+        var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(popup.contentWidth()).gapAll(UISizes.SECTION_GAP));
         popup.content().accept(content);
         // 初始尺寸取最小，宽高都跟随内容（见 ScrollerView 对滚动范围的处理）
-        scroller = new ScrollerView(scrollerId, UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT).adaptiveWidth();
+        scroller = new ScrollerView(scrollerId, popup.contentWidth(), UISizes.SLOT).adaptiveWidth();
         scroller.addScrollViewChild(content);
         scroller.adaptiveHeight(contentLimit(maxHeight));
         addChildren(titleRow, scroller);
     }
 
     private static Widget popupTitle(Popup popup) {
-        if (popup.icon() == null) return Label.of(popup.title(), UISizes.POPUP_CONTENT_WIDTH - UISizes.ICON_BUTTON - UISizes.GAP);
+        if (popup.icon() == null) return Label.of(popup.title(), popup.contentWidth() - UISizes.ICON_BUTTON - UISizes.GAP);
         return ItemTitle.of(popup.icon(), popup.title()).layout(l -> l.flex(1));
     }
 

@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.client.scene.ISceneBlockRenderHook;
+import com.lowdragmc.lowdraglib.client.scene.ImmediateWorldSceneRenderer;
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
@@ -17,8 +18,11 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.BlockPosFace;
 import com.lowdragmc.lowdraglib.utils.Position;
+import com.lowdragmc.lowdraglib.utils.PositionedRect;
+import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,6 +35,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -322,6 +327,21 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
 
         private SideScene(int x, int y, int width, int height, Level level) {
             super(x, y, width, height, level);
+            if (isRemote()) usePixelExactRenderer();
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void usePixelExactRenderer() {
+            if (renderer == null) return;
+            renderer.deleteCacheBuffer();
+            renderer = new PixelExactRenderer(dummyWorld);
+            renderer.useOrtho(useOrtho);
+            renderer.setOnLookingAt(ray -> {});
+            renderer.setBeforeBatchEnd(this::renderBeforeBatchEnd);
+            renderer.setAfterWorldRender(this::renderBlockOverLay);
+            renderer.setCameraLookAt(center, camZoom(), Math.toRadians(rotationPitch), Math.toRadians(rotationYaw));
+            renderer.useCacheBuffer(useCache);
+            renderer.setParticleManager(createParticleManager());
         }
 
         private SideScene setOnCameraChanged(CameraListener listener) {
@@ -371,6 +391,43 @@ public class CombinedDirectionalConfigurator extends WidgetGroup {
             if (selectedPosFace != null) drawFacingBorder(poseStack, selectedPosFace, UITheme.SELECTION_COLOR);
             BlockPosFace hover = dragging ? clickPosFace : hoverPosFace;
             if (hover != null && !hover.equals(selectedPosFace)) drawFacingBorder(poseStack, hover, UITheme.SCENE_HOVER_FACE);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static final class PixelExactRenderer extends ImmediateWorldSceneRenderer {
+
+        private @Nullable PositionedRect pendingViewport;
+
+        private PixelExactRenderer(Level world) {
+            super(world);
+        }
+
+        @Override
+        public void render(PoseStack poseStack, float x, float y, float width, float height, int mouseX, int mouseY) {
+            var pose = poseStack.last().pose();
+            var min = pose.transformPosition(new Vector3f(x, y, 0));
+            var max = pose.transformPosition(new Vector3f(x + width, y + height, 0));
+            var window = Minecraft.getInstance().getWindow();
+            double scale = window.getGuiScale();
+            int left = (int) Math.round(min.x() * scale);
+            int right = (int) Math.round(max.x() * scale);
+            int top = (int) Math.round(min.y() * scale);
+            int bottom = (int) Math.round(max.y() * scale);
+            pendingViewport = new PositionedRect(new Position(left, window.getHeight() - bottom), new Size(right - left, bottom - top));
+            try {
+                super.render(poseStack, x, y, width, height, mouseX, mouseY);
+            } finally {
+                pendingViewport = null;
+            }
+        }
+
+        @Override
+        public PositionedRect getPositionedRect(int x, int y, int width, int height) {
+            var viewport = pendingViewport;
+            if (viewport == null) return super.getPositionedRect(x, y, width, height);
+            pendingViewport = null;
+            return viewport;
         }
     }
 }

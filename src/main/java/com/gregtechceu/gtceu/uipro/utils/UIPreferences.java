@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 public final class UIPreferences {
 
@@ -67,6 +68,44 @@ public final class UIPreferences {
 
     public static void put(String key, Enum<?> value) {
         put(key, value.name());
+    }
+
+    public static void remove(String key) {
+        if (values().remove(key) != null) save();
+    }
+
+    public static float getZoom(UUID player, String zoomKey) {
+        var value = values().get(zoomKey(player, zoomKey));
+        if (value == null) return Float.NaN;
+        try {
+            return Float.parseFloat(value);
+        } catch (NumberFormatException e) {
+            return Float.NaN;
+        }
+    }
+
+    public static void putZoom(UUID player, String zoomKey, float scale) {
+        put(zoomKey(player, zoomKey), Float.toString(scale));
+    }
+
+    public static void removeZoom(UUID player, String zoomKey) {
+        remove(zoomKey(player, zoomKey));
+    }
+
+    private static String zoomKey(UUID player, String zoomKey) {
+        return "flow_zoom." + player + "." + zoomKey;
+    }
+
+    public static boolean hasVisitedTab(UUID player, String tabKey) {
+        return values().containsKey(visitedTabKey(player, tabKey));
+    }
+
+    public static void markTabVisited(UUID player, String tabKey) {
+        put(visitedTabKey(player, tabKey), "true");
+    }
+
+    private static String visitedTabKey(UUID player, String tabKey) {
+        return "visited_tab." + player + "." + tabKey;
     }
 
     private static void save() {

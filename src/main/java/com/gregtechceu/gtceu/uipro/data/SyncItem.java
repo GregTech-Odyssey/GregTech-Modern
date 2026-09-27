@@ -3,19 +3,21 @@ package com.gregtechceu.gtceu.uipro.data;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+
 public record SyncItem(ItemStack stack) {
 
     public static final SyncItem EMPTY = new SyncItem(ItemStack.EMPTY);
 
-    public static final SyncValue.Codec<SyncItem> CODEC = new SyncValue.Codec<>() {
+    public static final ByteStreamCodec<SyncItem> CODEC = new ByteStreamCodec<>() {
 
         @Override
-        public void write(FriendlyByteBuf buf, SyncItem value) {
+        public void encode(FriendlyByteBuf buf, SyncItem value) {
             buf.writeItem(value.stack.isEmpty() ? ItemStack.EMPTY : value.stack.copyWithCount(1));
         }
 
         @Override
-        public SyncItem read(FriendlyByteBuf buf) {
+        public SyncItem decode(FriendlyByteBuf buf) {
             return of(buf.readItem());
         }
     };

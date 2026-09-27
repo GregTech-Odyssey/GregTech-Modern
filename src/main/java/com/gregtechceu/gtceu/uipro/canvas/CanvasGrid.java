@@ -1,6 +1,12 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
+import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+
 import net.minecraft.util.Mth;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +19,17 @@ import java.util.List;
  * <li>换级时不能突变：最密一级从无渐显，中间一级从细线色渐变到主线色，最粗一级始终是主线色；
  * 每级跳过由上一级负责的线，同一条线不会叠画两次（叠画会让共享线随渐变变亮、换级时再跳回去）。</li>
  * </ul>
- * 与 Minecraft、界面无关，只做数学；绘制在 {@link CanvasView}。结果按缩放缓存，缩放不变时每帧不重算、不分配。
  */
 public final class CanvasGrid {
 
     /** 一级网格：间距（世界单位）、颜色、每隔几条跳过一条（该线归更粗一级画；0 为不跳）。 */
     public record Level(float cellSize, int color, int skipEvery) {}
+
+    private static final int MAX_LINES = 512;
+
+    public static CanvasGrid standard() {
+        return new CanvasGrid(UISizes.CANVAS_GRID_SIZE, UISizes.CANVAS_GRID_MIN_PIXELS, 4, UITheme.CANVAS_GRID_LINE, UITheme.CANVAS_GRID_ACCENT);
+    }
 
     private final float base;
     private final float minPixels;
@@ -62,6 +73,32 @@ public final class CanvasGrid {
         levels.add(new Level(coarse, blend(lineColor, accentColor, fade), subdivisions));
         levels.add(new Level(coarse * subdivisions, accentColor, 0));
         return levels;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void draw(CanvasPainter painter, float scale, float offsetX, float offsetY, int vx, int vy, int vw, int vh) {
+        var levels = levels(scale);
+        for (int l = 0; l < levels.size(); l++) {
+            var level = levels.get(l);
+            int color = level.color();
+            float cell = level.cellSize();
+            if ((color >>> 24) == 0 || cell * scale < 2) continue;
+            long firstX = (long) Math.floor(offsetX / cell), lastX = (long) Math.ceil((offsetX + vw / scale) / cell);
+            long firstY = (long) Math.floor(offsetY / cell), lastY = (long) Math.ceil((offsetY + vh / scale) / cell);
+            if (lastX - firstX > MAX_LINES || lastY - firstY > MAX_LINES) continue;
+            int skip = level.skipEvery();
+            for (long i = firstX; i <= lastX; i++) {
+                if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
+                float sx = PixelSnap.snap(vx + (i * cell - offsetX) * scale);
+                painter.fill(sx, vy, sx + 1, vy + vh, color);
+            }
+            for (long i = firstY; i <= lastY; i++) {
+                if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
+                float sy = PixelSnap.snap(vy + (i * cell - offsetY) * scale);
+                painter.fill(vx, sy, vx + vw, sy + 1, color);
+            }
+        }
+        painter.flush();
     }
 
     private static int withAlphaFactor(int color, float factor) {

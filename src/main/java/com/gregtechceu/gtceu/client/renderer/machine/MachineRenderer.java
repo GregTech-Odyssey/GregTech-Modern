@@ -38,8 +38,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -52,6 +55,9 @@ public class MachineRenderer extends TextureOverrideRenderer
     public static final ResourceLocation PIPE_OVERLAY = GTCEu.id("block/overlay/machine/overlay_pipe");
     public static final ResourceLocation FLUID_OUTPUT_OVERLAY = GTCEu.id("block/overlay/machine/overlay_fluid_output");
     public static final ResourceLocation ITEM_OUTPUT_OVERLAY = GTCEu.id("block/overlay/machine/overlay_item_output");
+    private static final Vector3f GUI_LIGHT_0 = new Vector3f(-0.304f, 0.406f, 0.862f).normalize();
+    private static final Vector3f GUI_LIGHT_1 = new Vector3f(0.681f, 0.426f, 0.596f).normalize();
+    public static boolean frontLitGui;
 
     public MachineRenderer(ResourceLocation modelLocation) {
         super(modelLocation);
@@ -74,6 +80,11 @@ public class MachineRenderer extends TextureOverrideRenderer
     public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack,
                            MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
         if (stack.getItem() instanceof MetaMachineItem machineItem) {
+            boolean gui = frontLitGui && transformType == ItemDisplayContext.GUI && buffer instanceof MultiBufferSource.BufferSource;
+            if (gui) {
+                ((MultiBufferSource.BufferSource) buffer).endBatch();
+                RenderSystem.setShaderLights(GUI_LIGHT_0, GUI_LIGHT_1);
+            }
             IItemRendererProvider.disabled.set(true);
             Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer,
                     combinedLight, combinedOverlay,
@@ -90,6 +101,10 @@ public class MachineRenderer extends TextureOverrideRenderer
                         }
                     });
             IItemRendererProvider.disabled.set(false);
+            if (gui) {
+                ((MultiBufferSource.BufferSource) buffer).endBatch();
+                Lighting.setupFor3DItems();
+            }
         }
     }
 

@@ -230,6 +230,13 @@ public class ConfiguratorPanel extends WidgetGroup {
             this.button = new ButtonWidget(0, 0, getTabSize(), getTabSize(), null, this::onClick) {
 
                 @Override
+                @OnlyIn(Dist.CLIENT)
+                public boolean mouseClicked(double mouseX, double mouseY, int button) {
+                    if (configurator instanceof IFancyConfiguratorButton fancyButton && fancyButton.isBusy()) return isMouseOverElement(mouseX, mouseY);
+                    return super.mouseClicked(mouseX, mouseY, button);
+                }
+
+                @Override
                 public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
                     if (!(configurator instanceof IFancyCustomMouseWheelAction hasActions)) return false;
                     if (isMouseOverElement(mouseX, mouseY)) return hasActions.mouseWheelMove(this::writeClientAction, mouseX, mouseY, wheelDelta);
@@ -325,6 +332,7 @@ public class ConfiguratorPanel extends WidgetGroup {
             if (clickData.button == 2 && configurator instanceof IFancyCustomMiddleClickAction middleAction) {
                 middleAction.onMiddleClick(this::writeClientAction);
             } else if (configurator instanceof IFancyConfiguratorButton fancyButton) {
+                if (fancyButton.isBusy()) return;
                 fancyButton.onClick(clickData, getGui() == null ? null : getGui().entityPlayer);
             } else {
                 if (expanded == this) {
@@ -382,13 +390,18 @@ public class ConfiguratorPanel extends WidgetGroup {
             } else {
                 drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
             }
-            configurator.getIcon().draw(graphics, mouseX, mouseY, position.x + size.width - 20, position.y + 4 + getIconOffsetY(), 16, 16);
+            configurator.getIcon().draw(graphics, mouseX, mouseY, position.x + size.width - 20 + getIconOffsetX(), position.y + 4 + getIconOffsetY(), 16, 16);
         }
 
         /** 画标签底图。子类可按悬停、按下换底图。 */
         @OnlyIn(Dist.CLIENT)
         protected void drawTabBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
             drawBackgroundTexture(graphics, mouseX, mouseY);
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        protected int getIconOffsetX() {
+            return 0;
         }
 
         /** 图标的纵向偏移（子类用于按下时让图标随底面下沉）。 */

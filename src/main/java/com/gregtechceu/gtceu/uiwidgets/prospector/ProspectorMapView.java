@@ -37,6 +37,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +93,7 @@ public class ProspectorMapView extends UIElement {
                 CoverUIs.controlRow(DARK_MAP, Switch.of(() -> dark, value -> dark = value)),
                 search, list);
         addChildren(canvas, side);
-        addSyncValue(SyncValue.of(() -> dark, SyncValue.BOOLEAN, false)).onChanged(canvas::setDark);
+        addSyncValue(SyncValue.of(() -> dark, ByteStreamCodec.BOOLEAN_CODEC, false)).onChanged(canvas::setDark);
     }
 
     private void search(String text) {

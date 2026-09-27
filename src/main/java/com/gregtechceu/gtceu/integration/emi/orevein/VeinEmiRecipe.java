@@ -24,6 +24,7 @@ import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.Bounds;
 import dev.emi.emi.api.widget.SlotWidget;
 import dev.emi.emi.api.widget.Widget;
 import dev.emi.emi.api.widget.WidgetHolder;
@@ -147,7 +148,7 @@ public class VeinEmiRecipe implements EmiRecipe {
         for (var slot : page.getDisplaySlots()) {
             var position = slot.hole().getPosition();
             EmiStack stack = slot.fluid().isEmpty() ? EmiStack.of(slot.item()) : EmiStack.of(slot.fluid().getFluid(), slot.fluid().getTag());
-            var widget = new DisplaySlotWidget(stack, position.x, position.y, slot.overlay()).drawBack(false);
+            var widget = new DisplaySlotWidget(stack, position.x, position.y, slot.size(), slot.overlay()).drawBack(false);
             if (slot.io() == IngredientIO.CATALYST) widget.catalyst(true);
             else widget.recipeContext(this);
             slot.tooltip().forEach(widget::appendTooltip);
@@ -160,17 +161,25 @@ public class VeinEmiRecipe implements EmiRecipe {
 
     private static final class DisplaySlotWidget extends SlotWidget {
 
+        private final int size;
         @Nullable
         private final String overlay;
 
-        private DisplaySlotWidget(EmiStack stack, int x, int y, @Nullable String overlay) {
+        private DisplaySlotWidget(EmiStack stack, int x, int y, int size, @Nullable String overlay) {
             super(stack, x, y);
+            this.size = size;
             this.overlay = overlay;
         }
 
         @Override
+        public Bounds getBounds() {
+            return new Bounds(x, y, size, size);
+        }
+
+        @Override
         public void drawStack(GuiGraphics draw, int mouseX, int mouseY, float delta) {
-            getStack().render(draw, x + 1, y + 1, delta, EmiIngredient.RENDER_ICON);
+            int inset = (size - 16) / 2;
+            getStack().render(draw, x + inset, y + inset, delta, EmiIngredient.RENDER_ICON);
         }
 
         @Override
@@ -179,9 +188,10 @@ public class VeinEmiRecipe implements EmiRecipe {
             if (overlay == null) return;
             var font = Minecraft.getInstance().font;
             float scale = UISizes.SMALL_TEXT_SCALE;
+            int inset = size == UISizes.SLOT ? 1 : 0;
             var pose = draw.pose();
             pose.pushPose();
-            pose.translate(x + UISizes.SLOT - 1 - font.width(overlay) * scale, y + UISizes.SLOT - 1 - UISizes.SMALL_TEXT_HEIGHT, 200);
+            pose.translate(x + size - inset - font.width(overlay) * scale, y + size - inset - UISizes.SMALL_TEXT_HEIGHT, 200);
             pose.scale(scale, scale, 1);
             draw.drawString(font, overlay, 0, 0, TIER_COLOR, true);
             pose.popPose();

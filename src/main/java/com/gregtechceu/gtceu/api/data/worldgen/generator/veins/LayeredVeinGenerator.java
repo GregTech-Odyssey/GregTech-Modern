@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTLayerPattern;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
@@ -9,16 +8,17 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import com.gto.registrate.util.nullness.NonNullSupplier;
 import com.mojang.datafixers.util.Either;
@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,15 +72,35 @@ public class LayeredVeinGenerator extends VeinGenerator {
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
         Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        float density = entry.density();
+        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> generatedBlocks
+                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, density, state, pos)));
+        return traced ? generatedBlocks : Long2ObjectMaps.emptyMap();
+    }
+
+    @Override
+    public boolean sample(GTOreDefinition entry, RandomSource random, BlockPos origin, BoundingBox area, SampleSink sink) {
+        float density = entry.density();
+        return trace(random, entry, origin, UNBOUNDED_HEIGHT, area, (pos, state, randomSeed) -> sink.accept(pos,
+                passesDensity(new XoroshiroRandomSource(randomSeed), density) ? state : null));
+    }
+
+    @FunctionalInterface
+    private interface LayerSink {
+
+        void accept(BlockPos pos, Either<List<OreConfiguration.TargetBlockState>, Material> state, long randomSeed);
+    }
+
+    private boolean trace(RandomSource random, GTOreDefinition entry, BlockPos origin, LevelHeightAccessor heights,
+                          @Nullable BoundingBox area, LayerSink sink) {
         var patternPool = this.getLayerPatterns();
 
         if (patternPool.isEmpty())
-            return Long2ObjectMaps.emptyMap();
+            return false;
 
         GTLayerPattern layerPattern = patternPool.get(random.nextInt(patternPool.size()));
 
         int size = entry.clusterSize().sample(random);
-        float density = entry.density();
 
         int radius = Mth.ceil(size / 2f);
 
@@ -90,8 +111,12 @@ public class LayeredVeinGenerator extends VeinGenerator {
         int length = (radius * 2) + 1;
         int height = (radius * 2) + 1;
 
-        if (origin.getY() >= level.getMaxBuildHeight())
-            return Long2ObjectMaps.emptyMap();
+        if (origin.getY() >= heights.getMaxBuildHeight())
+            return false;
+
+        int xFrom = clipFrom(area, Direction.Axis.X, xMin, 0), xTo = clipTo(area, Direction.Axis.X, xMin, width - 1);
+        int yFrom = clipFrom(area, Direction.Axis.Y, yMin, 0), yTo = clipTo(area, Direction.Axis.Y, yMin, height - 1);
+        int zFrom = clipFrom(area, Direction.Axis.Z, zMin, 0), zTo = clipTo(area, Direction.Axis.Z, zMin, length - 1);
 
         List<GTLayerPattern.Layer> resolvedLayers = new ArrayList<>();
         FloatList layerDiameterOffsets = new FloatArrayList();
@@ -100,20 +125,23 @@ public class LayeredVeinGenerator extends VeinGenerator {
         int slantyCoordinate = random.nextInt(3);
         float slope = random.nextFloat() * .75f;
 
-        for (int xOffset = 0; xOffset < width; xOffset++) {
+        for (int xOffset = xFrom; xOffset <= xTo; xOffset++) {
             float sizeFractionX = xOffset * 2f / width - 1;
-            if ((sizeFractionX * sizeFractionX) > 1)
+            float xSizeSqr = sizeFractionX * sizeFractionX;
+            if (xSizeSqr > 1)
                 continue;
 
-            for (int yOffset = 0; yOffset < height; yOffset++) {
+            for (int yOffset = yFrom; yOffset <= yTo; yOffset++) {
                 float sizeFractionY = yOffset * 2f / height - 1;
-                if ((sizeFractionX * sizeFractionX) + (sizeFractionY * sizeFractionY) > 1)
+                float ySizeSqr = sizeFractionY * sizeFractionY;
+                if (xSizeSqr + ySizeSqr > 1)
                     continue;
-                if (level.isOutsideBuildHeight(yMin + yOffset))
+                if (heights.isOutsideBuildHeight(yMin + yOffset))
                     continue;
 
-                for (int zOffset = 0; zOffset < length; zOffset++) {
+                for (int zOffset = zFrom; zOffset <= zTo; zOffset++) {
                     float sizeFractionZ = zOffset * 2f / length - 1;
+                    float zSizeSqr = sizeFractionZ * sizeFractionZ;
 
                     int layerIndex = layerCoordinate == 0 ? zOffset : layerCoordinate == 1 ? xOffset : yOffset;
                     if (slantyCoordinate != layerCoordinate)
@@ -131,8 +159,7 @@ public class LayeredVeinGenerator extends VeinGenerator {
                         }
                     }
 
-                    if ((sizeFractionX * sizeFractionX) + (sizeFractionY * sizeFractionY) +
-                            (sizeFractionZ * sizeFractionZ) > 1 * layerDiameterOffsets.getFloat(layerIndex))
+                    if (xSizeSqr + ySizeSqr + zSizeSqr > layerDiameterOffsets.getFloat(layerIndex))
                         continue;
 
                     GTLayerPattern.Layer layer = resolvedLayers.get(layerIndex);
@@ -144,49 +171,25 @@ public class LayeredVeinGenerator extends VeinGenerator {
 
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
 
-                    BlockPos currentPos = new BlockPos(currentX, currentY, currentZ);
-                    generatedBlocks.put(currentPos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry,
-                            density, state, currentPos));
+                    sink.accept(new BlockPos(currentX, currentY, currentZ), state, randomSeed);
                 }
             }
         }
 
-        return generatedBlocks;
+        return true;
+    }
+
+    private static boolean passesDensity(RandomSource random, float density) {
+        return random.nextFloat() <= density;
     }
 
     private static void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed,
                                    GTOreDefinition entry, float density,
                                    Either<List<OreConfiguration.TargetBlockState>, Material> state, BlockPos pos) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
-        int x = SectionPos.sectionRelative(pos.getX());
-        int y = SectionPos.sectionRelative(pos.getY());
-        int z = SectionPos.sectionRelative(pos.getZ());
-
-        BlockState blockState = section.getBlockState(x, y, z);
-        BlockPos.MutableBlockPos posCursor = pos.mutable();
-
-        if (random.nextFloat() <= density) {
-            state.ifLeft(blockStates -> {
-                for (OreConfiguration.TargetBlockState targetState : blockStates) {
-                    if (!OreVeinUtil.canPlaceOre(blockState, access::getBlockState, random, entry, targetState,
-                            posCursor))
-                        continue;
-                    if (targetState.state.isAir())
-                        continue;
-                    section.setBlockState(x, y, z, targetState.state, false);
-                    break;
-                }
-            }).ifRight(material -> {
-                if (!OreVeinUtil.canPlaceOre(blockState, access::getBlockState, random, entry, posCursor))
-                    return;
-                BlockState currentState = access.getBlockState(posCursor);
-                var prefix = ChemicalHelper.getOrePrefix(currentState);
-                if (prefix.isEmpty()) return;
-                Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-                if (toPlace == null || toPlace.defaultBlockState().isAir())
-                    return;
-                section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
-            });
+        BlockState current = OreVeinUtil.sectionState(section, pos);
+        if (passesDensity(random, density)) {
+            OreVeinUtil.placeOre(state, current, access, section, random, pos, entry);
         }
     }
 

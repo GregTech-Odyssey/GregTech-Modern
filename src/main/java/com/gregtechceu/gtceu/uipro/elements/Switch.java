@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +33,7 @@ public final class Switch extends Button {
 
     private Switch(BooleanSupplier getter, BooleanConsumer setter) {
         super(WIDTH, HEIGHT, null, null);
-        this.on = addSyncValue(SyncValue.of(getter::getAsBoolean, SyncValue.BOOLEAN, getter.getAsBoolean()));
+        this.on = addSyncValue(SyncValue.of(getter::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, getter.getAsBoolean()));
         setOnServerClick(() -> setter.accept(!getter.getAsBoolean()));
     }
 

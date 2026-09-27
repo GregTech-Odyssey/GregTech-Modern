@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
@@ -8,12 +7,9 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
@@ -201,27 +197,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
     }
 
     public void placeOre(BulkSectionAccess access, LevelChunkSection section, BlockPos pos, long randomSeed, Either<List<OreConfiguration.TargetBlockState>, Material> ore, GTOreDefinition entry) {
-        RandomSource random = new XoroshiroRandomSource(randomSeed);
-        int x = SectionPos.sectionRelative(pos.getX());
-        int y = SectionPos.sectionRelative(pos.getY());
-        int z = SectionPos.sectionRelative(pos.getZ());
-        BlockState existing = section.getBlockState(x, y, z);
-        ore.ifLeft(blockStates -> {
-            for (OreConfiguration.TargetBlockState targetState : blockStates) {
-                if (!OreVeinUtil.canPlaceOre(existing, access::getBlockState, random, entry, targetState, pos)) continue;
-                if (targetState.state.isAir()) continue;
-                section.setBlockState(x, y, z, targetState.state, false);
-                break;
-            }
-        }).ifRight(material -> {
-            if (!OreVeinUtil.canPlaceOre(existing, access::getBlockState, random, entry, pos)) return;
-            BlockState currentState = access.getBlockState(pos);
-            var prefix = ChemicalHelper.getOrePrefix(currentState);
-            if (prefix.isEmpty()) return;
-            Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-            if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
-            section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
-        });
+        OreVeinUtil.placeOre(ore, OreVeinUtil.sectionState(section, pos), access, section, new XoroshiroRandomSource(randomSeed), pos, entry);
     }
 
     @Override

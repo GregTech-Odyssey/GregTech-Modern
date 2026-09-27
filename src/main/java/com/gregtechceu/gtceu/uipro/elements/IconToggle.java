@@ -8,6 +8,8 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
 import net.minecraft.network.chat.Component;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -25,7 +27,7 @@ public class IconToggle extends Button {
     protected IconToggle(IGuiTexture icon, int size, BooleanSupplier getter, Consumer<Boolean> setter) {
         super(size, size, null, icon);
         this.getter = getter;
-        this.on = addSyncValue(SyncValue.of(getter::getAsBoolean, SyncValue.BOOLEAN, false));
+        this.on = addSyncValue(SyncValue.of(getter::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false));
         setVariant(() -> on.getValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
         setOnServerClick(() -> setter.accept(!getter.getAsBoolean()));
     }

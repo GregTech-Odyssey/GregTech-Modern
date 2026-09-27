@@ -8,11 +8,13 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasPulse;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemTitle;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -39,7 +41,9 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -79,6 +83,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     private final List<PageOverlay> overlays = new ArrayList<>();
     @Nullable
     private IntFunction<Widget> titleContent;
+    private final List<Supplier<Widget>> titleTools = new ArrayList<>(1);
     private boolean titleContentHasIcon;
     /// 页面右侧伸出的一列（如滚动条）宽度：玩家背包按去掉这一列后的宽度居中，与页面里的槽位对齐（切换页面时清零）
     private int inventoryGutter;
@@ -103,6 +108,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     public MachineWindow(IFancyUIProvider mainPage, Runnable init) {
         super(mainPage, UISizes.WINDOW_WIDTH, UISizes.WINDOW_WIDTH, init);
+        this.centered = mainPage.windowAnchor() == WindowAnchor.CENTER;
         setBackground(UITheme.WINDOW);
         // 标题栏、悬浮说明、页面标签由本类自绘；GTM 的三个控件留作数据容器（标签列表、选中项、导航回调），不进控件树
         removeWidget(titleBar);
@@ -439,6 +445,27 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     @OnlyIn(Dist.CLIENT)
+    public int clientPageWidthLimit() {
+        var area = ScreenArea.current(minWindowGroupWidth());
+        int side = UISizes.SIDE_TAB + UISizes.GAP;
+        int chrome = 2 * UISizes.WINDOW_PADDING_X + (centered ? side : 2 * side);
+        return Math.max(UISizes.CONTENT_WIDTH, area.width() - chrome);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public int clientPageHeightLimitFor(boolean inventory) {
+        if (!centered) return clientPageHeightLimit(inventory);
+        var area = ScreenArea.current(minWindowGroupWidth());
+        int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM + tabs.reservedHeight();
+        if (inventory) chrome += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
+        return Math.max(2 * UISizes.SLOT, area.height() - chrome);
+    }
+
+    private static int minWindowGroupWidth() {
+        return UISizes.WINDOW_WIDTH + UISizes.SIDE_TAB + UISizes.GAP;
+    }
+
+    @OnlyIn(Dist.CLIENT)
     private static int clientBottomMargin(int screenHeight) {
         int margin = Math.round(screenHeight * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN);
         if (GTCEu.Mods.isEMILoaded()) margin += EmiCompat.centeredSearchHeight();
@@ -452,6 +479,10 @@ public class MachineWindow extends FancyMachineUIWidget {
         private static int centeredSearchHeight() {
             return EmiConfig.centerSearchBar ? SEARCH_HEIGHT : 0;
         }
+    }
+
+    public void addTitleTool(Supplier<Widget> tool) {
+        titleTools.add(tool);
     }
 
     public void setTitleItem(Supplier<ItemStack> stack, Supplier<Component> name) {
@@ -495,13 +526,15 @@ public class MachineWindow extends FancyMachineUIWidget {
         popups.reset();
         titleContent = null;
         titleContentHasIcon = false;
+        titleTools.clear();
         inventoryGutter = 0;
         pageShowsInventory = showInventory;
         boolean onTransient = isOnTransientPage();
         sideTabsWidget.selectTab(onTransient ? previousPages.peek().page() : fancyUI);
         var page = fancyUI.createMainPage(this);
-        int contentWidth = placePage(page, showInventory);
+        placePage(page, showInventory);
         pageContainer.addWidget(page);
+        int contentWidth = placePage(page, showInventory);
 
         // 页面标签在窗口顶上横排；左侧只放机器小组件（配置按钮），与窗口顶部内边距对齐，一列放不下才向左加列
         tabs.setup();
@@ -602,6 +635,10 @@ public class MachineWindow extends FancyMachineUIWidget {
         int screenWidth = screen.getGuiScaledWidth(), screenHeight = screen.getGuiScaledHeight();
         int width = getSizeWidth(), height = getSizeHeight();
         int tabsHeight = tabs.reservedHeight();
+        if (centered) {
+            applyCenteredPlacement(screenWidth, screenHeight, width, height, tabsHeight);
+            return;
+        }
         if (anchorWidth <= 0 || centered) anchorWidth = width;
         // 打开阶段（首屏数据陆续到达、页面还在变高）一直按屏幕居中，之后才固定；始终居中的窗口每次都重新居中
         if (centered || anchorTop == Integer.MIN_VALUE || isOpening() || anchorScreenWidth != screenWidth || anchorScreenHeight != screenHeight) {
@@ -632,19 +669,46 @@ public class MachineWindow extends FancyMachineUIWidget {
         // 窗口左边缘固定在按基准宽度居中的位置（见 applyClientPlacement）
         int left = (screenWidth - anchorWidth) / 2;
         int overflow = left + width + UISizes.POPUP_GAP + popupWidth + margin - screenWidth;
-        int maxShift = Math.max(0, left - configurators.getSizeWidth() - UISizes.GAP - margin);
+        int reserved = configurators.getTabs().isEmpty() ? 0 : configurators.getSizeWidth() + UISizes.GAP;
+        int maxShift = Math.max(0, left - reserved - margin);
         int shift = Math.max(0, Math.min(overflow, maxShift));
         int offsetY = Math.min(0, screenHeight - margin - top - popupHeight);
         offsetY = Math.max(offsetY, margin - top);
         return new int[] { shift, offsetY };
     }
 
-    /** 始终居中的窗口：拖拽缩放可以长到整个屏幕（四周留边距、上方留出标签栏）。 */
+    @OnlyIn(Dist.CLIENT)
+    private void applyCenteredPlacement(int screenWidth, int screenHeight, int width, int height, int tabsHeight) {
+        var area = ScreenArea.current(minWindowGroupWidth());
+        anchorWidth = width;
+        int reserved = configurators.getTabs().isEmpty() ? 0 : configurators.getSizeWidth() + UISizes.GAP;
+        int left = area.left() + reserved + Math.max(0, (area.width() - reserved - width) / 2);
+        int top = area.top() + tabsHeight + Math.max(0, (area.height() - tabsHeight - height) / 2);
+        popups.setMaxHeight(Math.max(UISizes.SLOT, area.height()));
+        int popupWidth = popups.getSizeWidth(), popupHeight = popups.getSizeHeight();
+        int popupY = 0;
+        if (popupWidth > 0) {
+            int overflow = left + width + UISizes.POPUP_GAP + popupWidth - area.right();
+            int maxShift = Math.max(0, left - reserved - area.left());
+            left -= Math.max(0, Math.min(overflow, maxShift));
+            popupY = Math.max(area.top() - top, Math.min(0, area.bottom() - top - popupHeight));
+        }
+        int groupRight = left + width + (popupWidth > 0 ? UISizes.POPUP_GAP + popupWidth : 0);
+        int halfWidth = Math.max(screenWidth / 2 - (left - reserved), groupRight - screenWidth / 2);
+        int halfHeight = Math.max(screenHeight / 2 - (top - tabsHeight), top + height - screenHeight / 2);
+        int guiWidth = Math.min(screenWidth, 2 * halfWidth), guiHeight = Math.min(screenHeight, 2 * halfHeight);
+        getGui().setSize(guiWidth, guiHeight);
+        setWindowBasePosition(left - (screenWidth - guiWidth) / 2, top - (screenHeight - guiHeight) / 2);
+        popups.setSelfPosition(new Position(width + UISizes.POPUP_GAP, popupY));
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     protected int maxWindowExtent(boolean vertical, int screen) {
         if (!centered) return super.maxWindowExtent(vertical, screen);
-        return screen - 2 * UISizes.POPUP_SCREEN_MARGIN - (vertical ? tabs.reservedHeight() : 0);
+        var area = ScreenArea.current(minWindowGroupWidth());
+        if (vertical) return area.height() - tabs.reservedHeight();
+        return area.width() - (configurators.getTabs().isEmpty() ? 0 : configurators.getSizeWidth() + UISizes.GAP);
     }
 
     @Override
@@ -689,8 +753,16 @@ public class MachineWindow extends FancyMachineUIWidget {
         /// Ore 边框底部的厚边：选中标签伸进窗口的部分要抹掉
         private static final int TAB_BOTTOM_BORDER = 4;
         private static final int ICON = 16;
+        private static final long HINT_PERIOD_MS = 1600;
+        private static final int HINT_HEAD = 3;
+        private static final int HINT_TAIL = 7;
+        private static final int[] HINT_STEPS = { 1, 0, 0, 1, -1, 0, 0, -1, 1, 1, -1, 1, -1, -1, 1, -1 };
 
         private int tabWidth = UISizes.PAGE_TAB_WIDTH;
+        private boolean[] hints = new boolean[0];
+        private int hintWidth = -1, hintHeight = -1;
+        private int[] hintLoopX = new int[0], hintLoopY = new int[0];
+        private int[] hintInnerX = new int[0], hintInnerY = new int[0];
 
         private WindowTabBar() {
             super(0, 0, 0, 0);
@@ -705,6 +777,36 @@ public class MachineWindow extends FancyMachineUIWidget {
             int top = -UISizes.PAGE_TAB_HEIGHT - UISizes.PAGE_TAB_RAISE;
             setSelfPosition(new Position(left, top));
             setSize(new Size(count * (tabWidth + TAB_GAP) - TAB_GAP, -top + UISizes.PAGE_TAB_OVERLAP));
+            setupHints(count);
+        }
+
+        private void setupHints(int count) {
+            if (hints.length != count) hints = new boolean[count];
+            var player = hintPlayer();
+            var selected = sideTabsWidget.getSelectedTab();
+            for (int i = 0; i < count; i++) {
+                var tab = tab(i);
+                hints[i] = player != null && tab instanceof IFirstVisitTab visit && !UIPreferences.hasVisitedTab(player, visit.getFirstVisitKey());
+                if (hints[i] && tab == selected) markVisited(i);
+            }
+        }
+
+        @Nullable
+        private UUID hintPlayer() {
+            return gui != null && gui.entityPlayer != null && gui.entityPlayer.level().isClientSide ? gui.entityPlayer.getUUID() : null;
+        }
+
+        private void markVisited(int index) {
+            if (index < 0 || index >= hints.length || !hints[index]) return;
+            hints[index] = false;
+            var player = hintPlayer();
+            if (player != null && tab(index) instanceof IFirstVisitTab visit) UIPreferences.markTabVisited(player, visit.getFirstVisitKey());
+        }
+
+        private void markVisited(IFancyUIProvider tab) {
+            for (int i = 0, count = Math.min(count(), hints.length); i < count; i++) {
+                if (tab(i) == tab) markVisited(i);
+            }
         }
 
         /** 标签数：主页 + 子页面。 */
@@ -773,6 +875,103 @@ public class MachineWindow extends FancyMachineUIWidget {
             UITheme.PAGE_TAB_SELECTED.draw(graphics, mouseX, mouseY, x, top, tabWidth, bottom - top);
             graphics.fill(x + TAB_BORDER, bottom - TAB_BOTTOM_BORDER, x + tabWidth - TAB_BORDER, bottom, UITheme.WINDOW_FILL);
             tab(selectedIndex).getTabIcon().draw(graphics, mouseX, mouseY, x + (tabWidth - ICON) / 2f, top + TAB_BORDER + 1, ICON, ICON);
+            drawHints(graphics, base, selectedIndex);
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void drawHints(GuiGraphics graphics, int base, int selectedIndex) {
+            for (int i = 0, count = Math.min(count(), hints.length); i < count; i++) {
+                if (hints[i] && i != selectedIndex) drawHint(graphics, tabX(i), base - UISizes.PAGE_TAB_HEIGHT, tabWidth, UISizes.PAGE_TAB_HEIGHT);
+            }
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void drawHint(GuiGraphics graphics, int x, int y, int width, int height) {
+            if (width != hintWidth || height != hintHeight) buildHintOutline(width, height);
+            float phase = CanvasPulse.phase();
+            int rgb = UITheme.TAB_HINT_GLOW & 0xFFFFFF;
+            int ring = CanvasPulse.lerp(UITheme.TAB_HINT_DIM, UITheme.TAB_HINT_GLOW, phase);
+            int halo = (int) (UITheme.TAB_HINT_HALO_ALPHA_MIN + (UITheme.TAB_HINT_HALO_ALPHA_MAX - UITheme.TAB_HINT_HALO_ALPHA_MIN) * phase) << 24 | rgb;
+            int length = hintLoopX.length;
+            int head = (int) ((System.currentTimeMillis() % HINT_PERIOD_MS) / (float) HINT_PERIOD_MS * length);
+            graphics.drawManaged(() -> {
+                for (int i = 0; i < hintInnerX.length; i++) {
+                    graphics.fill(x + hintInnerX[i], y + hintInnerY[i], x + hintInnerX[i] + 1, y + hintInnerY[i] + 1, halo);
+                }
+                for (int i = 0; i < length; i++) {
+                    int d = Math.floorMod(head - i, length);
+                    int color;
+                    if (d < HINT_HEAD) color = UITheme.TAB_HINT_SPARK;
+                    else if (d < HINT_HEAD + HINT_TAIL) color = CanvasPulse.lerp(UITheme.TAB_HINT_GLOW, ring, (d - HINT_HEAD) / (float) HINT_TAIL);
+                    else color = ring;
+                    graphics.fill(x + hintLoopX[i], y + hintLoopY[i], x + hintLoopX[i] + 1, y + hintLoopY[i] + 1, color);
+                }
+            });
+        }
+
+        private void buildHintOutline(int width, int height) {
+            hintWidth = width;
+            hintHeight = height;
+            boolean[] outline = new boolean[width * height];
+            int count = 0;
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    if (tabOpaque(x, y, width, height) && (!tabOpaque(x - 1, y, width, height) || !tabOpaque(x + 1, y, width, height) ||
+                            !tabOpaque(x, y - 1, width, height) || !tabOpaque(x, y + 1, width, height))) {
+                        outline[y * width + x] = true;
+                        count++;
+                    }
+                }
+            }
+            int[] loopX = new int[count], loopY = new int[count];
+            boolean[] visited = new boolean[width * height];
+            int cx = 2, cy = 0, size = 0;
+            while (size < count) {
+                visited[cy * width + cx] = true;
+                loopX[size] = cx;
+                loopY[size] = cy;
+                size++;
+                boolean moved = false;
+                for (int k = 0; k < HINT_STEPS.length && !moved; k += 2) {
+                    int nx = cx + HINT_STEPS[k], ny = cy + HINT_STEPS[k + 1];
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                    int index = ny * width + nx;
+                    if (outline[index] && !visited[index]) {
+                        cx = nx;
+                        cy = ny;
+                        moved = true;
+                    }
+                }
+                if (!moved) break;
+            }
+            hintLoopX = size == count ? loopX : Arrays.copyOf(loopX, size);
+            hintLoopY = size == count ? loopY : Arrays.copyOf(loopY, size);
+            int inner = 0;
+            int[] innerX = new int[width * height], innerY = new int[width * height];
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int index = y * width + x;
+                    if (outline[index] || !tabOpaque(x, y, width, height)) continue;
+                    if ((x > 0 && outline[index - 1]) || (x + 1 < width && outline[index + 1]) ||
+                            (y > 0 && outline[index - width]) || (y + 1 < height && outline[index + width])) {
+                        innerX[inner] = x;
+                        innerY[inner] = y;
+                        inner++;
+                    }
+                }
+            }
+            hintInnerX = Arrays.copyOf(innerX, inner);
+            hintInnerY = Arrays.copyOf(innerY, inner);
+        }
+
+        private static boolean tabOpaque(int x, int y, int width, int height) {
+            if (x < 0 || y < 0 || x >= width || y >= height) return false;
+            if (y == 0) return x >= 2 && x <= width - 4;
+            if (y == 1) return x >= 2 && x <= width - 3;
+            if (y == 2 || y == height - 3) return x >= 1 && x <= width - 2;
+            if (y == height - 2) return x >= 2 && x <= width - 3;
+            if (y == height - 1) return x >= 3 && x <= width - 4;
+            return true;
         }
 
         @Override
@@ -811,6 +1010,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         }
 
         private void select(IFancyUIProvider tab) {
+            markVisited(tab);
             sideTabsWidget.selectTab(tab);
             sideTabsWidget.getOnTabClick().accept(tab);
         }
@@ -850,6 +1050,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         private int tooltipsRight;
         @Nullable
         private Widget rightButton;
+        private final List<Widget> rightTools = new ArrayList<>(1);
         @Nullable
         private Widget contentWidget;
 
@@ -898,6 +1099,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             this.page = page;
             clearAllWidgets();
             rightButton = null;
+            rightTools.clear();
             contentWidget = null;
             setSize(new Size(width, UISizes.CONTROL_HEIGHT));
             int left = 0;
@@ -924,6 +1126,14 @@ public class MachineWindow extends FancyMachineUIWidget {
                 close.setSelfPosition(new Position(right, 0));
                 addWidget(close);
                 rightButton = close;
+                right -= UISizes.GAP;
+            }
+            for (var supplier : titleTools) {
+                var tool = supplier.get();
+                right -= tool.getSizeWidth();
+                tool.setSelfPosition(new Position(right, (UISizes.CONTROL_HEIGHT - tool.getSizeHeight()) / 2));
+                addWidget(tool);
+                rightTools.add(tool);
                 right -= UISizes.GAP;
             }
             iconLeft = left;
@@ -958,6 +1168,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             tooltipsRight += delta;
             textRight += delta;
             if (rightButton != null) rightButton.setSelfPosition(new Position(rightButton.getSelfPositionX() + delta, 0));
+            for (var tool : rightTools) tool.setSelfPosition(new Position(tool.getSelfPositionX() + delta, tool.getSelfPositionY()));
             if (contentWidget instanceof UIElement element) {
                 int contentWidth = Math.max(0, textRight - textLeft);
                 element.layout(l -> l.width(contentWidth));

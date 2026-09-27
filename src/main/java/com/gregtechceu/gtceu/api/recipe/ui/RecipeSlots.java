@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.ToIntBiFunction;
 
 /**
  * 交给 {@link RecipeSlotLayout} 的建材：按配方类型创建槽位（带 id 和底图）与进度条，排布只管摆放。
@@ -34,12 +35,24 @@ public final class RecipeSlots {
     private final boolean steam;
     private final boolean highPressure;
     private final BiPredicate<Boolean, RecipeInfo> doRenderSlot;
+    @Nullable
+    private final ToIntBiFunction<IO, ContentRecipeInfo<?, ?>> recipeCounts;
 
     RecipeSlots(GTRecipeTypeUI ui, boolean steam, boolean highPressure, BiPredicate<Boolean, RecipeInfo> doRenderSlot) {
+        this(ui, steam, highPressure, doRenderSlot, null);
+    }
+
+    RecipeSlots(GTRecipeTypeUI ui, boolean steam, boolean highPressure, BiPredicate<Boolean, RecipeInfo> doRenderSlot,
+                @Nullable ToIntBiFunction<IO, ContentRecipeInfo<?, ?>> recipeCounts) {
         this.ui = ui;
         this.steam = steam;
         this.highPressure = highPressure;
         this.doRenderSlot = doRenderSlot;
+        this.recipeCounts = recipeCounts;
+    }
+
+    public boolean isRecipeView() {
+        return recipeCounts != null;
     }
 
     public GTRecipeType recipeType() {
@@ -59,8 +72,7 @@ public final class RecipeSlots {
         var max = io == IO.IN ? recipeType().maxInputs : recipeType().maxOutputs;
         var result = new ArrayList<ContentRecipeInfo<?, ?>>(max.size());
         for (var entry : max.object2IntEntrySet()) {
-            if (entry.getIntValue() > 0 && entry.getKey() instanceof ContentRecipeInfo<?, ?> cap && cap.doRenderSlot &&
-                    cap.getWidgetClass() != null && doRenderSlot.test(io == IO.OUT, cap)) {
+            if (entry.getIntValue() > 0 && entry.getKey() instanceof ContentRecipeInfo<?, ?> cap && count(io, cap) > 0) {
                 result.add(cap);
             }
         }
@@ -70,7 +82,10 @@ public final class RecipeSlots {
     /** 该方向、该种类的槽位数（不显示时为 0）。 */
     public int count(IO io, ContentRecipeInfo<?, ?> cap) {
         if (!cap.doRenderSlot || cap.getWidgetClass() == null || !doRenderSlot.test(io == IO.OUT, cap)) return 0;
-        return io == IO.IN ? recipeType().getMaxInputs(cap) : recipeType().getMaxOutputs(cap);
+        int max = io == IO.IN ? recipeType().getMaxInputs(cap) : recipeType().getMaxOutputs(cap);
+        if (recipeCounts == null) return max;
+        int count = recipeCounts.applyAsInt(io, cap);
+        return ui.getSlotLayout() == RecipeSlotLayouts.DEFAULT ? count : Math.min(count, max);
     }
 
     /** 一个槽位，底图为该种类的标准槽（蒸汽机为蒸汽版物品槽），叠配方类型设置的角标（{@code setSlotOverlay}）。 */

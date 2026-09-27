@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
@@ -20,7 +19,6 @@ import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
@@ -166,11 +164,11 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 if (rareBlocks != null && !rareBlocks.isEmpty() && random.nextFloat() < rareBlockChance) {
                     var ore = GTUtil.getRandomItem(random, rareEntries);
                     if (ore == null) return;
-                    placeOre(ore.block, current, access, section, random, pos, entry);
+                    OreVeinUtil.placeOre(ore.block, current, access, section, random, pos, entry);
                 } else {
                     var ore = GTUtil.getRandomItem(random, commonEntries);
                     if (ore == null) return;
-                    placeOre(ore.block, current, access, section, random, pos, entry);
+                    OreVeinUtil.placeOre(ore.block, current, access, section, random, pos, entry);
                 }
             } else {
                 if (fillerBlock == null || fillerBlock.isAir()) return;
@@ -178,28 +176,6 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 section.setBlockState(sectionX, sectionY, sectionZ, fillerBlock, false);
             }
         }
-    }
-
-    protected static void placeOre(Either<List<TargetBlockState>, Material> block, BlockState current, BulkSectionAccess level, LevelChunkSection section, RandomSource random, BlockPos.MutableBlockPos pos, GTOreDefinition entry) {
-        int x = SectionPos.sectionRelative(pos.getX());
-        int y = SectionPos.sectionRelative(pos.getY());
-        int z = SectionPos.sectionRelative(pos.getZ());
-        block.ifLeft(blockStates -> {
-            for (TargetBlockState targetState : blockStates) {
-                if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, random, entry, targetState, pos)) continue;
-                if (targetState.state.isAir()) continue;
-                section.setBlockState(x, y, z, targetState.state, false);
-                break;
-            }
-        }).ifRight(material -> {
-            if (!OreVeinUtil.canPlaceOre(current, level::getBlockState, random, entry, pos)) return;
-            BlockState currentState = level.getBlockState(pos);
-            var prefix = ChemicalHelper.getOrePrefix(currentState);
-            if (prefix.isEmpty()) return;
-            Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-            if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
-            section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
-        });
     }
 
     @Override

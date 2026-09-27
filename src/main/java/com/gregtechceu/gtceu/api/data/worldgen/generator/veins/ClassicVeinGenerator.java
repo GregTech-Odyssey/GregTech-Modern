@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
@@ -9,9 +8,10 @@ import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.SectionPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +19,7 @@ import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
@@ -28,6 +29,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -75,6 +77,29 @@ public class ClassicVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> generatedBlocks
+                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, pos, layer)));
+        return generatedBlocks;
+    }
+
+    @Override
+    public boolean sample(GTOreDefinition entry, RandomSource random, BlockPos origin, BoundingBox area, SampleSink sink) {
+        float density = entry.density();
+        trace(random, entry, origin, UNBOUNDED_HEIGHT, area, (pos, randomSeed, layer) -> {
+            Layer chosen = chooseLayer(new XoroshiroRandomSource(randomSeed), layer, density);
+            sink.accept(pos, chosen == null ? null : chosen.target);
+        });
+        return true;
+    }
+
+    @FunctionalInterface
+    private interface ClassicSink {
+
+        void accept(BlockPos pos, long randomSeed, int layer);
+    }
+
+    private void trace(RandomSource random, GTOreDefinition entry, BlockPos origin, LevelHeightAccessor heights,
+                       @Nullable BoundingBox area, ClassicSink sink) {
         int radius = entry.clusterSize().sample(random) / 2;
         int ySize = radius / 2;
         int xy2 = radius * radius * ySize * ySize;
@@ -86,55 +111,44 @@ public class ClassicVeinGenerator extends VeinGenerator {
         int zPos = origin.getZ();
         int max = Math.max(ySize, radius);
         int yMax = Math.min(max, yRadius);
-        BlockPos minPos = new BlockPos(xPos - max, yPos - yMax, zPos - max);
-        for (int xOffset = -max; xOffset <= max; xOffset++) {
+        int lowestY = yPos - yMax;
+        int xFrom = clipFrom(area, Direction.Axis.X, xPos, -max), xTo = clipTo(area, Direction.Axis.X, xPos, max);
+        int yFrom = clipFrom(area, Direction.Axis.Y, yPos, -yMax), yTo = clipTo(area, Direction.Axis.Y, yPos, yMax);
+        int zFrom = clipFrom(area, Direction.Axis.Z, zPos, -max), zTo = clipTo(area, Direction.Axis.Z, zPos, max);
+        for (int xOffset = xFrom; xOffset <= xTo; xOffset++) {
             int xr = yz2 * xOffset * xOffset;
             if (xr > xyz2) continue;
-            for (int yOffset = -yMax; yOffset <= yMax; yOffset++) {
+            for (int yOffset = yFrom; yOffset <= yTo; yOffset++) {
                 int yr = xr + xz2 * yOffset * yOffset + xy2;
                 if (yr > xyz2) continue;
-                if (level.isOutsideBuildHeight(yOffset + yPos)) continue;
-                for (int zOffset = -max; zOffset <= max; zOffset++) {
+                if (heights.isOutsideBuildHeight(yOffset + yPos)) continue;
+                for (int zOffset = zFrom; zOffset <= zTo; zOffset++) {
                     int zr = yr + xy2 * zOffset * zOffset;
                     if (zr > xyz2) continue;
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
                     BlockPos currentPos = new BlockPos(xOffset + xPos, yOffset + yPos, zOffset + zPos);
-                    generatedBlocks.put(currentPos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, currentPos, minPos));
+                    sink.accept(currentPos, randomSeed, currentPos.getY() - lowestY);
                 }
             }
         }
-        return generatedBlocks;
     }
 
-    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, BlockPos blockPos, BlockPos lowestPos) {
-        RandomSource random = new XoroshiroRandomSource(randomSeed);
-        int x = SectionPos.sectionRelative(blockPos.getX());
-        int y = SectionPos.sectionRelative(blockPos.getY());
-        int z = SectionPos.sectionRelative(blockPos.getZ());
-        BlockState blockState = section.getBlockState(x, y, z);
-        int layer = blockPos.getY() - lowestPos.getY();
-        // First try to spawn "between"
-        if (layer >= startBetween && layer - startBetween + 1 <= between.layers) {
-            if (random.nextFloat() <= entry.density() / 2) {
-                between.place(blockState, access, section, randomSeed, entry, blockPos);
-                return;
-            }
+    @Nullable
+    private Layer chooseLayer(RandomSource random, int layer, float density) {
+        if (layer >= startBetween && layer - startBetween + 1 <= between.layers && random.nextFloat() <= density / 2) {
+            return between;
         }
-        // Then try primary/secondary
-        if (layer >= startPrimary) {
-            if (random.nextFloat() <= entry.density()) {
-                primary.place(blockState, access, section, randomSeed, entry, blockPos);
-                return;
-            }
-        } else {
-            if (random.nextFloat() <= entry.density()) {
-                secondary.place(blockState, access, section, randomSeed, entry, blockPos);
-                return;
-            }
+        if (random.nextFloat() <= density) {
+            return layer >= startPrimary ? primary : secondary;
         }
-        // Then lastly, try sporadic
-        if (random.nextFloat() <= entry.density() / sporadicDivisor) {
-            sporadic.place(blockState, access, section, randomSeed, entry, blockPos);
+        return random.nextFloat() <= density / sporadicDivisor ? sporadic : null;
+    }
+
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, BlockPos blockPos, int layer) {
+        BlockState current = OreVeinUtil.sectionState(section, blockPos);
+        Layer chosen = chooseLayer(new XoroshiroRandomSource(randomSeed), layer, entry.density());
+        if (chosen != null) {
+            OreVeinUtil.placeOre(chosen.target, current, access, section, new XoroshiroRandomSource(randomSeed), blockPos, entry);
         }
     }
 
@@ -194,29 +208,6 @@ public class ClassicVeinGenerator extends VeinGenerator {
         public static final Codec<Layer> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(OreConfiguration.TargetBlockState.CODEC.listOf(), GTCEuAPI.materialManager.codec()).fieldOf("targets").forGetter(layer -> layer.target), ExtraCodecs.intRange(-1, Integer.MAX_VALUE).optionalFieldOf("layers", -1).forGetter(layer -> layer.layers)).apply(instance, Layer::new));
         public final Either<List<OreConfiguration.TargetBlockState>, Material> target;
         public int layers;
-
-        public void place(BlockState blockState, BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, BlockPos pos) {
-            RandomSource random = new XoroshiroRandomSource(randomSeed);
-            int x = SectionPos.sectionRelative(pos.getX());
-            int y = SectionPos.sectionRelative(pos.getY());
-            int z = SectionPos.sectionRelative(pos.getZ());
-            target.ifLeft(blockStates -> {
-                for (OreConfiguration.TargetBlockState targetState : blockStates) {
-                    if (!OreVeinUtil.canPlaceOre(blockState, access::getBlockState, random, entry, targetState, pos)) continue;
-                    if (targetState.state.isAir()) continue;
-                    section.setBlockState(x, y, z, targetState.state, false);
-                    break;
-                }
-            }).ifRight(material -> {
-                if (!OreVeinUtil.canPlaceOre(blockState, access::getBlockState, random, entry, pos)) return;
-                BlockState currentState = access.getBlockState(pos);
-                var prefix = ChemicalHelper.getOrePrefix(currentState);
-                if (prefix.isEmpty()) return;
-                Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
-                if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
-                section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
-            });
-        }
 
         public Layer copy() {
             return new Layer(this.target.mapBoth(ArrayList::new, Function.identity()), layers);

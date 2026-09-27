@@ -89,6 +89,10 @@ public class TabsWidget extends Widget {
         subTabs.add(subTab);
     }
 
+    public void attachSubTab(int index, IFancyUIProvider subTab) {
+        subTabs.add(Math.max(0, Math.min(index, subTabs.size())), subTab);
+    }
+
     public boolean hasButton() {
         return (subTabs.size() + 1) * 24 + 16 > getSize().width;
     }

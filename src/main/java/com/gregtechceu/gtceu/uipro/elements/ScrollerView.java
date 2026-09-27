@@ -4,11 +4,13 @@ import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.styletemplate.OreSprites;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.LockedScrollerSizes;
 
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Size;
@@ -57,6 +59,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     public static final int SCROLL_BAR_SPACE = SCROLL_BAR_WIDTH + SCROLL_BAR_MARGIN;
     /// 拖拽缩放时视口的最小高度
     private static final int MIN_RESIZE_HEIGHT = UISizes.SLOT;
+    private static final int MIN_THUMB_LENGTH = SCROLL_BAR_WIDTH;
 
     /** 滚动条显示方式，对应 LDLib2 {@code ScrollDisplay}。 */
     public enum ScrollDisplay {
@@ -73,11 +76,14 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     /** 固定的 id（按界面里的位置取，如 {@code wireless.networks}），锁定的尺寸按它保存。 */
     private final String id;
-    private final Content content;
+    private final Content root;
+    private final UIElement content;
     private final LayoutStyle layoutStyle = LayoutStyle.fixed(LayoutStyle.AUTO, LayoutStyle.AUTO, () -> UIElement.markLayoutDirty(this));
     private int preferredWidth;
     private int preferredHeight;
     private ScrollDisplay verticalScrollDisplay = ScrollDisplay.AUTO;
+    private int inset;
+    private boolean barShown;
     private boolean adaptiveWidth;
     private int adaptiveMaxHeight = -1;
     /// 本次打开界面里拖出来的高度（不保存），-1 为没拖过
@@ -96,6 +102,8 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private double resizeStartY;
     private int resizeStartHeight;
     private int resizeMaxHeight = Integer.MAX_VALUE;
+    private boolean draggingThumb;
+    private int thumbGrabOffset;
 
     public ScrollerView(String id, int width, int height) {
         this(id, width, height, 0);
@@ -114,17 +122,18 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         this.preferredHeight = height;
         setScrollWheelDirection(ScrollWheelDirection.VERTICAL);
         setYScrollBarWidth(0);
-        setYBarStyle(UITheme.SCROLL_TRACK, UITheme.SCROLL_THUMB);
         setDraggable(false);
         setScrollable(true);
         setUseScissor(true);
-        content = new Content();
+        root = new Content();
+        root.layout(l -> l.column());
+        content = new UIElement();
         // 加内容前先按有滚动条算宽度：还按固定宽度建子元素的代码不会伸进滚动条；排布后再按需要放宽
         content.layout(l -> l.column().width(width - SCROLL_BAR_SPACE).gapAll(gap));
-        super.addWidget(content);
+        root.addChild(content);
+        super.addWidget(root);
     }
 
-    /** 内容列：自成一棵布局树，排布完成后通知滚动区重新测量。 */
     private final class Content extends UIElement {
 
         private int lastWidth = -1, lastHeight = -1;
@@ -146,7 +155,24 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     }
 
     public boolean isVerticalScrollBarShown() {
-        return yBarWidth > 0;
+        return barShown;
+    }
+
+    @Override
+    public ScrollerView setBackground(IGuiTexture background) {
+        super.setBackground(background);
+        if (root != null) viewportInset(background instanceof OreSprites.Bevel ? 1 : 0);
+        return this;
+    }
+
+    public ScrollerView viewportInset(int inset) {
+        inset = Math.max(0, inset);
+        if (this.inset == inset) return this;
+        this.inset = inset;
+        int padding = inset;
+        root.layout(l -> l.paddingAll(padding));
+        relayout();
+        return this;
     }
 
     public ScrollerView verticalScrollDisplay(ScrollDisplay display) {
@@ -225,7 +251,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private int heightLimit() {
         if (lockedHeight > 0) return lockedHeight;
         if (userHeight > 0) return userHeight;
-        return adaptiveMaxHeight > 0 ? adaptiveMaxHeight : preferredHeight;
+        return adaptiveMaxHeight > 0 ? adaptiveMaxHeight + 2 * inset : preferredHeight;
     }
 
     /** 客户端：读取锁定的高度，超出屏幕上限（界面不超过屏幕 2/3）或过小时不应用，回到默认。 */
@@ -244,8 +270,8 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private int naturalWidth() {
         if (!adaptiveWidth) return preferredWidth;
         boolean bar = verticalScrollDisplay == ScrollDisplay.ALWAYS ||
-                (verticalScrollDisplay == ScrollDisplay.AUTO && adaptiveMaxHeight > 0 && content.getSizeHeight() > heightLimit());
-        return content.getSizeWidth() + (bar ? SCROLL_BAR_SPACE : 0);
+                (verticalScrollDisplay == ScrollDisplay.AUTO && adaptiveMaxHeight > 0 && root.getSizeHeight() > heightLimit());
+        return root.getSizeWidth() + (bar ? SCROLL_BAR_SPACE : 0);
     }
 
     private int naturalHeight(int width) {
@@ -260,12 +286,12 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     /** 视口宽 {@code width}（不含滚动条）时内容的高度。 */
     private int contentHeightAt(int width) {
-        if (adaptiveWidth) return content.getSizeHeight();
-        int contentWidth = Math.max(0, width);
+        if (adaptiveWidth) return root.getSizeHeight();
+        int contentWidth = Math.max(0, width - 2 * inset);
         measuring = true;
         try {
             content.layout(l -> l.width(contentWidth));
-            return content.getSizeHeight();
+            return root.getSizeHeight();
         } finally {
             measuring = false;
         }
@@ -303,10 +329,9 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
                 case NEVER -> false;
                 case AUTO -> contentHeightAt(width) > height;
             };
-            int barWidth = shown ? SCROLL_BAR_WIDTH : 0;
-            if (yBarWidth != barWidth) setYScrollBarWidth(barWidth);
+            barShown = shown;
             if (!adaptiveWidth) {
-                int contentWidth = Math.max(0, width - (shown ? SCROLL_BAR_SPACE : 0));
+                int contentWidth = Math.max(0, width - (shown ? SCROLL_BAR_SPACE : 0) - 2 * inset);
                 measuring = true;
                 try {
                     content.layout(l -> l.width(contentWidth));
@@ -336,7 +361,31 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private static final int OUTSIDE = -100000;
 
     private boolean isInViewport(double mouseX, double mouseY) {
-        return isMouseOver(getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), mouseX, mouseY);
+        return isMouseOver(viewportLeft(), viewportTop(), viewportRight() - viewportLeft(), viewportBottom() - viewportTop(), mouseX, mouseY);
+    }
+
+    private int viewportLeft() {
+        return getPositionX() + inset;
+    }
+
+    private int viewportTop() {
+        return getPositionY() + inset;
+    }
+
+    private int viewportRight() {
+        return getPositionX() + Math.max(inset, getSizeWidth() - inset);
+    }
+
+    private int viewportBottom() {
+        return getPositionY() + Math.max(inset, getSizeHeight() - inset);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void enableViewportScissor(GuiGraphics graphics) {
+        var pose = graphics.pose().last().pose();
+        var from = pose.transform(new Vector4f(viewportLeft(), viewportTop(), 0, 1));
+        var to = pose.transform(new Vector4f(viewportRight(), viewportBottom(), 0, 1));
+        graphics.enableScissor((int) from.x, (int) from.y, (int) to.x, (int) to.y);
     }
 
     private double viewportX(double mouseX, double mouseY) {
@@ -370,7 +419,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     public List<Target> getPhantomTargets(Object ingredient) {
         var targets = super.getPhantomTargets(ingredient);
         if (targets.isEmpty()) return targets;
-        int left = getPositionX(), top = getPositionY(), right = left + getSizeWidth(), bottom = top + getSizeHeight();
+        int left = viewportLeft(), top = viewportTop(), right = viewportRight(), bottom = viewportBottom();
         var clipped = new ArrayList<Target>(targets.size());
         for (var target : targets) {
             var area = target.getArea();
@@ -394,11 +443,60 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return clipped;
     }
 
+    private int scrollRange() {
+        return Math.max(0, getMaxHeight() - getSizeHeight());
+    }
+
+    private int trackX() {
+        return viewportRight() - SCROLL_BAR_WIDTH;
+    }
+
+    private int trackBottom() {
+        int bottom = viewportBottom();
+        if (resizable) bottom -= UITheme.RESIZE_GRIP_SIZE + 1;
+        return Math.max(viewportTop(), bottom);
+    }
+
+    private int thumbLength() {
+        int track = trackBottom() - viewportTop();
+        int visible = viewportBottom() - viewportTop();
+        int total = visible + scrollRange();
+        if (total <= 0) return track;
+        return Math.min(track, Math.max(MIN_THUMB_LENGTH, Math.round(track * (float) visible / total)));
+    }
+
+    private int thumbTop() {
+        int range = scrollRange();
+        int travel = trackBottom() - viewportTop() - thumbLength();
+        if (range <= 0 || travel <= 0) return viewportTop();
+        return viewportTop() + Math.round(travel * (float) Math.min(scrollYOffset, range) / range);
+    }
+
+    private boolean isOverTrack(double mouseX, double mouseY) {
+        return barShown && mouseX >= trackX() && mouseX < trackX() + SCROLL_BAR_WIDTH && mouseY >= viewportTop() && mouseY < trackBottom();
+    }
+
+    private void scrollThumbTo(double top) {
+        int range = scrollRange();
+        int travel = trackBottom() - viewportTop() - thumbLength();
+        if (range <= 0 || travel <= 0) return;
+        double ratio = Math.max(0, Math.min(1, (top - viewportTop()) / travel));
+        setScrollYOffset((int) Math.round(ratio * range));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void drawScrollBar(GuiGraphics graphics, int mouseX, int mouseY) {
+        int x = trackX(), top = viewportTop(), bottom = trackBottom();
+        if (bottom <= top) return;
+        UITheme.SCROLL_TRACK.draw(graphics, mouseX, mouseY, x, top, SCROLL_BAR_WIDTH, bottom - top);
+        UITheme.SCROLL_THUMB.draw(graphics, mouseX, mouseY, x, thumbTop(), SCROLL_BAR_WIDTH, thumbLength());
+    }
+
     // ==================== 拖拽缩放角 ====================
 
     private boolean isOverGrip(double mouseX, double mouseY) {
         if (!resizable) return false;
-        int right = getPositionX() + getSizeWidth(), bottom = getPositionY() + getSizeHeight();
+        int right = viewportRight(), bottom = viewportBottom();
         return mouseX >= right - UITheme.RESIZE_GRIP_SIZE && mouseX < right && mouseY >= bottom - UITheme.RESIZE_GRIP_SIZE && mouseY < bottom;
     }
 
@@ -429,6 +527,14 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
             if (host != null) host.beginInteractiveResize();
             return true;
         }
+        if (button == 0 && isOverTrack(mouseX, mouseY)) {
+            int thumbTop = thumbTop(), length = thumbLength();
+            thumbGrabOffset = mouseY >= thumbTop && mouseY < thumbTop + length ? (int) mouseY - thumbTop : length / 2;
+            scrollThumbTo(mouseY - thumbGrabOffset);
+            draggingThumb = true;
+            setFocus(true);
+            return true;
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
@@ -454,6 +560,10 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
             resizeTo(resizeStartHeight + (int) (mouseY - resizeStartY));
             return true;
         }
+        if (draggingThumb) {
+            scrollThumbTo(mouseY - thumbGrabOffset);
+            return true;
+        }
         return super.mouseDragged(viewportX(mouseX, mouseY), viewportY(mouseX, mouseY), button, deltaX, deltaY);
     }
 
@@ -466,6 +576,10 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
             if (host != null) host.endInteractiveResize();
             return true;
         }
+        if (draggingThumb) {
+            draggingThumb = false;
+            return true;
+        }
         return super.mouseReleased(viewportX(mouseX, mouseY), viewportY(mouseX, mouseY), button);
     }
 
@@ -474,14 +588,26 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         // 鼠标在视口外时，内容按"鼠标不在任何子控件上"绘制：露出一半的槽、按钮不因鼠标停在被裁掉的那一半而高亮
         boolean inside = isInViewport(mouseX, mouseY);
-        super.drawInBackground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
+        drawBackgroundTexture(graphics, mouseX, mouseY);
+        enableViewportScissor(graphics);
+        drawWidgetsBackground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
+        graphics.disableScissor();
+        if (barShown) drawScrollBar(graphics, mouseX, mouseY);
         if (!resizable) return;
         var pose = graphics.pose();
         pose.pushPose();
         // 画在内容之上（物品图标 z 约 150）
         pose.translate(0, 0, UITheme.OVERLAY_Z);
-        UITheme.drawResizeGrip(graphics, getPositionX() + getSizeWidth(), getPositionY() + getSizeHeight(), resizing || isOverGrip(mouseX, mouseY), isLocked());
+        UITheme.drawResizeGrip(graphics, viewportRight(), viewportBottom(), resizing || isOverGrip(mouseX, mouseY), isLocked());
         pose.popPose();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawOverlay(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        enableViewportScissor(graphics);
+        super.drawOverlay(graphics, mouseX, mouseY, partialTicks);
+        graphics.disableScissor();
     }
 
     /** 悬停在缩放角上时说明操作：没锁定时"拖动调整 / 右键锁定"，锁定时"已锁定 / 右键解锁"。 */
@@ -489,11 +615,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         boolean inside = isInViewport(mouseX, mouseY);
-        int x = getPositionX(), y = getPositionY();
-        var pose = graphics.pose().last().pose();
-        var from = pose.transform(new Vector4f(x, y, 0, 1));
-        var to = pose.transform(new Vector4f(x + getSizeWidth(), y + getSizeHeight(), 0, 1));
-        graphics.enableScissor((int) from.x, (int) from.y, (int) to.x, (int) to.y);
+        enableViewportScissor(graphics);
         drawWidgetsForeground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
         graphics.disableScissor();
         if (resizing || !isOverGrip(mouseX, mouseY) || gui == null || gui.getModularUIGui() == null) return;

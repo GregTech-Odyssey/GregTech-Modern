@@ -24,6 +24,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -144,7 +145,7 @@ public abstract class TagFilter<T, S extends Filter<T, S>> implements Filter<T, 
         tagList.setDisplay(false);
 
         var root = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP));
-        root.addSyncValue(SyncValue.of(query::hasTags, SyncValue.BOOLEAN, false).onChanged(tagList::setDisplay));
+        root.addSyncValue(SyncValue.of(query::hasTags, ByteStreamCodec.BOOLEAN_CODEC, false).onChanged(tagList::setDisplay));
         return root.addChildren(inputRow, tagList);
     }
 

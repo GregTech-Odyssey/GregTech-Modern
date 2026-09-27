@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,10 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
     }
 
     default boolean isPersistent() {
+        return false;
+    }
+
+    default boolean isBusy() {
         return false;
     }
 
@@ -63,7 +68,7 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
             this.pressed = pressed;
             this.booleanSupplier = booleanSupplier;
             this.onClick = onClick;
-            this.state = SyncValue.of(booleanSupplier::getAsBoolean, SyncValue.BOOLEAN, false);
+            this.state = SyncValue.of(booleanSupplier::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false);
         }
 
         @Override

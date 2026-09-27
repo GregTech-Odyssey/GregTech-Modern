@@ -8,11 +8,14 @@ import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
@@ -21,6 +24,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -29,6 +33,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public abstract class VeinGenerator {
+
+    public static final LevelHeightAccessor UNBOUNDED_HEIGHT = LevelHeightAccessor.create(-2048, 4096);
 
     public static final Codec<Codec<? extends VeinGenerator>> REGISTRY_CODEC = ResourceLocation.CODEC
             .flatXmap(rl -> Optional.ofNullable(WorldGeneratorUtils.VEIN_GENERATORS.get(rl))
@@ -88,6 +94,32 @@ public abstract class VeinGenerator {
 
     public abstract Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
                                                             GTOreDefinition entry, BlockPos origin);
+
+    public boolean sample(GTOreDefinition entry, RandomSource random, BlockPos origin, BoundingBox area, SampleSink sink) {
+        return false;
+    }
+
+    protected static int clipFrom(@Nullable BoundingBox area, Direction.Axis axis, int base, int from) {
+        return area == null ? from : Math.max(from, switch (axis) {
+            case X -> area.minX();
+            case Y -> area.minY();
+            case Z -> area.minZ();
+        } - base);
+    }
+
+    protected static int clipTo(@Nullable BoundingBox area, Direction.Axis axis, int base, int to) {
+        return area == null ? to : Math.min(to, switch (axis) {
+            case X -> area.maxX();
+            case Y -> area.maxY();
+            case Z -> area.maxZ();
+        } - base);
+    }
+
+    @FunctionalInterface
+    public interface SampleSink {
+
+        void accept(BlockPos pos, @Nullable Either<List<OreConfiguration.TargetBlockState>, Material> target);
+    }
 
     public abstract VeinGenerator build();
 

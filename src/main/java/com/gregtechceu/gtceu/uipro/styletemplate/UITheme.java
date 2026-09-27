@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.styletemplate;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.uipro.canvas.WireStyle;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -120,21 +121,6 @@ public final class UITheme {
     public static final int POPUP_NOTCH = 4;
     /// 分段选择（{@code ButtonGroup.compact}）里未选中项悬停时叠的暗色
     public static final int SEGMENT_HOVER = 0x20000000;
-
-    /**
-     * 弹出面板顶边上指向所属对象（如被点的格子）的小尖角：尖端 2 像素宽、高 {@link #POPUP_NOTCH}，逐行加宽；
-     * 描边、底色与 {@link #WINDOW} 一致，面板顶边在尖角处打通，看起来是面板自己伸出的一角。
-     * {@code centerX} 是尖角中线（左右两像素之间），{@code panelTop} 是面板顶边。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawPopupNotch(GuiGraphics graphics, int centerX, int panelTop) {
-        for (int k = 0; k < POPUP_NOTCH; k++) {
-            int y = panelTop - POPUP_NOTCH + k, half = k + 1;
-            graphics.fill(centerX - half, y, centerX + half, y + 1, WINDOW_OUTLINE);
-            if (k > 0) graphics.fill(centerX - half + 1, y, centerX + half - 1, y + 1, WINDOW_FILL);
-        }
-        graphics.fill(centerX - POPUP_NOTCH + 1, panelTop, centerX + POPUP_NOTCH - 1, panelTop + 2, WINDOW_FILL);
-    }
 
     /** 配置按钮悬停：底色暗一档（不比窗口底色亮）。 */
     public static final IGuiTexture CONFIGURATOR_TAB_HOVER = new OreSprites.Shifted(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_HOVER_FILL, 2, 2, 2, 4), 0, 1);
@@ -420,6 +406,46 @@ public final class UITheme {
     private static IGuiTexture viewIcon(int index) {
         return VIEW_ICONS.getSubTexture((double) index / VIEW_ICON_COUNT, 0, 1.0 / VIEW_ICON_COUNT, 1);
     }
+
+    public static final int FLOW_NODE_FILL = WINDOW_FILL;
+    public static final int FLOW_NODE_OUTLINE = 0xFF373737;
+    public static final int FLOW_NODE_HIGHLIGHT = 0xFFDCDCDC;
+    public static final int FLOW_NODE_SHADE = 0xFFA2A2A2;
+    public static final int FLOW_STRIP_EDGE = 0xFF4C5156;
+    public static final int FLOW_OFF_LIGHT = 0xFF7C8287, FLOW_OFF_MID = 0xFF61676C;
+    public static final int FLOW_GREEN_LIGHT = 0xFF93C987, FLOW_GREEN_MID = 0xFF62A15A;
+    public static final int FLOW_CYAN_LIGHT = 0xFF86CEDA, FLOW_CYAN_MID = 0xFF419CAD, FLOW_CYAN_BRIGHT = 0xFFBDEAF0;
+    public static final int FLOW_AMBER_LIGHT = 0xFFECC66E, FLOW_AMBER_MID = 0xFFD19B36, FLOW_AMBER_DARK = 0xFFA2711F;
+    public static final int FLOW_RED_LIGHT = 0xFFE27F6C, FLOW_RED_MID = 0xFFC24D3E, FLOW_RED_DARK = 0xFF8F3328;
+    public static final WireStyle FLOW_WIRE_DISABLED = WireStyle.patterned(0xFF9A9A9A, WireStyle.Pattern.DOTTED);
+    public static final WireStyle FLOW_WIRE_IDLE = WireStyle.solid(0xFF8A8A8A);
+    public static final WireStyle FLOW_WIRE_READY = WireStyle.solid(FLOW_GREEN_MID);
+    public static final WireStyle FLOW_WIRE_ACTIVE = WireStyle.flowing(FLOW_CYAN_MID, 0xFFA4BDC1, 0xFF8FC9D2, 0xFFF2FDFF, FLOW_CYAN_BRIGHT);
+    public static final WireStyle FLOW_WIRE_WARNING = WireStyle.solid(FLOW_AMBER_MID);
+    public static final WireStyle FLOW_WIRE_MISSING = WireStyle.patterned(FLOW_RED_MID, WireStyle.Pattern.DASHED);
+
+    @OnlyIn(Dist.CLIENT)
+    public static void drawFlowPlate(GuiGraphics graphics, int x, int y, int width, int height, int outline, int stripLight, int stripMid) {
+        int r = x + width, b = y + height;
+        graphics.fill(x + 1, y + 1, r - 1, b - 1, FLOW_NODE_FILL);
+        ring(graphics, x, y, r, b, outline, true);
+        graphics.fill(r - 2, y + 1, r - 1, b - 1, FLOW_NODE_SHADE);
+        graphics.fill(x + 1, b - 2, r - 2, b - 1, FLOW_NODE_SHADE);
+        graphics.fill(x + 1, y + 4, x + 2, b - 2, FLOW_NODE_HIGHLIGHT);
+        if (stripMid == 0) {
+            graphics.fill(x + 1, y + 1, r - 2, y + 2, FLOW_NODE_HIGHLIGHT);
+            graphics.fill(x + 1, y + 2, x + 2, y + 4, FLOW_NODE_HIGHLIGHT);
+            return;
+        }
+        graphics.fill(x + 1, y + 1, r - 1, y + 2, stripLight);
+        graphics.fill(x + 1, y + 2, r - 1, y + 3, stripMid);
+        graphics.fill(x + 1, y + 3, r - 1, y + 4, FLOW_STRIP_EDGE);
+    }
+
+    public static final int TAB_HINT_GLOW = SELECTION_COLOR;
+    public static final int TAB_HINT_SPARK = 0xFFFFF4CF;
+    public static final int TAB_HINT_DIM = 0xFF8C6A1E;
+    public static final int TAB_HINT_HALO_ALPHA_MIN = 0x18, TAB_HINT_HALO_ALPHA_MAX = 0x50;
 
     /** 画布项在最小细节层级与缩略图里的默认色（与物品槽同色）。 */
     public static final int CANVAS_ITEM_BLOCK = 0xFF8B8B8B;

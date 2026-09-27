@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -23,6 +24,7 @@ import com.google.common.collect.Table;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -67,9 +69,7 @@ public class GTRecipeTypeUI {
     @Getter
     @NotNull
     private RecipeSlotLayout slotLayout = RecipeSlotLayouts.DEFAULT;
-    /// 配方查看器里槽位区的尺寸，第一次用到时搭一遍默认槽位区量出来
-    @Nullable
-    private Size slotAreaSize;
+    private final Long2ObjectOpenHashMap<Size> recipeSlotAreaSizes = new Long2ObjectOpenHashMap<>();
 
     /**
      * @param recipeType the recipemap corresponding to this ui
@@ -81,18 +81,35 @@ public class GTRecipeTypeUI {
     /** 换成专用排布（带整张底图的配方类型，替代原来 LDLib 编辑器存的 .rtui 布局）。 */
     public GTRecipeTypeUI setSlotLayout(@NotNull RecipeSlotLayout slotLayout) {
         this.slotLayout = slotLayout;
-        this.slotAreaSize = null;
+        this.recipeSlotAreaSizes.clear();
         return this;
     }
 
-    /** 配方查看器里槽位区的尺寸（与配方无关，同一配方类型的所有配方相同）。 */
-    public Size getSlotAreaSize() {
-        var size = slotAreaSize;
+    public Size getSlotAreaSize(GTRecipeDefinition recipe) {
+        long key = (long) recipe.itemInputs.size() << 48 | (long) recipe.fluidInputs.size() << 32 |
+                (long) recipe.itemOutputs.size() << 16 | recipe.fluidOutputs.size();
+        var size = recipeSlotAreaSizes.get(key);
         if (size == null) {
-            size = slotLayout.build(new RecipeSlots(this, false, false, (output, cap) -> true)).getSize();
-            slotAreaSize = size;
+            size = slotLayout.build(recipeSlots(recipe)).getSize();
+            recipeSlotAreaSizes.put(key, size);
         }
         return size;
+    }
+
+    public WidgetGroup createRecipeTemplate(GTRecipeDefinition recipe, Table<IO, RecipeInfo, Object> storages) {
+        var group = slotLayout.build(recipeSlots(recipe));
+        bind(group, new RecipeHolder(ProgressWidget.JEIProgress, storages, recipe.data.clone(), List.of(recipe.conditions), false, false));
+        return group;
+    }
+
+    private RecipeSlots recipeSlots(GTRecipeDefinition recipe) {
+        return new RecipeSlots(this, false, false, (output, cap) -> true, (io, cap) -> recipeSlotCount(recipe, io, cap));
+    }
+
+    private static int recipeSlotCount(GTRecipeDefinition recipe, IO io, ContentRecipeInfo<?, ?> cap) {
+        if (cap == ItemRecipeInfo.INSTANCE) return (io == IO.IN ? recipe.itemInputs : recipe.itemOutputs).size();
+        if (cap == FluidRecipeInfo.INSTANCE) return (io == IO.IN ? recipe.fluidInputs : recipe.fluidOutputs).size();
+        return 0;
     }
 
     public record RecipeHolder(DoubleSupplier progressSupplier, Table<IO, RecipeInfo, Object> storages, DataComponentMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {}

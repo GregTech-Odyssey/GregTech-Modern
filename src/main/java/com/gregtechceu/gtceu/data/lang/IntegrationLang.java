@@ -29,7 +29,6 @@ public class IntegrationLang {
         provider.add("gtceu.jei.ore_vein_diagram.weight", "Weight: %s");
         provider.add("gtceu.jei.ore_vein_diagram.dimensions", "Dimensions:");
         provider.add("gtceu.jei.vein.any_dimension", "Any Dimension");
-        provider.add("gtceu.jei.vein.chunks", "%s chunks");
         provider.add("gtceu.jei.vein.density", "Density");
         provider.add("gtceu.jei.vein.depleted_yield", "Depleted Yield");
         provider.add("gtceu.jei.vein.height", "Height");
@@ -40,6 +39,10 @@ public class IntegrationLang {
         provider.add("gtceu.jei.vein.share", "Share: %s");
         provider.add("gtceu.jei.vein.size", "Size");
         provider.add("gtceu.jei.vein.yield", "Initial Yield");
+        provider.add("gtceu.jei.vein.chunk_area", "%s×%s chunks");
+        provider.add("gtceu.jei.vein.preview", "A vein sampled with its generation rules");
+        provider.add("gtceu.jei.vein.preview_scale", "Area shown: %s×%s×%s blocks");
+        provider.add("gtceu.jei.vein.preview_schematic", "Schematic only; the actual shape depends on world noise");
         GTRegistries.ORE_VEINS.unfreeze();
         GTOres.init();
         GTRegistries.ORE_VEINS.freeze();

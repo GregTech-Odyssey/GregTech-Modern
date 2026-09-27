@@ -38,6 +38,7 @@ final class SlotState {
      * 槽底图：{@code base} 之上、内容之下按条件画"可从 EMI 拖入"标记（LDLib2 {@code xeiPhantom}）。
      * {@code darkSlot} 为深色槽（流体槽）时用浅色标记。
      */
+    @OnlyIn(Dist.CLIENT)
     IGuiTexture background(IGuiTexture base, boolean darkSlot, BooleanSupplier xeiPhantom) {
         return (graphics, mouseX, mouseY, x, y, width, height) -> {
             base.draw(graphics, mouseX, mouseY, x, y, width, height);

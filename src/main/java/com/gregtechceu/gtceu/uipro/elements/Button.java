@@ -79,6 +79,10 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
         return new Button(width, HEIGHT, text, null);
     }
 
+    public static Button text(int width, int height, Supplier<String> text) {
+        return new Button(width, height, text, null);
+    }
+
     public static Button translatable(int width, String key) {
         return text(width, () -> Component.translatable(key).getString());
     }

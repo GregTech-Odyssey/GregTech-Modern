@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.gui.fancy;
 
+import com.gregtechceu.gtceu.uipro.window.WindowAnchor;
+
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -45,6 +47,14 @@ public interface IFancyUIProvider {
 
     default boolean hasPlayerInventory() {
         return true;
+    }
+
+    default boolean windowHasPlayerInventory() {
+        return hasPlayerInventory();
+    }
+
+    default WindowAnchor windowAnchor() {
+        return WindowAnchor.TABS;
     }
 
     /**

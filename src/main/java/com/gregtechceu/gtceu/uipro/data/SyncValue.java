@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -26,92 +28,33 @@ import java.util.function.Supplier;
  */
 public final class SyncValue<T> {
 
-    public interface Codec<T> {
-
-        void write(FriendlyByteBuf buf, T value);
-
-        T read(FriendlyByteBuf buf);
-    }
-
-    public static final Codec<Integer> INT = new Codec<>() {
-
-        @Override
-        public void write(FriendlyByteBuf buf, Integer value) {
-            buf.writeVarInt(value);
-        }
-
-        @Override
-        public Integer read(FriendlyByteBuf buf) {
-            return buf.readVarInt();
-        }
-    };
-
-    public static final Codec<Long> LONG = new Codec<>() {
-
-        @Override
-        public void write(FriendlyByteBuf buf, Long value) {
-            buf.writeVarLong(value);
-        }
-
-        @Override
-        public Long read(FriendlyByteBuf buf) {
-            return buf.readVarLong();
-        }
-    };
-
-    public static final Codec<Boolean> BOOLEAN = new Codec<>() {
-
-        @Override
-        public void write(FriendlyByteBuf buf, Boolean value) {
-            buf.writeBoolean(value);
-        }
-
-        @Override
-        public Boolean read(FriendlyByteBuf buf) {
-            return buf.readBoolean();
-        }
-    };
-
-    public static final Codec<Component> COMPONENT = new Codec<>() {
-
-        @Override
-        public void write(FriendlyByteBuf buf, Component value) {
-            buf.writeComponent(value);
-        }
-
-        @Override
-        public Component read(FriendlyByteBuf buf) {
-            return buf.readComponent();
-        }
-    };
-
     private final Supplier<T> getter;
-    private final Codec<T> codec;
+    private final ByteStreamCodec<T> codec;
     private T value;
     @Nullable
     private Consumer<T> onChanged;
     private boolean pollOnClient;
 
-    private SyncValue(Supplier<T> getter, Codec<T> codec, T initialValue) {
+    private SyncValue(Supplier<T> getter, ByteStreamCodec<T> codec, T initialValue) {
         this.getter = getter;
         this.codec = codec;
         this.value = initialValue;
     }
 
-    public static <T> SyncValue<T> of(Supplier<T> getter, Codec<T> codec, T initialValue) {
+    public static <T> SyncValue<T> of(Supplier<T> getter, ByteStreamCodec<T> codec, T initialValue) {
         return new SyncValue<>(getter, codec, initialValue);
     }
 
     public static SyncValue<Integer> ofInt(Supplier<Integer> getter, int initialValue) {
-        return of(getter, INT, initialValue);
+        return of(getter, ByteStreamCodec.INT_CODEC, initialValue);
     }
 
     public static SyncValue<Long> ofLong(Supplier<Long> getter, long initialValue) {
-        return of(getter, LONG, initialValue);
+        return of(getter, ByteStreamCodec.LONG_CODEC, initialValue);
     }
 
     public static SyncValue<Component> ofComponent(Supplier<Component> getter) {
-        return of(getter, COMPONENT, getter.get());
+        return of(getter, StreamCodecs.COMPONENT_CODEC, getter.get());
     }
 
     /** 客户端收到不同的新值时回调（服务端比较出变化时也会回调）。 */
@@ -133,11 +76,11 @@ public final class SyncValue<T> {
 
     void writeInitial(FriendlyByteBuf buf) {
         value = getter.get();
-        codec.write(buf, value);
+        codec.encode(buf, value);
     }
 
     void readInitial(FriendlyByteBuf buf) {
-        accept(codec.read(buf));
+        accept(codec.decode(buf));
     }
 
     boolean detectChange() {
@@ -148,11 +91,11 @@ public final class SyncValue<T> {
     }
 
     void write(FriendlyByteBuf buf) {
-        codec.write(buf, value);
+        codec.encode(buf, value);
     }
 
     void read(FriendlyByteBuf buf) {
-        accept(codec.read(buf));
+        accept(codec.decode(buf));
     }
 
     /** @param local 控件在没有服务端的界面里：getter 就是数据源，取到新值要照常回调 */

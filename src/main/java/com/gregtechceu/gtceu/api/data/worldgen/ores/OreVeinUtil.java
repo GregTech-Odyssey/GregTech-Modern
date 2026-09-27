@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
+import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTOres;
@@ -10,12 +12,16 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryCodecs;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.BulkSectionAccess;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 
@@ -23,6 +29,7 @@ import com.google.common.base.Suppliers;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.JsonOps;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +45,34 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class OreVeinUtil {
 
     private OreVeinUtil() {}
+
+    public static BlockState sectionState(LevelChunkSection section, BlockPos pos) {
+        return section.getBlockState(SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getY()),
+                SectionPos.sectionRelative(pos.getZ()));
+    }
+
+    public static void placeOre(Either<List<OreConfiguration.TargetBlockState>, Material> ore, BlockState current,
+                                BulkSectionAccess access, LevelChunkSection section, RandomSource random, BlockPos pos,
+                                GTOreDefinition entry) {
+        int x = SectionPos.sectionRelative(pos.getX());
+        int y = SectionPos.sectionRelative(pos.getY());
+        int z = SectionPos.sectionRelative(pos.getZ());
+        ore.ifLeft(blockStates -> {
+            for (OreConfiguration.TargetBlockState targetState : blockStates) {
+                if (!canPlaceOre(current, access::getBlockState, random, entry, targetState, pos)) continue;
+                if (targetState.state.isAir()) continue;
+                section.setBlockState(x, y, z, targetState.state, false);
+                break;
+            }
+        }).ifRight(material -> {
+            if (!canPlaceOre(current, access::getBlockState, random, entry, pos)) return;
+            var prefix = ChemicalHelper.getOrePrefix(access.getBlockState(pos));
+            if (prefix.isEmpty()) return;
+            Block toPlace = ChemicalHelper.getBlock(prefix.get(), material);
+            if (toPlace == null || toPlace.defaultBlockState().isAir()) return;
+            section.setBlockState(x, y, z, toPlace.defaultBlockState(), false);
+        });
+    }
 
     public static boolean canPlaceOre(BlockState pState, Function<BlockPos, BlockState> pAdjacentStateAccessor,
                                       RandomSource pRandom, GTOreDefinition entry,

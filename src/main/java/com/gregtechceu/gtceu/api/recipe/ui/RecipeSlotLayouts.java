@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.recipe.ui;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -27,6 +28,10 @@ public final class RecipeSlotLayouts {
     public static final int PADDING = 4;
     /** 进度箭头与两侧槽位之间的距离。 */
     public static final int PROGRESS_MARGIN = 14;
+    private static final int COMPACT_PADDING_VERTICAL = 2;
+    private static final int COMPACT_PROGRESS_MARGIN = 8;
+    private static final int COMPACT_COLUMNS = (UISizes.CONTENT_WIDTH - 2 * UITheme.PANEL_PADDING - 2 * PADDING -
+            RecipeSlots.PROGRESS_SIZE - 2 * COMPACT_PROGRESS_MARGIN) / UISizes.SLOT;
 
     /**
      * 默认排布：{@code [输入] → [输出]}。
@@ -39,6 +44,7 @@ public final class RecipeSlotLayouts {
      * </ul>
      */
     public static final RecipeSlotLayout DEFAULT = slots -> {
+        if (slots.isRecipeView()) return compact(slots);
         var inputs = side(slots, IO.IN);
         var outputs = side(slots, IO.OUT);
         int sideWidth = Math.max(sideWidth(slots, IO.IN), sideWidth(slots, IO.OUT));
@@ -49,6 +55,76 @@ public final class RecipeSlotLayouts {
                 .layout(l -> l.row().paddingAll(PADDING).gapAll(PROGRESS_MARGIN).alignCenter())
                 .addChildren(inputs, progress, outputs);
     };
+
+    private static UIElement compact(RecipeSlots slots) {
+        var inputs = groups(slots, IO.IN);
+        var outputs = groups(slots, IO.OUT);
+        int rows = 1, inColumns, outColumns;
+        while (true) {
+            inColumns = minColumns(inputs, rows, false);
+            outColumns = minColumns(outputs, rows, false);
+            if (inColumns + outColumns <= COMPACT_COLUMNS || rows >= Math.max(total(inputs), total(outputs))) break;
+            rows++;
+        }
+        boolean inBreak = false, outBreak = false;
+        int inBreakColumns = minColumns(inputs, rows, true), outBreakColumns = minColumns(outputs, rows, true);
+        if (inBreakColumns >= 0 && outBreakColumns >= 0 && inBreakColumns + outBreakColumns <= COMPACT_COLUMNS) {
+            inBreak = outBreak = true;
+        } else if (inBreakColumns >= 0 && inBreakColumns + outColumns <= COMPACT_COLUMNS) {
+            inBreak = true;
+        } else if (outBreakColumns >= 0 && inColumns + outBreakColumns <= COMPACT_COLUMNS) {
+            outBreak = true;
+        }
+        var row = new UIElement().layout(l -> l.row().paddingHorizontal(PADDING).paddingVertical(COMPACT_PADDING_VERTICAL)
+                .gapAll(COMPACT_PROGRESS_MARGIN).alignCenter());
+        if (!inputs.isEmpty()) row.addChild(compactSide(inputs, inBreak ? inBreakColumns : inColumns, inBreak));
+        row.addChild(slots.progress());
+        if (!outputs.isEmpty()) row.addChild(compactSide(outputs, outBreak ? outBreakColumns : outColumns, outBreak));
+        return row;
+    }
+
+    private static List<List<Widget>> groups(RecipeSlots slots, IO io) {
+        var groups = new ArrayList<List<Widget>>();
+        for (var cap : slots.capabilities(io)) {
+            var capSlots = slots.slots(io, cap);
+            if (!capSlots.isEmpty()) groups.add(capSlots);
+        }
+        return groups;
+    }
+
+    private static int total(List<List<Widget>> groups) {
+        int total = 0;
+        for (var group : groups) total += group.size();
+        return total;
+    }
+
+    private static int rows(List<List<Widget>> groups, int columns, boolean breakGroups) {
+        if (!breakGroups) return (total(groups) + columns - 1) / columns;
+        int rows = 0;
+        for (var group : groups) rows += (group.size() + columns - 1) / columns;
+        return rows;
+    }
+
+    private static int minColumns(List<List<Widget>> groups, int rows, boolean breakGroups) {
+        int widest = 0;
+        for (var group : groups) widest = Math.max(widest, breakGroups ? group.size() : total(groups));
+        if (widest == 0) return 0;
+        for (int columns = 1; columns <= widest; columns++) {
+            if (rows(groups, columns, breakGroups) <= rows) return columns;
+        }
+        return -1;
+    }
+
+    private static UIElement compactSide(List<List<Widget>> groups, int columns, boolean breakGroups) {
+        if (!breakGroups) {
+            var all = new ArrayList<Widget>();
+            for (var group : groups) all.addAll(group);
+            return grid(all, columns);
+        }
+        var stack = new UIElement().layout(l -> l.column().alignStart());
+        for (var group : groups) stack.addChild(grid(group, columns));
+        return stack;
+    }
 
     /**
      * 一侧：各种类的网格上下排列，左边缘对齐，整块在这一侧里水平居中；第二种放得下时竖排在第一种右边。
