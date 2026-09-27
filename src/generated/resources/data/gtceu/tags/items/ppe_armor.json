@@ -11,6 +11,12 @@
     "gtceu:quarktech_boots",
     "gtceu:quarktech_helmet",
     "gtceu:advanced_nanomuscle_chestplate",
-    "gtceu:advanced_quarktech_chestplate"
+    "gtceu:advanced_nanomuscle_helmet",
+    "gtceu:advanced_nanomuscle_leggings",
+    "gtceu:advanced_nanomuscle_boots",
+    "gtceu:advanced_quarktech_chestplate",
+    "gtceu:advanced_quarktech_helmet",
+    "gtceu:advanced_quarktech_leggings",
+    "gtceu:advanced_quarktech_boots"
   ]
 }

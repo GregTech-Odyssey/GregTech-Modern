@@ -1,37 +1,22 @@
 package com.gregtechceu.gtceu.common.machine.trait.miner;
 
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
-import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 @Getter
 public class LargeMinerLogic extends MinerLogic {
 
     private static final int CHUNK_LENGTH = 16;
-    private static final LootItemFunction DROP_MULTIPLIER = ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE).build();
     @Setter
     private int voltageTier;
     @Setter
@@ -86,10 +71,6 @@ public class LargeMinerLogic extends MinerLogic {
         }
     }
 
-    private int getDropCountMultiplier() {
-        return 5;
-    }
-
     public void setChunkMode(boolean isChunkMode) {
         if (!isWorking()) {
             this.isChunkMode = isChunkMode;
@@ -102,23 +83,5 @@ public class LargeMinerLogic extends MinerLogic {
     @Override
     public BlockPos getMiningPos() {
         return getMachine().getPos().relative(getMachine().getFrontFacing().getOpposite());
-    }
-
-    @Override
-    protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState, LootParams.Builder builder) {
-        if (getDropCountMultiplier() <= 0) {
-            super.dropPostProcessing(blockDrops, outputs, blockState, builder);
-            return;
-        }
-        ItemStack fortunePick = this.pickaxeTool.copy();
-        fortunePick.enchant(Enchantments.BLOCK_FORTUNE, getDropCountMultiplier());
-        LootParams params = builder.withParameter(LootContextParams.TOOL, fortunePick).create(LootContextParamSets.BLOCK);
-        LootContext context = new LootContext.Builder(params).create(null);
-        for (ItemStack outputStack : outputs) {
-            if (ChemicalHelper.getPrefix(outputStack.getItem()) == TagPrefix.crushed) {
-                outputStack = DROP_MULTIPLIER.apply(outputStack, context);
-            }
-            blockDrops.add(outputStack);
-        }
     }
 }

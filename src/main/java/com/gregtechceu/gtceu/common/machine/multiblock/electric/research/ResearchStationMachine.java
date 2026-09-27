@@ -27,6 +27,11 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public boolean supportLockRecipe() {
+        return false;
+    }
+
+    @Override
     public long requestCWU(long cwut, boolean simulate) {
         long cwu = super.requestCWU(cwut, simulate);
         if (!simulate && cwu >= cwut) {

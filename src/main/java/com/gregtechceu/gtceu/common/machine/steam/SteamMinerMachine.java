@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamWorkableMachine;
+import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -61,6 +62,9 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     public final NotifiableItemStackHandler importItems;
     @SaveToDisk
     public final NotifiableItemStackHandler exportItems;
+    @Getter
+    @SaveToDisk
+    protected final EnchantmentSlotHandler enchantmentSlot;
     private final int inventorySize;
     private final int energyPerTick;
     @Nullable
@@ -74,6 +78,12 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         this.energyPerTick = energyPerTick;
         this.importItems = createImportItemHandler();
         this.exportItems = createExportItemHandler();
+        this.enchantmentSlot = new EnchantmentSlotHandler(this);
+    }
+
+    @Override
+    public boolean supportLockRecipe() {
+        return false;
     }
 
     //////////////////////////////////////
@@ -159,14 +169,18 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     @Override
     public ModularUI createUI(Player entityPlayer) {
         int rowSize = (int) Math.sqrt(inventorySize);
-        ModularUI builder = new ModularUI(175, 176, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure()));
-        builder.widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure()), 7, 94, true));
+        ModularUI builder = new ModularUI(175, 194, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure()));
+        builder.widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure()), 7, 112, true));
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
                 builder.widget(new SlotWidget(exportItems, index, 142 - rowSize * 9 + x * 18, 18 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure())));
             }
         }
+        // 附魔槽：放附魔书，提供时运 / 效率（精准与时运互斥）
+        builder.widget(new SlotWidget(enchantmentSlot.getStorage(), 0, 7, 94, true, true)
+                .setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure()))
+                .setHoverTooltips(Component.translatable("gtceu.gui.enchantment_slot.tooltip")));
         builder.widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()));
         builder.widget(new PredicatedImageWidget(79, 42, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure())).setPredicate(() -> !drainInput(true)));
         builder.widget(new ImageWidget(7, 16, 105, 75, GuiTextures.DISPLAY_STEAM.get(isHighPressure())));
@@ -196,9 +210,12 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     public boolean drainInput(boolean simulate) {
-        long resultSteam = steamTank.getFluidInTank(0).getAmount() - energyPerTick;
+        long stored = steamTank.getFluidInTank(0).getAmount();
+        // 附魔会抬高耗汽；蒸汽不够时按比例削弱效果，而不是直接停机
+        long cost = getRecipeLogic().resolveEnchantmentCost(energyPerTick, stored);
+        long resultSteam = stored - cost;
         if (!this.isVentingBlocked() && resultSteam >= 0L && resultSteam <= steamTank.getTankCapacity(0)) {
-            if (!simulate) steamTank.drainInternal(energyPerTick, IFluidHandler.FluidAction.EXECUTE);
+            if (!simulate) steamTank.drainInternal((int) cost, IFluidHandler.FluidAction.EXECUTE);
             return true;
         }
         return false;

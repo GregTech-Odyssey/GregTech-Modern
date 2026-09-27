@@ -20,6 +20,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.utils.BlockDropCache;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -87,6 +88,8 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     private int blockBreakProgress = 0;
     private float currentHardness;
     private final long energyPerTick;
+    /** 方块掉落缓存：一台机器一个。 */
+    private final BlockDropCache dropCache = new BlockDropCache();
     public final float efficiencyMultiplier;
     @Getter
     @SaveToDisk
@@ -191,10 +194,12 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
                     for (ItemStack drop : drops) {
                         var remainder = tryFillCache(drop);
                         if (!remainder.isEmpty()) {
+                            // ItemEntity 会合并同类并 grow 数量，不能把掉落模板本体交给它
+                            var toDrop = remainder.copy();
                             if (getOutputFacingItems() == null) {
-                                Block.popResource(getLevel(), getPos(), remainder);
+                                Block.popResource(getLevel(), getPos(), toDrop);
                             } else {
-                                Block.popResource(getLevel(), getPos().relative(getOutputFacingItems()), remainder);
+                                Block.popResource(getLevel(), getPos().relative(getOutputFacingItems()), toDrop);
                             }
                         }
                     }
@@ -218,7 +223,9 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     }
 
     private List<ItemStack> tryDestroyBlockAndGetDrops(BlockPos pos) {
-        List<ItemStack> drops = Block.getDrops(getLevel().getBlockState(pos), (ServerLevel) getLevel(), pos, null, null, ItemStack.EMPTY);
+        var state = getLevel().getBlockState(pos);
+        // 走缓存时拿到的是共享模板（只读），插入路径不会改它；弹出路径要自己 copy，见调用处
+        List<ItemStack> drops = dropCache.getTemplate((ServerLevel) getLevel(), state, pos);
         getLevel().destroyBlock(pos, false);
         return drops;
     }

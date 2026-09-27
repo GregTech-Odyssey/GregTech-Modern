@@ -139,6 +139,11 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         return (CleanroomLogic) super.getRecipeLogic();
     }
 
+    @Override
+    public boolean supportLockRecipe() {
+        return false;
+    }
+
     //////////////////////////////////////
     // *** Multiblock LifeCycle ***//
     //////////////////////////////////////

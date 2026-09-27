@@ -4,17 +4,23 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -27,6 +33,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
+import dev.vfyjxf.taffy.style.AlignContent;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -44,12 +52,21 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     public static final int CHUNK_LENGTH = 16;
     @Getter
     private final int tier;
+    @Getter
+    @SaveToDisk
+    protected final EnchantmentSlotHandler enchantmentSlot;
     private final int drillingFluidConsumePerTick;
 
     public LargeMinerMachine(MetaMachineBlockEntity holder, int tier, int speed, int maximumChunkDiameter, int fortune, int drillingFluidConsumePerTick) {
         super(holder, fortune, speed, maximumChunkDiameter);
         this.tier = tier;
         this.drillingFluidConsumePerTick = drillingFluidConsumePerTick;
+        this.enchantmentSlot = new EnchantmentSlotHandler(this);
+    }
+
+    @Override
+    public boolean supportLockRecipe() {
+        return false;
     }
 
     @Override
@@ -117,9 +134,11 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     @Override
     public boolean drainInput(boolean simulate) {
         // drain energy
-        if (energyContainer.getEnergyStored() > 0) {
-            long energyToDrain = GTValues.VA[getEnergyTier()];
-            long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
+        long stored = energyContainer.getEnergyStored();
+        if (stored > 0) {
+            // 附魔会抬高耗电；电力不够时按比例削弱效果，而不是直接停机
+            long energyToDrain = getRecipeLogic().resolveEnchantmentCost(GTValues.VA[getEnergyTier()], stored);
+            long resultEnergy = stored - energyToDrain;
             if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
                 if (!simulate) {
                     energyContainer.changeEnergy(-energyToDrain);
@@ -158,6 +177,20 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
                 textList.add(Component.translatable("gtceu.multiblock.large_miner.done").setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
             }
         }
+    }
+
+    /**
+     * 主显示页下方单独一行居中放附魔槽（放附魔书，提供时运 / 效率；精准与时运互斥）。
+     */
+    @Override
+    public Widget createUIWidget() {
+        var page = (UIElement) super.createUIWidget();
+        var slot = new SlotWidget();
+        slot.setHandlerSlot(enchantmentSlot.getStorage(), 0);
+        slot.setBackgroundTexture(GuiTextures.SLOT);
+        slot.setHoverTooltips(Component.translatable("gtceu.gui.enchantment_slot.tooltip"));
+        page.addChild(UIElement.row(UISizes.SLOT).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(slot));
+        return page;
     }
 
     @Override

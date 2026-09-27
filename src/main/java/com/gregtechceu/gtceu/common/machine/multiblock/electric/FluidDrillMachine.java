@@ -37,6 +37,11 @@ public class FluidDrillMachine extends WorkableElectricMultiblockMachine {
     }
 
     @Override
+    public boolean supportLockRecipe() {
+        return false;
+    }
+
+    @Override
     public boolean hasBatchConfig() {
         return false;
     }

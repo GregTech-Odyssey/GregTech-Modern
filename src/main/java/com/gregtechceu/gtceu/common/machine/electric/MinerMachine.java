@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.WorkableTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
+import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -77,6 +78,9 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     @Getter
     @SaveToDisk
     protected final CustomItemStackHandler chargerInventory;
+    @Getter
+    @SaveToDisk
+    protected final EnchantmentSlotHandler enchantmentSlot;
     private final long energyPerTick;
     @Nullable
     protected TickableSubscription autoOutputSubs;
@@ -91,12 +95,18 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         super(holder, tier, GTMachineUtils.defaultTankSizeFunction, args, (tier + 1) * (tier + 1), fortune, speed, maximumRadius);
         this.energyPerTick = GTValues.V[tier - 1];
         this.chargerInventory = createChargerItemHandler();
+        this.enchantmentSlot = new EnchantmentSlotHandler(this);
     }
 
     protected CustomItemStackHandler createChargerItemHandler(Object... args) {
         var handler = new CustomItemStackHandler();
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
+    }
+
+    @Override
+    public boolean supportLockRecipe() {
+        return false;
     }
 
     @Override
@@ -126,6 +136,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         getRecipeLogic().onRemove();
         clearInventory(exportItems.storage);
         clearInventory(chargerInventory);
+        clearInventory(enchantmentSlot.getStorage());
     }
 
     @Override
@@ -223,17 +234,21 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         WidgetGroup template = createTemplate(inventorySize).createDefault();
         SlotWidget batterySlot = createBatterySlot().createDefault();
         batterySlot.setSelfPosition(new Position(100, 10));
+        SlotWidget enchantSlot = createEnchantmentSlot().createDefault();
+        enchantSlot.setSelfPosition(new Position(100, 30));
         WidgetGroup group = new WidgetGroup(0, 0, Math.max(template.getSize().width + 12, 172), template.getSize().height + 8);
         Size size = group.getSize();
         template.setSelfPosition(new Position((size.width - 4 - template.getSize().width) / 2 + 4, (size.height - template.getSize().height) / 2));
         group.addWidget(template);
         group.addWidget(batterySlot);
+        group.addWidget(enchantSlot);
         return group;
     }, (template, machine) -> {
         if (machine instanceof MinerMachine minerMachine) {
             createTemplate(inventorySize).setupUI(template, minerMachine);
             createEnergyBar().setupUI(template, minerMachine);
             createBatterySlot().setupUI(template, minerMachine);
+            createEnchantmentSlot().setupUI(template, minerMachine);
         }
     }));
 
@@ -293,6 +308,22 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         });
     }
 
+    /**
+     * 附魔槽控件：放附魔书，提供时运 / 效率（精准与时运互斥）。
+     */
+    protected static EditableUI<SlotWidget, MinerMachine> createEnchantmentSlot() {
+        return new EditableUI<>("enchantment_slot", SlotWidget.class, () -> {
+            var slotWidget = new SlotWidget();
+            slotWidget.setBackground(GuiTextures.SLOT);
+            return slotWidget;
+        }, (slotWidget, machine) -> {
+            slotWidget.setHandlerSlot(machine.enchantmentSlot.getStorage(), 0);
+            slotWidget.setCanPutItems(true);
+            slotWidget.setCanTakeItems(true);
+            slotWidget.setHoverTooltips(Component.translatable("gtceu.gui.enchantment_slot.tooltip"));
+        });
+    }
+
     private void addDisplayText(List<Component> textList) {
         int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
         textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX()).append(" ").append(Component.translatable("gtceu.machine.miner.minex", getRecipeLogic().getMineX())));
@@ -308,9 +339,12 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
 
     @Override
     public boolean drainInput(boolean simulate) {
-        long resultEnergy = energyContainer.getEnergyStored() - energyPerTick;
+        long stored = energyContainer.getEnergyStored();
+        // 附魔会抬高耗电；电力不够时按比例削弱效果，而不是直接停机
+        long cost = getRecipeLogic().resolveEnchantmentCost(energyPerTick, stored);
+        long resultEnergy = stored - cost;
         if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
-            if (!simulate) energyContainer.removeEnergy(energyPerTick);
+            if (!simulate) energyContainer.removeEnergy(cost);
             return true;
         }
         return false;

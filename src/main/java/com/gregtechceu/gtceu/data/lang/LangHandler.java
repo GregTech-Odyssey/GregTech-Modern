@@ -1185,6 +1185,8 @@ public class LangHandler {
         provider.add("gtceu.gui.item_auto_input.tooltip.disabled", "Item Auto-Input Disabled");
         multilineLang(provider, "gtceu.gui.charger_slot.tooltip",
                 "§fCharger Slot§r\n§7Draws power from %s batteries§r\n§7Charges %s tools and batteries");
+        multilineLang(provider, "gtceu.gui.enchantment_slot.tooltip",
+                "§fEnchantment Slot§r\n§7Place an §6Enchanted Book§7 here.\n§7§6Fortune§7 increases drops, §6Efficiency§7 speeds up mining.\n§7§6Unbreaking§7 cuts power use.\n§7The first two draw §cextra power§7 proportional to the boost.\n§7§6Silk Touch§7 disables Fortune.\n§cEffects weaken automatically when power runs short.");
         multilineLang(provider, "gtceu.gui.configurator_slot.tooltip",
                 "§fConfigurator Slot§r\n§7Place a §6Programmed Circuit§7 in this slot to\n§7change its configured value.\n§7Hold §6Shift§7 when clicking buttons to change by §65.\n§aA Programmed Circuit in this slot is also valid for recipe inputs.§r");
         provider.add("gtceu.gui.fluid_lock.tooltip.enabled", "Fluid Locking Enabled");

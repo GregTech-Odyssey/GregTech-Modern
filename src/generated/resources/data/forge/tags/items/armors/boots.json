@@ -2,6 +2,8 @@
   "values": [
     "gtceu:nanomuscle_boots",
     "gtceu:hazmat_boots",
-    "gtceu:quarktech_boots"
+    "gtceu:quarktech_boots",
+    "gtceu:advanced_nanomuscle_boots",
+    "gtceu:advanced_quarktech_boots"
   ]
 }

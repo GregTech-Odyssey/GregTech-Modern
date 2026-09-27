@@ -77,6 +77,11 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     }
 
     @Override
+    public boolean supportLockRecipe() {
+        return false;
+    }
+
+    @Override
     public void onStructureFormed() {
         super.onStructureFormed();
         for (var part : getWorkableParts()) {

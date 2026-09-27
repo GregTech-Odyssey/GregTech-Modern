@@ -2,6 +2,8 @@
   "values": [
     "gtceu:nanomuscle_leggings",
     "gtceu:hazmat_leggings",
-    "gtceu:quarktech_leggings"
+    "gtceu:quarktech_leggings",
+    "gtceu:advanced_nanomuscle_leggings",
+    "gtceu:advanced_quarktech_leggings"
   ]
 }

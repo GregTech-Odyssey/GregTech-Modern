@@ -21,11 +21,8 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import com.gto.datasynclib.util.ItemStackHashStrategy;
-import com.gto.fastcollection.fastutil.O2IOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -243,43 +240,6 @@ public class GTTransferUtils {
     public static void moveInventoryItems(IItemHandlerModifiable sourceInventory,
                                           IItemHandlerModifiable targetInventory) {
         transferItemsFiltered(sourceInventory, targetInventory, GTUtil.FAVORABLE, Integer.MAX_VALUE);
-    }
-
-    /**
-     * Simulates the insertion of items into a target inventory, then optionally performs the insertion.
-     * <br />
-     * <br />
-     * Simulating will not modify any of the input parameters. Insertion will either succeed completely, or fail
-     * without modifying anything.
-     * This method should be called with {@code simulate} {@code true} first, then {@code simulate} {@code false},
-     * only if it returned {@code true}.
-     *
-     * @param handler  the target inventory
-     * @param simulate whether to simulate ({@code true}) or actually perform the insertion ({@code false})
-     * @param items    the items to insert into {@code handler}.
-     * @return {@code true} if the insertion succeeded, {@code false} otherwise.
-     */
-    public static boolean addItemsToItemHandler(final IItemHandlerModifiable handler,
-                                                final boolean simulate,
-                                                final List<ItemStack> items) {
-        // determine if there is sufficient room to insert all items into the target inventory
-        if (simulate) {
-            OverlayedItemHandler overlayedItemHandler = new OverlayedItemHandler(handler);
-            Object2IntMap<ItemStack> stackKeyMap = new O2IOpenCustomCacheHashMap<>(ItemStackHashStrategy.ITEM_AND_TAG);
-
-            for (Object2IntMap.Entry<ItemStack> entry : stackKeyMap.object2IntEntrySet()) {
-                int amountToInsert = entry.getIntValue();
-                int amount = overlayedItemHandler.insertStackedItemStack(entry.getKey(), amountToInsert);
-                if (amount > 0) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        // perform the merge.
-        items.forEach(stack -> ItemHandlerHelper.insertItemStacked(handler, stack, false));
-        return true;
     }
 
     public static int fillFluidAccountNotifiableList(IFluidHandler fluidHandler, FluidStack stack, FluidAction action) {

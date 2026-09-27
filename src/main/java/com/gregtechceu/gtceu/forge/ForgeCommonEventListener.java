@@ -29,6 +29,7 @@ import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
+import com.gregtechceu.gtceu.utils.BlockDropCache;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.Direction;
@@ -161,6 +162,8 @@ public class ForgeCommonEventListener {
     @SubscribeEvent
     public static void registerReloadListeners(AddReloadListenerEvent event) {
         GTRegistries.updateFrozenRegistry(event.getRegistryAccess());
+        // 战利品表随数据包变化，掉落缓存必须一并丢弃
+        BlockDropCache.invalidateAll();
     }
 
     @SubscribeEvent

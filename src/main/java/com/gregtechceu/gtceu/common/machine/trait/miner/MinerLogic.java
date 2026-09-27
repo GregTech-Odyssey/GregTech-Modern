@@ -6,20 +6,16 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.NotifiableAccountedInvWrapper;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
+import com.gregtechceu.gtceu.utils.BlockDropCache;
 
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -37,8 +33,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -50,8 +46,7 @@ public class MinerLogic extends RecipeLogic {
     private static final byte TICK_TOLERANCE = 20;
     private static final double DIVIDEND = MAX_SPEED * Math.pow(TICK_TOLERANCE, POWER);
     protected final IMiner miner;
-    @Nullable
-    private NotifiableAccountedInvWrapper cachedItemHandler = null;
+
     @Getter
     private final int fortune;
     @Getter
@@ -60,7 +55,10 @@ public class MinerLogic extends RecipeLogic {
     private final int maximumRadius;
     @Getter
     public ItemStack pickaxeTool;
+    /** 方块掉落缓存：一台矿机一个。 */
+    private final BlockDropCache dropCache;
     private final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
+    private final ArrayList<ItemStack> blockDrops = new ArrayList<>();
     @Getter
     @SaveToDisk
     protected int x = Integer.MAX_VALUE;
@@ -111,6 +109,18 @@ public class MinerLogic extends RecipeLogic {
     @Setter
     private Direction dir = Direction.DOWN;
 
+    /** 速度倍率的参照方块：矿机挖的都是石质矿石，取石头作基准，保证倍率不随队列里的方块跳动。 */
+    private static final BlockState SPEED_REFERENCE = Blocks.STONE.defaultBlockState();
+
+    /**
+     * 本次 tick 实际生效的时运倍率（含被电力削弱后的部分），由 {@link #resolveEnchantmentCost} 写入。
+     */
+    @Getter
+    private double activeFortuneMultiplier = 1.0D;
+    /** 本次 tick 实际生效的效率倍率（含被电力削弱后的部分）。 */
+    @Getter
+    private double activeSpeedMultiplier = 1.0D;
+
     /**
      * Creates the general logic for all in-world ore block miners
      *
@@ -128,21 +138,146 @@ public class MinerLogic extends RecipeLogic {
         this.maximumRadius = maximumRadius;
         this.isDone = false;
         this.pickaxeTool = GTMaterialItems.TOOL_ITEMS.get(GTMaterials.Neutronium, GTToolType.PICKAXE).get().get();
+        this.dropCache = new BlockDropCache(BlockDropCache.LootParamsFactory.withTool(pickaxeTool));
         interval = 0;
+    }
+
+    //////////////////////////////////////
+    // ********** 附魔槽 **********//
+    //////////////////////////////////////
+
+    /**
+     * 附魔槽里的时运等级。
+     *
+     * <p>
+     * 精准采集与时运互斥：只要这台矿机走精准掉落，时运一律按 0 处理。
+     *
+     * @return 时运等级，没有附魔槽 / 没有书时为 {@code 0}
+     */
+    public int getFortuneLevel() {
+        return MinerEnchantments.getFortuneLevel(miner.getEnchantmentSlot(), isSilkTouchActive());
+    }
+
+    /** @return 附魔槽里的效率等级，没有时为 {@code 0} */
+    public int getEfficiencyLevel() {
+        return MinerEnchantments.getEfficiencyLevel(miner.getEnchantmentSlot());
+    }
+
+    /** @return 附魔槽里的耐久等级，没有时为 {@code 0} */
+    public int getUnbreakingLevel() {
+        return MinerEnchantments.getUnbreakingLevel(miner.getEnchantmentSlot());
+    }
+
+    /**
+     * 是否走精准采集掉落。
+     *
+     * <p>
+     * 机器自带的精准模式优先；机器没有精准模式时，看附魔槽里有没有精准采集书。
+     *
+     * @see #isSilkTouchMode()
+     */
+    public boolean isSilkTouchActive() {
+        return MinerEnchantments.isSilkTouchActive(miner.getEnchantmentSlot(), isSilkTouchMode());
+    }
+
+    /**
+     * 时运带来的产出倍率，取原版「每个掉落额外 +rand(0..L)」的期望值 {@code 1 + L/2}。
+     *
+     * <p>
+     * 这里只用于计费；实际产出走 {@link #applyFortune} 现场骰点。
+     */
+    public double getFortuneMultiplier() {
+        return MinerEnchantments.getFortuneMultiplier(getFortuneLevel());
+    }
+
+    /**
+     * 效率带来的速度倍率，按原版「挖掘速度 += L² + 1」折算：{@code (基准 + L² + 1) / 基准}。
+     *
+     * <p>
+     * 基准取矿机所用镐对参照方块的挖掘速度，见 {@link #SPEED_REFERENCE}。
+     */
+    public double getSpeedMultiplier() {
+        return MinerEnchantments.getSpeedMultiplier(getEfficiencyLevel(), getBaseToolSpeed());
+    }
+
+    private double getBaseToolSpeed() {
+        float toolSpeed = pickaxeTool.getDestroySpeed(SPEED_REFERENCE);
+        return toolSpeed > 0 ? toolSpeed : 1.0D;
+    }
+
+    /**
+     * 耐久带来的省电倍率。
+     *
+     * <p>
+     * 按原版语义折算：耐久 L 有 {@code L/(L+1)} 的概率不掉耐久，等价于平均只消耗
+     * {@code 1/(L+1)}，所以耗电乘以 {@code 1/(L+1)}——L=3 时省电到四分之一。
+     *
+     * @return 不大于 1 的倍率；没有耐久时为 {@code 1}
+     */
+    public double getPowerSavingMultiplier() {
+        return MinerEnchantments.getPowerSavingMultiplier(getUnbreakingLevel());
+    }
+
+    /**
+     * 按可用资源解析本次实际生效的附魔强度，并返回该扣多少代价。
+     *
+     * <p>
+     * 结算顺序是「先省电、再按加成涨价」：耐久先把基础代价打成
+     * {@code 基础 × 1/(L+1)}（见 {@link #getPowerSavingMultiplier()}），
+     * 时运与效率再各自按其倍率把这份代价抬高。
+     *
+     * <p>
+     * 资源不够时不会直接停机，而是求一个 {@code k ∈ [0,1]}，把时运与效率的加成等比缩成
+     * {@code 1 + (倍率-1)·k}，使实际代价落在可用量内——也就是「电力不够自动削弱效果」。
+     * 耐久的折扣属于「少花」而不是「多赚」，因此始终全额生效，不参与缩放。
+     * 只有连打完折的基础代价都付不起时才由调用方判定停机。
+     *
+     * <p>
+     * 结果写入 {@link #activeFortuneMultiplier} / {@link #activeSpeedMultiplier}，
+     * 挖掘间隔与掉落都读这两个值，保证同一个 tick 内计费与效果一致。
+     *
+     * @param baseCost  不带附魔时的单 tick 代价
+     * @param available 当前可用资源（EU 或蒸汽）
+     * @return 实际应扣除的代价
+     */
+    public long resolveEnchantmentCost(long baseCost, long available) {
+        var resolved = MinerEnchantments.resolveCost(baseCost, available, getFortuneMultiplier(),
+                getSpeedMultiplier(), getPowerSavingMultiplier());
+        activeFortuneMultiplier = resolved.fortuneMultiplier();
+        activeSpeedMultiplier = resolved.speedMultiplier();
+        return resolved.cost();
+    }
+
+    /**
+     * 本次实际生效的挖掘间隔（tick / 方块），已计入效率与电力削弱。
+     *
+     * @return 至少为 1
+     */
+    public int getActiveSpeed() {
+        return MinerEnchantments.getActiveSpeed(speed, activeSpeedMultiplier);
+    }
+
+    /**
+     * 按原版时运语义给掉落加成：每堆额外增加 {@code rand(0..L)} 个。
+     *
+     * <p>
+     * 不使用原版的 {@code ApplyBonusCount} / 战利品上下文，而是直接掷点，
+     * 因此对任何掉落物都生效，不依赖方块是否走战利品表。
+     */
+    private void applyFortune(List<ItemStack> blockDrops, ServerLevel level) {
+        MinerEnchantments.applyFortune(blockDrops, getFortuneLevel(), level.getRandom());
     }
 
     @Override
     public void resetRecipeLogic() {
         super.resetRecipeLogic();
         resetArea(false);
-        this.cachedItemHandler = null;
         this.pipeLength = 0;
     }
 
     @Override
     public void onMachineUnLoad() {
         super.onMachineUnLoad();
-        this.cachedItemHandler = null;
         this.pipeLength = 0;
     }
 
@@ -159,6 +294,7 @@ public class MinerLogic extends RecipeLogic {
      * Performs the actual mining in world
      * Call this method every tick in update
      */
+    @Override
     public void serverTick() {
         if (!isSuspend() && getMachine().getLevel() instanceof ServerLevel serverLevel && checkCanMine()) {
             // if the inventory is not full, drain energy etc. from the miner
@@ -194,8 +330,9 @@ public class MinerLogic extends RecipeLogic {
             // check if the miner needs new blocks to mine and get them if needed
             checkBlocksToMine();
             // if there are blocks to mine and the correct amount of time has passed, do the mining
-            if (getMachine().getOffsetTimer() % this.speed == 0 && !blocksToMine.isEmpty()) {
-                NonNullList<ItemStack> blockDrops = NonNullList.create();
+            if (getMachine().getOffsetTimer() % getActiveSpeed() == 0 && !blocksToMine.isEmpty()) {
+                var blockDrops = this.blockDrops;
+                blockDrops.clear();
                 BlockState blockState = serverLevel.getBlockState(blocksToMine.getFirst());
                 // check to make sure the ore is still there,
                 while (!blockState.is(Tags.Blocks.ORES)) {
@@ -209,10 +346,12 @@ public class MinerLogic extends RecipeLogic {
                     // get the small ore drops, if a small ore
                     getSmallOreBlockDrops(blockDrops, blockState, builder);
                     // get the block's drops.
-                    if (isSilkTouchMode()) {
-                        getSilkTouchDrops(blockDrops, blockState, builder);
+                    if (isSilkTouchActive()) {
+                        getSilkTouchDrops(blockDrops, blockState);
                     } else {
-                        getRegularBlockDrops(blockDrops, blockState, builder);
+                        getRegularBlockDrops(blockDrops, blockState, blocksToMine.getFirst());
+                        // 时运：按原版骰点额外加产出，不使用原版的战利品函数
+                        applyFortune(blockDrops, serverLevel);
                     }
                     // try to insert them
                     mineAndInsertItems(blockDrops, serverLevel);
@@ -261,7 +400,7 @@ public class MinerLogic extends RecipeLogic {
      * @param blockDrops the List of items to fill after the operation
      * @param blockState the {@link BlockState} of the block being mined
      */
-    protected void getSmallOreBlockDrops(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
+    protected void getSmallOreBlockDrops(List<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
         /*
          * small ores
          * if orePrefix of block in blockPos is small
@@ -281,15 +420,16 @@ public class MinerLogic extends RecipeLogic {
      * @param blockDrops the List of items to fill after the operation
      * @param blockState the {@link BlockState} of the block being mined
      */
-    protected void getRegularBlockDrops(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
-        blockDrops.addAll(blockState.getDrops(builder));
+    protected void getRegularBlockDrops(List<ItemStack> blockDrops, BlockState blockState, BlockPos blockPos) {
+        // 掉落直接取缓存本体，输出仓不会改写它，所以不复制
+        dropCache.forEach((ServerLevel) getMachine().getLevel(), blockState, blockPos, blockDrops::add);
     }
 
     protected int getVoltageTier() {
         return 0;
     }
 
-    protected void dropPostProcessing(NonNullList<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState, LootParams.Builder builder) {
+    protected void dropPostProcessing(List<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState, LootParams.Builder builder) {
         blockDrops.addAll(outputs);
     }
 
@@ -299,15 +439,8 @@ public class MinerLogic extends RecipeLogic {
      * @param blockDrops the List of items to fill after the operation
      * @param blockState the {@link BlockState} of the block being mined
      */
-    protected void getSilkTouchDrops(NonNullList<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
+    protected static void getSilkTouchDrops(List<ItemStack> blockDrops, BlockState blockState) {
         blockDrops.add(new ItemStack(blockState.getBlock()));
-    }
-
-    protected NotifiableAccountedInvWrapper getCachedItemHandler() {
-        if (cachedItemHandler == null) {
-            cachedItemHandler = new NotifiableAccountedInvWrapper(machine.getCapabilitiesFlat(IO.OUT, ICustomItemStackHandler.class).toArray(ICustomItemStackHandler[]::new));
-        }
-        return cachedItemHandler;
     }
 
     /**
@@ -317,26 +450,22 @@ public class MinerLogic extends RecipeLogic {
      * @param blockDrops the List of items to insert
      * @param world      the {@link ServerLevel} the miner is in
      */
-    private void mineAndInsertItems(NonNullList<ItemStack> blockDrops, ServerLevel world) {
+    private void mineAndInsertItems(List<ItemStack> blockDrops, ServerLevel world) {
         // If the block's drops can fit in the inventory, move the previously mined position to the block
         // replace the ore block with cobblestone instead of breaking it to prevent mob spawning
         // remove the ore block's position from the mining queue
-        var handler = getCachedItemHandler();
-        if (handler != null) {
-            if (GTTransferUtils.addItemsToItemHandler(handler, true, blockDrops)) {
-                GTTransferUtils.addItemsToItemHandler(handler, false, blockDrops);
-                world.setBlock(blocksToMine.getFirst(), findMiningReplacementBlock(world), 3);
-                mineX = blocksToMine.getFirst().getX();
-                mineZ = blocksToMine.getFirst().getZ();
-                mineY = blocksToMine.getFirst().getY();
-                blocksToMine.removeFirst();
-                onMineOperation();
-                // if the inventory was previously considered full, mark it as not since an item was able to fit
-                isInventoryFull = false;
-            } else {
-                // the ore block was not able to fit, so the inventory is considered full
-                isInventoryFull = true;
-            }
+        if (machine.outputItem(blockDrops.toArray(new ItemStack[0]))) {
+            world.setBlock(blocksToMine.getFirst(), findMiningReplacementBlock(world), 3);
+            mineX = blocksToMine.getFirst().getX();
+            mineZ = blocksToMine.getFirst().getZ();
+            mineY = blocksToMine.getFirst().getY();
+            blocksToMine.removeFirst();
+            onMineOperation();
+            // if the inventory was previously considered full, mark it as not since an item was able to fit
+            isInventoryFull = false;
+        } else {
+            // the ore block was not able to fit, so the inventory is considered full
+            isInventoryFull = true;
         }
     }
 
