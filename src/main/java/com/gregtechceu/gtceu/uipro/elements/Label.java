@@ -15,6 +15,8 @@ import dev.vfyjxf.taffy.geometry.FloatSize;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -32,11 +34,9 @@ public class Label extends UIElement {
     /** 单行标签占的总高度（文字 + 上下各 1 像素留白）。 */
     public static final int LINE_HEIGHT = HEIGHT + 2 * PADDING_Y;
 
-    private static final int DEFAULT_COLOR = UITheme.TEXT;
-
     private final SyncValue<Component> text;
     private final int maxWidth;
-    private int color = DEFAULT_COLOR;
+    private IntSupplier color = UITheme::text;
     @Nullable
     private TextLayout.Block block;
     private int blockWidth = -1;
@@ -59,7 +59,12 @@ public class Label extends UIElement {
     }
 
     public Label setColor(int color) {
-        this.color = color;
+        return setColor(() -> color);
+    }
+
+    /** 动态文字颜色，主题切换后会在下一帧生效。 */
+    public Label setColor(IntSupplier color) {
+        this.color = Objects.requireNonNull(color);
         return this;
     }
 
@@ -97,7 +102,7 @@ public class Label extends UIElement {
         var pose = graphics.pose();
         pose.pushPose();
         pose.translate(getPositionX(), getPositionY() + PADDING_Y, 0);
-        TextLayout.draw(graphics, laid, LINE_GAP, color);
+        TextLayout.draw(graphics, laid, LINE_GAP, color.getAsInt());
         pose.popPose();
     }
 }

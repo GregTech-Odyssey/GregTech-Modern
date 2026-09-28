@@ -1624,6 +1624,8 @@
     "config.gtceu.option.debugWorldgen": "礦位置Debug模式",
     "config.gtceu.option.defaultPaintingColor": "機器預設噴漆顏色",
     "config.gtceu.option.defaultUIColor": "預設UI顏色",
+    "config.gtceu.option.newUiColorScheme": "新 UI 配色方案",
+    "config.gtceu.option.newUiTexturePack": "新 UI 材質包",
     "config.gtceu.option.dev": "開發",
     "config.gtceu.option.direction": "方向",
     "config.gtceu.option.disableManualCompression": "關閉手工壓縮",

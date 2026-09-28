@@ -147,7 +147,7 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
     }
 
     private UIElement modeRow() {
-        var label = TextLine.translatable(LayoutStyle.AUTO, "cover.advanced_energy_detector.mode").setColor(UITheme.PANEL_TEXT);
+        var label = TextLine.translatable(LayoutStyle.AUTO, "cover.advanced_energy_detector.mode").setColor(UITheme::panelText);
         label.setHoverTooltips("cover.advanced_energy_detector.mode.tooltip");
         var modes = ButtonGroup.single(2,
                 i -> Component.translatable(i == 1 ? "cover.advanced_energy_detector.mode.percent" : "cover.advanced_energy_detector.mode.eu"),
@@ -157,6 +157,6 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
 
     private static UIElement thresholdRow(Supplier<Component> label, NumberField field) {
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP))
-                .addChildren(TextLine.of(LayoutStyle.AUTO, label).setColor(UITheme.PANEL_TEXT), field);
+                .addChildren(TextLine.of(LayoutStyle.AUTO, label).setColor(UITheme::panelText), field);
     }
 }

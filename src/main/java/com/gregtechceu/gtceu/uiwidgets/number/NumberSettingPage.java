@@ -41,7 +41,7 @@ public final class NumberSettingPage {
 
     private static UIElement section(int width, Component title, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, long... steps) {
         var section = UIElement.section(width);
-        section.addChildren(TextLine.constant(LayoutStyle.AUTO, title).setColor(UITheme.PANEL_TEXT),
+        section.addChildren(TextLine.constant(LayoutStyle.AUTO, title).setColor(UITheme::panelText),
                 new NumberField(width - 2 * UITheme.PANEL_PADDING, getter, setter, min, max, steps));
         return section;
     }

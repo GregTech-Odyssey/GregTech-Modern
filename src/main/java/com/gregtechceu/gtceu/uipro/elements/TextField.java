@@ -332,6 +332,7 @@ public class TextField extends UIElement {
             if (commitOnSubmit && !active && (isEditing() || isFocus())) cancel();
             int x = getPositionX(), y = getPositionY(), w = getSizeWidth(), h = getSizeHeight();
             UITheme.drawInset(graphics, x, y, w, h, active && isFocus());
+            setTextColor(UITheme.FIELD_TEXT);
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
             if (placeholder != null && !isFocus() && getCurrentString().isEmpty()) {
                 var font = Minecraft.getInstance().font;

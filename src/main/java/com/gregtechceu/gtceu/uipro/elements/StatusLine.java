@@ -64,29 +64,39 @@ public class StatusLine extends UIElement {
     /** 这一项的好坏。{@link #NORMAL} 是纯信息，不画灯、不上色。 */
     public enum Level {
 
-        NORMAL(0, UITheme.TEXT),
-        GOOD(UITheme.STATUS_ONLINE, UITheme.STATUS_TEXT_GOOD),
-        WARNING(UITheme.STATUS_WARNING, UITheme.STATUS_TEXT_WARNING),
-        ERROR(UITheme.STATUS_OFFLINE, UITheme.STATUS_TEXT_ERROR);
-
-        private final int lampColor;
-        private final int textColor;
-
-        Level(int lampColor, int textColor) {
-            this.lampColor = lampColor;
-            this.textColor = textColor;
-        }
+        NORMAL,
+        GOOD,
+        WARNING,
+        ERROR;
 
         public boolean hasLamp() {
             return this != NORMAL;
         }
 
         public int textColor() {
-            return textColor;
+            return switch (this) {
+                case NORMAL -> UITheme.TEXT;
+                case GOOD -> UITheme.STATUS_TEXT_GOOD;
+                case WARNING -> UITheme.STATUS_TEXT_WARNING;
+                case ERROR -> UITheme.STATUS_TEXT_ERROR;
+            };
+        }
+
+        private int lampColor() {
+            return switch (this) {
+                case NORMAL -> 0;
+                case GOOD -> UITheme.STATUS_ONLINE;
+                case WARNING -> UITheme.STATUS_WARNING;
+                case ERROR -> UITheme.STATUS_OFFLINE;
+            };
         }
     }
 
     private static final Level[] LEVELS = Level.values();
+
+    public static Level level(int ordinal) {
+        return LEVELS[ordinal];
+    }
 
     private final Component label;
     private final SyncValue<Component> value;
@@ -255,8 +265,8 @@ public class StatusLine extends UIElement {
             shownValue = UITheme.clip(font, valueText, width - font.width(shownLabel) - UISizes.TEXT_PADDING - lampSpace);
             valueX = x + width - font.width(shownValue);
         }
-        graphics.drawString(font, shownValue, valueX, textY, current.textColor, false);
-        if (underline) graphics.fill(valueX, textY + 9, valueX + font.width(shownValue), textY + 10, current.textColor);
+        graphics.drawString(font, shownValue, valueX, textY, current.textColor(), false);
+        if (underline) graphics.fill(valueX, textY + 9, valueX + font.width(shownValue), textY + 10, current.textColor());
         iconX = stack.isEmpty() ? Integer.MIN_VALUE : valueX - iconSpace;
         if (!stack.isEmpty()) graphics.renderItem(stack, iconX, y + (height - ICON) / 2);
         if (current.hasLamp()) drawLamp(graphics, valueX - lampSpace, y, height, current);
@@ -267,7 +277,7 @@ public class StatusLine extends UIElement {
     private static void drawLamp(GuiGraphics graphics, int x, int y, int height, Level level) {
         int top = y + (height - LAMP) / 2;
         graphics.fill(x, top, x + LAMP, top + LAMP, UITheme.STATUS_LAMP_OUTLINE);
-        graphics.fill(x + 1, top + 1, x + LAMP - 1, top + LAMP - 1, level.lampColor);
+        graphics.fill(x + 1, top + 1, x + LAMP - 1, top + LAMP - 1, level.lampColor());
         graphics.fill(x + 1, top + 1, x + 2, top + 2, 0x80FFFFFF);
     }
 

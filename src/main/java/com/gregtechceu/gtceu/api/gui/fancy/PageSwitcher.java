@@ -63,7 +63,7 @@ public class PageSwitcher implements IFancyUIProvider {
                 .forEachOrdered(group -> {
                     var section = UIElement.section();
                     if (group.groupKey() != null) {
-                        section.addChild(TextLine.translatable(LayoutStyle.AUTO, group.groupKey()).setColor(UITheme.PANEL_TEXT));
+                        section.addChild(TextLine.translatable(LayoutStyle.AUTO, group.groupKey()).setColor(UITheme::panelText));
                     }
                     var groupPages = groupedPages.get(group);
                     for (int rowStart = 0; rowStart < groupPages.size(); rowStart += PAGES_PER_ROW) {

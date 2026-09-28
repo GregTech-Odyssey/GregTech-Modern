@@ -714,6 +714,22 @@ public class ConfigHolder {
         @Configurable.Gui.ColorValue
         public String defaultUIColor = "#FFFFFF";
         @Configurable
+        @Configurable.Comment({
+                "The default colour scheme for the new machine UI.",
+                "Colour schemes are supplied by resource packs at assets/<namespace>/uipro/color_schemes/<id>.json.",
+                "Use a resource location such as gtceu:default. The selection can be changed per client by UIStyleManager."
+        })
+        @Configurable.StringPattern(value = "[a-z0-9_.-]+:[a-z0-9_./-]+")
+        public String newUiColorScheme = "gtceu:default";
+        @Configurable
+        @Configurable.Comment({
+                "The default texture pack for the new machine UI.",
+                "Texture packs are supplied by resource packs at assets/<namespace>/uipro/texture_packs/<id>.json.",
+                "Use a resource location such as gtceu:default. The selected atlas must keep the 256x256 Ore UI layout."
+        })
+        @Configurable.StringPattern(value = "[a-z0-9_.-]+:[a-z0-9_./-]+")
+        public String newUiTexturePack = "gtceu:default";
+        @Configurable
         @Configurable.Comment({ "Use VBO cache for multiblock preview.",
                 "Disable if you have issues with rendering multiblocks.", "Default: true" })
         public boolean useVBO = true;

@@ -1657,6 +1657,8 @@
     "config.gtceu.option.debugWorldgen": "矿石位置Debug模式",
     "config.gtceu.option.defaultPaintingColor": "机器默认喷漆颜色",
     "config.gtceu.option.defaultUIColor": "默认UI颜色",
+    "config.gtceu.option.newUiColorScheme": "新 UI 配色方案",
+    "config.gtceu.option.newUiTexturePack": "新 UI 材质包",
     "config.gtceu.option.dev": "开发",
     "config.gtceu.option.direction": "方向",
     "config.gtceu.option.disableManualCompression": "关闭手工压缩",

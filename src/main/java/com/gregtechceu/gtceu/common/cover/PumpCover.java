@@ -261,7 +261,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     protected static UIElement fluidAmountRow(Supplier<Component> label, List<BucketMode> modes, Supplier<BucketMode> current,
                                               Consumer<BucketMode> set, NumberField field, String... tooltipKeys) {
-        var text = TextLine.of(0, label).setColor(UITheme.PANEL_TEXT);
+        var text = TextLine.of(0, label).setColor(UITheme::panelText);
         text.layout(l -> l.flex(1));
         if (tooltipKeys.length > 0) text.setHoverTooltips(tooltipKeys);
         boolean selectable = modes.size() > 1;

@@ -1,0 +1,10 @@
+{
+  "name": "Ore",
+  "textures": {
+    "atlas": "gtceu:textures/gui/uipro/ore_styles.png",
+    "status_icons": "gtceu:textures/gui/uipro/status_icons.png",
+    "callout_icons": "gtceu:textures/gui/uipro/callout_icons.png",
+    "view_icons": "gtceu:textures/gui/uipro/view_icons.png",
+    "disabled_hatch": "gtceu:textures/gui/uipro/slot_readonly.png"
+  }
+}

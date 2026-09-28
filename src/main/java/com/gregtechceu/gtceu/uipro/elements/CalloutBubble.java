@@ -1,11 +1,10 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
-import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.uipro.styletemplate.DynamicResourceTexture;
 import com.gregtechceu.gtceu.uipro.styletemplate.OreSprites;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,22 +17,36 @@ public final class CalloutBubble {
 
     public enum Tone {
 
-        NEUTRAL(OreSprites.WINDOW_FILL, UITheme.TEXT, -1),
-        INFO(0xFFD3ECF1, 0xFF1F5F6C, 0),
-        WARNING(0xFFF2D98A, UITheme.STATUS_TEXT_WARNING, 1),
-        DANGER(0xFFC24D3E, 0xFFFFFFFF, 2);
+        NEUTRAL(true, 0, 0, -1),
+        INFO(false, 0xFFD3ECF1, 0xFF1F5F6C, 0),
+        WARNING(false, 0xFFF2D98A, 0, 1),
+        DANGER(false, 0xFFC24D3E, 0xFFFFFFFF, 2);
 
-        public final int fill;
-        public final int text;
+        private final boolean themed;
+        private final int fill;
+        private final int text;
         private final IGuiTexture frame;
         @Nullable
         private final IGuiTexture icon;
 
-        Tone(int fill, int text, int iconIndex) {
+        Tone(boolean themed, int fill, int text, int iconIndex) {
+            this.themed = themed;
             this.fill = fill;
             this.text = text;
-            this.frame = fill == OreSprites.WINDOW_FILL ? UITheme.WINDOW : new OreSprites.Refilled(OreSprites.BORDER_7, fill, 2, 2, 2, 4);
-            this.icon = iconIndex < 0 ? null : ICONS.getSubTexture(iconIndex / 3.0, 0, 1 / 3.0, 1);
+            this.frame = themed ? UITheme.WINDOW : new OreSprites.Refilled(OreSprites.BORDER_7, fill, 2, 2, 2, 4);
+            this.icon = iconIndex < 0 ? null : new DynamicResourceTexture(UITheme::calloutIcons, iconIndex / 3.0, 0, 1 / 3.0, 1);
+        }
+
+        private IGuiTexture frame() {
+            return themed ? UITheme.WINDOW : frame;
+        }
+
+        private int fill() {
+            return themed ? UITheme.WINDOW_FILL : fill;
+        }
+
+        private int text() {
+            return this == WARNING ? UITheme.STATUS_TEXT_WARNING : themed ? UITheme.TEXT : text;
         }
 
         @Nullable
@@ -42,7 +55,6 @@ public final class CalloutBubble {
         }
     }
 
-    private static final ResourceTexture ICONS = new ResourceTexture(GTCEu.id("textures/gui/uipro/callout_icons.png"));
     public static final int NOTCH = UITheme.POPUP_NOTCH;
     public static final int ICON = 8;
     private static final int ICON_GAP = 2;
@@ -58,8 +70,8 @@ public final class CalloutBubble {
 
     @OnlyIn(Dist.CLIENT)
     public static void drawFrame(GuiGraphics graphics, int x, int y, int width, int height, int notchCenterX, Tone tone) {
-        tone.frame.draw(graphics, 0, 0, x, y, width, height);
-        drawNotch(graphics, notchCenterX, y, tone.fill);
+        tone.frame().draw(graphics, 0, 0, x, y, width, height);
+        drawNotch(graphics, notchCenterX, y, tone.fill());
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -82,7 +94,7 @@ public final class CalloutBubble {
         drawFrame(graphics, x, y, width, LABEL_HEIGHT, notchCenterX, tone);
         int iconX = x + LABEL_PADDING, rowY = y + LABEL_PADDING_TOP;
         if (tone.icon != null) tone.icon.draw(graphics, 0, 0, iconX, rowY, ICON, ICON);
-        graphics.drawString(font, text, iconX + ICON + ICON_GAP, rowY, tone.text, false);
+        graphics.drawString(font, text, iconX + ICON + ICON_GAP, rowY, tone.text(), false);
     }
 
     @OnlyIn(Dist.CLIENT)

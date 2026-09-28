@@ -22,8 +22,14 @@ public final class OreSprites {
 
     private OreSprites() {}
 
-    public static final ResourceLocation TEXTURE = GTCEu.id("textures/gui/uipro/ore_styles.png");
+    public static final ResourceLocation DEFAULT_TEXTURE = GTCEu.id("textures/gui/uipro/ore_styles.png");
+    /** Active material-pack atlas. Material packs must preserve this atlas' 256x256 layout. */
+    public static ResourceLocation TEXTURE = DEFAULT_TEXTURE;
     private static final int ATLAS = 256;
+
+    public static void setTexture(ResourceLocation texture) {
+        TEXTURE = texture;
+    }
 
     // ==================== 按钮（底部 4px 台阶） ====================
     public static final Sprite BTN_DEFAULT = sprite(0, 0, 5, 7, 2, 2, 2, 4);

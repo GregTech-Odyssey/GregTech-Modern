@@ -1,12 +1,10 @@
 package com.gregtechceu.gtceu.uipro.styletemplate;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.function.Supplier;
 
 /**
  * 机器小组件（窗口左侧的配置标签）图标图集。
@@ -21,17 +19,21 @@ public final class WidgetIconAtlas {
     public static final int CELL = 16;
     public static final int COLUMNS = 4;
 
-    private final ResourceTexture texture;
+    private final Supplier<ResourceLocation> texture;
     private final int rows;
 
     public WidgetIconAtlas(ResourceLocation location, int rows) {
-        this.texture = new ResourceTexture(location);
+        this(() -> location, rows);
+    }
+
+    public WidgetIconAtlas(Supplier<ResourceLocation> texture, int rows) {
+        this.texture = texture;
         this.rows = rows;
     }
 
     /** 第 {@code row} 行、第 {@code state} 个状态的图标。 */
     public IGuiTexture icon(int row, int state) {
-        return texture.getSubTexture((double) state / COLUMNS, (double) row / rows, 1.0 / COLUMNS, 1.0 / rows);
+        return new DynamicResourceTexture(texture, (double) state / COLUMNS, (double) row / rows, 1.0 / COLUMNS, 1.0 / rows);
     }
 
     /** 只有一个状态的图标。 */
@@ -50,8 +52,7 @@ public final class WidgetIconAtlas {
     public record PixelExact(IGuiTexture base) implements IGuiTexture {
 
         @Override
-        @OnlyIn(Dist.CLIENT)
-        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+        public void draw(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
             base.draw(graphics, mouseX, mouseY, x + (width - CELL) / 2, y + (height - CELL) / 2, CELL, CELL);
         }
     }

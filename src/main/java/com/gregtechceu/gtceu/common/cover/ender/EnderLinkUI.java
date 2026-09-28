@@ -141,9 +141,9 @@ final class EnderLinkUI {
         var current = row.addSyncValue(SyncValue.of(() -> ctx.isCurrent(key), ByteStreamCodec.BOOLEAN_CODEC, false));
 
         var colorText = key.substring(Math.min(key.length(), cover.identifier().length()));
-        var name = TextLine.constant(LayoutStyle.AUTO, Component.literal(colorText)).setSmall().setColor(UITheme.PANEL_TEXT);
-        var description = TextLine.of(LayoutStyle.AUTO, () -> ctx.descriptionOf(key)).setSmall().setColor(UITheme.TEXT_SECONDARY);
-        var summary = TextLine.of(LayoutStyle.AUTO, () -> ctx.summaryOf(key)).setSmall().setColor(UITheme.TEXT_SECONDARY);
+        var name = TextLine.constant(LayoutStyle.AUTO, Component.literal(colorText)).setSmall().setColor(UITheme::panelText);
+        var description = TextLine.of(LayoutStyle.AUTO, () -> ctx.descriptionOf(key)).setSmall().setColor(UITheme::textSecondary);
+        var summary = TextLine.of(LayoutStyle.AUTO, () -> ctx.summaryOf(key)).setSmall().setColor(UITheme::textSecondary);
         var info = new UIElement().layout(l -> l.column().flex(1)).addChildren(name, description, summary);
 
         var select = Button.text(UISizes.BUTTON_WIDTH, () -> Component.translatable(current.getValue() ?

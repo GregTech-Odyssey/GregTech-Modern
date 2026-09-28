@@ -26,7 +26,7 @@ public class ItemTitle extends UIElement {
 
     public ItemTitle(int width, Supplier<ItemStack> stack, Supplier<Component> name) {
         layout(l -> l.row().width(width).height(HEIGHT).gapAll(UISizes.GAP).alignCenter());
-        var text = TextLine.of(0, () -> Component.literal(ChatFormatting.stripFormatting(name.get().getString()))).setColor(UITheme.TEXT);
+        var text = TextLine.of(0, () -> Component.literal(ChatFormatting.stripFormatting(name.get().getString()))).setColor(UITheme::text);
         text.layout(l -> l.flex(1));
         addChildren(new Icon(stack), text);
     }

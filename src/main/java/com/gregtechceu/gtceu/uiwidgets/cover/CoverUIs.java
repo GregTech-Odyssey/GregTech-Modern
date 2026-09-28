@@ -32,11 +32,11 @@ public final class CoverUIs {
     }
 
     public static UIElement section(String titleKey) {
-        return UIElement.section().addChild(TextLine.translatable(LayoutStyle.AUTO, titleKey).setColor(UITheme.PANEL_TEXT));
+        return UIElement.section().addChild(TextLine.translatable(LayoutStyle.AUTO, titleKey).setColor(UITheme::panelText));
     }
 
     public static TextLine label(String labelKey, String... tooltipKeys) {
-        var label = TextLine.translatable(0, labelKey).setColor(UITheme.PANEL_TEXT);
+        var label = TextLine.translatable(0, labelKey).setColor(UITheme::panelText);
         label.layout(l -> l.flex(1));
         if (tooltipKeys.length > 0) label.setHoverTooltips(tooltipKeys);
         return label;
@@ -48,13 +48,13 @@ public final class CoverUIs {
     }
 
     public static UIElement numberRow(String labelKey, Adjuster field, String... tooltipKeys) {
-        var label = TextLine.translatable(LayoutStyle.AUTO, labelKey).setColor(UITheme.PANEL_TEXT);
+        var label = TextLine.translatable(LayoutStyle.AUTO, labelKey).setColor(UITheme::panelText);
         if (tooltipKeys.length > 0) label.setHoverTooltips(tooltipKeys);
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(label, field);
     }
 
     public static UIElement inlineNumberRow(String labelKey, Adjuster field, String... tooltipKeys) {
-        var label = TextLine.translatable(LayoutStyle.AUTO, labelKey).setColor(UITheme.PANEL_TEXT);
+        var label = TextLine.translatable(LayoutStyle.AUTO, labelKey).setColor(UITheme::panelText);
         if (tooltipKeys.length > 0) label.setHoverTooltips(tooltipKeys);
         var row = new UIElement().addChildren(label, field);
         int labelWidth = GTCEu.isClientThread() ? textWidth(label.getText()) : 0;
@@ -85,7 +85,7 @@ public final class CoverUIs {
     }
 
     public static UIElement filterSection(FilterHandler<?, ?> handler) {
-        var name = TextLine.of(0, handler::getFilterName).setColor(UITheme.PANEL_TEXT);
+        var name = TextLine.of(0, handler::getFilterName).setColor(UITheme::panelText);
         name.layout(l -> l.flex(1));
         var head = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter())
                 .addChildren(handler.createFilterSlot(), name);

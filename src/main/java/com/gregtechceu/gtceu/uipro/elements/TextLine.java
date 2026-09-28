@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -39,7 +41,7 @@ public class TextLine extends UIElement {
     public static final int HEIGHT = UISizes.TEXT_HEIGHT;
 
     private final SyncValue<Component> text;
-    private int color = UITheme.TEXT;
+    private IntSupplier color = UITheme::text;
     private float scale = 1;
     @Nullable
     private SyncValue<Integer> level;
@@ -74,7 +76,12 @@ public class TextLine extends UIElement {
 
     /** 文字颜色，取 {@link UITheme} 里的颜色。 */
     public TextLine setColor(int color) {
-        this.color = color;
+        return setColor(() -> color);
+    }
+
+    /** 动态文字颜色，主题切换后会在下一帧生效。 */
+    public TextLine setColor(IntSupplier color) {
+        this.color = Objects.requireNonNull(color);
         return this;
     }
 
@@ -126,9 +133,9 @@ public class TextLine extends UIElement {
     }
 
     private int currentColor() {
-        if (level == null) return color;
-        var current = StatusLine.Level.values()[level.getValue()];
-        return current == StatusLine.Level.NORMAL ? color : current.textColor();
+        if (level == null) return color.getAsInt();
+        var current = StatusLine.level(level.getValue());
+        return current == StatusLine.Level.NORMAL ? color.getAsInt() : current.textColor();
     }
 
     @Override

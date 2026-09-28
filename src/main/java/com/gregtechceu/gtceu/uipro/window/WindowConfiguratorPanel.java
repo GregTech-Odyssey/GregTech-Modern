@@ -76,7 +76,7 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
             if (child instanceof ImageWidget) view.removeWidget(child);
         }
         int width = Math.max(0, view.getSizeWidth() - 2 * border - getTabSize());
-        var title = TextLine.constant(width, configurator.getTitle()).setColor(UITheme.TEXT);
+        var title = TextLine.constant(width, configurator.getTitle()).setColor(UITheme::text);
         title.setSelfPosition(new Position(border, (getTabSize() - UISizes.TEXT_HEIGHT) / 2 + 1));
         view.addWidget(title);
     }
