@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.integration.jade.provider;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -19,45 +21,62 @@ import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
 /**
- * tick 耗时监控的 Jade 显示：把方块实体上注册的命名监控逐个显示成一行。
+ * tick 耗时监控的 Jade 显示：把方块实体上注册的命名监控逐个显示成一行（按刻摊销的每刻平均耗时，微秒）。
  *
  * <p>
- * 取数据这一下同时就是「有人在看」的信号（监控会续期 2 个采样窗口），所以没被查看的机器不会计时。
- * 显示名走语言键 {@code gtceu.top.tick_time.<key>}，扩展模组注册自己的 key 时自己补语言文件即可。
+ * 取数据这一下同时就是「有人在看」的信号（监控会续期采样），所以没被查看的机器不会计时。显示名走语言键
+ * {@code gtceu.top.tick_time.<key>}，扩展模组注册自己的 key 时自己补语言文件即可。
  */
 public class TickTimeProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
 
     private static final String TAG = "tick_times";
 
+    /** 多方块结构检查的耗时（不属于按名字注册的监控，单独一个 key）。 */
+    private static final String STRUCTURE_CHECK_TAG = "tick_time_structure_check";
+
     @Override
     public void appendServerData(CompoundTag data, BlockAccessor blockAccessor) {
         if (!(blockAccessor.getBlockEntity() instanceof GTBlockEntity blockEntity)) return;
         var monitors = blockEntity.getTickTimeMonitors();
-        if (monitors.isEmpty()) return;
-        var tag = new CompoundTag();
-        for (var entry : GTTickTimeMonitors.REGISTRY) {
-            var monitor = monitors.getData(entry);
-            if (monitor == null) continue;
-            var micros = ((TickTimeMonitor) monitor).getAverageTickTimeMicros();
-            if (micros > 0.0D) {
-                tag.putDouble(String.valueOf(GTTickTimeMonitors.REGISTRY.getId(entry)), micros);
+        if (!monitors.isEmpty()) {
+            var tag = new CompoundTag();
+            for (var entry : GTTickTimeMonitors.REGISTRY) {
+                var monitor = monitors.getData(entry);
+                if (monitor == null) continue;
+                var micros = ((TickTimeMonitor) monitor).getAverageTickTimeMicros();
+                if (micros > 0.0D) {
+                    tag.putFloat(String.valueOf(GTTickTimeMonitors.REGISTRY.getId(entry)), micros);
+                }
+            }
+            if (!tag.isEmpty()) {
+                data.put(TAG, tag);
             }
         }
-        if (!tag.isEmpty()) {
-            data.put(TAG, tag);
+        // 多方块结构检查：值在机器上，不在方块实体的监控 map 里
+        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity &&
+                machineBlockEntity.metaMachine instanceof MultiblockControllerMachine controller) {
+            var micros = controller.getStructureCheckSampler().getAverageTickTimeMicros();
+            if (micros > 0.0D) {
+                data.putFloat(STRUCTURE_CHECK_TAG, micros);
+            }
         }
     }
 
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor blockAccessor, IPluginConfig config) {
         var tag = blockAccessor.getServerData().getCompound(TAG);
-        if (tag.isEmpty()) return;
+        double structureMicros = blockAccessor.getServerData().getFloat(STRUCTURE_CHECK_TAG);
+        if (tag.isEmpty() && structureMicros <= 0.0D) return;
         var keys = tag.getAllKeys();
 
-        // 只有一条：直接显示，不用折叠
-        if (keys.size() == 1) {
-            String key = keys.iterator().next();
-            addLine(tooltip, name(Integer.parseInt(key)), tag.getDouble(key));
+        // 只有一条（一个命名监控，或者只有结构检查）：直接显示，不用折叠，也不重复给总计
+        if (keys.size() + (structureMicros > 0.0D ? 1 : 0) <= 1) {
+            if (structureMicros > 0.0D) {
+                addLine(tooltip, Component.translatable("gtceu.top.tick_time.structure_check"), structureMicros);
+            } else {
+                String key = keys.iterator().next();
+                addLine(tooltip, name(Integer.parseInt(key)), tag.getFloat(key));
+            }
             return;
         }
 
@@ -65,12 +84,15 @@ public class TickTimeProvider implements IBlockComponentProvider, IServerDataPro
         boolean showDetails = blockAccessor.getPlayer().isShiftKeyDown();
         if (showDetails) {
             for (String key : keys) {
-                addLine(tooltip, name(Integer.parseInt(key)), tag.getDouble(key));
+                addLine(tooltip, name(Integer.parseInt(key)), tag.getFloat(key));
             }
         }
-        double total = 0.0D;
+        double total = structureMicros;
         for (String key : keys) {
-            total += tag.getDouble(key);
+            total += tag.getFloat(key);
+        }
+        if (structureMicros > 0.0D) {
+            addLine(tooltip, Component.translatable("gtceu.top.tick_time.structure_check"), structureMicros);
         }
         addLine(tooltip, Component.translatable("gtceu.top.tick_time.total"), total);
         if (!showDetails) {

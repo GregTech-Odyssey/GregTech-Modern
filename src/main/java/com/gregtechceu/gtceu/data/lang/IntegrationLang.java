@@ -82,6 +82,7 @@ public class IntegrationLang {
         provider.add("gtceu.top.tick_time.charge", "Charging");
         provider.add("gtceu.top.tick_time.energy_transfer", "Energy Transfer");
         provider.add("gtceu.top.tick_time.steam", "Steam");
+        provider.add("gtceu.top.tick_time.structure_check", "Structure Check");
         provider.add("gtceu.top.transform_up", "§cStep Up§r %s");
         provider.add("gtceu.top.transform_down", "§aStep Down§r %s");
         provider.add("gtceu.top.transform_input", "§6Input:§r %s");

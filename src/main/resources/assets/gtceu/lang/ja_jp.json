@@ -3505,6 +3505,7 @@
   "gtceu.top.tick_time.auto_output": "自動出力",
   "gtceu.top.tick_time.recipe_logic": "レシピロジック",
   "gtceu.top.tick_time.transfer": "転送",
+  "gtceu.top.tick_time.structure_check": "構造チェック",
   "gtceu.top.energy_stored": " / %d EU",
   "gtceu.top.exhaust_vent_blocked": "ロック中",
   "gtceu.top.exhaust_vent_direction": "排気口: %s",

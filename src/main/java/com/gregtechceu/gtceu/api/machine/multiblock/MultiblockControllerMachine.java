@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiModule;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
+import com.gregtechceu.gtceu.api.misc.TickTimeSampler;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
@@ -93,6 +94,15 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected volatile int waitingTime;
 
     protected boolean toldNotFormed = false;
+
+    /**
+     * 结构检查的耗时（按刻摊销，Jade 用）：{@link #asyncCheckPattern} 里的两段扫描都计进来。
+     *
+     * <p>
+     * 窗口取 200 刻而不是默认 40：异步检查是每 2 秒（40 刻）一次，窗口太短会每次都在开 / 停之间来回跳。
+     */
+    @Getter
+    protected final TickTimeSampler structureCheckSampler = new TickTimeSampler(200);
 
     /**
      * Cache for rendering highlight boxes on client side.
@@ -288,34 +298,46 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void asyncCheckPattern(MultiblockWorldData data) {
         if (checking) return;
         if (getLevel() instanceof ServerLevel serverLevel) {
-            checking = true;
-            if (checkPatternWithTryLock()) {
-                TaskHandler.enqueueTask(serverLevel, () -> {
-                    if (requiresServerCheck() && !checkPatternWithLock()) {
-                        checking = false;
-                        return;
+            // 结构检查的耗时：这一段跑在 MultiblockWorldData 的异步线程上，Jade 在服务端线程读（见 TickTimeSampler）
+            structureCheckSampler.insertStart(holder.getOffsetTimer());
+            try {
+                checking = true;
+                if (checkPatternWithTryLock()) {
+                    TaskHandler.enqueueTask(serverLevel, () -> {
+                        // 延时到服务端线程上的那次检查（requiresServerCheck 时是第二遍完整扫描）
+                        structureCheckSampler.insertStart(holder.getOffsetTimer());
+                        try {
+                            if (requiresServerCheck() && !checkPatternWithLock()) {
+                                checking = false;
+                                return;
+                            }
+                            isFlipped = getMultiblockState().isNeededFlip();
+                            onStructureFormed();
+                            requestSync();
+                            var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
+                            mwsd.addMapping(getMultiblockState());
+                            mwsd.removeAsyncLogic(this);
+                            checking = false;
+                        } finally {
+                            structureCheckSampler.insertEnd();
+                        }
+                    });
+                } else {
+                    if (sendMessage && getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
+                        TaskHandler.enqueueTask(serverLevel, () -> getOwner().getMembers().forEach(uuid -> {
+                            Player p = serverLevel.getPlayerByUUID(uuid);
+                            Component m = Component.translatable("gtocore.multiblock.invalid.message",
+                                    getDefinition().get().getName().withStyle(ChatFormatting.YELLOW),
+                                    Component.literal(getPos().toShortString()).withStyle(ChatFormatting.AQUA));
+                            if (p != null) p.sendSystemMessage(m); // this player is online
+                            else MESSAGE_CACHE.put(uuid, m); // cache message for offline player
+                        }));
+                        toldNotFormed = true;
                     }
-                    isFlipped = getMultiblockState().isNeededFlip();
-                    onStructureFormed();
-                    requestSync();
-                    var mwsd = MultiblockWorldData.getOrCreate(serverLevel);
-                    mwsd.addMapping(getMultiblockState());
-                    mwsd.removeAsyncLogic(this);
                     checking = false;
-                });
-            } else {
-                if (sendMessage && getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
-                    TaskHandler.enqueueTask(serverLevel, () -> getOwner().getMembers().forEach(uuid -> {
-                        Player p = serverLevel.getPlayerByUUID(uuid);
-                        Component m = Component.translatable("gtocore.multiblock.invalid.message",
-                                getDefinition().get().getName().withStyle(ChatFormatting.YELLOW),
-                                Component.literal(getPos().toShortString()).withStyle(ChatFormatting.AQUA));
-                        if (p != null) p.sendSystemMessage(m); // this player is online
-                        else MESSAGE_CACHE.put(uuid, m); // cache message for offline player
-                    }));
-                    toldNotFormed = true;
                 }
-                checking = false;
+            } finally {
+                structureCheckSampler.insertEnd();
             }
         }
     }

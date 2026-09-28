@@ -4866,6 +4866,7 @@
   "gtceu.top.tick_time.auto_output": "Авто-виведення",
   "gtceu.top.tick_time.recipe_logic": "Логіка рецептів",
   "gtceu.top.tick_time.transfer": "Передача",
+  "gtceu.top.tick_time.structure_check": "Перевірка структури",
   "gtceu.top.exhaust_vent_blocked": "Заблоковано",
   "gtceu.top.exhaust_vent_direction": "Витяжна вентиляція: %s",
   "gtceu.top.filter.label": "Фільтр:",

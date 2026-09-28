@@ -3800,6 +3800,7 @@
   "gtceu.top.tick_time.auto_output": "Auto Output",
   "gtceu.top.tick_time.recipe_logic": "Recipe Logic",
   "gtceu.top.tick_time.transfer": "Transfer",
+  "gtceu.top.tick_time.structure_check": "Structure Check",
   "gtceu.top.transform_down": "§aStep Down§r %s",
   "gtceu.top.transform_input": "§6Input:§r %s",
   "gtceu.top.transform_output": "§9Output:§r %s",

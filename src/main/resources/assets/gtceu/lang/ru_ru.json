@@ -2183,6 +2183,7 @@
     "gtceu.top.tick_time.auto_output": "Авто-вывод",
     "gtceu.top.tick_time.recipe_logic": "Логика рецептов",
     "gtceu.top.tick_time.transfer": "Передача",
+    "gtceu.top.tick_time.structure_check": "Проверка структуры",
     "gtceu.top.filter.label": "Фильтр:",
     "gtceu.top.fuel_min_consume": "Нужно",
     "gtceu.top.fuel_none": "Нет топлива",

@@ -3792,6 +3792,7 @@
     "gtceu.top.tick_time.auto_output": "自动输出",
     "gtceu.top.tick_time.recipe_logic": "配方逻辑",
     "gtceu.top.tick_time.transfer": "传输",
+    "gtceu.top.tick_time.structure_check": "结构检查",
     "gtceu.top.energy_stored": " / %d EU",
     "gtceu.top.exhaust_vent_blocked": "受阻",
     "gtceu.top.exhaust_vent_direction": "排气口：%s",
