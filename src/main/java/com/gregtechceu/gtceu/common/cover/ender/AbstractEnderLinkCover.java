@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
-import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
@@ -63,8 +62,9 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     public AbstractEnderLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
-        var transferMonitor = coverHolder.getHolder().monitorTick(GTTickTimeMonitors.TRANSFER, this::update);
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, transferMonitor, 20, this::isSubscriptionActive);
+        // 不用 tick 耗时监控：同一个方块实体上可能挂多个 cover，按 entry 缓存的监控器会互相顶掉（先注册的
+        // task 生效），这里保持各自的 Runnable。
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
     }
 
     @Override

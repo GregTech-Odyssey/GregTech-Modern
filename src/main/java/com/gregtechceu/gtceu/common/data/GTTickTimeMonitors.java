@@ -17,7 +17,7 @@ public class GTTickTimeMonitors {
 
     /** 配方逻辑的 tick。 */
     public static final TickTimeMonitor.Entry RECIPE_LOGIC = TickTimeMonitor.create("recipe_logic", RecipeLogic.SEARCH_MAX_INTERVAL);
-    /** 管道 / cover 的传输。 */
+    /** 管道自身的传输（cover 不用：同一个方块实体上可以挂多个 cover，按 entry 缓存的监控器会被顶掉）。 */
     public static final TickTimeMonitor.Entry TRANSFER = TickTimeMonitor.create("transfer");
     /** 仓（总线、输入输出仓）的自动输入输出。 */
     public static final TickTimeMonitor.Entry AUTO_IO = TickTimeMonitor.create("auto_io");

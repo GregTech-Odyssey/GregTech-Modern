@@ -16,7 +16,6 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
-import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -90,8 +89,9 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         this.tier = tier;
         this.maxFluidTransferRate = maxTransferRate;
         this.transferRate = maxFluidTransferRate;
-        var transferMonitor = coverHolder.getHolder().monitorTick(GTTickTimeMonitors.TRANSFER, this::update);
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, transferMonitor, 20, this::isSubscriptionActive);
+        // 不用 tick 耗时监控：同一个方块实体上可能挂多个 cover，按 entry 缓存的监控器会互相顶掉（先注册的
+        // task 生效），这里保持各自的 Runnable。
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
         filterHandler = FilterHandlers.fluid(this).onFilterLoaded(f -> configureFilter()).onFilterUpdated(f -> configureFilter()).onFilterRemoved(f -> configureFilter());
     }
 
