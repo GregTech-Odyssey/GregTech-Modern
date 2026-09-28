@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.core.mixins.IntersectionIngredientAccessor;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
@@ -23,7 +22,6 @@ import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.common.crafting.IntersectionIngredient;
 
 import com.gto.datasynclib.util.ItemStackHashStrategy;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
@@ -174,31 +172,9 @@ public final class ItemRecipeInfo extends ContentRecipeInfo<ItemStack, ItemIngre
      * 若某个 {@link ItemIngredient} 实际是交叉（intersection）配方，则先降级成它内部的子配方再映射。
      */
     private static ItemEntryList tryMapInner(final Ingredient ingredient, int amount) {
-        if (ingredient instanceof IntersectionIngredient intersection) return mapIntersection(intersection, amount);
         var tagList = tryMapTag(ingredient, amount);
         if (tagList != null) return tagList;
         return new ItemStackList(Arrays.stream(ingredient.getItems()).map(stack -> stack.copyWithCount(amount)).toArray(ItemStack[]::new));
-    }
-
-    /**
-     * 把交叉配方展开成「同时满足所有子配方」的物品集合。
-     *
-     * <p>
-     * 配方查看器不支持交叉配方，所以这里取第一个子配方的物品，再逐个用其余子配方过滤。
-     */
-    private static ItemEntryList mapIntersection(final IntersectionIngredient intersection, int amount) {
-        List<Ingredient> children = ((IntersectionIngredientAccessor) intersection).getChildren();
-        if (children.isEmpty()) return new ItemStackList();
-
-        var childList = tryMapInner(children.getFirst(), amount);
-        ItemStackList stackList = new ItemStackList();
-        for (var stack : childList.getStacks()) {
-            if (children.stream().skip(1).allMatch(child -> child.test(stack))) {
-                if (amount > 0) stackList.add(stack.copyWithCount(amount));
-                else stackList.add(stack.copy());
-            }
-        }
-        return stackList;
     }
 
     /**

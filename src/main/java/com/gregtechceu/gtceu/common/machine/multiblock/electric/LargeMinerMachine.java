@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -184,13 +185,9 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
      * 主显示页下方单独一行居中放附魔槽（放附魔书，提供时运 / 效率；精准与时运互斥）。
      */
     @Override
-    public Widget createUIWidget() {
-        var page = (UIElement) super.createUIWidget();
-        var slot = new SlotWidget();
-        slot.setHandlerSlot(enchantmentSlot.getStorage(), 0);
-        slot.setBackgroundTexture(GuiTextures.SLOT);
-        slot.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.enchantment_slot.tooltip").toArray(Component[]::new));
-        page.addChild(UIElement.row(UISizes.SLOT).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(slot));
+    public UIElement createUIWidget() {
+        var page = super.createUIWidget();
+        page.addChild(UIElement.row(UISizes.SLOT).addChildren(UIElement.flexSpacer(), ItemSlot.of(enchantmentSlot.getStorage(), 0)));
         return page;
     }
 

@@ -472,7 +472,7 @@ public class MachineLang {
         provider.add("gtceu.machine.miner.per_block", "§7takes §f%ds §7per Block");
         provider.add("gtceu.machine.miner.multi.modes", "Has Silk Touch and Chunk Aligned Modes.");
         provider.add("gtceu.machine.miner.multi.production",
-                "Produces §f3x§7 more crushed ore than a §fMacerator§7.");
+                "Produces §f3x§7 more crushed ore per ore.");
         provider.add("gtceu.machine.miner.fluid_usage", "Uses §f%d mB/t §7of §f%s§7, doubled per overclock.");
         provider.add("gtceu.machine.miner.multi.description",
                 "A multiblock mining machine that covers a large area and produces huge quantity of ore.");

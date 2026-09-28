@@ -47,18 +47,15 @@ public class MinerLogic extends RecipeLogic {
     private static final double DIVIDEND = MAX_SPEED * Math.pow(TICK_TOLERANCE, POWER);
     protected final IMiner miner;
 
+    protected final int speed;
     @Getter
-    private final int fortune;
+    protected final int maximumRadius;
     @Getter
-    private final int speed;
-    @Getter
-    private final int maximumRadius;
-    @Getter
-    public ItemStack pickaxeTool;
+    protected ItemStack pickaxeTool;
     /** 方块掉落缓存：一台矿机一个。 */
-    private final BlockDropCache dropCache;
-    private final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
-    private final ArrayList<ItemStack> blockDrops = new ArrayList<>();
+    protected final BlockDropCache dropCache;
+    protected final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
+    protected final ArrayList<ItemStack> blockDrops = new ArrayList<>();
     @Getter
     @SaveToDisk
     protected int x = Integer.MAX_VALUE;
@@ -90,36 +87,34 @@ public class MinerLogic extends RecipeLogic {
     @SaveToDisk
     protected int mineY = Integer.MAX_VALUE;
     @Getter
-    private int minBuildHeight = Integer.MAX_VALUE;
+    protected int minBuildHeight = Integer.MAX_VALUE;
     @Getter
-    private int maxBuildHeight = Integer.MAX_VALUE;
-    @Getter
-    @SaveToDisk
-    private int pipeLength = 0;
+    protected int maxBuildHeight = Integer.MAX_VALUE;
+
     @Getter
     @Setter
     @SaveToDisk
-    private int currentRadius;
+    protected int currentRadius;
     @Getter
     @SaveToDisk
-    private boolean isDone;
+    protected boolean isDone;
     @Getter
-    private boolean isInventoryFull;
+    protected boolean isInventoryFull;
     @Getter
     @Setter
-    private Direction dir = Direction.DOWN;
+    protected Direction dir = Direction.DOWN;
 
     /** 速度倍率的参照方块：矿机挖的都是石质矿石，取石头作基准，保证倍率不随队列里的方块跳动。 */
-    private static final BlockState SPEED_REFERENCE = Blocks.STONE.defaultBlockState();
+    protected static final BlockState SPEED_REFERENCE = Blocks.STONE.defaultBlockState();
 
     /**
      * 本次 tick 实际生效的时运倍率（含被电力削弱后的部分），由 {@link #resolveEnchantmentCost} 写入。
      */
     @Getter
-    private double activeFortuneMultiplier = 1.0D;
+    protected double activeFortuneMultiplier = 1.0D;
     /** 本次 tick 实际生效的效率倍率（含被电力削弱后的部分）。 */
     @Getter
-    private double activeSpeedMultiplier = 1.0D;
+    protected double activeSpeedMultiplier = 1.0D;
 
     /**
      * Creates the general logic for all in-world ore block miners
@@ -132,7 +127,6 @@ public class MinerLogic extends RecipeLogic {
     public MinerLogic(@NotNull IRecipeLogicMachine machine, int fortune, int speed, int maximumRadius) {
         super(machine);
         this.miner = (IMiner) machine;
-        this.fortune = fortune;
         this.speed = speed;
         this.currentRadius = maximumRadius;
         this.maximumRadius = maximumRadius;
@@ -265,39 +259,17 @@ public class MinerLogic extends RecipeLogic {
      * 因此对任何掉落物都生效，不依赖方块是否走战利品表。
      */
     private void applyFortune(List<ItemStack> blockDrops, ServerLevel level) {
-        MinerEnchantments.applyFortune(blockDrops, getFortuneLevel(), level.getRandom(), this::isFortuneTarget);
-    }
-
-    /**
-     * 该掉落是否吃时运加成。
-     *
-     * <p>
-     * 默认全部都吃；大型采矿机只给粉碎矿加成，覆写它即可。
-     */
-    protected boolean isFortuneTarget(ItemStack stack) {
-        return true;
+        MinerEnchantments.applyFortune(blockDrops, getFortuneLevel(), level.getRandom());
     }
 
     @Override
     public void resetRecipeLogic() {
         super.resetRecipeLogic();
         resetArea(false);
-        this.pipeLength = 0;
     }
 
-    @Override
-    public void onMachineUnLoad() {
-        super.onMachineUnLoad();
-        this.pipeLength = 0;
-    }
-
-    private static BlockState findMiningReplacementBlock(Level level) {
-        try {
-            return BlockStateParser.parseForBlock(level.holderLookup(Registries.BLOCK), ConfigHolder.INSTANCE.machines.replaceMinedBlocksWith, false).blockState();
-        } catch (CommandSyntaxException ignored) {
-            GTCEu.LOGGER.error("failed to parse replaceMinedBlocksWith, invalid BlockState: {}", ConfigHolder.INSTANCE.machines.replaceMinedBlocksWith);
-            return Blocks.COBBLESTONE.defaultBlockState();
-        }
+    private static void setBlock(Level level,BlockPos pos) {
+        level.setBlock(pos,Blocks.COBBLESTONE.defaultBlockState(), 3);
     }
 
     /**
@@ -335,7 +307,6 @@ public class MinerLogic extends RecipeLogic {
                 } else {
                     --pipeY;
                 }
-                incrementPipeLength();
             }
             // check if the miner needs new blocks to mine and get them if needed
             checkBlocksToMine();
@@ -352,17 +323,15 @@ public class MinerLogic extends RecipeLogic {
                 }
                 // When we are here we have an ore to mine! I'm glad we aren't threaded
                 if (!blocksToMine.isEmpty() & blockState.is(Tags.Blocks.ORES)) {
-                    LootParams.Builder builder = new LootParams.Builder(serverLevel).withParameter(LootContextParams.BLOCK_STATE, blockState).withParameter(LootContextParams.ORIGIN, Vec3.atLowerCornerOf(blocksToMine.getFirst())).withParameter(LootContextParams.TOOL, pickaxeTool);
-                    // get the small ore drops, if a small ore
-                    getSmallOreBlockDrops(blockDrops, blockState, builder);
                     // get the block's drops.
                     if (isSilkTouchActive()) {
                         getSilkTouchDrops(blockDrops, blockState);
                     } else {
-                        getRegularBlockDrops(blockDrops, blockState, blocksToMine.getFirst());
                         // 后处理：有配方类型的话，用配方产物替换普通掉落（大型采矿机的粉碎矿）
                         if (hasPostProcessing()) {
                             doPostProcessing(blockDrops, blockState);
+                        } else {
+                            getRegularBlockDrops(blockDrops, blockState, blocksToMine.getFirst());
                         }
                         // 时运：按原版骰点额外加产出，不使用原版的战利品函数
                         applyFortune(blockDrops, serverLevel);
@@ -407,23 +376,6 @@ public class MinerLogic extends RecipeLogic {
      */
     protected void onMineOperation() {}
 
-    // todo implement small ores
-    /**
-     * called to handle mining small ores
-     *
-     * @param blockDrops the List of items to fill after the operation
-     * @param blockState the {@link BlockState} of the block being mined
-     */
-    protected void getSmallOreBlockDrops(List<ItemStack> blockDrops, BlockState blockState, LootParams.Builder builder) {
-        /*
-         * small ores
-         * if orePrefix of block in blockPos is small
-         * applyTieredHammerNoRandomDrops...
-         * else
-         * current code...
-         */
-    }
-
     protected boolean isSilkTouchMode() {
         return false;
     }
@@ -460,11 +412,6 @@ public class MinerLogic extends RecipeLogic {
         return false;
     }
 
-    /** 掉落后处理钩子：把 {@code outputs} 并进 {@code blockDrops}。 */
-    protected void dropPostProcessing(List<ItemStack> blockDrops, List<ItemStack> outputs, BlockState blockState) {
-        blockDrops.addAll(outputs);
-    }
-
     /**
      * called to handle mining regular ores and blocks with silk touch
      *
@@ -487,10 +434,11 @@ public class MinerLogic extends RecipeLogic {
         // replace the ore block with cobblestone instead of breaking it to prevent mob spawning
         // remove the ore block's position from the mining queue
         if (machine.outputItem(blockDrops.toArray(new ItemStack[0]))) {
-            world.setBlock(blocksToMine.getFirst(), findMiningReplacementBlock(world), 3);
-            mineX = blocksToMine.getFirst().getX();
-            mineZ = blocksToMine.getFirst().getZ();
-            mineY = blocksToMine.getFirst().getY();
+            var pos = blocksToMine.getFirst();
+            setBlock(world,pos);
+            mineX =pos.getX();
+            mineZ = pos.getZ();
+            mineY = pos.getY();
             blocksToMine.removeFirst();
             onMineOperation();
             // if the inventory was previously considered full, mark it as not since an item was able to fit
@@ -642,16 +590,6 @@ public class MinerLogic extends RecipeLogic {
         return DIVIDEND / Math.pow(base, POWER);
     }
 
-    /**
-     * Increments the pipe rendering length by one, signaling that the miner's y level has moved down by one
-     */
-    private void incrementPipeLength() {
-        this.pipeLength++;
-        if (getMachine().getLevel() instanceof ServerLevel serverLevel) {
-            var pos = getMiningPos().relative(dir, this.pipeLength);
-            serverLevel.setBlockAndUpdate(pos, GTBlocks.MINER_PIPE.getDefaultState());
-        }
-    }
 
     /**
      * @return the position to start mining from
@@ -660,14 +598,5 @@ public class MinerLogic extends RecipeLogic {
         return getMachine().getPos();
     }
 
-    public void onRemove() {
-        pipeLength = 0;
-        if (getMachine().getLevel() instanceof ServerLevel serverLevel) {
-            var pos = getMiningPos().relative(dir);
-            while (serverLevel.getBlockState(pos).is(GTBlocks.MINER_PIPE.get())) {
-                serverLevel.removeBlock(pos, false);
-                pos = pos.relative(dir);
-            }
-        }
-    }
+    public void onRemove() {}
 }

@@ -220,7 +220,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     }
 
     @Override
-    public Widget createUIWidget() {
+    public UIElement createUIWidget() {
         displayedTemperature = temperature;
         // 状态显示窗下方单独一行居中放 3×3 组件格（原来按绝对坐标叠在显示屏上）
         var page = (UIElement) super.createUIWidget();

@@ -97,12 +97,17 @@ public class RecipeHelper {
     }
 
     public static <T, C extends ContentInner<T>> List<Content<C>> copyAndRoll(GTRecipe recipe, List<Content<C>> contents) {
+        return copyAndRoll(recipe.definition,contents,recipe.ocLevel);
+    }
+
+
+    public static <T, C extends ContentInner<T>> List<Content<C>> copyAndRoll(GTRecipeDefinition recipe, List<Content<C>> contents,int ocLevel) {
         var size = contents.size();
         if (size == 0) return Collections.emptyList();
         var contentList = new ArrayList<Content<C>>(size);
-        var boost = recipe.definition.chanceFunction;
+        var boost = recipe.chanceFunction;
         var recipeTier = recipe.tier;
-        var chanceTier = recipeTier + recipe.ocLevel;
+        var chanceTier = recipeTier + ocLevel;
         for (var content : contents) {
             if (content.chance == Content.MAX_CHANCE) {
                 contentList.add(content.copy());

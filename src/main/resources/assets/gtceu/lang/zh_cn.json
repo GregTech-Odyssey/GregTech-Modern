@@ -3123,7 +3123,7 @@
     "gtceu.machine.miner.minez": "mZ：%d",
     "gtceu.machine.miner.multi.description": "一种占地面积大、产矿量大的多方块采矿机。",
     "gtceu.machine.miner.multi.modes": "具有精准采集和区块对齐模式。",
-    "gtceu.machine.miner.multi.production": "它能产出§f三倍§7于§f研磨机§7的粉碎矿石。",
+    "gtceu.machine.miner.multi.production": "它能产出§f三倍§7的粉碎矿石。",
     "gtceu.machine.miner.per_block": "§7每个方块需要§f%d§7秒。",
     "gtceu.machine.miner.radius": "半径：%d",
     "gtceu.machine.miner.startx": "sX：%d",

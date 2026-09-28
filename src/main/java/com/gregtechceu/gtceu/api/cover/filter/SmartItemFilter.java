@@ -100,7 +100,7 @@ public class SmartItemFilter implements ItemFilter {
         var map = new IntLongMap();
         filterMode.type.convertItem(itemStack, Integer.MAX_VALUE, map);
         AtomicInteger count = new AtomicInteger();
-        filterMode.type.search(null, map, (u, r) -> {
+        filterMode.type.search( map, r -> {
             for (var content : r.itemInputs) {
                 var ingredient = content.inner;
                 var stacks = ingredient.inner.getItems();

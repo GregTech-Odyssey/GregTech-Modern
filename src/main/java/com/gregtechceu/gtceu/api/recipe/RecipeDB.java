@@ -1,10 +1,12 @@
 package com.gregtechceu.gtceu.api.recipe;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import com.gto.recipesearch.*;
 
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
 
@@ -24,6 +26,21 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
         if (!unindexedSerial.isEmpty()) {
             for (var recipe : unindexedSerial) {
                 if (canHandle.test(unit, recipe)) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean search(IntLongMap map, Predicate<GTRecipeDefinition> canHandle) {
+        if (rootBranch != null) {
+            searchContext.reset(maxSearchDepth, rootBranch, map, map.toIntArray(), r -> r.container.match(map) && canHandle.test(r), null);
+            if (searchContext.findAny() != null) {
+                return true;
+            }
+        }
+        if (!unindexedSerial.isEmpty()) {
+            for (var recipe : unindexedSerial) {
+                if (canHandle.test(recipe)) return true;
             }
         }
         return false;
@@ -51,5 +68,12 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
     @Override
     protected void setIngredientTable(GTRecipeDefinition gtRecipe, IngredientTable intMapContainer) {
         gtRecipe.container = intMapContainer;
+    }
+
+    @Override
+    protected void finishBuild() {
+        super.finishBuild();
+        if(unindexedSerial.isEmpty()) return;
+        GTCEu.LOGGER.warn("Unindexed: {}", unindexedSerial);
     }
 }

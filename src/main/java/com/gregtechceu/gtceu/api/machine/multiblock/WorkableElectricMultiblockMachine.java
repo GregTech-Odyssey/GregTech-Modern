@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -91,7 +92,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     /** 主页：新式状态显示窗（{@link MachineDisplay}）。 */
     @Override
-    public Widget createUIWidget() {
+    public UIElement createUIWidget() {
         return MachineDisplay.page(this);
     }
 

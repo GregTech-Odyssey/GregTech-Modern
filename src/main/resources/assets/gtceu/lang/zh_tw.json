@@ -3074,7 +3074,7 @@
     "gtceu.machine.miner.minez": "mZ：%d",
     "gtceu.machine.miner.multi.description": "一種佔地面積大、產礦量大的多方塊採礦機。",
     "gtceu.machine.miner.multi.modes": "具有絲綢之觸和區塊對齊模式。",
-    "gtceu.machine.miner.multi.production": "產出§f研磨機§7§f3x§7倍的粉碎礦。",
+    "gtceu.machine.miner.multi.production": "產出f3x§7倍的粉碎礦。",
     "gtceu.machine.miner.per_block": "§7每個方塊需要§f%d§7秒。",
     "gtceu.machine.miner.radius": "半徑：%d",
     "gtceu.machine.miner.startx": "sX：%d",

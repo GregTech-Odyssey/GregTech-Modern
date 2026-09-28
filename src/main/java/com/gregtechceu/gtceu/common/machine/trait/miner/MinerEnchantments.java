@@ -138,7 +138,7 @@ public final class MinerEnchantments {
             double b = (fortuneMultiplier - 1.0D) + (speedMultiplier - 1.0D);
             double c = 1.0D - available / discountedBase;
             k = a > 1.0E-9D ? (-b + Math.sqrt(b * b - 4.0D * a * c)) / (2.0D * a) : -c / b;
-            k = Math.max(0.0D, Math.min(1.0D, k));
+            k = Math.clamp(k, 0.0D, 1.0D);
         }
         double activeFortune = 1.0D + (fortuneMultiplier - 1.0D) * k;
         double activeSpeed = 1.0D + (speedMultiplier - 1.0D) * k;
@@ -159,15 +159,13 @@ public final class MinerEnchantments {
      * <p>
      * {@code drops} 里可能是 {@code BlockDropCache} 的共享掉落模板，<b>不能就地改</b>，
      * 所以只有真正吃到加成的那几堆才换成副本；没加成时一份都不复制。
-     *
-     * @param filter 只给满足条件的掉落加成（例如大型采矿机只加粉碎矿）；全部加成就传 {@code s -> true}
      */
     public static void applyFortune(@NotNull List<ItemStack> drops, int fortuneLevel,
-                                    @NotNull RandomSource random, @NotNull Predicate<ItemStack> filter) {
+                                    @NotNull RandomSource random) {
         if (fortuneLevel <= 0) return;
         for (int i = 0; i < drops.size(); i++) {
             var stack = drops.get(i);
-            if (stack.isEmpty() || !filter.test(stack)) continue;
+            if (stack.isEmpty()) continue;
             int bonus = random.nextInt(fortuneLevel + 1);
             if (bonus <= 0) continue;
             var boosted = stack.copy();

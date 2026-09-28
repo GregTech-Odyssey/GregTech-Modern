@@ -95,7 +95,7 @@ public final class MachineDisplay {
         return new IFancyUIProvider() {
 
             @Override
-            public Widget createMainPage(FancyMachineUIWidget widget) {
+            public UIElement createMainPage(FancyMachineUIWidget widget) {
                 return page(machine);
             }
 

@@ -2857,7 +2857,7 @@
   "gtceu.machine.miner.minez": "採掘Z: %d",
   "gtceu.machine.miner.multi.description": "広い面積をカバーし、大量の鉱石を生産するマルチブロック採掘機。",
   "gtceu.machine.miner.multi.modes": "シルクタッチとチャンク整列モードがある。",
-  "gtceu.machine.miner.multi.production": "§f粉砕機§7の§f3倍§7以上の砕いた鉱石を生産。",
+  "gtceu.machine.miner.multi.production": "§f3倍§7以上の砕いた鉱石を生産。",
   "gtceu.machine.miner.per_block": "§71ブロックにつき §f%d 秒§7掛かる",
   "gtceu.machine.miner.radius": "半径: %dブロック",
   "gtceu.machine.miner.startx": "開始X: %d",

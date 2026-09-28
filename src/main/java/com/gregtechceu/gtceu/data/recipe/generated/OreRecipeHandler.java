@@ -105,8 +105,7 @@ public final class OreRecipeHandler {
         if (!crushedStack.isEmpty()) {
             GTRecipeBuilder builder = FORGE_HAMMER_RECIPES
                     .recipeBuilder("hammer_" + prefixString + material.getName() + "_ore_to_crushed_ore")
-                    .inputItems(IntersectionIngredient.of(Ingredient.of(orePrefix.getItemTags(material)[0]),
-                            Ingredient.of(orePrefix.getItemParentTags()[0])))
+                    .inputItems(TagPrefix.ore.getItemTags(material)[0])
                     .category(GTRecipeCategories.ORE_FORGING)
                     .duration(10).EUt(16);
             if (material.hasProperty(PropertyKey.GEM) && !ChemicalHelper.get(gem, material).isEmpty()) {
@@ -119,8 +118,7 @@ public final class OreRecipeHandler {
 
             builder = MACERATOR_RECIPES
                     .recipeBuilder("macerate_" + prefixString + material.getName() + "_ore_to_crushed_ore")
-                    .inputItems(IntersectionIngredient.of(Ingredient.of(orePrefix.getItemTags(material)[0]),
-                            Ingredient.of(orePrefix.getItemParentTags()[0])))
+                    .inputItems(TagPrefix.ore.getItemTags(material)[0])
                     .outputItems(crushedStack.copyWithCount(property.getOreMultiplier() * 2 * oreTypeMultiplier))
                     .chancedOutput(byproductStack, 1400, 850)
                     .EUt(2)
@@ -142,13 +140,11 @@ public final class OreRecipeHandler {
             float xp = Math.round(((1 + oreTypeMultiplier * 0.5f) * 0.5f - 0.05f) * 10f) / 10f;
             VanillaRecipeHelper.addSmeltingRecipe(
                     "smelt_" + prefixString + material.getName() + "_ore_to_ingot",
-                    IntersectionIngredient.of(Ingredient.of(orePrefix.getItemTags(material)[0]),
-                            Ingredient.of(orePrefix.getItemParentTags()[0])),
+                    TagPrefix.ore.getItemTags(material)[0],
                     ingotStack, xp);
             VanillaRecipeHelper.addBlastingRecipe(
                     "smelt_" + prefixString + material.getName() + "_ore_to_ingot",
-                    IntersectionIngredient.of(Ingredient.of(orePrefix.getItemTags(material)[0]),
-                            Ingredient.of(orePrefix.getItemParentTags()[0])),
+                    TagPrefix.ore.getItemTags(material)[0],
                     ingotStack, xp);
         }
     }

@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.misc.EnergyContainerInfoList;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -208,7 +209,7 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     /** 主页：新式状态显示窗（{@link MachineDisplay}）。 */
     @Override
-    public @NotNull Widget createUIWidget() {
+    public @NotNull UIElement createUIWidget() {
         return MachineDisplay.page(this);
     }
 

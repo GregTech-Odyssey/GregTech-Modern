@@ -345,25 +345,11 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
                 var downBlock = level.getBlockState(downPos);
                 if (downBlock.isAir()) {
                     this.pumpHeadY++;
-                    if (level instanceof ServerLevel serverLevel) {
-                        serverLevel.setBlockAndUpdate(downPos, GTBlocks.MINER_PIPE.getDefaultState());
-                    }
                     return true;
                 }
             }
         }
         return false;
-    }
-
-    @Override
-    public void onMachineRemoved() {
-        if (getLevel() instanceof ServerLevel serverLevel) {
-            var pos = getPos().relative(Direction.DOWN);
-            while (serverLevel.getBlockState(pos).is(GTBlocks.MINER_PIPE.get())) {
-                serverLevel.removeBlock(pos, false);
-                pos = pos.relative(Direction.DOWN);
-            }
-        }
     }
 
     protected record SourceState(BlockState state, BlockPos pos) {}
