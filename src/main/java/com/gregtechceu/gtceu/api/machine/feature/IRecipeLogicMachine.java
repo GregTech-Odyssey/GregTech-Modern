@@ -36,7 +36,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
                                      IVoidable {
 
     static void attachRecipeLockConfigurator(ConfiguratorPanel configuratorPanel, IRecipeLogicMachine machine) {
-        if (machine.supportLockRecipe()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.RECIPE_LOCK_OFF, WidgetIcons.RECIPE_LOCK_ON, () -> machine.getRecipeLogic().isRecipeLocked(), (clickData, pressed) -> machine.getRecipeLogic().setRecipeLocked(pressed))
+        if (machine.supportLockRecipe() && !machine.alwaysSearchRecipe()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.RECIPE_LOCK_OFF, WidgetIcons.RECIPE_LOCK_ON, () -> machine.getRecipeLogic().isRecipeLocked(), (clickData, pressed) -> machine.getRecipeLogic().setRecipeLocked(pressed))
                 .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "gtceu.machine.recipe_lock_enabled" : "gtceu.machine.recipe_lock_disabled"))));
     }
 

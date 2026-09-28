@@ -112,7 +112,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void setRecipeLocked(boolean value) {
-        if (machine.supportLockRecipe()) {
+        if (machine.supportLockRecipe() && !machine.alwaysSearchRecipe()) {
             this.recipeLocked = value;
             updateTickSubscription();
         }
