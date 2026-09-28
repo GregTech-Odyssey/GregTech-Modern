@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.blockentity;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.network.DataSyncNetwork;
 import com.gto.datasynclib.util.DataCodecs;
@@ -51,6 +53,8 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     public final BlockEntityDirectionCache blockEntityDirectionCache = BlockEntityDirectionCache.create();
     public final DirectionCache<BlockState> blockStateDirectionCache = DirectionCache.create();
+
+    protected final DataComponentMap tickTimeMonitors = new DataComponentMap();
 
     public GTBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -135,6 +139,32 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     @Override
     public GTBlockEntity getHolder() {
         return this;
+    }
+
+    /**
+     * 取/建一个命名 tick 耗时监控，同 key 复用同一个实例，并按 key 的注册 id 缓存在本方块实体上。
+     *
+     * <p>
+     * <b>{@code task} 必须是固定的：</b>只能传 {@code this::autoOutput} 这种每次一样的绑定方法引用，
+     * <b>不要</b>传捕获了方法参数 / 临时对象的 lambda——监控只在第一次注册时记住这个 Runnable，之后一直用旧的：
+     * 一来旧 lambda 捕获的引用会被一直持有（内存泄漏），二来每次 tick 跑的还是旧逻辑，不变量 / 状态更新会丢失。
+     *
+     * @param entry 监控条目（同时提供本地采样 key 和同步用的 int key）
+     * @param task  被测量的 tick 任务，只有第一次注册时生效
+     */
+    public TickTimeMonitor monitorTick(TickTimeMonitor.Entry entry, Runnable task) {
+        var monitor = tickTimeMonitors.getData(entry);
+        if (monitor == null) {
+            monitor = new TickTimeMonitor(entry.window, this::getOffsetTimer, task);
+            tickTimeMonitors.put(entry, monitor);
+        }
+        return monitor;
+    }
+
+    /** Jade 用：所有命名监控；没建过时返回 {@code null}。 */
+    @NotNull
+    public DataComponentMap getTickTimeMonitors() {
+        return tickTimeMonitors;
     }
 
     @Override

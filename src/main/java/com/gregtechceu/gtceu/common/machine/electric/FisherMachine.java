@@ -17,8 +17,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -91,9 +93,12 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     protected final CustomItemStackHandler chargerInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
     @Nullable
+    private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
     protected TickableSubscription batterySubs;
     @Nullable
+    private final TickTimeMonitor fishingMonitor = holder.monitorTick(GTTickTimeMonitors.FISHING, this::fishingUpdate);
     protected TickableSubscription fishingSubs;
     @Nullable
     protected ISubscription exportItemSubs;
@@ -208,7 +213,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     //////////////////////////////////////
     public void updateFishingUpdateSubscription() {
         if (drainEnergy(true) && this.baitHandler.getStackInSlot(0).is(Items.STRING) && isWorkingEnabled) {
-            fishingSubs = subscribeServerTick(fishingSubs, this::fishingUpdate);
+            fishingSubs = subscribeServerTick(fishingSubs, fishingMonitor);
             active = true;
             return;
         } else if (fishingSubs != null) {
@@ -293,7 +298,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     }
 
     protected void updateBatterySubscription() {
-        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
+        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         else if (batterySubs != null) {
             batterySubs.unsubscribe();
             batterySubs = null;
@@ -302,7 +307,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, 20);
+        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

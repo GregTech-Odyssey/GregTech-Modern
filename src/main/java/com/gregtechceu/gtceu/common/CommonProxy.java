@@ -140,6 +140,7 @@ public class CommonProxy {
         CustomBlockRotations.init();
         KeyBind.init();
         MachineOwner.init();
+        GTTickTimeMonitors.init();
 
         FusionReactorMachine.registerFusionTier(GTValues.LuV, " (MKI)");
         FusionReactorMachine.registerFusionTier(GTValues.ZPM, " (MKII)");

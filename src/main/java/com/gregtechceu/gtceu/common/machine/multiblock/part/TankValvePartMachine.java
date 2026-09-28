@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.FluidTankProxyTrait;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.MultiblockTankMachine;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -30,9 +31,9 @@ public class TankValvePartMachine extends MultiblockPartMachine {
 
     public TankValvePartMachine(MetaMachineBlockEntity holder, boolean isMetal, Object... args) {
         super(holder);
-
         tankProxy = createTank(args);
-        autoIOSubscription = new ConditionalSubscriptionHandler(this, this::autoIO, 20, this::shouldAutoIO);
+        var autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoIO);
+        autoIOSubscription = new ConditionalSubscriptionHandler(this, autoIOMonitor, 20, this::shouldAutoIO);
     }
 
     protected FluidTankProxyTrait createTank(Object... args) {

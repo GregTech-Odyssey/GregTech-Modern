@@ -7,8 +7,10 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -30,6 +32,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     public static final int EUT_PER_HATCH_CHAINED = GTValues.VA[GTValues.LuV];
     protected int energyUsage = 0;
     @Nullable
+    private final TickTimeMonitor researchMonitor = holder.monitorTick(GTTickTimeMonitors.COMPUTATION, this::tick);
     protected TickableSubscription tickSubs;
 
     public DataMachine(MetaMachineBlockEntity holder) {
@@ -105,7 +108,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
 
     protected void updateTickSubscription() {
         if (isFormed) {
-            tickSubs = subscribeServerTick(tickSubs, this::tick);
+            tickSubs = subscribeServerTick(tickSubs, researchMonitor);
         } else if (tickSubs != null) {
             tickSubs.unsubscribe();
             tickSubs = null;

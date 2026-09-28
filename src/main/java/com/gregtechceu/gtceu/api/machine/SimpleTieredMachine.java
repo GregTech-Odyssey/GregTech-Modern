@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
@@ -26,6 +27,7 @@ import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
@@ -101,7 +103,9 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     protected final NotifiableItemStackHandler circuitInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
+    private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
     protected TickableSubscription batterySubs;
     @Nullable
     protected ISubscription exportItemSubs;
@@ -242,7 +246,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
         if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -251,7 +255,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
 
     protected void updateBatterySubscription() {
         if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) {
-            batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
+            batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         } else if (batterySubs != null) {
             batterySubs.unsubscribe();
             batterySubs = null;

@@ -12,7 +12,9 @@ import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.DualHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -75,6 +77,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     protected final NotifiableFluidTank tank;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     protected ISubscription invSubs;
     @Nullable
@@ -169,7 +172,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         var outputFacingItems = getOutputFacingItems();
         var outputFacingFluids = getOutputFacingFluids();
         if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) || (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacingFluids))) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

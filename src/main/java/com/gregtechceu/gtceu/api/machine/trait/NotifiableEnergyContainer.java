@@ -9,8 +9,10 @@ import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -54,6 +56,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     @Setter
     protected Predicate<Direction> sideOutputCondition;
     @Nullable
+    private final TickTimeMonitor energyOutputMonitor = machine.holder.monitorTick(GTTickTimeMonitors.ENERGY_TRANSFER, this::serverTick);
     protected TickableSubscription outputSubs;
     @Nullable
     protected TickableSubscription updateSubs;
@@ -112,7 +115,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     public void checkOutputSubscription() {
         checkOutput = false;
         if (machine.getLevel() instanceof ServerLevel && outputVoltage > 0 && outputAmperage > 0 && getEnergyStored() >= 0) {
-            outputSubs = machine.subscribeServerTick(outputSubs, this::serverTick);
+            outputSubs = machine.subscribeServerTick(outputSubs, energyOutputMonitor);
         } else if (outputSubs != null) {
             outputSubs.unsubscribe();
             outputSubs = null;

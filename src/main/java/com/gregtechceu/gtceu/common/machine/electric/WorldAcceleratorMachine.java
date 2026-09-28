@@ -10,6 +10,8 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -68,6 +70,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     @SaveToDisk
     @SyncToClient(scheduleUpdate = true)
     private boolean active = false;
+    private final TickTimeMonitor acceleratorMonitor = holder.monitorTick(GTTickTimeMonitors.ACCELERATOR, this::update);
     private TickableSubscription tickSubs;
 
     public WorldAcceleratorMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
@@ -86,7 +89,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
 
     public void updateSubscription() {
         if (isWorkingEnabled && drainEnergy(true)) {
-            tickSubs = subscribeServerTick(tickSubs, this::update);
+            tickSubs = subscribeServerTick(tickSubs, acceleratorMonitor);
             active = true;
         } else if (tickSubs != null) {
             tickSubs.unsubscribe();

@@ -11,9 +11,11 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -82,6 +84,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @Nullable
     private Material frameMaterial;
 
+    private TickTimeMonitor transferMonitor;
     protected TickableSubscription transferSubs;
 
     public boolean autoTransfer;
@@ -154,7 +157,11 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     protected void updateTransferTick(boolean tick, Runnable runnable) {
         if (tick) {
-            transferSubs = subscribeServerTick(transferSubs, runnable, 20);
+            if (transferMonitor == null) {
+                // 只有 ItemPipeBlockEntity / FluidPipeBlockEntity 两个子类调用，传的都是固定的 this::autoTransfer，放心缓存
+                transferMonitor = monitorTick(GTTickTimeMonitors.TRANSFER, runnable);
+            }
+            transferSubs = subscribeServerTick(transferSubs, transferMonitor, 20);
         } else if (transferSubs != null) {
             transferSubs.unsubscribe();
             transferSubs = null;

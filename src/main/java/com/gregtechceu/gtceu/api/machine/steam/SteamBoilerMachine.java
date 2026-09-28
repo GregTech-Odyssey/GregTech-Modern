@@ -12,11 +12,13 @@ import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -83,9 +85,11 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     @Getter
     private boolean hasNoWater;
     @Nullable
+    private final TickTimeMonitor steamMonitor = holder.monitorTick(GTTickTimeMonitors.STEAM, this::updateCurrentTemperature);
     protected TickableSubscription temperatureSubs;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     protected ISubscription steamTankSubs;
 
@@ -141,7 +145,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
 
     protected void updateAutoOutputSubscription() {
         if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction))) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -158,7 +162,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     //////////////////////////////////////
     protected void updateSteamSubscription() {
         if (currentTemperature > 0) {
-            temperatureSubs = subscribeServerTick(temperatureSubs, this::updateCurrentTemperature);
+            temperatureSubs = subscribeServerTick(temperatureSubs, steamMonitor);
         } else if (temperatureSubs != null) {
             temperatureSubs.unsubscribe();
             temperatureSubs = null;

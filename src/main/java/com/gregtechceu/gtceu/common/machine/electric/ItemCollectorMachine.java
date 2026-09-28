@@ -18,9 +18,11 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
@@ -86,9 +88,12 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     protected final CustomItemStackHandler filterInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
+    private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
     protected TickableSubscription batterySubs;
     @Nullable
+    private final TickTimeMonitor collectionMonitor = holder.monitorTick(GTTickTimeMonitors.COLLECTION, this::update);
     protected TickableSubscription collectionSubs;
     @Nullable
     protected ISubscription exportItemSubs;
@@ -190,7 +195,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     //////////////////////////////////////
     public void updateCollectionSubscription() {
         if (drainEnergy(true) && isWorkingEnabled) {
-            collectionSubs = subscribeServerTick(collectionSubs, this::update, 20);
+            collectionSubs = subscribeServerTick(collectionSubs, collectionMonitor, 20);
             active = true;
         } else if (collectionSubs != null) {
             collectionSubs.unsubscribe();
@@ -264,7 +269,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     }
 
     protected void updateBatterySubscription() {
-        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
+        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         else if (batterySubs != null) {
             batterySubs.unsubscribe();
             batterySubs = null;
@@ -273,7 +278,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
+        if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

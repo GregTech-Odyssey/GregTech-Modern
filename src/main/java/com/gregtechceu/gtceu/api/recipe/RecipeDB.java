@@ -73,7 +73,7 @@ public final class RecipeDB extends AbstractRecipeDB<GTRecipeDefinition> {
     @Override
     protected void finishBuild() {
         super.finishBuild();
-        if(unindexedSerial.isEmpty()) return;
+        if (unindexedSerial.isEmpty()) return;
         GTCEu.LOGGER.warn("Unindexed: {}", unindexedSerial);
     }
 }

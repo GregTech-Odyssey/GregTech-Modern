@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -86,7 +87,8 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         this.transferRate = maxItemTransferRate;
         this.io = IO.OUT;
         this.distributionMode = DistributionMode.INSERT_FIRST;
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
+        var transferMonitor = coverHolder.getHolder().monitorTick(GTTickTimeMonitors.TRANSFER, this::update);
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, transferMonitor, 20, this::isSubscriptionActive);
         filterHandler = FilterHandlers.item(this).onFilterLoaded(f -> configureFilter()).onFilterUpdated(f -> configureFilter()).onFilterRemoved(f -> configureFilter());
     }
 

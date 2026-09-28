@@ -16,8 +16,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.BlockDropCache;
@@ -75,9 +77,12 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     protected final CustomItemStackHandler chargerInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
     @Nullable
+    private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
     protected TickableSubscription batterySubs;
     @Nullable
+    private final TickTimeMonitor breakerMonitor = holder.monitorTick(GTTickTimeMonitors.BREAKER, this::breakerUpdate);
     protected TickableSubscription breakerSubs;
     @Nullable
     protected ISubscription exportItemSubs;
@@ -173,7 +178,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     //////////////////////////////////////
     public void updateBreakerSubscription() {
         if (drainEnergy(true) && !getLevel().getBlockState(getPos().relative(getFrontFacing())).isAir() && isWorkingEnabled) {
-            breakerSubs = subscribeServerTick(breakerSubs, this::breakerUpdate);
+            breakerSubs = subscribeServerTick(breakerSubs, breakerMonitor);
         } else if (breakerSubs != null) {
             blockBreakProgress = 0;
             breakerSubs.unsubscribe();
@@ -273,7 +278,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, 20);
+        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -286,7 +291,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     }
 
     protected void updateBatterySubscription() {
-        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
+        if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         else if (batterySubs != null) {
             batterySubs.unsubscribe();
             batterySubs = null;

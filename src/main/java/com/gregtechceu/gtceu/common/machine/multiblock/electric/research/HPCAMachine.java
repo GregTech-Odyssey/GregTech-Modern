@@ -15,10 +15,12 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
@@ -29,7 +31,6 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.ChatFormatting;
@@ -82,6 +83,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     private boolean overheated;
     private final TimedProgressSupplier progressSupplier;
     @Nullable
+    private final TickTimeMonitor researchMonitor = holder.monitorTick(GTTickTimeMonitors.COMPUTATION, this::tick);
     protected TickableSubscription tickSubs;
 
     public HPCAMachine(MetaMachineBlockEntity holder, Object... args) {
@@ -141,7 +143,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
     protected void updateTickSubscription() {
         if (isFormed) {
-            tickSubs = subscribeServerTick(tickSubs, this::tick);
+            tickSubs = subscribeServerTick(tickSubs, researchMonitor);
         } else if (tickSubs != null) {
             tickSubs.unsubscribe();
             tickSubs = null;

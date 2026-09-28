@@ -1,35 +1,26 @@
 package com.gregtechceu.gtceu.common.machine.trait.miner;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.BlockDropCache;
 
-import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.Tags;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -268,8 +259,8 @@ public class MinerLogic extends RecipeLogic {
         resetArea(false);
     }
 
-    private static void setBlock(Level level,BlockPos pos) {
-        level.setBlock(pos,Blocks.COBBLESTONE.defaultBlockState(), 3);
+    private static void setBlock(Level level, BlockPos pos) {
+        level.setBlock(pos, Blocks.COBBLESTONE.defaultBlockState(), 3);
     }
 
     /**
@@ -311,7 +302,7 @@ public class MinerLogic extends RecipeLogic {
             // check if the miner needs new blocks to mine and get them if needed
             checkBlocksToMine();
             // if there are blocks to mine and the correct amount of time has passed, do the mining
-            if (getMachine().getOffsetTimer() % getActiveSpeed() == 0 && !blocksToMine.isEmpty()) {
+            if (getOffsetTimer() % getActiveSpeed() == 0 && !blocksToMine.isEmpty()) {
                 var blockDrops = this.blockDrops;
                 blockDrops.clear();
                 BlockState blockState = serverLevel.getBlockState(blocksToMine.getFirst());
@@ -435,8 +426,8 @@ public class MinerLogic extends RecipeLogic {
         // remove the ore block's position from the mining queue
         if (machine.outputItem(blockDrops.toArray(new ItemStack[0]))) {
             var pos = blocksToMine.getFirst();
-            setBlock(world,pos);
-            mineX =pos.getX();
+            setBlock(world, pos);
+            mineX = pos.getX();
             mineZ = pos.getZ();
             mineY = pos.getY();
             blocksToMine.removeFirst();
@@ -589,7 +580,6 @@ public class MinerLogic extends RecipeLogic {
     private static double getQuotient(double base) {
         return DIVIDEND / Math.pow(base, POWER);
     }
-
 
     /**
      * @return the position to start mining from

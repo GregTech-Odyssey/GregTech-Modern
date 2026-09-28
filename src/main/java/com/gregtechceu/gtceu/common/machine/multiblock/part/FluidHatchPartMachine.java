@@ -12,10 +12,12 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMac
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -53,6 +55,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     protected final int slots;
     @Nullable
     protected TickableSubscription autoIOSubs;
+    protected final TickTimeMonitor autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_IO, this::autoIO);
     @Nullable
     protected ISubscription tankSubs;
     @Getter
@@ -163,7 +166,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
 
     protected void updateTankSubscription(Direction newFacing) {
         if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), newFacing)) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
+            autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;

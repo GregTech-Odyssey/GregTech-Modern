@@ -18,10 +18,12 @@ import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.*;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
@@ -105,6 +107,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     protected long storedAmount = 0;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
 
     public QuantumTankMachine(MetaMachineBlockEntity holder, int tier, long maxAmount, Object... args) {
         super(holder, tier);
@@ -219,7 +222,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
         if ((isAutoOutputFluids() && !stored.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, getTicksPerCycle());
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

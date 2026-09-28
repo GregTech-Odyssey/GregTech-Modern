@@ -68,7 +68,7 @@ public class CleanroomLogic extends RecipeLogic {
                         }
                     }
                     // the cleanroom does not have enough energy, so it looses cleanliness
-                    if (machine.self().getOffsetTimer() % duration == 0) {
+                    if (getOffsetTimer() % duration == 0) {
                         adjustCleanAmount(true);
                     }
                     setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
@@ -87,7 +87,7 @@ public class CleanroomLogic extends RecipeLogic {
                 if (progress > 0) {
                     progress--;
                 }
-                if (machine.self().getOffsetTimer() % duration == 0) {
+                if (getOffsetTimer() % duration == 0) {
                     adjustCleanAmount(true);
                 }
                 setStatus(IDLE);

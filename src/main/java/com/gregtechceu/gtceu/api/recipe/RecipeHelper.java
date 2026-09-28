@@ -97,11 +97,10 @@ public class RecipeHelper {
     }
 
     public static <T, C extends ContentInner<T>> List<Content<C>> copyAndRoll(GTRecipe recipe, List<Content<C>> contents) {
-        return copyAndRoll(recipe.definition,contents,recipe.ocLevel);
+        return copyAndRoll(recipe.definition, contents, recipe.ocLevel);
     }
 
-
-    public static <T, C extends ContentInner<T>> List<Content<C>> copyAndRoll(GTRecipeDefinition recipe, List<Content<C>> contents,int ocLevel) {
+    public static <T, C extends ContentInner<T>> List<Content<C>> copyAndRoll(GTRecipeDefinition recipe, List<Content<C>> contents, int ocLevel) {
         var size = contents.size();
         if (size == 0) return Collections.emptyList();
         var contentList = new ArrayList<Content<C>>(size);

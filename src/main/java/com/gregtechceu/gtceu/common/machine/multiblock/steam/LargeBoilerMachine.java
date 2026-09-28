@@ -6,12 +6,14 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -57,6 +59,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @SaveToDisk(defaultValue = "100")
     private int activeThrottle;
     @Nullable
+    private final TickTimeMonitor steamMonitor = holder.monitorTick(GTTickTimeMonitors.STEAM, this::updateCurrentTemperature);
     protected TickableSubscription temperatureSubs;
     private int steamGenerated;
 
@@ -100,7 +103,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
 
     protected void updateSteamSubscription() {
         if (currentTemperature > 0) {
-            temperatureSubs = subscribeServerTick(temperatureSubs, this::updateCurrentTemperature);
+            temperatureSubs = subscribeServerTick(temperatureSubs, steamMonitor);
         } else if (temperatureSubs != null) {
             temperatureSubs.unsubscribe();
             temperatureSubs = null;

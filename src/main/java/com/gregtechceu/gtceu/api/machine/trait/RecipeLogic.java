@@ -4,11 +4,13 @@ import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonIcons;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -96,9 +98,13 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     protected Object workingSound;
 
+    public final TickTimeMonitor monitor;
+
     public RecipeLogic(IRecipeLogicMachine machine) {
         super(machine.self());
         this.machine = machine;
+        // 注册到机器的监控表里，Jade 会按 key 一起显示
+        this.monitor = super.machine.holder.monitorTick(GTTickTimeMonitors.RECIPE_LOGIC, this::serverTick);
     }
 
     private boolean supportSaveLockRecipe(GTRecipeDefinition recipe) {
@@ -162,7 +168,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void updateTickSubscription() {
         if (status != SUSPEND && machine.isRecipeLogicAvailable()) {
             if ((subscription == null || !subscription.stillSubscribed) && super.machine.getLevel() instanceof ServerLevel serverLevel) {
-                subscription = TaskHandler.enqueueTick(serverLevel, super.machine.holder.isRemove, this::serverTick, interval, 5);
+                subscription = TaskHandler.enqueueTick(serverLevel, super.machine.holder.isRemove, this.monitor, interval, 5);
                 if (isActive) subscription.cycle = 0;
             }
         } else {

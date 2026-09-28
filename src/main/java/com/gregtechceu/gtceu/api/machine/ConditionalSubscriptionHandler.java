@@ -21,7 +21,6 @@ public class ConditionalSubscriptionHandler {
     private final ITickSubscription handler;
     private final Runnable runnable;
     private final BooleanSupplier condition;
-
     private TickableSubscription subscription;
 
     @Getter

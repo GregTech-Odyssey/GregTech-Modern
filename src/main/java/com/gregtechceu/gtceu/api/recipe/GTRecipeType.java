@@ -211,30 +211,29 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return db.search(map, canHandle);
     }
 
-    public boolean search(Predicate<GTRecipeDefinition> canHandle,IntLongMap map,ItemStack[] itemInputs,FluidStack... fluidInputs) {
-     for (var item:itemInputs) {
-         this.convertItem(item,item.getCount(),map);
-     }
-     for (var fluid:fluidInputs) {
-         this.convertFluid(fluid,fluid.getAmount(),map);
-     }
-     return search(map,canHandle);
-    }
-
-    public boolean search(Predicate<GTRecipeDefinition> canHandle,IntLongMap map,ItemStack... itemInputs) {
-        for (var item:itemInputs) {
-            this.convertItem(item,item.getCount(),map);
+    public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, ItemStack[] itemInputs, FluidStack... fluidInputs) {
+        for (var item : itemInputs) {
+            this.convertItem(item, item.getCount(), map);
         }
-        return search(map,canHandle);
-    }
-
-    public boolean search(Predicate<GTRecipeDefinition> canHandle,IntLongMap map,FluidStack... fluidInputs) {
-        for (var fluid:fluidInputs) {
-            this.convertFluid(fluid,fluid.getAmount(),map);
+        for (var fluid : fluidInputs) {
+            this.convertFluid(fluid, fluid.getAmount(), map);
         }
-        return search(map,canHandle);
+        return search(map, canHandle);
     }
 
+    public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, ItemStack... itemInputs) {
+        for (var item : itemInputs) {
+            this.convertItem(item, item.getCount(), map);
+        }
+        return search(map, canHandle);
+    }
+
+    public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, FluidStack... fluidInputs) {
+        for (var fluid : fluidInputs) {
+            this.convertFluid(fluid, fluid.getAmount(), map);
+        }
+        return search(map, canHandle);
+    }
 
     protected void initDB() {
         var recipes = new ArrayList<>(this.recipes.values());

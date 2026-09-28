@@ -13,8 +13,9 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.common.data.GTBlocks;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -27,7 +28,6 @@ import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -73,6 +73,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @DropSaved
     protected final NotifiableFluidTank cache;
 
+    private final TickTimeMonitor pumpMonitor = holder.monitorTick(GTTickTimeMonitors.PUMP, this::update);
     protected TickableSubscription update;
 
     public PumpMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
@@ -106,7 +107,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @Override
     public void onLoad() {
         super.onLoad();
-        update = subscribeServerTick(update, this::update);
+        update = subscribeServerTick(update, pumpMonitor);
     }
 
     @Override

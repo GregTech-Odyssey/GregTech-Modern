@@ -11,8 +11,10 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.common.block.CableBlock;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.pipelike.cable.*;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -66,6 +68,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     @SaveToDisk(defaultValue = "298")
     @SyncToClient
     private int temperature = defaultTemp;
+    private final TickTimeMonitor cableMonitor = this.monitorTick(GTTickTimeMonitors.CABLE, this::update);
     private TickableSubscription heatSubs;
 
     public CableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
@@ -158,7 +161,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     }
 
     private void subscribeHeat() {
-        this.heatSubs = subscribeServerTick(heatSubs, this::update);
+        this.heatSubs = subscribeServerTick(heatSubs, cableMonitor);
     }
 
     private void unsubscribeHeat() {

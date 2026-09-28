@@ -16,8 +16,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.MinerLogic;
@@ -84,7 +86,9 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     private final long energyPerTick;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
+    private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
     protected TickableSubscription batterySubs;
     @Nullable
     protected ISubscription exportItemSubs;
@@ -183,7 +187,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     protected void updateAutoOutputSubscription() {
         var outputFace = getOutputFacingItems();
         if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFace)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 20);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;
@@ -192,7 +196,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
 
     protected void updateBatterySubscription() {
         if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) {
-            batterySubs = subscribeServerTick(batterySubs, this::chargeBattery);
+            batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         } else if (batterySubs != null) {
             batterySubs.unsubscribe();
             batterySubs = null;

@@ -11,7 +11,9 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -57,6 +59,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected final NotifiableFluidTank cache;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
     @Nullable
     protected ISubscription exportFluidSubs;
     // rename "Fluid" for Item capability
@@ -180,7 +183,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
         if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::checkAutoOutput, 20);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

@@ -56,6 +56,8 @@ public interface IGTAddon {
 
     default void registerRecipeDataKey() {}
 
+    default void registerTickTimeMonitor() {}
+
     /**
      * Call init on your custom IWorldGenLayer class(es) here
      */

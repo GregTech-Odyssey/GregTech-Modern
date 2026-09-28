@@ -48,7 +48,7 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
     @Override
     protected void updateTankSubscription() {
         if (isWorkingEnabled() && !waterTank.isFull()) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
+            autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;

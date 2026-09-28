@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerInfoList;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
@@ -47,7 +48,8 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
         this.powerOutput = EnergyContainerInfoList.EMPTY;
         this.powerInput = EnergyContainerInfoList.EMPTY;
 
-        this.converterSubscription = new ConditionalSubscriptionHandler(this, this::convertEnergyTick, 0, this::isSubscriptionActive);
+        var energyConvertMonitor = holder.monitorTick(GTTickTimeMonitors.ENERGY_CONVERT, this::convertEnergyTick);
+        this.converterSubscription = new ConditionalSubscriptionHandler(this, energyConvertMonitor, 0, this::isSubscriptionActive);
     }
 
     public void convertEnergyTick() {

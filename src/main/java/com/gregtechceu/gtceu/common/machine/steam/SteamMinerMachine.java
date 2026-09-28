@@ -15,7 +15,9 @@ import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.SteamMinerLogic;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -70,6 +72,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     private final int energyPerTick;
     @Nullable
     protected TickableSubscription autoOutputSubs;
+    protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     protected ISubscription exportItemSubs;
 
@@ -153,7 +156,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     protected void updateAutoOutputSubscription() {
         var outputFacingItems = getFrontFacing();
         if (!exportItems.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacingItems)) {
-            autoOutputSubs = subscribeServerTick(autoOutputSubs, this::autoOutput, 40);
+            autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 40);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

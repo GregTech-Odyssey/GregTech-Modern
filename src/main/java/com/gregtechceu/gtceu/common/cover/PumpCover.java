@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -89,7 +90,8 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         this.tier = tier;
         this.maxFluidTransferRate = maxTransferRate;
         this.transferRate = maxFluidTransferRate;
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
+        var transferMonitor = coverHolder.getHolder().monitorTick(GTTickTimeMonitors.TRANSFER, this::update);
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, transferMonitor, 20, this::isSubscriptionActive);
         filterHandler = FilterHandlers.fluid(this).onFilterLoaded(f -> configureFilter()).onFilterUpdated(f -> configureFilter()).onFilterRemoved(f -> configureFilter());
     }
 

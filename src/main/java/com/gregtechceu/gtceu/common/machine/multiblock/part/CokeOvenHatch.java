@@ -6,7 +6,9 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.FluidTankProxyTrait;
 import com.gregtechceu.gtceu.api.machine.trait.ItemHandlerProxyTrait;
+import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.primitive.CokeOvenMachine;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -31,6 +33,7 @@ public class CokeOvenHatch extends MultiblockPartMachine {
     public final FluidTankProxyTrait tank;
     @Nullable
     protected TickableSubscription autoIOSubs;
+    protected final TickTimeMonitor autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoIO);
     @Nullable
     protected ISubscription outputInventorySubs, outputTankSubs;
 
@@ -121,7 +124,7 @@ public class CokeOvenHatch extends MultiblockPartMachine {
         if ((!outputInventory.isEmpty() &&
                 holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), getFrontFacing())) ||
                 (!tank.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()))) {
-            autoIOSubs = subscribeServerTick(autoIOSubs, this::autoIO, 20);
+            autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
             autoIOSubs = null;

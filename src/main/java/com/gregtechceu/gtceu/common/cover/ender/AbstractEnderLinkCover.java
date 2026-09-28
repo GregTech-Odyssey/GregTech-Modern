@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
+import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
@@ -62,7 +63,8 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
 
     public AbstractEnderLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
-        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, this::update, 20, this::isSubscriptionActive);
+        var transferMonitor = coverHolder.getHolder().monitorTick(GTTickTimeMonitors.TRANSFER, this::update);
+        subscriptionHandler = new ConditionalSubscriptionHandler(coverHolder, transferMonitor, 20, this::isSubscriptionActive);
     }
 
     @Override
