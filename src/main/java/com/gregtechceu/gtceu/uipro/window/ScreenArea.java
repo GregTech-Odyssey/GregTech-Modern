@@ -11,8 +11,6 @@ import dev.emi.emi.config.EmiConfig;
 import dev.emi.emi.config.Margins;
 import dev.emi.emi.config.SidebarPages;
 import dev.emi.emi.config.SidebarTheme;
-import dev.emi.emi.runtime.EmiReloadManager;
-import dev.emi.emi.screen.EmiScreenManager;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 @OnlyIn(Dist.CLIENT)
@@ -57,12 +55,12 @@ public record ScreenArea(int left, int top, int right, int bottom) {
         private static final int HEADER = 18;
 
         private static int[] reserved() {
-            if (!EmiReloadManager.isLoaded() || !EmiConfig.enabled) return null;
+            if (!EmiConfig.enabled) return null;
             int left = side(EmiConfig.leftSidebarPages);
             int right = side(EmiConfig.rightSidebarPages);
             int top = band(EmiConfig.topSidebarPages, EmiConfig.topSidebarSize.values, EmiConfig.topSidebarMargins, EmiConfig.topSidebarTheme);
             int bottom = band(EmiConfig.bottomSidebarPages, EmiConfig.bottomSidebarSize.values, EmiConfig.bottomSidebarMargins, EmiConfig.bottomSidebarTheme);
-            if (EmiConfig.centerSearchBar && EmiScreenManager.search.isVisible()) bottom = Math.max(bottom, BOTTOM_BAR);
+            if (EmiConfig.centerSearchBar) bottom = Math.max(bottom, BOTTOM_BAR);
             return new int[] { left, right, top, bottom, CORNER_BUTTONS };
         }
 

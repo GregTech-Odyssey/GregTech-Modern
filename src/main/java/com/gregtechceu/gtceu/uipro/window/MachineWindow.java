@@ -40,7 +40,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.config.EmiConfig;
-import dev.emi.emi.screen.EmiScreenManager;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -501,8 +500,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         private static final int SEARCH_HEIGHT = 18;
 
         private static int centeredSearchHeight() {
-            boolean shown = !EmiScreenManager.isDisabled() && EmiScreenManager.search.isVisible();
-            return shown && EmiConfig.centerSearchBar ? SEARCH_HEIGHT : 0;
+            return EmiConfig.enabled && EmiConfig.centerSearchBar ? SEARCH_HEIGHT : 0;
         }
     }
 
