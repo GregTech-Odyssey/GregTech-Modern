@@ -89,9 +89,6 @@ public class MachineDefinition implements Supplier<MetaMachineBlock>, ItemLike {
     private VoxelShape shape;
     @Getter
     @Setter
-    private boolean renderWorldPreview;
-    @Getter
-    @Setter
     private boolean renderXEIPreview;
     private final Map<Direction, VoxelShape> cache = new EnumMap<>(Direction.class);
     @Getter

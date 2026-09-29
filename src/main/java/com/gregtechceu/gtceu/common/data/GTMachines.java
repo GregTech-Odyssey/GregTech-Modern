@@ -858,7 +858,7 @@ public class GTMachines {
             (tier, builder) -> builder
                     .langValue("%s Dual Input Hatch".formatted(VNF[tier] + ChatFormatting.RESET))
                     .allRotation()
-                    .abilities(PartAbility.IMPORT_ITEMS)
+                    .abilities(PartAbility.IMPORT_ITEMS, PartAbility.IMPORT_FLUIDS, PartAbility.DUAL_INPUT)
                     .overlayTieredHullRenderer("dual_hatch.import")
                     .tooltips(Component.translatable("gtceu.machine.dual_hatch.import.tooltip"),
                             Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier),
@@ -873,7 +873,7 @@ public class GTMachines {
             (tier, builder) -> builder
                     .langValue("%s Dual Output Hatch".formatted(VNF[tier] + ChatFormatting.RESET))
                     .allRotation()
-                    .abilities(PartAbility.EXPORT_ITEMS, PartAbility.EXPORT_FLUIDS)
+                    .abilities(PartAbility.EXPORT_ITEMS, PartAbility.EXPORT_FLUIDS, PartAbility.DUAL_OUTPUT)
                     .overlayTieredHullRenderer("dual_hatch.export")
                     .tooltips(Component.translatable("gtceu.machine.dual_hatch.export.tooltip"),
                             Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier),

@@ -1,10 +1,8 @@
 package com.gregtechceu.gtceu.api.pattern;
 
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
@@ -16,23 +14,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class FactoryBlockPattern {
 
-    private final MultiblockMachineDefinition definition;
     private final List<String[]> depth;
     private final List<int[]> aisleRepetitions;
     private final Char2ObjectOpenHashMap<TraceabilityPredicate> symbolMap;
     private final RelativeDirection[] structureDir;
-    private PatternCondition condition;
-    private Component info;
     private int aisleHeight;
     private int rowWidth;
-    private TraceabilityPredicate utilityAbilities;
 
-    private FactoryBlockPattern(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir, MultiblockMachineDefinition definition) {
-        this.definition = definition;
+    private FactoryBlockPattern(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir) {
         depth = new ArrayList<>();
         aisleRepetitions = new ArrayList<>();
         symbolMap = new Char2ObjectOpenHashMap<>();
@@ -51,10 +43,7 @@ public class FactoryBlockPattern {
         if (flags != 0x7) throw new IllegalArgumentException("Must have 3 different axes!");
     }
 
-    /**
-     * Adds a repeatable aisle to this pattern.
-     */
-    public FactoryBlockPattern aisleRepeatable(int minRepeat, int maxRepeat, String... aisle) {
+    private FactoryBlockPattern aisleRepeatable(int minRepeat, int maxRepeat, String... aisle) {
         if (!ArrayUtils.isEmpty(aisle) && !StringUtils.isEmpty(aisle[0])) {
             if (this.depth.isEmpty()) {
                 this.aisleHeight = aisle.length;
@@ -83,39 +72,9 @@ public class FactoryBlockPattern {
         return aisleRepeatable(1, 1, aisle);
     }
 
-    /**
-     * Set last aisle repeatable
-     */
-    public FactoryBlockPattern setRepeatable(int minRepeat, int maxRepeat) {
-        if (minRepeat > maxRepeat)
-            throw new IllegalArgumentException("Lower bound of repeat counting must smaller than upper bound!");
-        aisleRepetitions.set(aisleRepetitions.size() - 1, new int[] { minRepeat, maxRepeat });
-        return this;
-    }
-
-    /**
-     * Set last aisle repeatable
-     */
-    public FactoryBlockPattern setRepeatable(int repeatCount) {
-        return setRepeatable(repeatCount, repeatCount);
-    }
-
-    public static FactoryBlockPattern start() {
-        return new FactoryBlockPattern(RelativeDirection.LEFT, RelativeDirection.UP, RelativeDirection.FRONT, null);
-    }
-
-    public static FactoryBlockPattern start(MultiblockMachineDefinition definition) {
-        return new FactoryBlockPattern(RelativeDirection.LEFT, RelativeDirection.UP, RelativeDirection.FRONT, definition);
-    }
-
     public static FactoryBlockPattern start(RelativeDirection charDir, RelativeDirection stringDir,
                                             RelativeDirection aisleDir) {
-        return new FactoryBlockPattern(charDir, stringDir, aisleDir, null);
-    }
-
-    public static FactoryBlockPattern start(MultiblockMachineDefinition definition, RelativeDirection charDir, RelativeDirection stringDir,
-                                            RelativeDirection aisleDir) {
-        return new FactoryBlockPattern(charDir, stringDir, aisleDir, definition);
+        return new FactoryBlockPattern(charDir, stringDir, aisleDir);
     }
 
     public FactoryBlockPattern where(char symbol, TraceabilityPredicate blockMatcher) {
@@ -128,26 +87,7 @@ public class FactoryBlockPattern {
         return this;
     }
 
-    /**
-     * Allows the base blocks and registered utility parts at this symbol.
-     */
-    public FactoryBlockPattern wherePart(char symbol, TraceabilityPredicate base) {
-        return wherePart(symbol, base, null);
-    }
-
-    /**
-     * Allows the base blocks and registered utility parts at this symbol, except blocks enumerated by
-     * {@code exclusions}. Exclusions without enumerable candidates (for example, custom predicates) are rejected.
-     */
-    public FactoryBlockPattern wherePart(char symbol, TraceabilityPredicate base,
-                                         TraceabilityPredicate exclusions) {
-        if (utilityAbilities == null) {
-            utilityAbilities = Predicates.utilityAbilities();
-        }
-        if (exclusions == null) {
-            return where(symbol, base.or(utilityAbilities));
-        }
-
+    public static TraceabilityPredicate utilityExcluding(TraceabilityPredicate utilityAbilities, TraceabilityPredicate exclusions) {
         var excludedBlocks = candidateBlocks(exclusions, "wherePart exclusions");
         var allowedUtilities = new TraceabilityPredicate();
         for (SimplePredicate predicate : utilityAbilities.common) {
@@ -168,7 +108,7 @@ public class FactoryBlockPattern {
                         "wherePart exclusions cannot partially exclude a globally limited utility ability");
             }
         }
-        return where(symbol, base.or(allowedUtilities));
+        return allowedUtilities;
     }
 
     private static ReferenceOpenHashSet<Block> candidateBlocks(TraceabilityPredicate predicate, String description) {
@@ -194,20 +134,6 @@ public class FactoryBlockPattern {
             throw new IllegalArgumentException(description + " returned null block candidates");
         }
         return Arrays.asList(candidates);
-    }
-
-    public FactoryBlockPattern condition(Predicate<MultiblockState> condition) {
-        return condition(condition, Component.translatable("gtceu.recipe_logic.condition_fails"));
-    }
-
-    public FactoryBlockPattern condition(Predicate<MultiblockState> condition, Component translateKey) {
-        this.condition = new PatternCondition(condition, translateKey);
-        return this;
-    }
-
-    public FactoryBlockPattern info(Component info) {
-        this.info = info;
-        return this;
     }
 
     public BlockPattern build() {
@@ -236,13 +162,6 @@ public class FactoryBlockPattern {
             }
         }
 
-        var pattern = new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset, size, this.aisleHeight, this.rowWidth);
-        if (condition != null) pattern.condition = condition;
-        if (info != null) pattern.info = info;
-        if (definition != null) {
-            pattern.predicates = symbolMap.values();
-            definition.setCheckPriority(-(pattern.fingerLength * pattern.thumbLength * pattern.palmLength));
-        }
-        return pattern;
+        return new BlockPattern(predicate, structureDir, aisleRepetitions, centerOffset, size, this.aisleHeight, this.rowWidth);
     }
 }

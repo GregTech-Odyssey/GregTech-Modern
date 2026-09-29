@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Assembly;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
@@ -46,12 +48,6 @@ public interface IMultiController extends IMachineFeature {
     default int checkPriority() {
         return self().getDefinition().checkPriority();
     }
-
-    boolean @NotNull [] getSubFormed();
-
-    int getSubPatternAmount();
-
-    int getSubFormedAmount();
 
     /**
      * Check MultiBlock Pattern. Just checking pattern without any other logic.
@@ -103,8 +99,20 @@ public interface IMultiController extends IMachineFeature {
         return self().getDefinition().getPatternFactory();
     }
 
-    default Supplier<BlockPattern>[] getSubPattern() {
-        return self().getDefinition().getSubPatternFactory();
+    @Nullable
+    default Assembly getAssembly() {
+        if (!isFormed() && !checking()) return null;
+        return getMultiblockState().getMatchContext().get(Assembly.KEY);
+    }
+
+    default boolean hasStructurePart(ParamKey key) {
+        var assembly = getAssembly();
+        return assembly != null && assembly.has(key);
+    }
+
+    default int structureParam(ParamKey key) {
+        var assembly = getAssembly();
+        return assembly == null ? 0 : assembly.get(key);
     }
 
     /**
@@ -120,9 +128,6 @@ public interface IMultiController extends IMachineFeature {
      */
     @NotNull
     MultiblockState getMultiblockState();
-
-    @NotNull
-    MultiblockState[] getSubMultiblockState();
 
     /**
      * Called in an async thread. It's unsafe, Don't modify anything of world but checking information.

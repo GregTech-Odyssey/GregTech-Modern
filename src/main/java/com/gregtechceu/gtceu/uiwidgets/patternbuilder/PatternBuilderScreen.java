@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uiwidgets.patternbuilder;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -30,6 +31,7 @@ import net.minecraftforge.client.ForgeHooksClient;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @OnlyIn(Dist.CLIENT)
@@ -41,34 +43,66 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
     public static final String SORT_NONE = "gtceu.pattern_builder.sort.none";
     private static final PatternBuilderModel.Sort[] SORTS = PatternBuilderModel.Sort.values();
 
+    public interface Navigator {
+
+        int maxHeight();
+
+        void show(UIElement panel);
+
+        void close();
+    }
+
     private final Host host;
+    private final boolean layer;
     private boolean closed;
 
-    private PatternBuilderScreen(Host host, ModularUI ui) {
+    private PatternBuilderScreen(Host host, ModularUI ui, boolean layer) {
         super(ui, -1);
         this.host = host;
+        this.layer = layer;
         ui.initWidgets();
     }
 
     public static void open(PatternBuilderModel model, ItemStack icon, Component title, int inputLimit, Runnable onWrite) {
+        open(navigator -> new PatternBuilderPanel(model, icon, title, inputLimit, navigator.maxHeight(), () -> {
+            onWrite.run();
+            navigator.close();
+        }, navigator::close));
+    }
+
+    public static void open(Function<Navigator, UIElement> first) {
         var minecraft = Minecraft.getInstance();
         minecraft.tell(() -> {
-            if (!(minecraft.screen instanceof AbstractContainerScreen<?>) || minecraft.player == null) return;
+            if (minecraft.player == null) return;
+            boolean layer = minecraft.screen instanceof AbstractContainerScreen<?>;
+            if (!layer && minecraft.screen != null) return;
             var window = minecraft.getWindow();
             int width = window.getGuiScaledWidth(), height = window.getGuiScaledHeight();
             int maxHeight = (int) (height * UISizes.MAX_WINDOW_SCREEN_RATIO);
             var ref = new PatternBuilderScreen[1];
-            Runnable close = () -> {
-                if (ref[0] != null) ref[0].onClose();
+            var host = new Host(width, height);
+            var navigator = new Navigator() {
+
+                @Override
+                public int maxHeight() {
+                    return maxHeight;
+                }
+
+                @Override
+                public void show(UIElement panel) {
+                    host.setPanel(panel);
+                }
+
+                @Override
+                public void close() {
+                    if (ref[0] != null) ref[0].onClose();
+                }
             };
-            var panel = new PatternBuilderPanel(model, icon, title, inputLimit, maxHeight, () -> {
-                onWrite.run();
-                close.run();
-            }, close);
-            var host = new Host(width, height, panel);
+            host.setPanel(first.apply(navigator));
             var ui = new ModularUI(width, height, IUIHolder.EMPTY, minecraft.player).widget(host);
-            ref[0] = new PatternBuilderScreen(host, ui);
-            ForgeHooksClient.pushGuiLayer(minecraft, ref[0]);
+            ref[0] = new PatternBuilderScreen(host, ui, layer);
+            if (layer) ForgeHooksClient.pushGuiLayer(minecraft, ref[0]);
+            else minecraft.setScreen(ref[0]);
         });
     }
 
@@ -83,7 +117,7 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
-        if (!host.panel.isMouseOverElement(mouseX, mouseY) && !host.configurators.isMouseOverElement(mouseX, mouseY) &&
+        if (!host.panel.isMouseOverElement(mouseX, mouseY) && !(host.configurators.isVisible() && host.configurators.isMouseOverElement(mouseX, mouseY)) &&
                 (host.popup == null || !host.popup.isMouseOverElement(mouseX, mouseY))) {
             onClose();
             return true;
@@ -93,9 +127,11 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
 
     @Override
     public void onClose() {
-        if (closed) return;
+        if (closed || minecraft == null) return;
         closed = true;
-        if (minecraft != null && minecraft.screen == this) ForgeHooksClient.popGuiLayer(minecraft);
+        if (minecraft.screen != this) return;
+        if (layer) ForgeHooksClient.popGuiLayer(minecraft);
+        else minecraft.setScreen(null);
     }
 
     @Override
@@ -107,7 +143,7 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
 
         private static final String POPUP_ID = "pattern_builder.popup";
 
-        private final PatternBuilderPanel panel;
+        private UIElement panel = new UIElement();
         private final WindowConfiguratorPanel configurators = new WindowConfiguratorPanel();
         @Nullable
         private PopupCard popup;
@@ -116,23 +152,36 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
         @Nullable
         private Supplier<Popup> popupFactory;
 
-        private Host(int width, int height, PatternBuilderPanel panel) {
+        private Host(int width, int height) {
             super(0, 0, width, height);
-            this.panel = panel;
             setClientSideWidget();
-            addWidget(panel);
             configurators.setTexture(UITheme.CONFIGURATOR_TAB);
-            configurators.attachConfigurators(new SortConfigurator(panel));
+            addWidget(panel);
             addWidget(configurators);
-            panel.setPopupSlot(this);
+        }
+
+        private void setPanel(UIElement next) {
+            closePopup();
+            removeWidget(panel);
+            panel = next;
+            addWidget(0, panel);
+            configurators.clear();
+            if (next instanceof PatternBuilderPanel builder) {
+                builder.setPopupSlot(this);
+                configurators.attachConfigurators(new SortConfigurator(builder));
+                configurators.setVisible(true);
+            } else {
+                configurators.setVisible(false);
+            }
+            place();
         }
 
         private int popupMaxHeight() {
-            return Math.max(UISizes.SLOT, getSizeHeight() - 2 * UISizes.POPUP_SCREEN_MARGIN);
+            return Math.max(UISizes.SLOT, getSizeHeight() - 2 * UISizes.SCREEN_MARGIN);
         }
 
         private void place() {
-            int width = getSizeWidth(), height = getSizeHeight(), margin = UISizes.POPUP_SCREEN_MARGIN;
+            int width = getSizeWidth(), height = getSizeHeight(), margin = UISizes.SCREEN_MARGIN;
             int extra = popup == null ? 0 : UISizes.POPUP_GAP + popup.getSizeWidth();
             int x = (width - panel.getSizeWidth()) / 2;
             if (x + panel.getSizeWidth() + extra > width - margin) {
@@ -176,7 +225,8 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
         }
 
         private void closePopup() {
-            if (popup != null) removeWidget(popup);
+            if (popup == null) return;
+            removeWidget(popup);
             popup = null;
             popupKey = null;
             popupFactory = null;

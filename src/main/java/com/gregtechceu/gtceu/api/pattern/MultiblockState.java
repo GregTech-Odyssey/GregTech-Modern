@@ -75,27 +75,19 @@ public class MultiblockState {
         this.data = world instanceof ServerLevel serverLevel ? MultiblockWorldData.getOrCreate(serverLevel) : null;
     }
 
-    @SuppressWarnings("all")
-    private MultiblockState(MultiblockState state) {
-        this.world = state.world;
-        this.controller = state.controller;
-        this.controllerPos = state.controllerPos;
+    private MultiblockState(MultiblockState source) {
+        this.world = source.world;
+        this.controller = source.controller;
+        this.controllerPos = source.controllerPos;
         this.error = UNINIT_ERROR;
-        this.matchContext = new PatternMatchContext(state.matchContext);
-        this.blockStateCache = state.blockStateCache;
-        this.blockEntityCache = state.blockEntityCache;
-        this.data = state.data;
+        this.matchContext = new PatternMatchContext();
+        this.blockStateCache = source.blockStateCache;
+        this.blockEntityCache = new LongOpenHashSet();
+        this.data = source.data;
     }
 
-    public static MultiblockState copy(MultiblockState state) {
-        return new MultiblockState(state);
-    }
-
-    public void merge(MultiblockState state) {
-        this.matchContext.merge(state.matchContext);
-        this.cache.addAll(state.cache);
-        this.sharedCache.addAll(state.sharedCache);
-        this.blockEntityCache.addAll(state.blockEntityCache);
+    public static MultiblockState probe(MultiblockState source) {
+        return new MultiblockState(source);
     }
 
     public void clear() {

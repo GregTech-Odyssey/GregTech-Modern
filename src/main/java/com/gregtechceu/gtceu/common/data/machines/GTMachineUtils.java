@@ -16,8 +16,10 @@ import com.gregtechceu.gtceu.api.machine.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Piece;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
@@ -74,6 +76,7 @@ import java.util.stream.IntStream;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.pattern.Predicates.*;
+import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 import static com.gregtechceu.gtceu.api.recipe.handler.IO.IN;
 import static com.gregtechceu.gtceu.common.data.GTBlocks.ALL_FIREBOXES;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
@@ -423,15 +426,19 @@ public class GTMachineUtils {
                         Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity", capacity))
                 .allRotation()
                 .recipeType(DUMMY_RECIPES)
-                .pattern(definition -> FactoryBlockPattern.start(definition)
-                        .aisle("CCC", "CCC", "CCC")
-                        .aisle("CCC", "C#C", "CCC")
-                        .aisle("CCC", "CSC", "CCC")
-                        .where('S', controller(definition))
-                        .wherePart('C', blocks(casing.get())
-                                .or(blocks(valve.get()).setMaxGlobalLimited(2, 0)))
-                        .where('#', air())
-                        .build())
+                .structure(definition -> {
+                    var symbols = Symbols.create()
+                            .where('S', controller(definition))
+                            .wherePart('C', blocks(casing.get())
+                                    .or(blocks(valve.get()).setMaxGlobalLimited(2, 0)))
+                            .where('#', air());
+                    var piece = Piece.start(LEFT, UP, FRONT)
+                            .aisle("CCC", "CCC", "CCC")
+                            .aisle("CCC", "C#C", "CCC")
+                            .aisle("CCC", "CSC", "CCC")
+                            .build();
+                    return Structure.root(piece).symbols(symbols).build();
+                })
                 .appearanceBlock(casing);
         rendererSetup.accept(builder, GTCEu.id("block/multiblock/multiblock_tank"));
         return builder.register();
@@ -483,7 +490,7 @@ public class GTMachineUtils {
                 .partAppearance((controller, part, side) ->
                         controller.self().getPos().below().getY() == part.self().getPos().getY() ?
                                          fireBox.get().defaultBlockState() : casing.get().defaultBlockState())
-                .pattern((definition) -> {
+                .structure((definition) -> {
                     TraceabilityPredicate fireboxPred = blocks(ALL_FIREBOXES.get(firebox).get()).setMinGlobalLimited(3)
                             .or(Predicates.abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(1)
                                     .setPreviewCount(1))
@@ -495,17 +502,19 @@ public class GTMachineUtils {
                         fireboxPred = fireboxPred.or(Predicates.abilities(PartAbility.MAINTENANCE).setExactLimit(1));
                     }
 
-                    return FactoryBlockPattern.start(definition)
-                            .aisle("XXX", "CCC", "CCC", "CCC")
-                            .aisle("XXX", "CPC", "CPC", "CCC")
-                            .aisle("XXX", "CSC", "CCC", "CCC")
+                    var symbols = Symbols.create()
                             .where('S', Predicates.controller(definition))
                             .where('P', blocks(pipe.get()))
                             .where('X', fireboxPred)
                             .wherePart('C', blocks(casing.get()).setMinGlobalLimited(20)
                                     .or(Predicates.abilities(PartAbility.EXPORT_FLUIDS).setMinGlobalLimited(1)
-                                            .setPreviewCount(1)))
+                                            .setPreviewCount(1)));
+                    var piece = Piece.start(LEFT, UP, FRONT)
+                            .aisle("XXX", "CCC", "CCC", "CCC")
+                            .aisle("XXX", "CPC", "CPC", "CCC")
+                            .aisle("XXX", "CSC", "CCC", "CCC")
                             .build();
+                    return Structure.root(piece).symbols(symbols).build();
                 })
                 .recoveryStaticItems(() -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
                 .renderer(() -> new LargeBoilerRenderer(texture, firebox,
@@ -533,28 +542,32 @@ public class GTMachineUtils {
                 .generator(true)
                 .recipeModifier(LargeCombustionEngineMachine::recipeModifier)
                 .appearanceBlock(casing)
-                .pattern(definition -> FactoryBlockPattern.start(definition)
-                        .aisle("XXX", "XDX", "XXX")
-                        .aisle("XCX", "CGC", "XCX")
-                        .aisle("XCX", "CGC", "XCX")
-                        .aisle("AAA", "AYA", "AAA")
-                        .where('X', blocks(casing.get()))
-                        .where('G', blocks(gear.get()))
-                        .wherePart('C', blocks(casing.get()).setMinGlobalLimited(3)
-                                .or(autoAbilities(definition.getRecipeTypes(), false, false, true, true, true, true))
-                                .or(autoAbilities(true, true, false)))
-                        .where('D',
-                                ability(PartAbility.OUTPUT_ENERGY,
-                                        IntStream.of(ULV, LV, MV, HV, EV, IV, LuV, ZPM, UV, UHV)
-                                                .filter(t -> t >= tier)
-                                                .toArray())
-                                        .addTooltips(Component.translatable("gtceu.multiblock.pattern.error.limited.1",
-                                                GTValues.VN[tier])))
-                        .where('A',
-                                blocks(intake.get())
-                                        .addTooltips(Component.translatable("gtceu.multiblock.pattern.clear_amount_1")))
-                        .where('Y', controller(definition))
-                        .build())
+                .structure(definition -> {
+                    var symbols = Symbols.create()
+                            .where('X', blocks(casing.get()))
+                            .where('G', blocks(gear.get()))
+                            .wherePart('C', blocks(casing.get()).setMinGlobalLimited(3)
+                                    .or(autoAbilities(definition.getRecipeTypes(), false, false, true, true, true, true))
+                                    .or(autoAbilities(true, true, false)))
+                            .where('D',
+                                    ability(PartAbility.OUTPUT_ENERGY,
+                                            IntStream.of(ULV, LV, MV, HV, EV, IV, LuV, ZPM, UV, UHV)
+                                                    .filter(t -> t >= tier)
+                                                    .toArray())
+                                            .addTooltips(Component.translatable("gtceu.multiblock.pattern.error.limited.1",
+                                                    GTValues.VN[tier])))
+                            .where('A',
+                                    blocks(intake.get())
+                                            .addTooltips(Component.translatable("gtceu.multiblock.pattern.clear_amount_1")))
+                            .where('Y', controller(definition));
+                    var piece = Piece.start(LEFT, UP, FRONT)
+                            .aisle("XXX", "XDX", "XXX")
+                            .aisle("XCX", "CGC", "XCX")
+                            .aisle("XCX", "CGC", "XCX")
+                            .aisle("AAA", "AYA", "AAA")
+                            .build();
+                    return Structure.root(piece).symbols(symbols).build();
+                })
                 .recoveryStaticItems(
                         () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
                 .workableCasingRenderer(casingTexture, overlayModel)
@@ -590,33 +603,37 @@ public class GTMachineUtils {
                 .generator(true)
                 .recipeModifier(LargeTurbineMachine::recipeModifier)
                 .appearanceBlock(casing)
-                .pattern(definition -> FactoryBlockPattern.start(definition)
-                        .aisle("CCCC", "CHHC", "CCCC")
-                        .aisle("CHHC", "RGGR", "CHHC")
-                        .aisle("CCCC", "CSHC", "CCCC")
-                        .where('S', controller(definition))
-                        .where('G', blocks(gear.get()))
-                        .where('C', blocks(casing.get()))
-                        .where('R',
-                                new TraceabilityPredicate(
-                                        new SimplePredicate(
-                                                state -> MetaMachine.getMachine(state.getWorld(),
-                                                        state.getPos()) instanceof IRotorHolderMachine rotorHolder &&
-                                                        state.getWorld()
-                                                                .getBlockState(state.getPos()
-                                                                        .relative(rotorHolder.self().getFrontFacing()))
-                                                                .isAir(),
-                                                () -> BlockInfo.fromBlockState(GTMachines.ROTOR_HOLDER[HV].defaultBlockState()),
-                                                () -> PartAbility.ROTOR_HOLDER.getAllBlocks().toArray(Block[]::new)))
-                                        .addTooltips(Component.translatable("gtceu.multiblock.pattern.clear_amount_3"))
-                                        .addTooltips(Component.translatable("gtceu.multiblock.pattern.error.limited.1",
-                                                VN[tier]))
-                                        .setExactLimit(1)
-                                        .or(abilities(PartAbility.OUTPUT_ENERGY)).setExactLimit(1))
-                        .wherePart('H', blocks(casing.get())
-                                .or(autoAbilities(definition.getRecipeTypes(), false, false, true, true, true, true))
-                                .or(autoAbilities(true, needsMuffler, false)))
-                        .build())
+                .structure(definition -> {
+                    var symbols = Symbols.create()
+                            .where('S', controller(definition))
+                            .where('G', blocks(gear.get()))
+                            .where('C', blocks(casing.get()))
+                            .where('R',
+                                    new TraceabilityPredicate(
+                                            new SimplePredicate(
+                                                    state -> MetaMachine.getMachine(state.getWorld(),
+                                                            state.getPos()) instanceof IRotorHolderMachine rotorHolder &&
+                                                            state.getWorld()
+                                                                    .getBlockState(state.getPos()
+                                                                            .relative(rotorHolder.self().getFrontFacing()))
+                                                                    .isAir(),
+                                                    () -> BlockInfo.fromBlockState(GTMachines.ROTOR_HOLDER[HV].defaultBlockState()),
+                                                    () -> PartAbility.ROTOR_HOLDER.getAllBlocks().toArray(Block[]::new)))
+                                            .addTooltips(Component.translatable("gtceu.multiblock.pattern.clear_amount_3"))
+                                            .addTooltips(Component.translatable("gtceu.multiblock.pattern.error.limited.1",
+                                                    VN[tier]))
+                                            .setExactLimit(1)
+                                            .or(abilities(PartAbility.OUTPUT_ENERGY)).setExactLimit(1))
+                            .wherePart('H', blocks(casing.get())
+                                    .or(autoAbilities(definition.getRecipeTypes(), false, false, true, true, true, true))
+                                    .or(autoAbilities(true, needsMuffler, false)));
+                    var piece = Piece.start(LEFT, UP, FRONT)
+                            .aisle("CCCC", "CHHC", "CCCC")
+                            .aisle("CHHC", "RGGR", "CHHC")
+                            .aisle("CCCC", "CSHC", "CCCC")
+                            .build();
+                    return Structure.root(piece).symbols(symbols).build();
+                })
                 .recoveryStaticItems(
                         () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
                 .workableCasingRenderer(casingTexture, overlayModel)

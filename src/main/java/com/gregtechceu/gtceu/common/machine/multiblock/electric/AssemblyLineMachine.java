@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
@@ -23,6 +25,10 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import java.util.*;
 
 public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
+
+    public static final PortKey SECTION_IN = PortKey.IN;
+    public static final PortKey SECTION_OUT = PortKey.OUT;
+    public static final ParamKey SECTIONS = ParamKey.of("gtceu.multiblock.assembly_line.sections", "gtceu.multiblock.assembly_line.sections.desc");
 
     private List<CustomItemStackHandler> itemStackTransfers = new ArrayList<>();
     private List<CustomFluidTank> fluidStackTransfers = new ArrayList<>();

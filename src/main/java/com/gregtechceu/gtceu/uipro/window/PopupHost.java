@@ -61,7 +61,7 @@ public final class PopupHost extends UIElement {
         factories.put(key, factory);
     }
 
-    /** 每个面板的高度上限（客户端按屏幕高度设定，见 {@link UISizes#POPUP_SCREEN_MARGIN}；服务端不限），一列排满这个高度后另起一列。 */
+    /** 每个面板的高度上限（客户端按屏幕高度设定，见 {@link UISizes#SCREEN_MARGIN}；服务端不限），一列排满这个高度后另起一列。 */
     void setMaxHeight(int maxHeight) {
         if (this.maxHeight == maxHeight) return;
         this.maxHeight = maxHeight;

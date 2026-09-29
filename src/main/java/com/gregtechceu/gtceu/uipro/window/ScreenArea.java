@@ -12,6 +12,7 @@ import dev.emi.emi.config.Margins;
 import dev.emi.emi.config.SidebarPages;
 import dev.emi.emi.config.SidebarTheme;
 import dev.emi.emi.runtime.EmiReloadManager;
+import dev.emi.emi.screen.EmiScreenManager;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 @OnlyIn(Dist.CLIENT)
@@ -20,7 +21,7 @@ public record ScreenArea(int left, int top, int right, int bottom) {
     public static ScreenArea current(int minWidth) {
         var window = Minecraft.getInstance().getWindow();
         int width = window.getGuiScaledWidth(), height = window.getGuiScaledHeight();
-        int margin = UISizes.POPUP_SCREEN_MARGIN;
+        int margin = UISizes.SCREEN_MARGIN;
         int left = margin, right = margin, top = margin, bottom = margin;
         if (GTCEu.Mods.isEMILoaded()) {
             var emi = EmiCompat.reserved();
@@ -61,7 +62,7 @@ public record ScreenArea(int left, int top, int right, int bottom) {
             int right = side(EmiConfig.rightSidebarPages);
             int top = band(EmiConfig.topSidebarPages, EmiConfig.topSidebarSize.values, EmiConfig.topSidebarMargins, EmiConfig.topSidebarTheme);
             int bottom = band(EmiConfig.bottomSidebarPages, EmiConfig.bottomSidebarSize.values, EmiConfig.bottomSidebarMargins, EmiConfig.bottomSidebarTheme);
-            if (EmiConfig.centerSearchBar) bottom = Math.max(bottom, BOTTOM_BAR);
+            if (EmiConfig.centerSearchBar && EmiScreenManager.search.isVisible()) bottom = Math.max(bottom, BOTTOM_BAR);
             return new int[] { left, right, top, bottom, CORNER_BUTTONS };
         }
 

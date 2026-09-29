@@ -12,8 +12,9 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
@@ -45,7 +46,6 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.*;
 
@@ -57,9 +57,8 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
 
     private int checkPriority;
     private boolean generator;
-    private List<Function<MultiblockMachineDefinition, BlockPattern>> pattern;
-    private List<Function<MultiblockMachineDefinition, BlockPattern>> subPattern;
-    private final List<Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>>> shapeInfos = new ArrayList<>();
+    @Nullable
+    private Function<MultiblockMachineDefinition, BlockPattern> pattern;
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
@@ -67,6 +66,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     private MufflerProductionGenerator recoveryItems;
     private TriFunction<IMultiController, IMultiPart, Direction, BlockState> partAppearance;
     private BiConsumer<IMultiController, List<Component>> additionalDisplay = (m, l) -> {};
+    private final List<MachineProtocol> mountedOn = new ArrayList<>();
 
     protected MultiblockMachineBuilder(Registrate registrate, String name, Function<MetaMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, MetaMachineBlock> blockFactory, BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         super(registrate, name, MultiblockMachineDefinition::createDefinition, metaMachine::apply, blockFactory, itemFactory, blockEntityFactory);
@@ -76,16 +76,6 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
 
     public static MultiblockMachineBuilder createMulti(Registrate registrate, String name, Function<MetaMachineBlockEntity, ? extends MultiblockControllerMachine> metaMachine, BiFunction<BlockBehaviour.Properties, MultiblockMachineDefinition, MetaMachineBlock> blockFactory, BiFunction<MetaMachineBlock, Item.Properties, MetaMachineItem> itemFactory, TriFunction<BlockEntityType<?>, BlockPos, BlockState, MetaMachineBlockEntity> blockEntityFactory) {
         return new MultiblockMachineBuilder(registrate, name, metaMachine, blockFactory, itemFactory, blockEntityFactory);
-    }
-
-    public MultiblockMachineBuilder shapeInfo(Function<MultiblockMachineDefinition, MultiblockShapeInfo> shape) {
-        this.shapeInfos.add(d -> List.of(shape.apply(d)));
-        return this;
-    }
-
-    public MultiblockMachineBuilder shapeInfos(Function<MultiblockMachineDefinition, List<MultiblockShapeInfo>> shapes) {
-        this.shapeInfos.add(shapes);
-        return this;
     }
 
     public MultiblockMachineBuilder recoveryStaticItems(Supplier<Item> item) {
@@ -128,11 +118,6 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     @Override
     public MultiblockMachineBuilder shape(VoxelShape shape) {
         return (MultiblockMachineBuilder) super.shape(shape);
-    }
-
-    @Override
-    public MultiblockMachineBuilder multiblockPreviewRenderer(boolean multiBlockWorldPreview, boolean multiBlockXEIPreview) {
-        return (MultiblockMachineBuilder) super.multiblockPreviewRenderer(multiBlockWorldPreview, multiBlockXEIPreview);
     }
 
     @Override
@@ -339,13 +324,9 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         definition.setCheckPriority(checkPriority);
         definition.setGenerator(generator);
         if (pattern == null) {
-            throw new IllegalStateException("missing pattern while creating multiblock " + name);
+            throw new IllegalStateException("missing structure while creating multiblock " + name);
         }
-        definition.setPatternFactory(pattern);
-        if (subPattern != null) {
-            definition.setSubPatternFactory(subPattern);
-        }
-        definition.setShapes(() -> shapeInfos.stream().map(factory -> factory.apply(definition)).flatMap(Collection::stream).toList());
+        definition.setPatternFactory(List.of(pattern));
         definition.setAllowFlip(allowFlip);
         if (recoveryItems != null) {
             definition.setRecoveryItems(recoveryItems);
@@ -355,6 +336,8 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         }
         definition.setPartAppearance(partAppearance);
         definition.setAdditionalDisplay(additionalDisplay);
+        for (var protocol : mountedOn) protocol.mount(definition);
+        definition.setMountedOn(List.copyOf(mountedOn));
         return value = definition;
     }
 
@@ -372,32 +355,19 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return this;
     }
 
-    /**
-     * @return {@code this}.
-     */
-    public MultiblockMachineBuilder pattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
-        if (this.pattern == null) this.pattern = new ArrayList<>();
-        if (!this.pattern.isEmpty()) throw new IllegalStateException("pattern has already been set");
-        this.pattern.add(pattern);
+    private MultiblockMachineBuilder pattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
+        if (this.pattern != null) throw new IllegalStateException("structure has already been set");
+        this.pattern = pattern;
         return this;
     }
 
-    /**
-     * @return {@code this}.
-     */
-    public MultiblockMachineBuilder addAlternativePattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
-        if (this.pattern == null) throw new IllegalStateException("no main pattern has been set");
-        this.pattern.add(pattern);
+    public MultiblockMachineBuilder mountedOn(MachineProtocol protocol) {
+        mountedOn.add(protocol);
         return this;
     }
 
-    /**
-     * @return {@code this}.
-     */
-    public MultiblockMachineBuilder addSubPattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
-        if (subPattern == null) subPattern = new ArrayList<>();
-        subPattern.add(pattern);
-        return this;
+    public MultiblockMachineBuilder structure(Function<MultiblockMachineDefinition, Structure> structure) {
+        return pattern(definition -> structure.apply(definition).toPattern(definition));
     }
 
     /**

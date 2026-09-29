@@ -10,8 +10,10 @@ import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * 图标开关：方形图标按钮，点一下在"开 / 关"之间切换。开的时候整块用确认色（绿），与按钮组选中项一致；关的时候是普通按钮。
@@ -40,6 +42,12 @@ public class IconToggle extends Button {
     /** 开 / 关两种状态各一条说明（翻译键写全，不拼后缀）；由服务端按当前状态取值下发。 */
     public IconToggle tooltips(String onKey, String offKey) {
         bindTooltip(() -> Component.translatable(getter.getAsBoolean() ? onKey : offKey));
+        return this;
+    }
+
+    public IconToggle tooltips(Function<Boolean, List<Component>> lines) {
+        on.onChanged(value -> setHoverTooltips(lines.apply(value)));
+        setHoverTooltips(lines.apply(on.getValue()));
         return this;
     }
 

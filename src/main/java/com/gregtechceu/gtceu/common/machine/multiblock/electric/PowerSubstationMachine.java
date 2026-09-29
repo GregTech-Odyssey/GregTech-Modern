@@ -12,6 +12,8 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
@@ -48,6 +50,9 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     // Structure Constants
     public static final int MAX_BATTERY_LAYERS = 18;
     public static final int MIN_CASINGS = 14;
+    public static final PortKey LAYER_IN = PortKey.IN;
+    public static final PortKey LAYER_OUT = PortKey.OUT;
+    public static final ParamKey LAYERS = ParamKey.of("gtceu.multiblock.power_substation.layers", "gtceu.multiblock.power_substation.layers.desc");
     // Passive Drain Constants
     // 1% capacity per 24 hours
     public static final long PASSIVE_DRAIN_DIVISOR = 20 * 60 * 60 * 24 * 100;

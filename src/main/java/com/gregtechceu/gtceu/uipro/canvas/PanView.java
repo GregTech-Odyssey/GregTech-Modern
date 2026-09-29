@@ -42,6 +42,7 @@ public class PanView extends WidgetGroup implements ILayoutItem {
     private boolean windowLimited;
     private boolean windowInventory;
     private int maxWidth = Integer.MAX_VALUE, maxHeight = Integer.MAX_VALUE;
+    private int minWidth = MIN_SIZE, minHeight = MIN_SIZE;
     private float offsetX, offsetY;
     private float scale = 1;
     @Nullable
@@ -68,6 +69,20 @@ public class PanView extends WidgetGroup implements ILayoutItem {
     public PanView limitToWindow(boolean inventory) {
         this.windowLimited = true;
         this.windowInventory = inventory;
+        return this;
+    }
+
+    public PanView maxSize(int width, int height) {
+        this.maxWidth = Math.max(MIN_SIZE, width);
+        this.maxHeight = Math.max(MIN_SIZE, height);
+        applySize();
+        return this;
+    }
+
+    public PanView minSize(int width, int height) {
+        this.minWidth = Math.max(MIN_SIZE, width);
+        this.minHeight = Math.max(MIN_SIZE, height);
+        applySize();
         return this;
     }
 
@@ -201,8 +216,8 @@ public class PanView extends WidgetGroup implements ILayoutItem {
     }
 
     private void applySize() {
-        int w = Math.max(MIN_SIZE, Math.min(Math.round(content.getSizeWidth() * scale), maxWidth));
-        int h = Math.max(MIN_SIZE, Math.min(Math.round(content.getSizeHeight() * scale), maxHeight));
+        int w = Math.max(Math.min(minWidth, maxWidth), Math.min(Math.round(content.getSizeWidth() * scale), maxWidth));
+        int h = Math.max(Math.min(minHeight, maxHeight), Math.min(Math.round(content.getSizeHeight() * scale), maxHeight));
         if (w != styleWidth || h != styleHeight) {
             styleWidth = w;
             styleHeight = h;

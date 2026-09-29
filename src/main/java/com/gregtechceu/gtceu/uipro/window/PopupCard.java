@@ -24,6 +24,7 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
     private static final int CHROME = UISizes.POPUP_PADDING + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM;
 
     private final ScrollerView scroller;
+    private int maxHeight;
 
     /**
      * @param scrollerId 滚动区的固定 id（锁定的高度按它保存）
@@ -37,8 +38,9 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
 
         var closeButton = Button.glyph("×").setOnClientClick(close);
         closeButton.setHoverTooltips(MachineWindow.POPUP_CLOSE);
-        var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
-                .addChildren(popupTitle(popup), UIElement.flexSpacer(), closeButton);
+        var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChild(popupTitle(popup));
+        if (popup.icon() == null) titleRow.addChild(UIElement.flexSpacer());
+        titleRow.addChild(closeButton);
 
         // 内容至少一个 9 槽区块宽（按 getContentWidth 定宽的页面照旧），里面的滚动区被拖宽时跟着变宽
         var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(popup.contentWidth()).gapAll(UISizes.SECTION_GAP));
@@ -46,6 +48,7 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
         // 初始尺寸取最小，宽高都跟随内容（见 ScrollerView 对滚动范围的处理）
         scroller = new ScrollerView(scrollerId, popup.contentWidth(), UISizes.SLOT).adaptiveWidth();
         scroller.addScrollViewChild(content);
+        this.maxHeight = maxHeight;
         scroller.adaptiveHeight(contentLimit(maxHeight));
         addChildren(titleRow, scroller);
     }
@@ -71,8 +74,13 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
         return this;
     }
 
+    public int contentLimit() {
+        return contentLimit(maxHeight);
+    }
+
     /** 高度上限变了（屏幕尺寸、所在区域尺寸变化）：更新滚动区高度上限（内容放得下就不滚动）。 */
     public void setMaxHeight(int maxHeight) {
+        this.maxHeight = maxHeight;
         scroller.adaptiveHeight(contentLimit(maxHeight));
     }
 }

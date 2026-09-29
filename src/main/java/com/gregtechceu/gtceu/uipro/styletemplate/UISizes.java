@@ -28,8 +28,6 @@ public final class UISizes {
     public static final int TEXT_HEIGHT = 9;
     /** 窗口（整个界面）最多占屏幕（GUI 缩放后）的比例：列表自动加高、拖拽缩放都以此为上限。 */
     public static final float MAX_WINDOW_SCREEN_RATIO = 2f / 3f;
-    /** 机器窗口底边到屏幕底边至少留出屏幕高度的这个比例，不够时窗口（连同标签栏）整体上移。 */
-    public static final float WINDOW_BOTTOM_SCREEN_MARGIN = 0.1f;
     /** 小字的缩放比例（列表里的次要信息，如成员的机器名、坐标）。 */
     public static final float SMALL_TEXT_SCALE = 0.75f;
     /** 一行小字的高度（字体行高 9 × 0.75，取整）。 */
@@ -145,8 +143,7 @@ public final class UISizes {
     /** 弹出面板内边距（Ore 面板标准）：四周 5，底部 7。 */
     public static final int POPUP_PADDING = 5;
     public static final int POPUP_PADDING_BOTTOM = 7;
-    /** 弹出面板与屏幕边缘保持的最小距离；面板高度上限 = 屏幕高度 - 2 × 该值，与主窗口高度无关。 */
-    public static final int POPUP_SCREEN_MARGIN = 4;
+    public static final int SCREEN_MARGIN = 6;
     /** 弹出面板内容宽度：一个装满 9 槽的区块（162 + 区块左右内边距）。 */
     public static final int POPUP_CONTENT_WIDTH = SLOT_ROW_WIDTH + 2 * UITheme.PANEL_PADDING;
 }

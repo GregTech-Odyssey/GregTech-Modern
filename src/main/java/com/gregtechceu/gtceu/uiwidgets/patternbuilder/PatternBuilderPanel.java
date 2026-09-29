@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uipro.window.Popup;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -29,7 +30,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.style.AlignContent;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -43,6 +46,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     public static final String SELECT = "gtceu.pattern_builder.select";
     public static final String SELECTED = "gtceu.pattern_builder.selected";
     public static final String STOCK = "gtceu.pattern_builder.stock";
+    public static final String CARRIED = "gtceu.pattern_builder.carried";
     public static final String CRAFTABLE = "gtceu.pattern_builder.craftable";
     public static final String OPTIONAL = "gtceu.pattern_builder.optional";
     public static final String INPUTS = "gtceu.pattern_builder.inputs";
@@ -50,10 +54,22 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     public static final String CANCEL = "gtceu.pattern_builder.cancel";
     public static final String CANNOT_WRITE = "gtceu.pattern_builder.cannot_write";
     public static final String SORT_PREFERENCE = "pattern_builder.sort";
+    public static final String BACK = "gtceu.pattern_builder.back";
+    public static final String EXTRAS = "gtceu.pattern_builder.extras";
+    public static final String FAVORITE = "gtceu.pattern_builder.favorite";
+    public static final String TOTAL = "gtceu.pattern_builder.total";
+
+    public record Footer(String titleKey, String confirmKey, String includeKey, String blockedKey, boolean showInputs, boolean requireComplete,
+                         @Nullable Runnable back) {
+
+        public static final Footer ENCODE = new Footer(TITLE, WRITE, INCLUDE, CANNOT_WRITE, true, false, null);
+    }
 
     private static final int COUNT_FIELD_WIDTH = 2 * UISizes.VALUE_WIDTH + 3 * UISizes.GAP + UISizes.SECTION_GAP;
     private static final int TALLY_WIDTH = 2 * UISizes.VALUE_WIDTH;
     private static final long[] COUNT_STEPS = { 1, 8 };
+    private static final int ROLE_POPUP_WIDTH = UISizes.POPUP_CONTENT_WIDTH + UISizes.ICON_BUTTON + UISizes.GAP;
+    private static final int FILL_POPUP_WIDTH = ROLE_POPUP_WIDTH + UISizes.BUTTON_WIDTH + UISizes.GAP;
 
     public interface PopupSlot {
 
@@ -80,13 +96,21 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
     private final PatternBuilderModel model;
     private final int inputLimit;
+    private final Footer footer;
     private PopupSlot popups = PopupSlot.NONE;
     private PatternBuilderModel.Sort sort;
+    private int stockVersion = CarriedStock.version();
 
     public PatternBuilderPanel(PatternBuilderModel model, ItemStack icon, Component title, int inputLimit, int maxHeight, Runnable onWrite,
                                Runnable onClose) {
+        this(model, icon, title, inputLimit, maxHeight, onWrite, onClose, Footer.ENCODE);
+    }
+
+    public PatternBuilderPanel(PatternBuilderModel model, ItemStack icon, Component title, int inputLimit, int maxHeight, Runnable onWrite,
+                               Runnable onClose, Footer footer) {
         this.model = model;
         this.inputLimit = inputLimit;
+        this.footer = footer;
         this.sort = UIPreferences.get(SORT_PREFERENCE, PatternBuilderModel.Sort.STOCK);
         model.sort(sort);
         setClientSideWidget();
@@ -97,36 +121,59 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         close.setHoverTooltips(MachineWindow.POPUP_CLOSE);
         var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
         if (!icon.isEmpty()) titleRow.addChild(ItemView.of(icon));
-        titleRow.addChildren(TextLine.constant(LayoutStyle.AUTO, Component.translatable(TITLE, title)).layout(l -> l.flex(1)), close);
+        titleRow.addChildren(TextLine.constant(LayoutStyle.AUTO, Component.translatable(footer.titleKey(), title)).layout(l -> l.flex(1)), close);
 
         var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
         if (!model.getFixed().isEmpty() || !model.getGroups().isEmpty()) content.addChild(blocksSection());
         var roles = model.getRoles();
-        for (int i = 0; i < roles.size(); i++) content.addChild(roleCard(i, roles.get(i)));
+        var sections = model.getSections();
+        if (sections.size() > 1) {
+            for (int i = 0; i < sections.size(); i++) content.addChild(sectionCard(sections.getInt(i)));
+        } else {
+            for (int i = 0; i < roles.size(); i++) content.addChild(roleCard(i, roles.get(i)));
+        }
 
+        var back = footer.back();
         var actions = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(
-                Button.translatable(UISizes.BUTTON_WIDTH, CANCEL).setOnClientClick(onClose),
-                TextLine.of(LayoutStyle.AUTO, () -> Component.translatable(INPUTS).append(" " + model.getInputs().size() + " / " + inputLimit))
-                        .alignCenter().level(() -> model.getInputs().size() <= inputLimit ? StatusLine.Level.NORMAL : StatusLine.Level.ERROR)
-                        .layout(l -> l.flex(1)),
-                Button.translatable(UISizes.BUTTON_WIDTH, WRITE).setVariant(UITheme.ButtonVariant.CONFIRM)
-                        .disabled(() -> !canWrite(), CANNOT_WRITE)
+                back == null ? Button.translatable(UISizes.BUTTON_WIDTH, CANCEL).setOnClientClick(onClose) :
+                        Button.translatable(UISizes.BUTTON_WIDTH, BACK).setOnClientClick(back),
+                UIElement.flexSpacer(),
+                Button.translatable(UISizes.BUTTON_WIDTH, footer.confirmKey()).setVariant(UITheme.ButtonVariant.CONFIRM)
+                        .disabled(() -> !canWrite(), footer.blockedKey())
                         .setOnServerClick(onWrite));
+        var counter = footer.showInputs() ?
+                TextLine.of(LayoutStyle.AUTO, () -> Component.translatable(INPUTS).append(" " + model.getInputs().size() + " / " + inputLimit))
+                        .alignRight().level(() -> model.getInputs().size() <= inputLimit ? StatusLine.Level.NORMAL : StatusLine.Level.ERROR) :
+                null;
 
-        int chrome = UISizes.POPUP_PADDING + 2 * UISizes.CONTROL_HEIGHT + 2 * UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM;
+        int chrome = UISizes.POPUP_PADDING + 2 * UISizes.CONTROL_HEIGHT + 2 * UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM +
+                (counter == null ? 0 : UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP);
         var scroller = new ScrollerView("pattern_builder", UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT).adaptiveWidth();
         scroller.addScrollViewChild(content);
         scroller.adaptiveHeight(Math.max(UISizes.SLOT, maxHeight - chrome));
-        addChildren(titleRow, scroller, actions);
+        addChildren(titleRow, scroller);
+        if (counter != null) addChild(counter);
+        addChild(actions);
     }
 
     public void setPopupSlot(PopupSlot popups) {
         this.popups = popups;
     }
 
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        int current = CarriedStock.version();
+        if (current == stockVersion) return;
+        stockVersion = current;
+        if (sort == PatternBuilderModel.Sort.NONE) return;
+        model.sort(sort);
+        popups.rebuild();
+    }
+
     public boolean canWrite() {
         int inputs = model.getInputs().size();
-        return inputs > 0 && inputs <= inputLimit && !model.hasOverflow();
+        return inputs > 0 && (!footer.showInputs() || inputs <= inputLimit) && !model.hasOverflow() && (!footer.requireComplete() || model.isComplete());
     }
 
     public PatternBuilderModel.Sort getSort() {
@@ -182,32 +229,90 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         return section;
     }
 
+    private UIElement sectionCard(int section) {
+        var card = UIElement.section();
+        card.addChild(TextLine.constant(LayoutStyle.AUTO, model.getSectionTitle(section)));
+        var roles = model.getRoles();
+        for (int i = 0; i < roles.size(); i++) {
+            var role = roles.get(i);
+            if (role.getCandidates(section).isEmpty()) continue;
+            var tally = TextLine.of(TALLY_WIDTH, () -> tallyText(role, section)).alignRight().level(() -> roleLevel(role));
+            tally.setHoverTooltips(Component.translatable(TOTAL, tallyText(role)));
+            card.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(
+                    TextLine.constant(LayoutStyle.AUTO, role.getName()).layout(l -> l.flex(1)), tally,
+                    selectButton("role." + i + "." + section, () -> rolePopup(role, section))));
+        }
+        return card;
+    }
+
     private Popup rolePopup(PatternBuilderModel.Role role) {
-        return Popup.of(() -> Component.empty().append(role.getName()).append("  ").append(tallyText(role)), column -> {
+        return rolePopup(role, -1);
+    }
+
+    private Popup rolePopup(PatternBuilderModel.Role role, int part) {
+        Supplier<List<PatternBuilderModel.Candidate>> list = () -> part < 0 ? role.getCandidates() : role.getCandidates(part);
+        return Popup.of(() -> Component.empty().append(role.getName()).append("  ").append(part < 0 ? tallyText(role) : tallyText(role, part)), column -> {
             var section = UIElement.section();
-            section.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, () -> role.getCandidates().size(), index -> {
-                var candidate = role.getCandidates().get(index);
+            section.layout(l -> l.minWidth(ROLE_POPUP_WIDTH));
+            section.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, () -> list.get().size(), index -> {
+                var candidate = list.get().get(index);
                 var field = new NumberField(COUNT_FIELD_WIDTH, candidate::getSelected, value -> candidate.setSelected((int) value),
                         () -> 0, candidate::getMax, COUNT_STEPS);
+                var trailing = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(favorite(candidate.getStack()), field);
                 return itemRow(null, ItemCell.constant(candidate.getStack()), candidate::getStack,
-                        () -> Math.max(candidate.getSelected(), 1), field);
+                        () -> Math.max(candidate.getSelected(), 1), trailing);
             }));
             column.addChild(section);
         });
     }
 
+    private static Button favorite(ItemStack stack) {
+        var item = stack.getItem();
+        var star = Button.icon(UITheme.switching(() -> PatternFavorites.isFavorite(item), WidgetIcons.FAVORITE_OFF, WidgetIcons.FAVORITE_ON))
+                .setOnClientClick(() -> PatternFavorites.toggle(item));
+        star.setHoverTooltips(FAVORITE);
+        return star;
+    }
+
     private Popup fillPopup(PatternBuilderModel.Group group) {
         return Popup.of(() -> Component.translatable(CHANGE_BLOCK), column -> {
             var section = UIElement.section();
+            section.layout(l -> l.minWidth(FILL_POPUP_WIDTH));
             var fills = group.getSortedFills();
             section.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, fills::size, index -> {
                 var stack = fills.get(index);
+                var candidate = group.getFillCandidate(stack);
                 var choose = Button.text(UISizes.BUTTON_WIDTH, () -> I18n.get(group.getFillStack() == stack ? SELECTED : SELECT))
                         .setVariant(() -> group.getFillStack() == stack ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
-                        .setOnServerClick(() -> group.setFill(stack));
-                return itemRow(null, ItemCell.constant(stack), () -> stack, group::getFillCount, choose);
+                        .setOnServerClick(() -> {
+                            group.setFill(stack);
+                            popups.rebuild();
+                        });
+                var trailing = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+                trailing.addChild(favorite(stack));
+                if (group.getFillStack() == stack || candidate == null) {
+                    trailing.addChild(TextLine.of(COUNT_FIELD_WIDTH, () -> Component.literal("×" + group.getFillCount())).alignRight());
+                } else {
+                    trailing.addChild(new NumberField(COUNT_FIELD_WIDTH, candidate::getSelected, value -> candidate.setSelected((int) value),
+                            () -> 0, candidate::getMax, COUNT_STEPS));
+                }
+                trailing.addChild(choose);
+                IntSupplier need = group.getFillStack() == stack || candidate == null ? group::getFillCount : () -> Math.max(candidate.getSelected(), 1);
+                return itemRow(null, ItemCell.constant(stack), () -> stack, need, trailing);
             }));
             column.addChild(section);
+            var extras = group.getExtras();
+            if (extras.isEmpty()) return;
+            var extraSection = UIElement.section();
+            extraSection.addChild(TextLine.translatable(LayoutStyle.AUTO, EXTRAS));
+            extraSection.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, extras::size, index -> {
+                var candidate = extras.get(index);
+                var field = new NumberField(COUNT_FIELD_WIDTH, candidate::getSelected, value -> candidate.setSelected((int) value),
+                        () -> 0, candidate::getMax, COUNT_STEPS);
+                return itemRow(null, ItemCell.constant(candidate.getStack()), candidate::getStack,
+                        () -> Math.max(candidate.getSelected(), 1), field);
+            }));
+            column.addChild(extraSection);
         });
     }
 
@@ -218,7 +323,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
                                 .level(() -> stockLevel(stack.get(), need.getAsInt())));
         var row = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
         if (include != null) {
-            include.setHoverTooltips(INCLUDE);
+            include.setHoverTooltips(footer.includeKey());
             row.addChild(include);
         }
         return row.addChildren(cell, names, trailing);
@@ -235,7 +340,12 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     private Component stockText(ItemStack stack) {
         var stock = model.getStock(stack);
         if (stock == null) return Component.empty();
-        var text = Component.translatable(STOCK, FormattingUtil.formatNumberReadable(stock.stored()));
+        var text = Component.empty();
+        if (stock.stored() >= 0) text.append(Component.translatable(STOCK, FormattingUtil.formatNumberReadable(stock.stored())));
+        if (stock.carried() >= 0) {
+            if (stock.stored() >= 0) text.append(" · ");
+            text.append(Component.translatable(CARRIED, FormattingUtil.formatNumberReadable(stock.carried())));
+        }
         if (stock.craftable()) {
             text.append(" · ").append(Component.translatable(CRAFTABLE).withStyle(style -> style.withColor(UITheme.STATUS_TEXT_WARNING & 0xFFFFFF)));
         }
@@ -245,12 +355,17 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     private StatusLine.Level stockLevel(ItemStack stack, int need) {
         var stock = model.getStock(stack);
         if (stock == null) return StatusLine.Level.NORMAL;
-        return stock.stored() >= need ? StatusLine.Level.GOOD : StatusLine.Level.ERROR;
+        return stock.total() >= need ? StatusLine.Level.GOOD : StatusLine.Level.ERROR;
     }
 
     private static Component tallyText(PatternBuilderModel.Role role) {
         var requirement = requirement(role);
         return Component.literal(role.getTally() + " / ").append(requirement.isEmpty() ? Component.translatable(OPTIONAL) : Component.literal(requirement));
+    }
+
+    private static Component tallyText(PatternBuilderModel.Role role, int section) {
+        var requirement = requirement(role);
+        return Component.literal(role.getTally(section) + " / ").append(requirement.isEmpty() ? Component.translatable(OPTIONAL) : Component.literal(requirement));
     }
 
     private static StatusLine.Level roleLevel(PatternBuilderModel.Role role) {

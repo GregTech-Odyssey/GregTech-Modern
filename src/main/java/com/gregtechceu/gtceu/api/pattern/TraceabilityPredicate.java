@@ -1,5 +1,8 @@
 package com.gregtechceu.gtceu.api.pattern;
 
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
+import com.gregtechceu.gtceu.api.pattern.predicates.PredicateAbilities;
+import com.gregtechceu.gtceu.api.pattern.predicates.PredicateBlockTag;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -7,12 +10,18 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
+import it.unimi.dsi.fastutil.objects.ReferenceSets;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -52,6 +61,8 @@ public class TraceabilityPredicate {
     @Nullable
     private SimplePredicate defaultPredicate;
     public Function<MultiblockState, Direction> direction = GTUtil.NULL_FUNCTION;
+    @Nullable
+    private volatile CandidateItems candidateItems;
 
     public TraceabilityPredicate() {
         common = new ArrayList<>();
@@ -227,6 +238,53 @@ public class TraceabilityPredicate {
         limited.forEach(predicate -> predicate.disableRenderFormed = true);
         return this;
     }
+
+    public TraceabilityPredicate excluding(PartAbility... abilities) {
+        var result = new TraceabilityPredicate(this);
+        result.exclude(result.common, abilities);
+        result.exclude(result.limited, abilities);
+        return result;
+    }
+
+    private void exclude(List<SimplePredicate> predicates, PartAbility[] abilities) {
+        for (int i = 0; i < predicates.size(); i++) {
+            if (!(predicates.get(i) instanceof PredicateAbilities ability)) continue;
+            var copy = ability.excluding(abilities);
+            predicates.set(i, copy);
+            if (defaultPredicate == ability) defaultPredicate = copy;
+        }
+    }
+
+    public void forEachSimple(Consumer<SimplePredicate> action) {
+        for (int i = 0, size = common.size(); i < size; i++) action.accept(common.get(i));
+        for (int i = 0, size = limited.size(); i < size; i++) action.accept(limited.get(i));
+    }
+
+    public ReferenceSet<Item> candidateItems() {
+        int generation = PredicateBlockTag.generation();
+        int count = common.size() + limited.size();
+        var cached = candidateItems;
+        if (cached != null && cached.generation == generation && cached.count == count) return cached.items;
+        var items = new ReferenceLinkedOpenHashSet<Item>();
+        addCandidates(common, items);
+        addCandidates(limited, items);
+        var result = ReferenceSets.unmodifiable(items);
+        candidateItems = new CandidateItems(generation, count, result);
+        return result;
+    }
+
+    private static void addCandidates(List<SimplePredicate> predicates, ReferenceLinkedOpenHashSet<Item> items) {
+        for (int i = 0, size = predicates.size(); i < size; i++) {
+            var simple = predicates.get(i);
+            if (simple == null || simple.candidates == null) continue;
+            for (var block : simple.candidates.get()) {
+                var item = SimplePredicate.toItem(block);
+                if (item != Items.AIR) items.add(item);
+            }
+        }
+    }
+
+    private record CandidateItems(int generation, int count, ReferenceSet<Item> items) {}
 
     public boolean test(MultiblockState blockWorldState) {
         boolean flag = false;

@@ -3,10 +3,9 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.client.renderer.MultiblockInWorldPreviewRenderer;
-import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
+import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -15,39 +14,29 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 
 public class TerminalBehavior implements IInteractionItem {
 
     @Override
     public InteractionResult onItemUseFirst(ItemStack itemStack, UseOnContext context) {
-        if (context.getPlayer() != null) {
-            Level level = context.getLevel();
-            BlockPos blockPos = context.getClickedPos();
-            if (MetaMachine.getMachine(level, blockPos) instanceof IMultiController controller) {
-                if (context.getPlayer().isShiftKeyDown()) {
-                    if (!level.isClientSide) {
-                        controller.requestCheck();
-                        controller.setWaitingTime(10);
-                        controller.getPattern()[0].get().autoBuild(context.getPlayer(), controller.getMultiblockState());
-                        controller.getMultiblockState().clearCache();
-                        controller.setWaitingTime(0);
-                    }
-                    return InteractionResult.sidedSuccess(level.isClientSide);
-                } else {
-                    var self = controller.self();
-                    if (level.isClientSide && self.getDefinition().isRenderWorldPreview()) {
-                        MultiblockInWorldPreviewRenderer.showPreview(blockPos, self.getFrontFacing(), self.getUpwardsFacing(), self.getDefinition().getMatchingShapes().getFirst(), ConfigHolder.INSTANCE.client.inWorldPreviewDuration * 20);
-                    }
-                    return InteractionResult.SUCCESS;
-                }
-            }
+        if (context.getPlayer() == null) return InteractionResult.PASS;
+        Level level = context.getLevel();
+        if (!(MetaMachine.getMachine(level, context.getClickedPos()) instanceof IMultiController controller) ||
+                StructurePattern.of(controller.self().getDefinition()) == null) {
+            return InteractionResult.PASS;
         }
-        return InteractionResult.PASS;
+        if (level.isClientSide) DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> StructureBuildFlow.onTerminalUse(controller));
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Item item, Level level, Player player, InteractionHand usedHand) {
         ItemStack heldItem = player.getItemInHand(usedHand);
+        if (level.isClientSide && Boolean.TRUE.equals(DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> StructureBuildFlow::cancelProjection))) {
+            return InteractionResultHolder.success(heldItem);
+        }
         return InteractionResultHolder.pass(heldItem);
     }
 }

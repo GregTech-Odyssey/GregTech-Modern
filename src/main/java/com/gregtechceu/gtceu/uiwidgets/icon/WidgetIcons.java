@@ -12,7 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 public final class WidgetIcons {
 
     /// 行数必须与图集高度一致；加图标时加一行并改这里
-    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 36);
+    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 42);
 
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
@@ -24,7 +24,6 @@ public final class WidgetIcons {
         return ATLAS.icon(1, mode);
     }
 
-    /// 输入限制（锁）
     public static final IGuiTexture INPUT_LIMIT_OFF = ATLAS.icon(2, 0);
     public static final IGuiTexture INPUT_LIMIT_ON = ATLAS.icon(2, 1);
     /// 未放编程电路
@@ -47,6 +46,8 @@ public final class WidgetIcons {
     /// 锁定配方：三支箭头只放行一支
     public static final IGuiTexture RECIPE_LOCK_OFF = ATLAS.icon(35, 0);
     public static final IGuiTexture RECIPE_LOCK_ON = ATLAS.icon(35, 1);
+    public static final IGuiTexture ANTI_CLOG_OFF = ATLAS.icon(36, 0);
+    public static final IGuiTexture ANTI_CLOG_ON = ATLAS.icon(36, 1);
     /// 高亮显示（一次性动作）
     public static final IGuiTexture HIGHLIGHT = ATLAS.icon(10);
     /// 设置（齿轮）
@@ -112,6 +113,16 @@ public final class WidgetIcons {
     public static final IGuiTexture COVER_SETTINGS = ATLAS.pixelIcon(29);
     public static final IGuiTexture COVER_SLOT = ATLAS.pixelIcon(30);
     public static final IGuiTexture SORT = ATLAS.icon(34);
+    public static final IGuiTexture PROSPECT_ORE_OFF = ATLAS.icon(37, 0);
+    public static final IGuiTexture PROSPECT_ORE_ON = ATLAS.icon(37, 1);
+    public static final IGuiTexture PROSPECT_FLUID_OFF = ATLAS.icon(38, 0);
+    public static final IGuiTexture PROSPECT_FLUID_ON = ATLAS.icon(38, 1);
+    public static final IGuiTexture PROSPECT_BEDROCK_ORE_OFF = ATLAS.icon(39, 0);
+    public static final IGuiTexture PROSPECT_BEDROCK_ORE_ON = ATLAS.icon(39, 1);
+    public static final IGuiTexture MAP_LIGHT = ATLAS.icon(40, 0);
+    public static final IGuiTexture MAP_DARK = ATLAS.icon(40, 1);
+    public static final IGuiTexture FAVORITE_OFF = ATLAS.icon(41, 0);
+    public static final IGuiTexture FAVORITE_ON = ATLAS.icon(41, 1);
 
     private WidgetIcons() {}
 }

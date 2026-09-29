@@ -84,7 +84,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
      */
     private boolean allowExtendedFacing = false;
     private boolean hasTESR;
-    private boolean renderMultiblockWorldPreview = true;
     private boolean renderMultiblockXEIPreview = true;
     private NonNullUnaryOperator<BlockBehaviour.Properties> blockProp = p -> p;
     private NonNullUnaryOperator<Item.Properties> itemProp = p -> p;
@@ -239,12 +238,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public MachineBuilder<DEFINITION> multiblockPreviewRenderer(boolean multiBlockWorldPreview, boolean multiBlockXEIPreview) {
-        this.renderMultiblockWorldPreview = multiBlockWorldPreview;
-        this.renderMultiblockXEIPreview = multiBlockXEIPreview;
-        return this;
-    }
-
     protected DEFINITION createDefinition() {
         return definition.apply(GTUtil.getResourceLocation(registrate.getModid(), name));
     }
@@ -308,7 +301,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         definition.setShape(shape);
         definition.setDefaultPaintingColor(paintingColor);
         definition.setRenderXEIPreview(renderMultiblockXEIPreview);
-        definition.setRenderWorldPreview(renderMultiblockWorldPreview);
         GTRegistries.MACHINES.register(definition.getId(), definition);
         return definition;
     }
@@ -404,14 +396,6 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
      */
     public MachineBuilder<DEFINITION> hasTESR(final boolean hasTESR) {
         this.hasTESR = hasTESR;
-        return this;
-    }
-
-    /**
-     * @return {@code this}.
-     */
-    public MachineBuilder<DEFINITION> renderMultiblockWorldPreview(final boolean renderMultiblockWorldPreview) {
-        this.renderMultiblockWorldPreview = renderMultiblockWorldPreview;
         return this;
     }
 

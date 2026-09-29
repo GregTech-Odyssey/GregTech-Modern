@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.SimpleGeneratorMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
@@ -15,6 +16,13 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Piece;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Size;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Slot;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.*;
@@ -35,13 +43,11 @@ import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
@@ -53,7 +59,6 @@ import it.unimi.dsi.fastutil.objects.ReferenceSets;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -101,6 +106,13 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     public static final int MIN_CLEAN_AMOUNT = 0;
     public static final int MIN_RADIUS = 2;
     public static final int MIN_DEPTH = 4;
+    public static final int MAX_RADIUS = 7;
+    public static final int MAX_DEPTH = 14;
+    public static final ParamKey LEFT_DIST = ParamKey.of("gtceu.multiblock.cleanroom.left", "gtceu.multiblock.cleanroom.left.desc");
+    public static final ParamKey RIGHT_DIST = ParamKey.of("gtceu.multiblock.cleanroom.right", "gtceu.multiblock.cleanroom.right.desc");
+    public static final ParamKey FRONT_DIST = ParamKey.of("gtceu.multiblock.cleanroom.front", "gtceu.multiblock.cleanroom.front.desc");
+    public static final ParamKey BACK_DIST = ParamKey.of("gtceu.multiblock.cleanroom.back", "gtceu.multiblock.cleanroom.back.desc");
+    public static final ParamKey RINGS = ParamKey.of("gtceu.multiblock.cleanroom.rings", "gtceu.multiblock.cleanroom.rings.desc");
     @SaveToDisk
     private int lDist = 0;
     @SaveToDisk
@@ -150,6 +162,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        updateStructureDimensions();
         initializeAbilities();
         var filterType = getMultiblockState().getMatchContext().get(Predicates.DataKey.FILTER_TYPE);
         if (filterType != null) {
@@ -220,77 +233,14 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         };
     }
 
-    /**
-     * Scans for blocks around the controller to update the dimensions
-     */
     public void updateStructureDimensions() {
-        Level world = getLevel();
-        if (world == null) return;
-        Direction front = getFrontFacing();
-        Direction back = front.getOpposite();
-        Direction left = front.getCounterClockWise();
-        Direction right = left.getOpposite();
-        BlockPos.MutableBlockPos lPos = getPos().mutable();
-        BlockPos.MutableBlockPos rPos = getPos().mutable();
-        BlockPos.MutableBlockPos fPos = getPos().mutable();
-        BlockPos.MutableBlockPos bPos = getPos().mutable();
-        BlockPos.MutableBlockPos hPos = getPos().mutable();
-        // find the distances from the controller to the plascrete blocks on one horizontal axis and the Y axis
-        // repeatable aisles take care of the second horizontal axis
-        int lDist = 0;
-        int rDist = 0;
-        int bDist = 0;
-        int fDist = 0;
-        int hDist = 0;
-        // find the left, right, back, and front distances for the structure pattern
-        // maximum size is 15x15x15 including walls, so check 7 block radius around the controller for blocks
-        for (int i = 1; i < 8; i++) {
-            if (lDist == 0 && isBlockEdge(world, lPos, left)) lDist = i;
-            if (rDist == 0 && isBlockEdge(world, rPos, right)) rDist = i;
-            if (bDist == 0 && isBlockEdge(world, bPos, back)) bDist = i;
-            if (fDist == 0 && isBlockEdge(world, fPos, front)) fDist = i;
-            if (lDist != 0 && rDist != 0 && bDist != 0 && fDist != 0) break;
-        }
-        // height is diameter instead of radius, so it needs to be done separately
-        for (int i = 1; i < 15; i++) {
-            if (isBlockFloor(world, hPos, Direction.DOWN)) hDist = i;
-            if (hDist != 0) break;
-        }
-        if (Math.abs(lDist - rDist) > 1 || Math.abs(bDist - fDist) > 1) {
-            this.isFormed = false;
-            return;
-        }
-        if (lDist < MIN_RADIUS || rDist < MIN_RADIUS || bDist < MIN_RADIUS || fDist < MIN_RADIUS || hDist < MIN_DEPTH) {
-            this.isFormed = false;
-            return;
-        }
-        this.lDist = lDist;
-        this.rDist = rDist;
-        this.bDist = bDist;
-        this.fDist = fDist;
-        this.hDist = hDist;
-    }
-
-    /**
-     * @param world     the world to check
-     * @param pos       the pos to check and move
-     * @param direction the direction to move
-     * @return if a block is a valid wall block at pos moved in direction
-     */
-    public boolean isBlockEdge(Level world, BlockPos.MutableBlockPos pos, Direction direction) {
-        var state = world.getBlockState(pos.move(direction));
-        return state.is(getCasingState()) || state.is(getGlassState());
-    }
-
-    /**
-     * @param world     the world to check
-     * @param pos       the pos to check and move
-     * @param direction the direction to move
-     * @return if a block is a valid floor block at pos moved in direction
-     */
-    public boolean isBlockFloor(Level world, BlockPos.MutableBlockPos pos, Direction direction) {
-        var state = world.getBlockState(pos.move(direction));
-        return state.is(getCasingState()) || state.is(getGlassState()) || state.is(CustomTags.CLEANROOM_FLOORS);
+        var assembly = getAssembly();
+        if (assembly == null || !assembly.has(LEFT_DIST)) return;
+        this.lDist = assembly.get(LEFT_DIST);
+        this.rDist = assembly.get(RIGHT_DIST);
+        this.fDist = assembly.get(FRONT_DIST);
+        this.bDist = assembly.get(BACK_DIST);
+        this.hDist = assembly.get(RINGS) + 1;
     }
 
     @Override
@@ -303,105 +253,78 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         return true;
     }
 
-    @Override
-    public Supplier<BlockPattern>[] getPattern() {
-        // return the default structure, even if there is no valid size found
-        // this means auto-build will still work, and prevents terminal crashes.
-        if (getLevel() != null) updateStructureDimensions();
-        // these can sometimes get set to 0 when loading the game, breaking JEI
-        if (lDist < MIN_RADIUS) lDist = MIN_RADIUS;
-        if (rDist < MIN_RADIUS) rDist = MIN_RADIUS;
-        if (bDist < MIN_RADIUS) bDist = MIN_RADIUS;
-        if (fDist < MIN_RADIUS) fDist = MIN_RADIUS;
-        if (hDist < MIN_DEPTH) hDist = MIN_DEPTH;
-        if (this.getFrontFacing() == Direction.EAST || this.getFrontFacing() == Direction.WEST) {
-            int tmp = lDist;
-            lDist = rDist;
-            rDist = tmp;
-        }
-        StringBuilder[] floorLayer = new StringBuilder[fDist + bDist + 1];
-        List<StringBuilder[]> wallLayers = new ArrayList<>();
-        StringBuilder[] ceilingLayer = new StringBuilder[fDist + bDist + 1];
-        for (int i = 0; i < floorLayer.length; i++) {
-            floorLayer[i] = new StringBuilder(lDist + rDist + 1);
-            ceilingLayer[i] = new StringBuilder(lDist + rDist + 1);
-        }
-        for (int i = 0; i < hDist - 1; i++) {
-            wallLayers.add(new StringBuilder[fDist + bDist + 1]);
-            for (int j = 0; j < fDist + bDist + 1; j++) {
-                var s = new StringBuilder(lDist + rDist + 1);
-                wallLayers.get(i)[j] = s;
-            }
-        }
-        for (int i = 0; i < lDist + rDist + 1; i++) {
-            for (int j = 0; j < fDist + bDist + 1; j++) {
-                if (i == 0 || i == lDist + rDist || j == 0 || j == fDist + bDist) {
-                    // all edges
-                    floorLayer[j].append('A'); // floor edge
-                    for (int k = 0; k < hDist - 1; k++) {
-                        wallLayers.get(k)[j].append('W'); // walls
-                    }
-                    ceilingLayer[j].append('D'); // ceiling edge
-                } else {
-                    // not edges
-                    if (i == lDist && j == fDist) {
-                        // very center
-                        floorLayer[j].append('K');
-                    } else {
-                        floorLayer[j].append('E'); // floor valid blocks
-                    }
-                    for (int k = 0; k < hDist - 1; k++) {
-                        wallLayers.get(k)[j].append(' ');
-                    }
-                    if (i == lDist && j == fDist) {
-                        // very center
-                        ceilingLayer[j].append('C'); // controller
-                    } else {
-                        ceilingLayer[j].append('F'); // filter
-                    }
-                }
-            }
-        }
-        String[] f = new String[bDist + fDist + 1];
-        for (int i = 0; i < floorLayer.length; i++) {
-            f[i] = floorLayer[i].toString();
-        }
-        String[] m = new String[bDist + fDist + 1];
-        for (int i = 0; i < wallLayers.getFirst().length; i++) {
-            m[i] = wallLayers.getFirst()[i].toString();
-        }
-        String[] c = new String[bDist + fDist + 1];
-        for (int i = 0; i < ceilingLayer.length; i++) {
-            c[i] = ceilingLayer[i].toString();
-        }
-        var area = (lDist + rDist + 1) * (bDist + fDist + 1);
-        TraceabilityPredicate wallPredicate = blocks(getCasingState(), getGlassState());
-        TraceabilityPredicate basePredicate =
-                // limit pass through hatches to a quarter of the floor area
-                Predicates.abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2).or(blocks(GTMachines.MAINTENANCE_HATCH.get(), GTMachines.AUTO_MAINTENANCE_HATCH.get()).setMinGlobalLimited(ConfigHolder.INSTANCE.machines.enableMaintenance ? 1 : 0).setMaxGlobalLimited(1)).or(abilities(PartAbility.PASSTHROUGH_HATCH).setMaxGlobalLimited(area / 4));
-        return  // ceiling edges
-        // inner floor
-        // very center floor, needed for height check
-        // walls
-        // floor edges
-        new Supplier[] { () -> FactoryBlockPattern.start(LEFT, FRONT, UP).aisle(f).aisle(m).setRepeatable(wallLayers.size()).aisle(c).where('C', Predicates.controller(getDefinition())).where('F', Predicates.cleanroomFilters()).where('D', blocks(getCasingState())).where(' ', INNER_PREDICATE).where('E', wallPredicate.or(basePredicate).or(getValidFloorBlocks().setMaxGlobalLimited(4))).where('K', wallPredicate.or(getValidFloorBlocks())).where('W', wallPredicate.or(basePredicate).or(doorPredicate().setMaxGlobalLimited(8))).wherePart('A', wallPredicate.or(basePredicate)).build() };
+    public static Structure structure(MultiblockMachineDefinition definition) {
+        var wall = blocks(GTBlocks.PLASTCRETE.get(), GTBlocks.CLEANROOM_GLASS.get());
+        var passthrough = abilities(PartAbility.PASSTHROUGH_HATCH);
+        var base = abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2)
+                .or(blocks(GTMachines.MAINTENANCE_HATCH.get(), GTMachines.AUTO_MAINTENANCE_HATCH.get())
+                        .setMinGlobalLimited(ConfigHolder.INSTANCE.machines.enableMaintenance ? 1 : 0).setMaxGlobalLimited(1))
+                .or(passthrough);
+        var symbols = Symbols.create()
+                .where('C', Predicates.controller(definition))
+                .where('F', Predicates.cleanroomFilters())
+                .where('D', blocks(GTBlocks.PLASTCRETE.get()))
+                .where(' ', INNER_PREDICATE)
+                .where('W', wall.or(base).or(doorPredicate().setMaxGlobalLimited(8)))
+                .where('E', wall.or(base).or(Predicates.blockTag(CustomTags.CLEANROOM_FLOORS).setMaxGlobalLimited(4)))
+                .where('K', wall.or(Predicates.blockTag(CustomTags.CLEANROOM_FLOORS)))
+                .wherePart('A', wall.or(base));
+        var ceiling = Piece.sized(size -> Piece.start(LEFT, FRONT, DOWN)
+                .aisle(layer(size, 'D', 'F', 'C'))
+                .portAfter(PortKey.OUT)
+                .build());
+        var ring = Piece.sized(size -> Piece.start(LEFT, FRONT, DOWN)
+                .aisle(layer(size, 'W', ' ', ' '))
+                .portBefore(PortKey.IN)
+                .portAfter(PortKey.OUT)
+                .build());
+        var floor = Piece.sized(size -> Piece.start(LEFT, FRONT, DOWN)
+                .aisle(layer(size, 'A', 'E', 'K'))
+                .portBefore(PortKey.IN)
+                .build());
+        return Structure.root(ceiling)
+                .symbols(symbols)
+                .measure(m -> m.param(LEFT_DIST).toward(LEFT).until('D').range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(RIGHT_DIST).toward(RIGHT).until('D').range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(FRONT_DIST).toward(FRONT).until('D').range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(BACK_DIST).toward(BACK).until('D').range(MIN_RADIUS, MAX_RADIUS))
+                .require(size -> Math.abs(size.get(LEFT_DIST) - size.get(RIGHT_DIST)) <= 1 && Math.abs(size.get(FRONT_DIST) - size.get(BACK_DIST)) <= 1)
+                .limit(passthrough, size -> width(size) * depth(size) / 4)
+                .atPort(PortKey.OUT, Slot.chain(ring, PortKey.IN, PortKey.OUT, PortKey.IN)
+                        .count(RINGS, MIN_DEPTH - 1, MAX_DEPTH - 1)
+                        .backtrack()
+                        .atPort(PortKey.OUT, Slot.one(floor, PortKey.IN)))
+                .build();
     }
 
-    // protected to allow easy addition of addon "cleanrooms"
-    protected Block getCasingState() {
-        return GTBlocks.PLASTCRETE.get();
+    private static int width(Size size) {
+        return size.get(LEFT_DIST) + size.get(RIGHT_DIST) + 1;
     }
 
-    protected Block getGlassState() {
-        return GTBlocks.CLEANROOM_GLASS.get();
+    private static int depth(Size size) {
+        return size.get(FRONT_DIST) + size.get(BACK_DIST) + 1;
+    }
+
+    private static String[] layer(Size size, char edge, char inner, char center) {
+        int width = width(size);
+        int depth = depth(size);
+        int centerChar = size.get(RIGHT_DIST);
+        int centerRow = size.get(BACK_DIST);
+        var rows = new String[depth];
+        for (int j = 0; j < depth; j++) {
+            var row = new StringBuilder(width);
+            for (int i = 0; i < width; i++) {
+                if (i == 0 || j == 0 || i == width - 1 || j == depth - 1) row.append(edge);
+                else if (i == centerChar && j == centerRow) row.append(center);
+                else row.append(inner);
+            }
+            rows[j] = row.toString();
+        }
+        return rows;
     }
 
     protected static TraceabilityPredicate doorPredicate() {
         return Predicates.custom(blockWorldState -> blockWorldState.getBlockState().is(CustomTags.CLEANROOM_DOORS), () -> BlockInfo.fromBlockState(Blocks.IRON_DOOR.defaultBlockState()), () -> new Block[] { Blocks.IRON_DOOR });
-    }
-
-    private TraceabilityPredicate getValidFloorBlocks() {
-        return Predicates.blockTag(CustomTags.CLEANROOM_FLOORS);
     }
 
     private static boolean isMachineBanned(MetaMachine machine) {

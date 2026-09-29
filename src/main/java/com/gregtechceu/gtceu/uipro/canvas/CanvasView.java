@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.LockedScrollerSizes;
 import com.gregtechceu.gtceu.uipro.window.CardHost;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -88,6 +89,8 @@ public class CanvasView extends UIElement {
     private float minScale = 0.1f, maxScale = 4f;
     private float lodSimplifiedPixelScale = 0.5f, lodBlockPixelScale = 0.2f;
     private boolean allowPan = true, allowZoom = true;
+    private boolean clampInside;
+    private float fitPadding = UISizes.SLOT / 2f;
     @Nullable
     private CanvasGrid grid = CanvasGrid.standard();
 
@@ -238,6 +241,16 @@ public class CanvasView extends UIElement {
 
     public CanvasView setAllowZoom(boolean allowZoom) {
         this.allowZoom = allowZoom;
+        return this;
+    }
+
+    public CanvasView setClampInside(boolean clampInside) {
+        this.clampInside = clampInside;
+        return this;
+    }
+
+    public CanvasView setFitPadding(float fitPadding) {
+        this.fitPadding = fitPadding;
         return this;
     }
 
@@ -421,7 +434,7 @@ public class CanvasView extends UIElement {
     /** 适应全部内容（最大放大到 1 倍）。 */
     public void fitContent(boolean animated) {
         var bounds = contentBounds();
-        if (bounds != null) fit(bounds, UISizes.SLOT / 2f, 1, animated);
+        if (bounds != null) fit(bounds, fitPadding, 1, animated);
     }
 
     /**
@@ -477,6 +490,11 @@ public class CanvasView extends UIElement {
         var bounds = contentBounds();
         if (bounds == null || viewportWidth() <= 0 || viewportHeight() <= 0) return;
         float viewW = viewportWidth() / scale, viewH = viewportHeight() / scale;
+        if (clampInside) {
+            offsetX = bounds.width() <= viewW ? bounds.centerX() - viewW / 2 : Mth.clamp(offsetX, bounds.x(), bounds.right() - viewW);
+            offsetY = bounds.height() <= viewH ? bounds.centerY() - viewH / 2 : Mth.clamp(offsetY, bounds.y(), bounds.bottom() - viewH);
+            return;
+        }
         offsetX = Mth.clamp(offsetX, bounds.x() - viewW, bounds.right());
         offsetY = Mth.clamp(offsetY, bounds.y() - viewH, bounds.bottom());
     }
@@ -496,7 +514,6 @@ public class CanvasView extends UIElement {
 
     /**
      * 默认尺寸按屏幕撑大（客户端打开界面时算一次）：宽 = 屏幕宽 − {@code reservedWidth}，
-     * 高 = 屏幕高 × (1 − {@link UISizes#WINDOW_BOTTOM_SCREEN_MARGIN}) − {@code reservedHeight}，
      * 不小于首选尺寸、不大于 {@code maxWidth}/{@code maxHeight}。{@code reserved} 是同一界面里其他部分
      * （窗口边距、标题栏、标签栏、弹出面板……）要占的空间。锁定的尺寸优先。两端尺寸可以不同（控件树不变）。
      */
@@ -511,7 +528,7 @@ public class CanvasView extends UIElement {
         if (screenFill == null) return;
         var window = Minecraft.getInstance().getWindow();
         int w = window.getGuiScaledWidth() - screenFill[0];
-        int h = Math.round(window.getGuiScaledHeight() * (1 - UISizes.WINDOW_BOTTOM_SCREEN_MARGIN)) - screenFill[1];
+        int h = window.getGuiScaledHeight() - MachineWindow.clientVerticalReserve() - screenFill[1];
         preferredWidth = Mth.clamp(w, preferredWidth, Math.max(preferredWidth, screenFill[2]));
         preferredHeight = Mth.clamp(h, preferredHeight, Math.max(preferredHeight, screenFill[3]));
         applySize();

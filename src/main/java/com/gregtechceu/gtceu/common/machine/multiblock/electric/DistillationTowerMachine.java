@@ -4,6 +4,8 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistillationTower;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -17,6 +19,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class DistillationTowerMachine extends WorkableElectricMultiblockMachine implements IDistillationTower {
+
+    public static final PortKey LAYER_IN = PortKey.IN;
+    public static final PortKey LAYER_OUT = PortKey.OUT;
+    public static final ParamKey LAYERS = ParamKey.of("gtceu.multiblock.distillation_tower.layers", "gtceu.multiblock.distillation_tower.layers.desc");
 
     @Getter
     private final List<IFluidHandler> fluidOutputs = new ArrayList<>();

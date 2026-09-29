@@ -4,13 +4,15 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.client.renderer.BlockHighlightRenderer;
-import com.gregtechceu.gtceu.client.renderer.MultiblockInWorldPreviewRenderer;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.item.InfiniteSprayCanBehaviour;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
+import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
+import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
+import com.gregtechceu.gtceu.uiwidgets.structure.StructureProjection;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -37,7 +39,7 @@ public class ForgeClientEventListener {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
             // to render the preview after block entities, before the translucent. so it can be seen through the
             // transparent blocks.
-            MultiblockInWorldPreviewRenderer.renderInWorldPreview(event.getPoseStack(), event.getCamera());
+            StructureProjection.render(event);
         }
     }
 
@@ -56,7 +58,7 @@ public class ForgeClientEventListener {
     public static void onClientTickEvent(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             TooltipHelper.onClientTick();
-            MultiblockInWorldPreviewRenderer.onClientTick();
+            StructureProjection.tick();
             GTValues.CLIENT_TIME++;
         }
     }
@@ -67,7 +69,10 @@ public class ForgeClientEventListener {
             ClientCacheManager.saveCaches();
             ClientCacheManager.clearCaches();
             ClientCacheManager.allowReinit();
+            StructureProjection.clear();
         }
+        CarriedStock.clear();
+        StructureBuildFlow.clear();
     }
 
     @SubscribeEvent

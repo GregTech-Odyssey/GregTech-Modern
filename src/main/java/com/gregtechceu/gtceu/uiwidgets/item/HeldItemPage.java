@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.uiwidgets.item;
 
+import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -28,6 +30,7 @@ public final class HeldItemPage implements IFancyUIProvider {
     private final Function<MachineWindow, Widget> content;
     private boolean inventory = true;
     private boolean scroll = true;
+    private IFancyConfigurator[] configurators = new IFancyConfigurator[0];
 
     public HeldItemPage(HeldItemUIFactory.HeldItemHolder holder, Function<MachineWindow, Widget> content) {
         this.holder = holder;
@@ -45,6 +48,11 @@ public final class HeldItemPage implements IFancyUIProvider {
 
     public HeldItemPage noScroll() {
         this.scroll = false;
+        return this;
+    }
+
+    public HeldItemPage configurators(IFancyConfigurator... configurators) {
+        this.configurators = configurators;
         return this;
     }
 
@@ -66,6 +74,11 @@ public final class HeldItemPage implements IFancyUIProvider {
         scroller.addScrollViewChild(page);
         scroller.adaptiveHeight(widget.isRemote() ? MachineWindow.clientPageHeightLimit(inventory) : SERVER_HEIGHT_LIMIT);
         return UIElement.column(LayoutStyle.AUTO).addChild(scroller);
+    }
+
+    @Override
+    public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        if (configurators.length > 0) configuratorPanel.attachConfigurators(configurators);
     }
 
     @Override

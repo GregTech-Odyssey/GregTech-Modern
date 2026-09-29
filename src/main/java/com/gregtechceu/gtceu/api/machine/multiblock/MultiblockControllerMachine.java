@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiModule;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.misc.TickTimeSampler;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
@@ -40,7 +39,6 @@ import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.recipesearch.IteratorUtil;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -57,17 +55,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class MultiblockControllerMachine extends MetaMachine implements IMultiController, IMachineLife {
 
     protected MultiblockState multiblockState;
-    @Getter
-    protected final int subPatternAmount = getSubPattern() == null ? 0 : getSubPattern().length;
-    protected MultiblockState[] subMultiblockState = new MultiblockState[subPatternAmount];
-    @SyncToClient
-    protected final boolean[] formeds = new boolean[subPatternAmount];
-
-    @Getter
-    protected final BlockPattern[] matchedSubPattern = new BlockPattern[subPatternAmount];
-
-    @SyncToClient
-    protected int formedAmount;
     protected IMultiPart[] parts = new IMultiPart[0];
     protected final List<IMultiModule<?>> modules = new ArrayList<>();
 
@@ -77,13 +64,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Getter
     @SyncToClient(listener = "onFormedUpdated", scheduleUpdate = true)
     protected boolean isFormed;
-
-    @Getter
-    protected BlockPattern matchedPattern;
-
-    @Getter
-    @SyncToClient
-    protected final boolean[] isFormedsFlipped = new boolean[subPatternAmount];
 
     @Getter
     @SyncToClient
@@ -159,21 +139,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return multiblockState;
     }
 
-    @Override
-    public MultiblockState[] getSubMultiblockState() {
-        return subMultiblockState;
-    }
-
-    public void addPatternText(List<Component> textList) {
-        if (!isFormed) return;
-        if (matchedPattern != null && matchedPattern.info != null) textList.add(matchedPattern.info);
-        for (var pattern : matchedSubPattern) {
-            if (pattern != null && pattern.info != null) {
-                textList.add(pattern.info);
-            }
-        }
-    }
-
     @SuppressWarnings("unused")
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
         var list = new ArrayList<IMultiPart>();
@@ -220,63 +185,23 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     private final Lock patternLock = new ReentrantLock();
 
     @Override
-    public boolean @NotNull [] getSubFormed() {
-        return formeds;
-    }
-
-    @Override
-    public int getSubFormedAmount() {
-        return formedAmount;
-    }
-
-    @Override
     public boolean checkPattern() {
         if (waitingTime < 1) {
             var patterns = getPattern();
             var state = getMultiblockState();
             state.clearCache();
             boolean result = false;
-            matchedPattern = null;
             for (var p : patterns) {
                 var pattern = p.get();
                 state.clearCache();
                 if (pattern != null) {
                     result = pattern.checkPatternAt(state, false);
-                    if (result) {
-                        var subPatterns = getSubPattern();
-                        if (subPatterns != null) {
-                            formedAmount = 0;
-                            Arrays.fill(formeds, false);
-                            Arrays.fill(matchedSubPattern, null);
-                            Arrays.fill(isFormedsFlipped, false);
-                            Arrays.fill(subMultiblockState, null);
-                            for (int i = 0; i < subPatterns.length; i++) {
-                                var subState = MultiblockState.copy(state);
-                                var subPattern = subPatterns[i].get();
-                                if (subPattern.checkPatternAt(subState, false)) {
-                                    state.merge(subState);
-                                    formeds[i] = true;
-                                    formedAmount++;
-                                    isFormedsFlipped[i] = subState.isNeededFlip();
-                                    matchedSubPattern[i] = subPattern;
-                                }
-                                subMultiblockState[i] = subState;
-                            }
-                        }
-                        if (getLevel() instanceof ServerLevel serverLevel) {
-                            var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
-                            TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
-                        }
+                    if (result && getLevel() instanceof ServerLevel serverLevel) {
+                        var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
+                        TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
                     }
                     state.clearCache();
-                    for (var subState : subMultiblockState) {
-                        if (subState == null) continue;
-                        subState.clearCache();
-                    }
-                    if (result) {
-                        matchedPattern = pattern;
-                        break;
-                    }
+                    if (result) break;
                 }
             }
             if (result) {
@@ -389,7 +314,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onStructureInvalid() {
         getMultiblockState().removeShared();
         isFormed = false;
-        Arrays.fill(formeds, false);
         modules.forEach(m -> m.removedFromController(this));
         for (IMultiPart part : parts) {
             part.removedFromController(this);

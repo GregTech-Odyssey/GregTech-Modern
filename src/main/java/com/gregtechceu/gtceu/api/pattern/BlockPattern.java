@@ -1,60 +1,24 @@
 package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
-import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.error.PatternError;
-import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
-import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.core.Iblock;
 
-import com.lowdragmc.lowdraglib.utils.BlockInfo;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DirectionalBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.Property;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
 
-import it.unimi.dsi.fastutil.ints.IntObjectPair;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 
 public class BlockPattern {
 
@@ -64,8 +28,6 @@ public class BlockPattern {
         WHITELIST.add(clazz);
     }
 
-    public final static Direction[] FACINGS = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST, Direction.UP, Direction.DOWN };
-    public final static Direction[] FACINGS_H = { Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST };
     public final int[][] aisleRepetitions;
     public final RelativeDirection[] structureDir;
     public final TraceabilityPredicate[][][] blockMatches; // [z][y][x]
@@ -74,10 +36,11 @@ public class BlockPattern {
     public final int palmLength; // x size
     public final int[] centerOffset; // x, y, z, minZ, maxZ
     public final int[] formedRepetitionCount;
-    public boolean isSubPattern;
     public Collection<TraceabilityPredicate> predicates;
-    public PatternCondition condition;
-    public Component info;
+
+    public static final int CELL_PASS = 0;
+    public static final int CELL_FAIL = 1;
+    public static final int CELL_ABORT = 2;
 
     public BlockPattern(TraceabilityPredicate[][][] predicatesIn, RelativeDirection[] structureDir, int[][] aisleRepetitions, int[] centerOffset, int fingerLength, int thumbLength, int palmLength) {
         this.blockMatches = predicatesIn;
@@ -91,10 +54,6 @@ public class BlockPattern {
     }
 
     public boolean checkPatternAt(MultiblockState worldState, boolean savePredicate) {
-        if (condition != null && !condition.condition().test(worldState)) {
-            worldState.setError(new PatternStringError(condition.reason()));
-            return false;
-        }
         IMultiController controller = worldState.controller;
         BlockPos centerPos = worldState.controllerPos;
         Direction frontFacing = controller.self().getFrontFacing();
@@ -119,7 +78,6 @@ public class BlockPattern {
         boolean findFirstAisle = false;
         int minZ = -centerOffset[4];
         worldState.clear();
-        var data = worldState.data;
         var matchContext = worldState.getMatchContext();
         var ordinal = frontFacing.ordinal();
         var globalCount = worldState.getGlobalCount();
@@ -142,51 +100,9 @@ public class BlockPattern {
                         TraceabilityPredicate predicate = bb[a];
                         if (predicate == null) continue;
                         BlockPos pos = setActualRelativeOffset(x, y, z, frontFacing, ordinal, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
-                        worldState.update(pos, predicate);
-                        long posLong = pos.asLong();
-
-                        boolean success = predicate.test(worldState);
-                        if (success && !predicate.testOnly()) {
-                            if (savePredicate) {
-                                matchContext.getPredicates().put(posLong, predicate);
-                            }
-                            var block = worldState.getBlockState().getBlock();
-                            if (data != null && !((Iblock) block).gtceu$canMultiShared()) {
-                                if (data.hasShared(posLong)) {
-                                    success = false;
-                                    worldState.setError(MultiblockState.SHARE_ERROR.copy());
-                                } else {
-                                    worldState.sharedCache.add(posLong);
-                                }
-                            }
-                            if (success) {
-                                if (block instanceof ActiveBlock) {
-                                    if (!savePredicate)
-                                        matchContext.getOrCreate(Predicates.DataKey.ACTIVE_BLOCKS, LongOpenHashSet::new).add(posLong);
-                                } else {
-                                    var blockentity = worldState.getTileEntity();
-                                    if (blockentity != null) {
-                                        if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
-                                            if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
-                                                if (!worldState.world.isLoaded(pos)) {
-                                                    worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
-                                                    return false;
-                                                }
-                                                matchContext.getParts().add(part);
-                                            }
-                                        } else if (!(blockentity instanceof GTBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
-                                            worldState.blockEntityCache.add(posLong);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (success) {
-                            if (!savePredicate) worldState.cache.add(posLong);
-                        } else {
-                            if (worldState.blockState == ILevel.OUTSIDE_WORLD_BLOCK) {
-                                worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
-                            }
+                        int cell = testCell(worldState, pos, predicate, savePredicate);
+                        if (cell == CELL_ABORT) return false;
+                        if (cell == CELL_FAIL) {
                             // matching failed
                             if (findFirstAisle) {
                                 if (r < aisleRepetitions[c][0]) {
@@ -238,353 +154,69 @@ public class BlockPattern {
         return true;
     }
 
-    public void autoBuild(Player player, MultiblockState worldState) {
-        Level world = player.level();
-        int minZ = -centerOffset[4];
-        worldState.clearCache();
-        worldState.clear();
-        IMultiController controller = worldState.controller;
-        BlockPos centerPos = worldState.controllerPos;
-        Direction facing = controller.self().getFrontFacing();
-        Direction upwardsFacing = controller.self().getUpwardsFacing();
-        var ordinal = facing.ordinal();
-        boolean isFlipped = controller.self().isFlipped();
-        var cacheGlobal = worldState.getGlobalCount();
-        var cacheLayer = worldState.getLayerCount();
-        LongOpenHashSet blocks = new LongOpenHashSet(1024, 0.5F);
-        Long2ObjectOpenHashMap<MetaMachine> machines = new Long2ObjectOpenHashMap<>();
-        blocks.add(centerPos.asLong());
-        for (int c = 0, z = minZ++, r; c < this.fingerLength; c++) {
-            for (r = 0; r < aisleRepetitions[c][0]; r++) {
-                cacheLayer.clear();
-                for (int b = 0, y = -centerOffset[1]; b < this.thumbLength; b++, y++) {
-                    for (int a = 0, x = -centerOffset[0]; a < this.palmLength; a++, x++) {
-                        var bc = this.blockMatches[c];
-                        if (bc == null) continue;
-                        var bb = bc[b];
-                        if (bb == null) continue;
-                        TraceabilityPredicate predicate = bb[a];
-                        if (predicate == null) continue;
-                        BlockPos pos = setActualRelativeOffset(x, y, z, facing, ordinal, upwardsFacing, isFlipped).offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
-                        worldState.update(pos, predicate);
-                        long posLong = pos.asLong();
-                        if (!world.isEmptyBlock(pos)) {
-                            blocks.add(posLong);
-                            for (SimplePredicate limit : predicate.limited) {
-                                limit.testLimited(worldState);
+    public static int testCell(MultiblockState worldState, BlockPos pos, TraceabilityPredicate predicate, boolean savePredicate) {
+        worldState.update(pos, predicate);
+        long posLong = pos.asLong();
+        boolean success = predicate.test(worldState);
+        if (success && !predicate.testOnly()) {
+            var matchContext = worldState.getMatchContext();
+            if (savePredicate) {
+                matchContext.getPredicates().put(posLong, predicate);
+            }
+            var block = worldState.getBlockState().getBlock();
+            var data = worldState.data;
+            if (data != null && !((Iblock) block).gtceu$canMultiShared()) {
+                if (data.hasShared(posLong)) {
+                    success = false;
+                    worldState.setError(MultiblockState.SHARE_ERROR.copy());
+                } else {
+                    worldState.sharedCache.add(posLong);
+                }
+            }
+            if (success) {
+                if (block instanceof ActiveBlock) {
+                    if (!savePredicate)
+                        matchContext.getOrCreate(Predicates.DataKey.ACTIVE_BLOCKS, LongOpenHashSet::new).add(posLong);
+                } else {
+                    var blockentity = worldState.getTileEntity();
+                    if (blockentity != null) {
+                        if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
+                            if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
+                                if (!worldState.world.isLoaded(pos)) {
+                                    worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
+                                    return CELL_ABORT;
+                                }
+                                matchContext.getParts().add(part);
                             }
-                        } else {
-                            boolean find = false;
-                            Block[] infos = new Block[0];
-                            for (SimplePredicate limit : predicate.limited) {
-                                if (limit.minLayerCount > 0) {
-                                    int curr = cacheLayer.getInt(limit);
-                                    if (curr < limit.minLayerCount && (limit.maxLayerCount == -1 || curr < limit.maxLayerCount)) {
-                                        cacheLayer.addTo(limit, 1);
-                                    } else {
-                                        continue;
-                                    }
-                                } else {
-                                    continue;
-                                }
-                                infos = limit.candidates == null ? null : limit.candidates.get();
-                                find = true;
-                                break;
-                            }
-                            if (!find) {
-                                for (SimplePredicate limit : predicate.limited) {
-                                    if (limit.minCount > 0) {
-                                        int curr = cacheGlobal.getInt(limit);
-                                        if (curr < limit.minCount && (limit.maxCount == -1 || curr < limit.maxCount)) {
-                                            cacheGlobal.addTo(limit, 1);
-                                        } else {
-                                            continue;
-                                        }
-                                    } else {
-                                        continue;
-                                    }
-                                    infos = limit.candidates == null ? null : limit.candidates.get();
-                                    find = true;
-                                    break;
-                                }
-                            }
-                            if (!find) {
-                                // no limited
-                                for (SimplePredicate limit : predicate.limited) {
-                                    if (limit.maxLayerCount != -1 && cacheLayer.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxLayerCount) {
-                                        continue;
-                                    }
-                                    if (limit.maxCount != -1 && cacheGlobal.getOrDefault(limit, Integer.MAX_VALUE) == limit.maxCount) {
-                                        continue;
-                                    }
-                                    cacheLayer.addTo(limit, 1);
-                                    cacheGlobal.addTo(limit, 1);
-                                    infos = ArrayUtils.addAll(infos, limit.candidates == null ? null : limit.candidates.get());
-                                }
-                                for (SimplePredicate common : predicate.common) {
-                                    infos = ArrayUtils.addAll(infos, common.candidates == null ? null : common.candidates.get());
-                                }
-                            }
-                            List<ItemStack> candidates = new ArrayList<>();
-                            if (infos != null) {
-                                for (Block info : infos) {
-                                    if (info != Blocks.AIR) {
-                                        candidates.add(SimplePredicate.toItem(info).getDefaultInstance());
-                                    }
-                                }
-                            }
-                            // check inventory
-                            ItemStack found = null;
-                            int foundSlot = -1;
-                            IItemHandler handler = null;
-                            if (!player.isCreative()) {
-                                var foundHandler = getMatchStackWithHandler(candidates, player.getCapability(ForgeCapabilities.ITEM_HANDLER));
-                                if (foundHandler != null) {
-                                    foundSlot = foundHandler.firstInt();
-                                    handler = foundHandler.second();
-                                    found = handler.getStackInSlot(foundSlot).copy();
-                                }
-                            } else {
-                                for (ItemStack candidate : candidates) {
-                                    found = candidate.copy();
-                                    if (!found.isEmpty() && found.getItem() instanceof BlockItem) {
-                                        break;
-                                    }
-                                    found = null;
-                                }
-                            }
-                            if (found == null) continue;
-                            BlockItem itemBlock = (BlockItem) found.getItem();
-                            BlockPlaceContext context = new BlockPlaceContext(world, player, InteractionHand.MAIN_HAND, found, BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
-                            InteractionResult interactionResult = itemBlock.place(context);
-                            if (interactionResult != InteractionResult.FAIL) {
-                                if (handler != null) {
-                                    handler.extractItem(foundSlot, 1, false);
-                                }
-                                var direction = predicate.direction.apply(worldState);
-                                if (direction != null) {
-                                    world.setBlock(pos, world.getBlockState(pos).setValue(DirectionalBlock.FACING, direction), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-                                } else {
-                                    if (world.getBlockEntity(pos) instanceof MetaMachineBlockEntity machineBlockEntity) {
-                                        machines.put(posLong, machineBlockEntity.metaMachine);
-                                    }
-                                }
-                                blocks.add(posLong);
-                            }
+                        } else if (!(blockentity instanceof GTBlockEntity) && !WHITELIST.contains(blockentity.getClass())) {
+                            worldState.blockEntityCache.add(posLong);
                         }
                     }
                 }
-                z++;
             }
         }
-        Direction frontFacing = controller.self().getFrontFacing();
-        machines.long2ObjectEntrySet().fastForEach(entry -> {
-            long posLong = entry.getLongKey();
-            var machine = entry.getValue();
-            BlockPos pos = BlockPos.of(posLong);
-            resetFacing(pos, machine.getBlockState(), frontFacing, (p, f) -> {
-                if (!blocks.contains(p.relative(f).asLong())) {
-                    return machine.isFacingValid(f);
-                }
-                return false;
-            }, state -> world.setBlock(pos, state, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE));
-        });
-    }
-
-    public BlockInfo[][][] getPreview(int[] repetition) {
-        Reference2IntOpenHashMap<SimplePredicate> cacheGlobal = new Reference2IntOpenHashMap<>();
-        Long2ObjectOpenHashMap<BlockInfo> blocks = new Long2ObjectOpenHashMap<>(1024, 0.5F);
-        Long2ObjectOpenHashMap<BlockInfo> machines = new Long2ObjectOpenHashMap<>();
-        int minX = Integer.MAX_VALUE;
-        int minY = Integer.MAX_VALUE;
-        int minZ = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int maxY = Integer.MIN_VALUE;
-        int maxZ = Integer.MIN_VALUE;
-        for (int l = 0, x = 0; l < this.fingerLength; l++) {
-            for (int r = 0; r < repetition[l]; r++) {
-                // Checking single slice
-                Reference2IntOpenHashMap<SimplePredicate> cacheLayer = new Reference2IntOpenHashMap<>();
-                for (int y = 0; y < this.thumbLength; y++) {
-                    for (int z = 0; z < this.palmLength; z++) {
-                        var bl = this.blockMatches[l];
-                        if (bl == null) continue;
-                        var by = bl[y];
-                        if (by == null) continue;
-                        TraceabilityPredicate predicate = by[z];
-                        if (predicate == null) continue;
-                        BlockInfo info = null;
-                        boolean find = false;
-                        for (SimplePredicate limit : predicate.limited) {
-                            // check layer and previewCount
-                            if (limit.minLayerCount > 0) {
-                                if (cacheLayer.getInt(limit) < limit.minLayerCount) {
-                                    cacheLayer.addTo(limit, 1);
-                                } else {
-                                    continue;
-                                }
-                                if (cacheGlobal.getInt(limit) < limit.previewCount) {
-                                    cacheGlobal.addTo(limit, 1);
-                                } else {
-                                    continue;
-                                }
-                            } else {
-                                continue;
-                            }
-                            info = limit.blockInfo.get();
-                            if (info != null) {
-                                find = true;
-                                break;
-                            }
-                        }
-                        if (!find) {
-                            // check global and previewCount
-                            for (SimplePredicate limit : predicate.limited) {
-                                if (limit.minCount == -1 && limit.previewCount == -1) continue;
-                                if (cacheGlobal.getInt(limit) < limit.previewCount) {
-                                    cacheGlobal.addTo(limit, 1);
-                                } else if (limit.minCount > 0) {
-                                    if (cacheGlobal.getInt(limit) < limit.minCount) {
-                                        cacheGlobal.addTo(limit, 1);
-                                    } else {
-                                        continue;
-                                    }
-                                } else {
-                                    continue;
-                                }
-                                info = limit.blockInfo.get();
-                                if (info != null) {
-                                    find = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!find) {
-                            // check common with previewCount
-                            for (SimplePredicate common : predicate.common) {
-                                if (common.previewCount > 0) {
-                                    if (cacheGlobal.getInt(common) < common.previewCount) {
-                                        cacheGlobal.addTo(common, 1);
-                                    } else {
-                                        continue;
-                                    }
-                                } else {
-                                    continue;
-                                }
-                                info = common.blockInfo.get();
-                                if (info != null) {
-                                    find = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!find) {
-                            // check without previewCount
-                            for (SimplePredicate common : predicate.common) {
-                                if (common.previewCount == -1) {
-                                    info = common.blockInfo.get();
-                                    if (info != null) {
-                                        find = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (!find) {
-                            // check max
-                            for (SimplePredicate limit : predicate.limited) {
-                                if (limit.previewCount != -1) continue;
-                                if (limit.maxCount != -1 || limit.maxLayerCount != -1) {
-                                    if (cacheGlobal.getOrDefault(limit, 0) < limit.maxCount) {
-                                        cacheGlobal.addTo(limit, 1);
-                                    } else if (cacheLayer.getOrDefault(limit, 0) < limit.maxLayerCount) {
-                                        cacheLayer.addTo(limit, 1);
-                                    } else {
-                                        continue;
-                                    }
-                                }
-                                info = limit.blockInfo.get();
-                                if (info != null) {
-                                    break;
-                                }
-                            }
-                        }
-                        if (info != null && info.getBlockState().getBlock() != Blocks.AIR) {
-                            BlockPos pos = gerPreviewOffset(z, y, x);
-                            if (info.getBlockState().getBlock() instanceof MetaMachineBlock) {
-                                machines.put(pos.asLong(), info);
-                            } else {
-                                blocks.put(pos.asLong(), info);
-                            }
-                            minX = Math.min(pos.getX(), minX);
-                            minY = Math.min(pos.getY(), minY);
-                            minZ = Math.min(pos.getZ(), minZ);
-                            maxX = Math.max(pos.getX(), maxX);
-                            maxY = Math.max(pos.getY(), maxY);
-                            maxZ = Math.max(pos.getZ(), maxZ);
-                        }
-                    }
-                }
-                x++;
-            }
+        if (success) {
+            if (!savePredicate) worldState.cache.add(posLong);
+            return CELL_PASS;
         }
-        BlockInfo[][][] result = (BlockInfo[][][]) Array.newInstance(BlockInfo.class, maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
-        int finalMinX = minX;
-        int finalMinY = minY;
-        int finalMinZ = minZ;
-        machines.long2ObjectEntrySet().fastForEach(entry -> {
-            var blockPos = entry.getLongKey();
-            var pos = BlockPos.of(blockPos);
-            var info = entry.getValue();
-            var blockState = info.getBlockState();
-            if (blockState.getBlock() instanceof MetaMachineBlock machineBlock) {
-                resetFacing(pos, blockState, null, (p, f) -> {
-                    var rp = p.relative(f).asLong();
-                    if (blocks.get(rp) == null && machines.get(rp) == null) {
-                        if (machineBlock.definition instanceof MultiblockMachineDefinition) {
-                            return false;
-                        } else {
-                            return MetaMachine.isFacingValid(machineBlock, blockState, f);
-                        }
-                    }
-                    return false;
-                }, info::setBlockState);
-            }
-            result[pos.getX() - finalMinX][pos.getY() - finalMinY][pos.getZ() - finalMinZ] = info;
-        });
-        blocks.long2ObjectEntrySet().fastForEach(entry -> {
-            var pos = BlockPos.of(entry.getLongKey());
-            var info = entry.getValue();
-            result[pos.getX() - finalMinX][pos.getY() - finalMinY][pos.getZ() - finalMinZ] = info;
-        });
-        return result;
-    }
-
-    protected void resetFacing(BlockPos pos, BlockState blockState, Direction facing, BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer) {
-        if (blockState.hasProperty(BlockStateProperties.FACING)) {
-            tryFacings(blockState, pos, checker, consumer, BlockStateProperties.FACING, facing == null ? FACINGS : ArrayUtils.addAll(new Direction[] { facing }, FACINGS));
-        } else if (blockState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-            tryFacings(blockState, pos, checker, consumer, BlockStateProperties.HORIZONTAL_FACING, facing == null || facing.getAxis() == Direction.Axis.Y ? FACINGS_H : ArrayUtils.addAll(new Direction[] { facing }, FACINGS_H));
+        if (worldState.blockState == ILevel.OUTSIDE_WORLD_BLOCK) {
+            worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
         }
-    }
-
-    protected void tryFacings(BlockState blockState, BlockPos pos, BiPredicate<BlockPos, Direction> checker, Consumer<BlockState> consumer, Property<Direction> property, Direction[] facings) {
-        Direction found = null;
-        for (Direction facing : facings) {
-            if (checker.test(pos, facing)) {
-                found = facing;
-                break;
-            }
-        }
-        if (found == null) {
-            found = Direction.NORTH;
-        }
-        consumer.accept(blockState.setValue(property, found));
+        return CELL_FAIL;
     }
 
     protected BlockPos setActualRelativeOffset(int x, int y, int z, Direction facing, int ordinal, Direction upwardsFacing, boolean isFlipped) {
-        int[] c0 = new int[] { x, y, z };
         int[] c1 = new int[3];
+        relativeToWorld(structureDir, x, y, z, facing, upwardsFacing, isFlipped, c1);
+        return new BlockPos(c1[0], c1[1], c1[2]);
+    }
+
+    public static void relativeToWorld(RelativeDirection[] structureDir, int x, int y, int z, Direction facing, Direction upwardsFacing, boolean isFlipped, int[] c1) {
+        int[] c0 = new int[] { x, y, z };
+        c1[0] = 0;
+        c1[1] = 0;
+        c1[2] = 0;
+        int ordinal = facing.ordinal();
         boolean down = ordinal == 0;
         if (down || ordinal == 1) {
             int of = down ? upwardsFacing.ordinal() : upwardsFacing.getOpposite().ordinal();
@@ -662,44 +294,5 @@ public class BlockPattern {
                 }
             }
         }
-        return new BlockPos(c1[0], c1[1], c1[2]);
-    }
-
-    protected BlockPos gerPreviewOffset(int x, int y, int z) {
-        int[] c0 = new int[] { x, y, z };
-        int[] c1 = new int[3];
-        for (int i = 0; i < 3; i++) {
-            switch (structureDir[i].getActualOrdinal(2)) {
-                case 1 -> c1[1] = c0[i];
-                case 0 -> c1[1] = -c0[i];
-                case 4 -> c1[0] = -c0[i];
-                case 5 -> c1[0] = c0[i];
-                case 2 -> c1[2] = -c0[i];
-                case 3 -> c1[2] = c0[i];
-            }
-        }
-        return new BlockPos(c1[0], c1[1], c1[2]);
-    }
-
-    @Nullable
-    protected static IntObjectPair<IItemHandler> getMatchStackWithHandler(List<ItemStack> candidates, LazyOptional<IItemHandler> cap) {
-        IItemHandler handler = cap.orElse(null);
-        if (handler == null) return null;
-        for (int i = 0; i < handler.getSlots(); i++) {
-            @NotNull
-            ItemStack stack = handler.getStackInSlot(i);
-            if (stack.isEmpty()) continue;
-            @NotNull
-            LazyOptional<IItemHandler> stackCap = stack.getCapability(ForgeCapabilities.ITEM_HANDLER);
-            if (stackCap.isPresent()) {
-                var rt = getMatchStackWithHandler(candidates, stackCap);
-                if (rt != null) {
-                    return rt;
-                }
-            } else if (candidates.stream().anyMatch(candidate -> ItemStack.isSameItemSameTags(candidate, stack)) && !stack.isEmpty() && stack.getItem() instanceof BlockItem) {
-                return IntObjectPair.of(i, handler);
-            }
-        }
-        return null;
     }
 }

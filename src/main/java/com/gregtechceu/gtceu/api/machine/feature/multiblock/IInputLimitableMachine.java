@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 
 import java.util.List;
 
@@ -21,16 +20,26 @@ public interface IInputLimitableMachine extends IFancyUIMachine {
         return true;
     }
 
+    static List<Component> antiClogTooltips(boolean enabled) {
+        if (enabled) {
+            return List.of(
+                    Component.translatable("gtceu.machine.anti_clog")
+                            .append(Component.translatable("gtceu.machine.anti_clog.enabled").withStyle(ChatFormatting.GREEN)),
+                    Component.translatable("gtceu.machine.anti_clog.enabled.0").withStyle(ChatFormatting.GRAY),
+                    Component.translatable("gtceu.machine.anti_clog.enabled.1").withStyle(ChatFormatting.GRAY));
+        }
+        return List.of(
+                Component.translatable("gtceu.machine.anti_clog")
+                        .append(Component.translatable("gtceu.machine.anti_clog.disabled").withStyle(ChatFormatting.RED)),
+                Component.translatable("gtceu.machine.anti_clog.disabled.0").withStyle(ChatFormatting.GRAY));
+    }
+
     @Override
     default void attachConfigurators(ConfiguratorPanel configuratorPanel) {
         if (hasInputLimitConfig()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
-                WidgetIcons.INPUT_LIMIT_OFF,
-                WidgetIcons.INPUT_LIMIT_ON,
+                WidgetIcons.ANTI_CLOG_OFF,
+                WidgetIcons.ANTI_CLOG_ON,
                 this::isInputLimit, (clickData, pressed) -> setInputLimit(pressed))
-                .setTooltipsSupplier(pressed -> List.of(
-                        Component.translatable("gtceu.multiblock.universal.input_limit")
-                                .setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW))
-                                .append(Component.translatable(pressed ? "gtceu.multiblock.universal.input_limit.yes" :
-                                        "gtceu.multiblock.universal.input_limit.no")))));
+                .setTooltipsSupplier(IInputLimitableMachine::antiClogTooltips));
     }
 }

@@ -10,19 +10,26 @@ import com.gregtechceu.gtceu.integration.map.cache.client.GTClientCache;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.OreRenderLayer;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasItem;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasLayer;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasPainter;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasRect;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasView;
+import com.gregtechceu.gtceu.uipro.canvas.CanvasZoomTools;
+import com.gregtechceu.gtceu.uipro.canvas.ItemLayer;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
-import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextField;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 
+import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
@@ -30,8 +37,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
@@ -39,7 +46,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -49,64 +55,127 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ProspectorMapView extends UIElement {
 
-    private static final String ALL = "gtceu.prospector.ui.all";
     private static final String SEARCH = "gtceu.prospector.ui.search";
-    private static final String DARK_MAP = "gtceu.prospector.ui.dark_map";
+    private static final String OUT_OF_RANGE = "gtceu.prospector.ui.out_of_range";
+    private static final String HELP_WAYPOINT = "gtceu.prospector.ui.help.waypoint";
+    private static final String HELP_FILTER = "gtceu.prospector.ui.help.filter";
+    public static final int MAP_CHUNKS = 11;
     private static final int SIDE_WIDTH = 120;
     private static final int ROW_HEIGHT = 16;
-    private static final int FRAME = 4;
+    private static final int MAP_MARGIN = 3;
+    private static final int MAP_SIZE = MAP_CHUNKS * 16 + 2 * (MAP_MARGIN + 1);
+    private static final int HOVER_COLOR = 0x4B6CF76C;
+    private static final int GRID_LIGHT = 0xFFB4B4B4;
+    private static final int GRID_DARK = 0xFF505050;
+    private static final float MAX_SCALE = 4;
 
     private final int chunkRadius;
-    private final ProspectorMode mode;
+    private final int scanSide;
+    private final int displaySide;
+    private final int scanOffset;
+    private final ProspectorMode<?>[] modes;
+    private final IntSupplier modeSource;
+    private final BooleanSupplier darkSource;
+    private int modeIndex;
+    private ProspectorMode mode;
     private final MapCanvas canvas;
     private final ScrollerView list;
     private final Map<String, OreRow> rows = new LinkedHashMap<>();
     private final Map<String, Object> items = new LinkedHashMap<>();
+    private final Queue<PacketProspecting> packets = new LinkedBlockingQueue<>();
     private String query = "";
     private String selected = ProspectingTexture.SELECTED_ALL;
     private boolean dark;
+    private int playerChunkX, playerChunkZ, playerBlockX, playerBlockZ;
+    private int chunkIndex;
+    @Nullable
+    @OnlyIn(Dist.CLIENT)
+    private ProspectingTexture texture;
+    private boolean textureLoaded;
 
-    public ProspectorMapView(int chunkRadius, ProspectorMode<?> mode) {
+    public ProspectorMapView(MachineWindow window, int chunkRadius, ProspectorMode<?>[] modes, IntSupplier modeSource, BooleanSupplier darkSource) {
         this.chunkRadius = chunkRadius;
-        this.mode = mode;
-        int mapBox = (chunkRadius * 2 - 1) * 16 + 2 * FRAME;
-        int height = Math.max(mapBox, UISizes.MACHINE_PAGE_HEIGHT);
+        this.scanSide = chunkRadius * 2 - 1;
+        this.displaySide = Math.max(scanSide, MAP_CHUNKS);
+        this.scanOffset = (displaySide - scanSide) / 2;
+        this.modes = modes;
+        this.modeSource = modeSource;
+        this.darkSource = darkSource;
+        this.modeIndex = currentMode();
+        this.mode = modes[modeIndex];
+        this.dark = darkSource.getAsBoolean();
+        int height = window.isRemote() ? Mth.clamp(MachineWindow.clientPageHeightLimit(false), UISizes.CANVAS_MIN_SIZE, MAP_SIZE) : MAP_SIZE;
         layout(l -> l.row().height(height).gapAll(UISizes.SECTION_GAP).alignCenter());
 
-        canvas = new MapCanvas(mapBox);
+        canvas = new MapCanvas(height);
         var search = new TextField(SIDE_WIDTH, () -> query, this::search).setPlaceholder(() -> Component.translatable(SEARCH));
         list = new ScrollerView("prospector.list", SIDE_WIDTH, ROW_HEIGHT);
         list.setResizable(false);
         list.getLayoutStyle().flex(1);
         list.setBackground(UITheme.STATUS_PANEL);
         list.layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
-        list.addScrollViewChild(new OreRow(ProspectingTexture.SELECTED_ALL, IGuiTexture.EMPTY, Component.translatable(ALL)));
         search.setClientSideWidget();
         list.setClientSideWidget();
 
         var side = UIElement.column(SIDE_WIDTH).layout(l -> l.height(height).gapAll(UISizes.GAP)).addChildren(
-                TextLine.constant(SIDE_WIDTH, Component.translatable(mode.unlocalizedName)),
-                CoverUIs.controlRow(DARK_MAP, Switch.of(() -> dark, value -> dark = value)),
+                new TextLine(SIDE_WIDTH, () -> Component.translatable(mode.unlocalizedName), Component.translatable(mode.unlocalizedName)),
                 search, list);
         addChildren(canvas, side);
-        addSyncValue(SyncValue.of(() -> dark, ByteStreamCodec.BOOLEAN_CODEC, false)).onChanged(canvas::setDark);
+        addSyncValue(SyncValue.of(darkSource::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, dark)).onChanged(this::setDark);
+        addSyncValue(SyncValue.ofInt(() -> modeIndex, modeIndex)).onChanged(this::applyMode);
+
+        window.addTitleTool(() -> new CanvasZoomTools(canvas));
+        window.addTitleTool(() -> new InfoIcon(InfoIcon.Kind.INFO, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
+                Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
+    }
+
+    private int currentMode() {
+        return Mth.clamp(modeSource.getAsInt(), 0, modes.length - 1);
     }
 
     private void search(String text) {
         query = text;
         String needle = text.toLowerCase(Locale.ROOT);
         for (var row : rows.values()) {
-            row.setDisplay(needle.isEmpty() || row.uid.equals(ProspectingTexture.SELECTED_ALL) || row.searchText.contains(needle));
+            row.setDisplay(needle.isEmpty() || row.searchText.contains(needle));
         }
     }
 
     private void select(String uid) {
-        selected = uid;
-        canvas.setSelected(uid);
+        selected = uid.equals(selected) ? ProspectingTexture.SELECTED_ALL : uid;
+        if (isRemote() && texture != null) texture.setSelected(selected);
+    }
+
+    private void setDark(boolean value) {
+        dark = value;
+        if (isRemote() && texture != null) texture.setDarkMode(value);
+    }
+
+    private void applyMode(int index) {
+        modeIndex = Mth.clamp(index, 0, modes.length - 1);
+        mode = modes[modeIndex];
+        if (!isRemote()) return;
+        packets.clear();
+        items.clear();
+        rows.clear();
+        list.clearScrollViewChildren();
+        selected = ProspectingTexture.SELECTED_ALL;
+        search(query);
+        createTexture();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void createTexture() {
+        if (texture != null) RenderSystem.recordRenderCall(texture::releaseId);
+        texture = new ProspectingTexture(playerChunkX, playerChunkZ, playerBlockX, playerBlockZ,
+                gui.entityPlayer.getVisualRotationYInDegrees(), mode, chunkRadius, dark);
+        textureLoaded = false;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -124,6 +193,101 @@ public class ProspectorMapView extends UIElement {
                 }
             }
         }
+    }
+
+    @Override
+    public void writeInitialData(FriendlyByteBuf buffer) {
+        var player = gui.entityPlayer;
+        buffer.writeVarInt(playerChunkX = player.chunkPosition().x);
+        buffer.writeVarInt(playerChunkZ = player.chunkPosition().z);
+        buffer.writeVarInt(playerBlockX = player.getBlockX());
+        buffer.writeVarInt(playerBlockZ = player.getBlockZ());
+        super.writeInitialData(buffer);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void readInitialData(FriendlyByteBuf buffer) {
+        playerChunkX = buffer.readVarInt();
+        playerChunkZ = buffer.readVarInt();
+        playerBlockX = buffer.readVarInt();
+        playerBlockZ = buffer.readVarInt();
+        createTexture();
+        super.readInitialData(buffer);
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        int current = currentMode();
+        if (current != modeIndex) {
+            modeIndex = current;
+            mode = modes[current];
+            chunkIndex = 0;
+        }
+        super.detectAndSendChanges();
+        scan();
+    }
+
+    private void scan() {
+        var player = gui.entityPlayer;
+        var level = player.level();
+        var held = player.getItemInHand(InteractionHand.MAIN_HAND);
+        while (chunkIndex < scanSide * scanSide) {
+            int ox = chunkIndex % scanSide - chunkRadius + 1;
+            int oz = chunkIndex / scanSide - chunkRadius + 1;
+            var chunk = level.getChunk(playerChunkX + ox, playerChunkZ + oz);
+            if (mode == ProspectorMode.ORE) {
+                ServerCache.instance.prospectAllInChunk(level.dimension(), chunk.getPos(), (ServerPlayer) player);
+            }
+            var packet = new PacketProspecting(playerChunkX + ox, playerChunkZ + oz, mode);
+            mode.scan(packet.data, chunk);
+            writeUpdateInfo(-1, packet::writePacketData);
+            chunkIndex++;
+            if (!player.isCreative() && held.getItem() instanceof IComponentItem componentItem) {
+                for (var component : componentItem.getComponents()) {
+                    if (component instanceof ProspectorScannerBehavior prospector && !prospector.drainEnergy(held, false)) {
+                        player.closeContainer();
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+        if (id != -1) {
+            super.readUpdateInfo(id, buffer);
+            return;
+        }
+        var packet = PacketProspecting.readPacketData(mode, buffer);
+        if (Math.abs(packet.chunkX - playerChunkX) >= chunkRadius || Math.abs(packet.chunkZ - playerChunkZ) >= chunkRadius) return;
+        packets.add(packet);
+        var dimension = gui.entityPlayer.level().dimension();
+        if (mode == ProspectorMode.FLUID && packet.data[0][0].length > 0) {
+            GTClientCache.instance.addFluid(dimension, packet.chunkX, packet.chunkZ, (ProspectorMode.FluidInfo) packet.data[0][0][0]);
+        } else if (mode == ProspectorMode.BEDROCK_ORE && packet.data[0][0].length > 0) {
+            GTClientCache.instance.addBedrockOre(dimension, packet.chunkX, packet.chunkZ, (ProspectorMode.OreInfo[]) packet.data[0][0]);
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        while (!packets.isEmpty()) {
+            var packet = packets.poll();
+            if (texture != null) {
+                texture.updateTexture(packet);
+                textureLoaded = true;
+            }
+            addItems(packet.data);
+        }
+    }
+
+    private boolean inScan(int cx, int cz) {
+        return cx >= scanOffset && cz >= scanOffset && cx < scanOffset + scanSide && cz < scanOffset + scanSide;
     }
 
     private final class OreRow extends UIElement {
@@ -165,181 +329,61 @@ public class ProspectorMapView extends UIElement {
         }
     }
 
-    private final class MapCanvas extends Widget {
+    private final class MapCanvas extends CanvasView {
 
-        private final int image;
-        private final Queue<PacketProspecting> packets = new LinkedBlockingQueue<>();
-        @Nullable
-        @OnlyIn(Dist.CLIENT)
-        private ProspectingTexture texture;
-        private int playerChunkX, playerChunkZ;
-        private int chunkIndex;
+        private float clickX, clickZ;
 
         private MapCanvas(int size) {
-            super(0, 0, size, size);
-            this.image = (chunkRadius * 2 - 1) * 16;
-        }
-
-        private void setDark(boolean value) {
-            if (isRemote() && texture != null) texture.setDarkMode(value);
-        }
-
-        private void setSelected(String uid) {
-            if (isRemote() && texture != null) texture.setSelected(uid);
-        }
-
-        @Override
-        public void writeInitialData(FriendlyByteBuf buffer) {
-            super.writeInitialData(buffer);
-            var player = gui.entityPlayer;
-            buffer.writeVarInt(playerChunkX = player.chunkPosition().x);
-            buffer.writeVarInt(playerChunkZ = player.chunkPosition().z);
-            buffer.writeVarInt(player.getBlockX());
-            buffer.writeVarInt(player.getBlockZ());
-        }
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public void readInitialData(FriendlyByteBuf buffer) {
-            super.readInitialData(buffer);
-            playerChunkX = buffer.readVarInt();
-            playerChunkZ = buffer.readVarInt();
-            texture = new ProspectingTexture(playerChunkX, playerChunkZ, buffer.readVarInt(), buffer.readVarInt(),
-                    gui.entityPlayer.getVisualRotationYInDegrees(), mode, chunkRadius, dark);
-        }
-
-        @Override
-        public void detectAndSendChanges() {
-            super.detectAndSendChanges();
-            var player = gui.entityPlayer;
-            var level = player.level();
-            var held = player.getItemInHand(InteractionHand.MAIN_HAND);
-            int side = (chunkRadius << 1) - 1;
-            while (chunkIndex < side * side) {
-                int ox = chunkIndex % side - chunkRadius + 1;
-                int oz = chunkIndex / side - chunkRadius + 1;
-                var chunk = level.getChunk(playerChunkX + ox, playerChunkZ + oz);
-                if (mode == ProspectorMode.ORE) {
-                    ServerCache.instance.prospectAllInChunk(level.dimension(), chunk.getPos(), (ServerPlayer) player);
+            super("prospector.map", size, size);
+            float fit = Math.min(1, (size - 2) / (displaySide * 16f));
+            setResizable(false);
+            setGrid(null);
+            setClampInside(true);
+            setFitPadding(0);
+            setLodThresholds(0, 0);
+            setScaleRange(fit, MAX_SCALE);
+            setInitialView(view -> view.fitContent(false));
+            setScene(view -> {
+                var cells = new ItemLayer<ChunkCell>();
+                for (int cz = 0; cz < displaySide; cz++) {
+                    for (int cx = 0; cx < displaySide; cx++) cells.add(new ChunkCell(cx, cz, inScan(cx, cz)));
                 }
-                var packet = new PacketProspecting(playerChunkX + ox, playerChunkZ + oz, mode);
-                mode.scan(packet.data, chunk);
-                writeUpdateInfo(-1, packet::writePacketData);
-                chunkIndex++;
-                if (held.getItem() instanceof IComponentItem componentItem) {
-                    for (var component : componentItem.getComponents()) {
-                        if (component instanceof ProspectorScannerBehavior prospector && !player.isCreative() && !prospector.drainEnergy(held, false)) {
-                            player.closeContainer();
-                        }
-                    }
-                }
-            }
+                view.addLayer(new MapLayer()).addLayer(cells);
+            });
+            setOnItemClick((item, button) -> {
+                if (button == 0 && item instanceof ChunkCell cell && cell.inScan) addWaypoint(clickX, clickZ);
+            });
         }
 
         @Override
         @OnlyIn(Dist.CLIENT)
-        public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-            if (id != -1) {
-                super.readUpdateInfo(id, buffer);
-                return;
-            }
-            var packet = PacketProspecting.readPacketData(mode, buffer);
-            packets.add(packet);
-            var dimension = gui.entityPlayer.level().dimension();
-            if (mode == ProspectorMode.FLUID && packet.data[0][0].length > 0) {
-                GTClientCache.instance.addFluid(dimension, packet.chunkX, packet.chunkZ, (ProspectorMode.FluidInfo) packet.data[0][0][0]);
-            } else if (mode == ProspectorMode.BEDROCK_ORE && packet.data[0][0].length > 0) {
-                GTClientCache.instance.addBedrockOre(dimension, packet.chunkX, packet.chunkZ, (ProspectorMode.OreInfo[]) packet.data[0][0]);
-            }
+        public boolean mouseReleased(double mouseX, double mouseY, int button) {
+            clickX = toWorldX(mouseX);
+            clickZ = toWorldY(mouseY);
+            return super.mouseReleased(mouseX, mouseY, button);
         }
 
-        @Override
         @OnlyIn(Dist.CLIENT)
-        public void updateScreen() {
-            super.updateScreen();
-            while (!packets.isEmpty()) {
-                var packet = packets.poll();
-                if (texture != null) texture.updateTexture(packet);
-                addItems(packet.data);
-            }
-        }
-
-        private int imageX() {
-            return getPositionX() + FRAME;
-        }
-
-        private int imageY() {
-            return getPositionY() + FRAME;
-        }
-
-        private int hoveredChunk(double mouse, int origin) {
-            return mouse < origin ? -1 : (int) (mouse - origin) / 16;
-        }
-
-        private boolean inMap(int cx, int cz) {
-            return cx >= 0 && cz >= 0 && cx < chunkRadius * 2 - 1 && cz < chunkRadius * 2 - 1;
-        }
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-            UITheme.STATUS_PANEL.draw(graphics, mouseX, mouseY, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
-            int x = imageX(), y = imageY();
-            if (texture != null) texture.draw(graphics, x, y);
-            int cx = hoveredChunk(mouseX, x), cz = hoveredChunk(mouseY, y);
-            if (inMap(cx, cz)) graphics.fill(x + cx * 16, y + cz * 16, x + cx * 16 + 16, y + cz * 16 + 16, 0x4B6CF76C);
-        }
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-            int x = imageX(), y = imageY();
-            int cx = hoveredChunk(mouseX, x), cz = hoveredChunk(mouseY, y);
-            if (!inMap(cx, cz) || !isMouseOverElement(mouseX, mouseY)) return;
-            List<Component> tooltips = new ArrayList<>();
-            tooltips.add(Component.translatable(mode.unlocalizedName));
-            if (texture != null) {
-                List<Object[]> cell = new ArrayList<>();
-                for (int i = 0; i < mode.cellSize; i++) {
-                    for (int j = 0; j < mode.cellSize; j++) {
-                        var entry = texture.data[cx * mode.cellSize + i][cz * mode.cellSize + j];
-                        if (entry != null) cell.add(entry);
-                    }
-                }
-                mode.appendTooltips(cell, tooltips, texture.getSelected());
-            }
-            gui.getModularUIGui().setHoverTooltip(tooltips, ItemStack.EMPTY, null, null);
-        }
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (texture == null || !isMouseOverElement(mouseX, mouseY)) return super.mouseClicked(mouseX, mouseY, button);
-            var waypoint = waypointAt(mouseX, mouseY);
-            if (waypoint == null) return super.mouseClicked(mouseX, mouseY, button);
-            if (!WaypointManager.isActive()) return true;
+        private void addWaypoint(float worldX, float worldZ) {
+            if (!WaypointManager.isActive() || texture == null) return;
+            int localX = Mth.floor(worldX) - scanOffset * 16, localZ = Mth.floor(worldZ) - scanOffset * 16;
+            if (localX < 0 || localZ < 0 || localX >= scanSide * 16 || localZ >= scanSide * 16) return;
+            var waypoint = waypointAt(localX, localZ);
             MutableComponent veinName = Component.literal(waypoint.name());
             veinName.setStyle(veinName.getStyle().withColor(waypoint.color()));
             var player = gui.entityPlayer;
             WaypointManager.setWaypoint(new ChunkPos(waypoint.position()).toString(), waypoint.name(), waypoint.color(), player.level().dimension(),
                     waypoint.position().getX(), waypoint.position().getY(), waypoint.position().getZ());
             player.displayClientMessage(Component.translatable("behavior.prospector.added_waypoint", veinName), false);
-            playButtonClickSound();
-            return true;
         }
 
-        @Nullable
         @OnlyIn(Dist.CLIENT)
-        private Waypoint waypointAt(double mouseX, double mouseY) {
-            int x = imageX(), y = imageY();
-            int cx = hoveredChunk(mouseX, x), cz = hoveredChunk(mouseY, y);
-            if (!inMap(cx, cz) || texture == null) return null;
-            int offsetX = (int) (mouseX - x) % 16;
-            int offsetZ = (int) (mouseY - y) % 16;
-            var player = gui.entityPlayer;
-            int xPos = ((player.chunkPosition().x + cx - (chunkRadius - 1)) << 4) + offsetX;
-            int zPos = ((player.chunkPosition().z + cz - (chunkRadius - 1)) << 4) + offsetZ;
-            var level = player.level();
+        private Waypoint waypointAt(int localX, int localZ) {
+            int cx = localX >> 4, cz = localZ >> 4;
+            int offsetX = localX & 15, offsetZ = localZ & 15;
+            int xPos = ((playerChunkX + cx - (chunkRadius - 1)) << 4) + offsetX;
+            int zPos = ((playerChunkZ + cz - (chunkRadius - 1)) << 4) + offsetZ;
+            var level = gui.entityPlayer.level();
             var pos = new BlockPos(xPos, level.getHeight(Heightmap.Types.WORLD_SURFACE, xPos, zPos), zPos);
             if (!texture.getSelected().equals(ProspectingTexture.SELECTED_ALL)) {
                 var item = items.get(texture.getSelected());
@@ -358,6 +402,85 @@ public class ProspectorMapView extends UIElement {
                 return new Waypoint(pos, OreRenderLayer.getName(vein).getString(), vein.definition().veinGenerator().getAllMaterials().getLast().getMaterialRGB());
             }
             return new Waypoint(pos, "Depleted Vein", 10027008);
+        }
+    }
+
+    private final class MapLayer implements CanvasLayer {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(CanvasPainter painter, @Nullable CanvasItem hovered) {
+            int size = displaySide * 16;
+            painter.fill(0, 0, size, size, dark ? ColorPattern.GRAY.color : ColorPattern.WHITE.color);
+            painter.flush();
+            var graphics = painter.graphics();
+            if (texture != null) {
+                if (!textureLoaded) {
+                    texture.load();
+                    textureLoaded = true;
+                }
+                texture.draw(graphics, scanOffset * 16, scanOffset * 16);
+            }
+            int line = dark ? GRID_DARK : GRID_LIGHT;
+            for (int i = 0; i < displaySide; i++) {
+                painter.fill(i * 16, 0, i * 16 + 1, size, line);
+                painter.fill(0, i * 16, size, i * 16 + 1, line);
+            }
+            painter.flush();
+            for (int cz = 0; cz < displaySide; cz++) {
+                for (int cx = 0; cx < displaySide; cx++) {
+                    if (!inScan(cx, cz)) UITheme.drawDisabled(graphics, cx * 16, cz * 16, 17, 17);
+                }
+            }
+        }
+
+        @Override
+        public CanvasRect bounds() {
+            return CanvasRect.of(0, 0, displaySide * 16, displaySide * 16);
+        }
+    }
+
+    private final class ChunkCell implements CanvasItem {
+
+        private final int cx, cz;
+        private final boolean inScan;
+        private final CanvasRect bounds;
+
+        private ChunkCell(int cx, int cz, boolean inScan) {
+            this.cx = cx;
+            this.cz = cz;
+            this.inScan = inScan;
+            this.bounds = CanvasRect.of(cx * 16, cz * 16, 16, 16);
+        }
+
+        @Override
+        public CanvasRect bounds() {
+            return bounds;
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawShape(CanvasPainter painter, boolean hovered) {
+            if (hovered && inScan) painter.fill(bounds, HOVER_COLOR);
+        }
+
+        @Override
+        public List<Component> tooltip() {
+            if (!inScan) return List.of(Component.translatable(OUT_OF_RANGE));
+            List<Component> tooltips = new ArrayList<>();
+            tooltips.add(Component.translatable(mode.unlocalizedName));
+            if (texture != null) {
+                int x = cx - scanOffset, z = cz - scanOffset;
+                List<Object[]> cell = new ArrayList<>();
+                for (int i = 0; i < mode.cellSize; i++) {
+                    for (int j = 0; j < mode.cellSize; j++) {
+                        var entry = texture.data[x * mode.cellSize + i][z * mode.cellSize + j];
+                        if (entry != null) cell.add(entry);
+                    }
+                }
+                mode.appendTooltips(cell, tooltips, texture.getSelected());
+            }
+            return tooltips;
         }
     }
 

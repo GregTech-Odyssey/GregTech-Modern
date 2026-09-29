@@ -7,18 +7,22 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.ints.Int2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Reference2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -27,10 +31,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 public final class PatternBuilderModel {
 
-    public record Stock(long stored, boolean craftable) {}
+    public static final String ROLE_MORE = "gtceu.pattern_builder.role_more";
+    public static final String ROLE_EXCEPT = "gtceu.pattern_builder.role_except";
+
+    public record Stock(long stored, boolean craftable, long carried) {
+
+        public long total() {
+            return Math.max(stored, 0) + Math.max(carried, 0);
+        }
+    }
 
     public record Input(ItemStack stack, long count) {}
 
@@ -42,14 +55,14 @@ public final class PatternBuilderModel {
 
     public static final class Fixed {
 
-        private final ItemStack stack;
-        private final List<Group> merged = new ArrayList<>();
-        private int count;
-        private boolean included = true;
+        final ItemStack stack;
+        final List<Group> merged = new ArrayList<>();
+        int count;
+        boolean included = true;
         @Nullable
-        private PatternBuilderModel owner;
+        PatternBuilderModel owner;
 
-        private Fixed(ItemStack stack) {
+        Fixed(ItemStack stack) {
             this.stack = stack;
         }
 
@@ -70,21 +83,34 @@ public final class PatternBuilderModel {
         public void setIncluded(boolean included) {
             this.included = included;
             for (var group : merged) group.included = included;
-            if (owner != null) owner.inputs = null;
+            if (owner != null) owner.invalidateInputs();
         }
     }
 
     public static final class Group {
 
-        private final List<ItemStack> fills = new ArrayList<>();
-        private final List<ItemStack> sortedFills = new ArrayList<>();
-        private final Reference2IntOpenHashMap<Item> shown = new Reference2IntOpenHashMap<>();
-        private int positions;
-        private int fill;
-        private int allocated;
-        private boolean included = true;
+        final List<ItemStack> fills = new ArrayList<>();
+        final List<ItemStack> sortedFills = new ArrayList<>();
+        final List<Group> linked = new ArrayList<>();
+        final Reference2IntLinkedOpenHashMap<Item> extraLimits = new Reference2IntLinkedOpenHashMap<>();
+        final List<Candidate> extras = new ArrayList<>();
+        final Reference2ObjectOpenHashMap<Item, Candidate> fillCandidates = new Reference2ObjectOpenHashMap<>();
+        final Reference2IntOpenHashMap<Item> shown = new Reference2IntOpenHashMap<>();
+        final Int2IntLinkedOpenHashMap layerPositions = new Int2IntLinkedOpenHashMap();
         @Nullable
-        private PatternBuilderModel owner;
+        Item preferred;
+        int positions;
+        int fill;
+        int allocated;
+        int layerAllocated;
+        int section;
+        boolean included = true;
+        @Nullable
+        PatternBuilderModel owner;
+
+        public int getSection() {
+            return section;
+        }
 
         public List<ItemStack> getFills() {
             return fills;
@@ -102,13 +128,51 @@ public final class PatternBuilderModel {
             return !fills.isEmpty();
         }
 
+        int layerCapacity(int layerMax) {
+            int capacity = 0;
+            for (var it = layerPositions.int2IntEntrySet().fastIterator(); it.hasNext();) {
+                var entry = it.next();
+                capacity += entry.getIntKey() < 0 ? entry.getIntValue() : Math.min(layerMax, entry.getIntValue());
+            }
+            return capacity;
+        }
+
+        int preferredFill() {
+            if (preferred == null) return -1;
+            for (int i = 0; i < fills.size(); i++) {
+                if (fills.get(i).getItem() == preferred) return i;
+            }
+            return -1;
+        }
+
         public int getFill() {
             return fill;
         }
 
         public void setFill(int fill) {
-            if (fill >= 0 && fill < fills.size()) this.fill = fill;
-            if (owner != null) owner.inputs = null;
+            if (fill >= 0 && fill < fills.size()) {
+                this.fill = fill;
+                for (var group : linked) group.fill = fill;
+                var primary = fillCandidates.get(fills.get(fill).getItem());
+                if (primary != null) primary.selected = 0;
+            }
+            if (owner != null) owner.reallocate();
+        }
+
+        @Nullable
+        public Candidate getFillCandidate(ItemStack stack) {
+            return fillCandidates.get(stack.getItem());
+        }
+
+        public List<Candidate> getExtras() {
+            return extras;
+        }
+
+        List<Group> linkedWithSelf() {
+            var all = new ArrayList<Group>(linked.size() + 1);
+            all.add(this);
+            all.addAll(linked);
+            return all;
         }
 
         public ItemStack getFillStack() {
@@ -116,11 +180,15 @@ public final class PatternBuilderModel {
         }
 
         public int getPositions() {
-            return positions;
+            int total = positions;
+            for (var group : linked) total += group.positions;
+            return total;
         }
 
         public int getFillCount() {
-            return Math.max(0, positions - allocated);
+            int total = Math.max(0, positions - allocated);
+            for (var group : linked) total += Math.max(0, group.positions - group.allocated);
+            return total;
         }
 
         public boolean isIncluded() {
@@ -129,18 +197,37 @@ public final class PatternBuilderModel {
 
         public void setIncluded(boolean included) {
             this.included = included;
-            if (owner != null) owner.inputs = null;
+            for (var group : linked) group.included = included;
+            if (owner != null) owner.invalidateInputs();
         }
     }
 
-    public final class Candidate {
+    public static final class Candidate {
 
-        private final ItemStack stack;
-        private final List<Group> groups = new ArrayList<>();
-        private int selected;
+        private final PatternBuilderModel owner;
+        final ItemStack stack;
+        final List<Group> groups = new ArrayList<>();
+        final Reference2IntOpenHashMap<Group> taken = new Reference2IntOpenHashMap<>();
+        int selected;
+        int limit = -1;
+        int layerMax = -1;
+        int kind;
+        final int section;
 
-        private Candidate(ItemStack stack) {
+        Candidate(PatternBuilderModel owner, ItemStack stack, int section) {
+            this.owner = owner;
             this.stack = stack;
+            this.section = section;
+        }
+
+        public int getSection() {
+            return section;
+        }
+
+        int capacity() {
+            int capacity = 0;
+            for (var group : groups) capacity += layerMax >= 0 ? group.layerCapacity(layerMax) : group.positions;
+            return limit >= 0 ? Math.min(limit, capacity) : capacity;
         }
 
         public ItemStack getStack() {
@@ -153,25 +240,27 @@ public final class PatternBuilderModel {
 
         public void setSelected(int selected) {
             this.selected = Math.max(0, Math.min(selected, getMax()));
-            reallocate();
+            owner.reallocate();
         }
 
         public int getMax() {
             int free = 0;
             for (var group : groups) free += group.positions - group.allocated;
-            return selected + free;
+            return limit >= 0 ? Math.min(limit, selected + free) : selected + free;
         }
     }
 
-    public final class Role {
+    public static final class Role {
 
         private final Component name;
-        private final int min;
-        private final int max;
-        private final List<Candidate> candidates = new ArrayList<>();
-        private final List<Candidate> original = new ArrayList<>();
+        int min;
+        final int max;
+        int preview;
+        final List<Candidate> candidates = new ArrayList<>();
+        final List<Candidate> original = new ArrayList<>();
+        private final Int2ObjectLinkedOpenHashMap<List<Candidate>> bySection = new Int2ObjectLinkedOpenHashMap<>();
 
-        private Role(Component name, int min, int max) {
+        Role(Component name, int min, int max) {
             this.name = name;
             this.min = min;
             this.max = max;
@@ -203,69 +292,71 @@ public final class PatternBuilderModel {
             return tally;
         }
 
+        public int getTally(int section) {
+            int tally = 0;
+            for (var candidate : candidates) {
+                if (candidate.section == section) tally += candidate.selected;
+            }
+            return tally;
+        }
+
+        public IntList getSections() {
+            var sections = new IntArrayList();
+            for (var candidate : original) {
+                if (candidate.section >= 0 && !sections.contains(candidate.section)) sections.add(candidate.section);
+            }
+            return sections;
+        }
+
+        public List<Candidate> getCandidates(int section) {
+            var list = bySection.get(section);
+            return list == null ? List.of() : list;
+        }
+
+        void index() {
+            bySection.clear();
+            for (var candidate : candidates) bySection.computeIfAbsent(candidate.section, s -> new ArrayList<>()).add(candidate);
+        }
+
         public boolean isSatisfied() {
             int tally = getTally();
             return tally >= Math.max(min, 0) && (max < 0 || tally <= max);
         }
     }
 
-    private final List<Fixed> fixed;
-    private final List<Group> groups;
-    private final List<Group> allGroups;
-    private final List<Candidate> candidates;
-    private final List<Candidate> allocationOrder;
-    private final List<Role> roles;
+    final List<Fixed> fixed;
+    final List<Group> groups;
+    final List<Group> allGroups;
+    final List<Candidate> candidates;
+    final List<Candidate> allocationOrder;
+    final List<Role> roles;
+    final List<ModelAssembly.ExtraMinimum> extraMinimums;
+    final List<ModelAssembly.Padding> paddings;
+    final Map<GroupKey, Group> groupOf;
+    final Reference2ObjectOpenHashMap<TraceabilityPredicate, Item> fixedOf;
+    final Reference2ObjectOpenHashMap<Item, Fixed> fixedByItem;
     private final Function<ItemStack, Stock> stock;
+    private final IntFunction<Component> sectionTitles;
     private int overflow;
+    private int version;
     @Nullable
     private List<Input> inputs;
 
     private PatternBuilderModel(Builder builder, Function<ItemStack, Stock> stock) {
         this.stock = stock;
-        var groupList = new ArrayList<>(builder.groups.values());
-        groupList.sort(Comparator.comparingInt(g -> -g.positions));
-        this.allGroups = List.copyOf(groupList);
-        var fixedMap = new Reference2ObjectLinkedOpenHashMap<>(builder.fixed);
-        var standalone = new ArrayList<Group>();
-        for (var group : allGroups) {
-            group.owner = this;
-            int best = -1;
-            for (int i = 0; i < group.fills.size(); i++) {
-                if (best < 0 || group.shown.getInt(group.fills.get(i).getItem()) > group.shown.getInt(group.fills.get(best).getItem())) best = i;
-            }
-            group.fill = Math.max(best, 0);
-            if (group.fills.size() == 1) {
-                var item = group.fills.get(0).getItem();
-                fixedMap.computeIfAbsent(item, i -> new Fixed(new ItemStack(item))).merged.add(group);
-            } else if (group.fills.size() > 1) {
-                standalone.add(group);
-            }
-        }
-        this.groups = List.copyOf(standalone);
-        var fixedList = new ArrayList<>(fixedMap.values());
-        fixedList.sort(Comparator.comparing((Fixed f) -> !ItemStack.isSameItem(f.stack, builder.controller)).thenComparingInt(f -> -f.getCount()));
-        for (var entry : fixedList) entry.owner = this;
-        this.fixed = List.copyOf(fixedList);
-        var candidateMap = new Reference2ObjectLinkedOpenHashMap<Item, Candidate>();
-        var roleList = new ArrayList<Role>();
-        for (var draft : builder.roles.values()) {
-            var role = new Role(draft.name, draft.min, draft.max);
-            for (var item : draft.items) {
-                var candidate = candidateMap.computeIfAbsent(item, i -> new Candidate(new ItemStack(item)));
-                for (var group : builder.itemGroups.get(item)) {
-                    if (!candidate.groups.contains(group)) candidate.groups.add(group);
-                }
-                role.candidates.add(candidate);
-            }
-            role.original.addAll(role.candidates);
-            roleList.add(role);
-        }
-        roleList.sort(Comparator.comparing(role -> !role.isRequired()));
-        this.roles = List.copyOf(roleList);
-        this.candidates = List.copyOf(candidateMap.values());
-        var order = new ArrayList<>(candidates);
-        order.sort(Comparator.comparingInt(c -> c.groups.size()));
-        this.allocationOrder = List.copyOf(order);
+        this.sectionTitles = builder.sectionTitles;
+        var assembly = new ModelAssembly(this, builder);
+        this.groupOf = assembly.groupOf;
+        this.fixedOf = assembly.fixedOf;
+        this.fixedByItem = assembly.fixedByItem;
+        this.allGroups = assembly.allGroups;
+        this.groups = assembly.groups;
+        this.fixed = assembly.fixed;
+        this.roles = assembly.roles;
+        this.paddings = assembly.paddings;
+        this.extraMinimums = assembly.extraMinimums;
+        this.candidates = assembly.candidates;
+        this.allocationOrder = assembly.allocationOrder;
     }
 
     public static Builder builder(ItemStack controller) {
@@ -282,6 +373,16 @@ public final class PatternBuilderModel {
 
     public List<Role> getRoles() {
         return roles;
+    }
+
+    public IntList getSections() {
+        var sections = new IntAVLTreeSet();
+        for (var role : roles) sections.addAll(role.getSections());
+        return new IntArrayList(sections);
+    }
+
+    public Component getSectionTitle(int section) {
+        return sectionTitles.apply(section);
     }
 
     public boolean isEmpty() {
@@ -316,7 +417,10 @@ public final class PatternBuilderModel {
             if (candidate.selected > 0) add(merged, stacks, candidate.stack, candidate.selected);
         }
         var inputs = new ArrayList<Input>(merged.size());
-        for (var entry : merged.reference2LongEntrySet()) inputs.add(new Input(stacks.get(entry.getKey()), entry.getLongValue()));
+        for (var it = merged.reference2LongEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
+            inputs.add(new Input(stacks.get(entry.getKey()), entry.getLongValue()));
+        }
         return inputs;
     }
 
@@ -325,119 +429,235 @@ public final class PatternBuilderModel {
         stacks.putIfAbsent(stack.getItem(), stack);
     }
 
-    private void reallocate() {
+    public int getVersion() {
+        return version;
+    }
+
+    private void invalidateInputs() {
         inputs = null;
-        for (var group : allGroups) group.allocated = 0;
+        version++;
+    }
+
+    void reallocate() {
+        invalidateInputs();
+        for (var group : allGroups) {
+            group.allocated = 0;
+            group.layerAllocated = 0;
+        }
         overflow = 0;
         for (var candidate : allocationOrder) {
+            candidate.taken.clear();
             int remaining = candidate.selected;
-            for (var group : candidate.groups) {
-                int take = Math.min(remaining, group.positions - group.allocated);
-                group.allocated += take;
-                remaining -= take;
+            for (int pass = 0; pass < 2; pass++) {
+                for (var group : candidate.groups) {
+                    if (group.fills.isEmpty() != (pass == 0)) continue;
+                    int room = group.positions - group.allocated;
+                    if (candidate.layerMax >= 0) room = Math.min(room, group.layerCapacity(candidate.layerMax) - group.layerAllocated);
+                    int take = Math.max(0, Math.min(remaining, room));
+                    group.allocated += take;
+                    if (candidate.layerMax >= 0) group.layerAllocated += take;
+                    candidate.taken.addTo(group, take);
+                    remaining -= take;
+                }
             }
             overflow += remaining;
         }
     }
 
+    public boolean hasUnfilled() {
+        for (var group : allGroups) {
+            if (group.fills.isEmpty() && group.allocated < group.positions) return true;
+        }
+        return false;
+    }
+
+    public boolean isComplete() {
+        if (hasUnfilled() || overflow > 0) return false;
+        for (var role : roles) {
+            if (!role.isSatisfied()) return false;
+        }
+        for (var minimum : extraMinimums) {
+            if (minimum.selected() < minimum.min()) return false;
+        }
+        return true;
+    }
+
+    public void selectMinimum() {
+        for (var padding : paddings) {
+            var fits = new ArrayList<Candidate>();
+            for (var candidate : padding.role().original) {
+                if (candidate.groups.contains(padding.group())) fits.add(candidate);
+            }
+            if (fits.isEmpty()) continue;
+            int have = 0;
+            for (var candidate : fits) have += candidate.selected;
+            if (have >= padding.count()) continue;
+            distribute(fits, padding.count() - have);
+        }
+        for (var role : roles) {
+            if (role.min <= 0 || role.original.isEmpty() || role.getTally() >= role.min) continue;
+            distribute(role.original, role.min - role.getTally());
+        }
+        for (var minimum : extraMinimums) {
+            int have = minimum.selected();
+            if (have >= minimum.min()) continue;
+            int favorite = PatternFavorites.preferred(minimum.candidates(), candidate -> candidate.stack.getItem());
+            minimum.candidates().get(Math.max(favorite, 0)).selected += minimum.min() - have;
+        }
+        for (var role : roles) {
+            if (role.preview <= 0 || role.original.isEmpty() || role.getTally() >= role.preview) continue;
+            distribute(role.original, role.preview - role.getTally());
+        }
+        reallocate();
+    }
+
+    private static void distribute(List<Candidate> pool, int amount) {
+        int favorite = Math.max(PatternFavorites.preferred(pool, candidate -> candidate.stack.getItem()), 0);
+        var item = pool.get(favorite).stack.getItem();
+        for (var candidate : pool) {
+            if (amount <= 0) return;
+            if (candidate.stack.getItem() != item) continue;
+            int add = Math.min(amount, Math.max(0, candidate.capacity() - candidate.selected));
+            candidate.selected += add;
+            amount -= add;
+        }
+        if (amount > 0) pool.get(favorite).selected += amount;
+    }
+
+    public Item[] assign(List<TraceabilityPredicate> cells, IntComparator order, @Nullable int[] layers, @Nullable int[] sections) {
+        return ModelPlacement.assign(this, cells, order, layers, sections);
+    }
+
     public void sort(Sort sort) {
+        var order = sort == Sort.NONE ? null : StockOrder.of(sort, stock);
         for (var group : groups) {
             group.sortedFills.clear();
             group.sortedFills.addAll(group.fills);
-            if (sort != Sort.NONE) group.sortedFills.sort(stackOrder(sort));
+            if (order != null) group.sortedFills.sort(order);
         }
         for (var role : roles) {
             role.candidates.clear();
             role.candidates.addAll(role.original);
-            if (sort != Sort.NONE) role.candidates.sort(Comparator.comparing(candidate -> candidate.stack, stackOrder(sort)));
+            if (order != null) role.candidates.sort(Comparator.comparing(candidate -> candidate.stack, order));
+            role.index();
         }
-    }
-
-    private Comparator<ItemStack> stackOrder(Sort sort) {
-        Comparator<ItemStack> rank = sort == Sort.CRAFTABLE ? Comparator.comparingInt(this::craftRank) : Comparator.comparingInt(this::stockRank);
-        return rank.thenComparingLong(stack -> -storedOf(stack));
-    }
-
-    private int stockRank(ItemStack stack) {
-        var entry = stock.apply(stack);
-        if (entry == null) return 2;
-        if (entry.stored > 0) return 0;
-        return entry.craftable ? 1 : 2;
-    }
-
-    private int craftRank(ItemStack stack) {
-        var entry = stock.apply(stack);
-        if (entry == null) return 2;
-        if (entry.craftable) return 0;
-        return entry.stored > 0 ? 1 : 2;
-    }
-
-    private long storedOf(ItemStack stack) {
-        var entry = stock.apply(stack);
-        return entry == null ? 0 : entry.stored;
     }
 
     public static final class Builder {
 
-        private final ItemStack controller;
-        private final Reference2ObjectLinkedOpenHashMap<Item, Fixed> fixed = new Reference2ObjectLinkedOpenHashMap<>();
-        private final Reference2ObjectLinkedOpenHashMap<TraceabilityPredicate, Group> groups = new Reference2ObjectLinkedOpenHashMap<>();
-        private final Map<List<Item>, RoleDraft> roles = new LinkedHashMap<>();
-        private final Reference2ObjectOpenHashMap<Item, List<Group>> itemGroups = new Reference2ObjectOpenHashMap<>();
-        private Function<PartAbility, Component> abilityNames = ability -> null;
-        @Nullable
-        private ReferenceOpenHashSet<Block> partBlocks;
-        @Nullable
-        private Reference2ObjectLinkedOpenHashMap<PartAbility, ReferenceOpenHashSet<Block>> abilityBlocks;
+        final ItemStack controller;
+        final Reference2ObjectLinkedOpenHashMap<Item, Fixed> fixed = new Reference2ObjectLinkedOpenHashMap<>();
+        final Reference2ObjectOpenHashMap<TraceabilityPredicate, Item> fixedOf = new Reference2ObjectOpenHashMap<>();
+        final LinkedHashMap<GroupKey, Group> groups = new LinkedHashMap<>();
+        IntFunction<Component> sectionTitles = section -> Component.empty();
+        final Map<Object, RoleDraft> roles = new LinkedHashMap<>();
+        final Reference2ObjectOpenHashMap<Item, List<Group>> itemGroups = new Reference2ObjectOpenHashMap<>();
+        final Map<List<Item>, Integer> extraMinimums = new LinkedHashMap<>();
+        final List<Preplaced> preplaced = new ArrayList<>();
+        private final RoleNames names = new RoleNames();
 
         private Builder(ItemStack controller) {
             this.controller = controller;
         }
 
         public Builder abilityNames(Function<PartAbility, Component> abilityNames) {
-            this.abilityNames = abilityNames;
+            names.setAbilityNames(abilityNames);
             return this;
         }
 
+        public Builder preplace(TraceabilityPredicate predicate, Item item) {
+            preplaced.add(new Preplaced(predicate, item));
+            return this;
+        }
+
+        int preplacedCount(Item item) {
+            int count = 0;
+            for (var placed : preplaced) {
+                if (placed.item() == item) count++;
+            }
+            return count;
+        }
+
         public Builder addCell(@Nullable BlockInfo shown, @Nullable TraceabilityPredicate predicate) {
+            return addCell(shown, predicate, -1);
+        }
+
+        public Builder sectionTitles(IntFunction<Component> sectionTitles) {
+            this.sectionTitles = sectionTitles;
+            return this;
+        }
+
+        public Builder addCell(@Nullable BlockInfo shown, @Nullable TraceabilityPredicate predicate, int layer) {
+            return addCell(shown, predicate, layer, 0);
+        }
+
+        public Builder addCell(@Nullable BlockInfo shown, @Nullable TraceabilityPredicate predicate, int layer, int section) {
             if (predicate == null || shown == null) return this;
+            var groupKey = new GroupKey(predicate, section);
             var shownItem = SimplePredicate.toItem(shown.getBlockState().getBlock());
             if (shownItem == Items.AIR || shownItem == Items.BARRIER) return this;
-            var group = groups.get(predicate);
+            var group = groups.get(groupKey);
             if (group != null) {
                 group.positions++;
+                group.layerPositions.addTo(layer, 1);
                 group.shown.addTo(shownItem, 1);
                 return this;
             }
+            var simples = simplePredicates(predicate);
             var union = new ReferenceLinkedOpenHashSet<Item>();
-            for (var simple : simplePredicates(predicate)) union.addAll(candidateItems(simple));
+            for (var simple : simples) union.addAll(candidateItems(simple));
             if (union.size() <= 1) {
                 var item = union.isEmpty() ? shownItem : union.first();
+                fixedOf.putIfAbsent(predicate, item);
                 var entry = fixed.computeIfAbsent(item, i -> new Fixed(new ItemStack(item)));
                 entry.count = ItemStack.isSameItem(entry.stack, controller) ? 1 : entry.count + 1;
                 return this;
             }
             group = new Group();
+            group.section = section;
             group.positions = 1;
+            group.layerPositions.addTo(layer, 1);
             group.shown.addTo(shownItem, 1);
-            groups.put(predicate, group);
+            groups.put(groupKey, group);
             var fills = new ReferenceLinkedOpenHashSet<Item>();
-            for (var simple : simplePredicates(predicate)) {
-                var parts = new ArrayList<Item>();
-                for (var item : candidateItems(simple)) {
-                    if (isPart(item)) parts.add(item);
-                    else fills.add(item);
-                }
-                if (parts.isEmpty()) continue;
-                var role = roles.computeIfAbsent(List.copyOf(parts), key -> new RoleDraft(roleName(key), simple.minCount, simple.maxCount));
-                for (var item : parts) {
+            for (var simple : simples) {
+                if (simple != null) addSimple(group, simple, fills);
+            }
+            for (var item : fills) {
+                group.fills.add(new ItemStack(item));
+                group.extraLimits.removeInt(item);
+            }
+            return this;
+        }
+
+        private void addSimple(Group group, SimplePredicate simple, ReferenceLinkedOpenHashSet<Item> fills) {
+            var parts = new ArrayList<Item>();
+            var limited = new ArrayList<Item>();
+            boolean countLimited = simple.maxCount >= 0 || simple.maxLayerCount >= 0;
+            for (var item : candidateItems(simple)) {
+                if (names.isPart(item)) {
+                    parts.add(item);
+                } else if (!countLimited) {
+                    fills.add(item);
+                    if (simple.minCount > 0 && group.preferred == null) group.preferred = item;
+                } else {
+                    group.extraLimits.put(item, simple.maxCount);
+                    limited.add(item);
                     var list = itemGroups.computeIfAbsent(item, i -> new ArrayList<>());
                     if (!list.contains(group)) list.add(group);
-                    if (!role.items.contains(item)) role.items.add(item);
                 }
             }
-            for (var item : fills) group.fills.add(new ItemStack(item));
-            return this;
+            if (simple.minCount > 0 && !limited.isEmpty()) extraMinimums.merge(List.copyOf(limited), simple.minCount, Math::max);
+            if (parts.isEmpty()) return;
+            var key = countLimited || simple.minCount > 0 ? simple : List.copyOf(parts);
+            var role = roles.computeIfAbsent(key, k -> new RoleDraft(names.roleName(simple, parts), simple.minCount, simple.maxCount,
+                    k instanceof SimplePredicate, simple.maxLayerCount, simple.previewCount));
+            if (role.own && !role.groups.contains(group)) role.groups.add(group);
+            for (var item : parts) {
+                var list = itemGroups.computeIfAbsent(item, i -> new ArrayList<>());
+                if (!list.contains(group)) list.add(group);
+                if (!role.items.contains(item)) role.items.add(item);
+            }
         }
 
         public PatternBuilderModel build(Function<ItemStack, Stock> stock) {
@@ -448,8 +668,7 @@ public final class PatternBuilderModel {
 
         private static List<SimplePredicate> simplePredicates(TraceabilityPredicate predicate) {
             var list = new ArrayList<SimplePredicate>(predicate.common.size() + predicate.limited.size());
-            list.addAll(predicate.common);
-            list.addAll(predicate.limited);
+            predicate.forEachSimple(list::add);
             return list;
         }
 
@@ -462,74 +681,30 @@ public final class PatternBuilderModel {
             }
             return items;
         }
-
-        private boolean isPart(Item item) {
-            if (!(item instanceof BlockItem blockItem)) return false;
-            if (partBlocks == null) {
-                partBlocks = new ReferenceOpenHashSet<>();
-                for (var blocks : abilityBlocks().values()) partBlocks.addAll(blocks);
-            }
-            return partBlocks.contains(blockItem.getBlock());
-        }
-
-        private Reference2ObjectLinkedOpenHashMap<PartAbility, ReferenceOpenHashSet<Block>> abilityBlocks() {
-            if (abilityBlocks == null) {
-                abilityBlocks = new Reference2ObjectLinkedOpenHashMap<>();
-                for (var ability : PartAbility.getAll()) {
-                    var blocks = ability.getAllBlocks();
-                    if (!blocks.isEmpty()) abilityBlocks.put(ability, new ReferenceOpenHashSet<>(blocks));
-                }
-            }
-            return abilityBlocks;
-        }
-
-        private Component roleName(List<Item> items) {
-            var blocks = new ReferenceOpenHashSet<Block>();
-            for (var item : items) blocks.add(((BlockItem) item).getBlock());
-            PartAbility superset = null;
-            int supersetSize = Integer.MAX_VALUE;
-            var subsets = new ArrayList<Map.Entry<PartAbility, ReferenceOpenHashSet<Block>>>();
-            for (var entry : abilityBlocks().entrySet()) {
-                var set = entry.getValue();
-                if (set.containsAll(blocks)) {
-                    if (set.size() < supersetSize && abilityNames.apply(entry.getKey()) != null) {
-                        superset = entry.getKey();
-                        supersetSize = set.size();
-                    }
-                } else if (blocks.containsAll(set) && abilityNames.apply(entry.getKey()) != null) {
-                    subsets.add(entry);
-                }
-            }
-            if (superset != null) return abilityNames.apply(superset);
-            subsets.sort(Comparator.comparingInt(entry -> -entry.getValue().size()));
-            var covered = new ReferenceOpenHashSet<Block>();
-            var names = new ArrayList<Component>();
-            for (var entry : subsets) {
-                if (covered.containsAll(entry.getValue())) continue;
-                covered.addAll(entry.getValue());
-                names.add(abilityNames.apply(entry.getKey()));
-                if (covered.size() == blocks.size()) break;
-            }
-            if (covered.size() == blocks.size() && !names.isEmpty()) {
-                var name = Component.empty().append(names.get(0));
-                for (int i = 1; i < names.size(); i++) name.append(" / ").append(names.get(i));
-                return name;
-            }
-            return items.get(0).getDescription();
-        }
     }
 
-    private static final class RoleDraft {
+    record Preplaced(TraceabilityPredicate predicate, Item item) {}
 
-        private final Component name;
-        private final int min;
-        private final int max;
-        private final List<Item> items = new ArrayList<>();
+    record GroupKey(TraceabilityPredicate predicate, int section) {}
 
-        private RoleDraft(Component name, int min, int max) {
+    static final class RoleDraft {
+
+        final Component name;
+        final int min;
+        final int max;
+        final List<Item> items = new ArrayList<>();
+        final List<Group> groups = new ArrayList<>();
+        final boolean own;
+        final int layerMax;
+        final int layerPreview;
+
+        RoleDraft(Component name, int min, int max, boolean own, int layerMax, int layerPreview) {
             this.name = name;
             this.min = min;
             this.max = max;
+            this.own = own;
+            this.layerMax = layerMax;
+            this.layerPreview = layerPreview;
         }
     }
 }

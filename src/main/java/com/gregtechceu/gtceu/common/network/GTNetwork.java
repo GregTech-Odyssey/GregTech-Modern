@@ -16,6 +16,9 @@ public class GTNetwork {
     public static void init() {
         NETWORK.registerC2S(CPacketKeysPressed.class);
         NETWORK.registerC2S(CPacketSprayCanAction.class);
+        NETWORK.registerC2S(CPacketBuildUpload.class);
+        NETWORK.registerC2S(CPacketStructureBuild.class);
+        NETWORK.registerC2S(CPacketCarriedStock.class);
 
         NETWORK.registerS2C(SPacketProspectOre.class);
         NETWORK.registerS2C(SPacketProspectBedrockFluid.class);
@@ -23,5 +26,6 @@ public class GTNetwork {
         NETWORK.registerS2C(SPacketSendWorldID.class);
         NETWORK.registerS2C(SCPacketUpdateActiveBlock.class);
         NETWORK.registerS2C(SCPacketStructureFormed.class);
+        NETWORK.registerS2C(SPacketCarriedStock.class);
     }
 }

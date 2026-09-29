@@ -19,6 +19,10 @@ public class PredicateDirections extends SimplePredicate {
         buildPredicate();
     }
 
+    public RelativeDirection[] getDirections() {
+        return directions;
+    }
+
     @Override
     public SimplePredicate buildPredicate() {
         predicate = blockWorldState -> {

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.data.machines;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
@@ -10,8 +9,10 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CoilWorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
-import com.gregtechceu.gtceu.api.pattern.MultiblockShapeInfo;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Piece;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Slot;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
@@ -31,19 +32,13 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import appeng.api.networking.pathing.ChannelMode;
 import appeng.core.AEConfig;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
@@ -88,15 +83,19 @@ public class GTMultiMachines {
             .allRotation()
             .recipeType(GTRecipeTypes.COKE_OVEN_RECIPES)
             .appearanceBlock(CASING_COKE_BRICKS)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX")
-                    .aisle("XXX", "X#X", "XXX")
-                    .aisle("XXX", "XYX", "XXX")
-                    .wherePart('X',
-                            blocks(CASING_COKE_BRICKS.get()).or(blocks(COKE_OVEN_HATCH.get()).setMaxGlobalLimited(5)))
-                    .where('#', Predicates.air())
-                    .where('Y', Predicates.controller(definition))
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .wherePart('X',
+                                blocks(CASING_COKE_BRICKS.get()).or(blocks(COKE_OVEN_HATCH.get()).setMaxGlobalLimited(5)))
+                        .where('#', Predicates.air())
+                        .where('Y', Predicates.controller(definition));
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX")
+                        .aisle("XXX", "X#X", "XXX")
+                        .aisle("XXX", "XYX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_coke_bricks"),
                     GTCEu.id("block/multiblock/coke_oven"))
             .register();
@@ -109,14 +108,18 @@ public class GTMultiMachines {
                     GTCEu.id("block/multiblock/primitive_blast_furnace")))
             .hasTESR(true)
             .appearanceBlock(CASING_PRIMITIVE_BRICKS)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX", "XXX")
-                    .aisle("XXX", "X#X", "X#X", "X#X")
-                    .aisle("XXX", "XYX", "XXX", "XXX")
-                    .wherePart('X', blocks(CASING_PRIMITIVE_BRICKS.get()))
-                    .where('#', Predicates.air())
-                    .where('Y', Predicates.controller(definition))
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .wherePart('X', blocks(CASING_PRIMITIVE_BRICKS.get()))
+                        .where('#', Predicates.air())
+                        .where('Y', Predicates.controller(definition));
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX", "XXX")
+                        .aisle("XXX", "X#X", "X#X", "X#X")
+                        .aisle("XXX", "XYX", "XXX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .register();
 
     public static final MultiblockMachineDefinition ELECTRIC_BLAST_FURNACE = REGISTRATE
@@ -125,18 +128,22 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.BLAST_RECIPES)
             .recipeModifiers(RecipeModifier.EBF_OVERCLOCK)
             .appearanceBlock(CASING_INVAR_HEATPROOF)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "CCC", "CCC", "XXX")
-                    .aisle("XXX", "C#C", "C#C", "XMX")
-                    .aisle("XSX", "CCC", "CCC", "XXX")
-                    .where('S', controller(definition))
-                    .wherePart('X', blocks(CASING_INVAR_HEATPROOF.get()).setMinGlobalLimited(9)
-                            .or(autoAbilities(definition.getRecipeTypes()))
-                            .or(autoAbilities(true, false, false)))
-                    .where('M', abilities(PartAbility.MUFFLER))
-                    .where('C', heatingCoils())
-                    .where('#', air())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', controller(definition))
+                        .wherePart('X', blocks(CASING_INVAR_HEATPROOF.get()).setMinGlobalLimited(9)
+                                .or(autoAbilities(definition.getRecipeTypes()))
+                                .or(autoAbilities(true, false, false)))
+                        .where('M', abilities(PartAbility.MUFFLER))
+                        .where('C', heatingCoils())
+                        .where('#', air());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "CCC", "CCC", "XXX")
+                        .aisle("XXX", "C#C", "C#C", "XMX")
+                        .aisle("XSX", "CCC", "CCC", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .recoveryStaticItems(() -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_heatproof"),
                     GTCEu.id("block/multiblock/electric_blast_furnace"))
@@ -163,61 +170,23 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.LARGE_CHEMICAL_RECIPES)
             .recipeModifiers(RecipeModifier.PERFECT_OVERCLOCKING)
             .appearanceBlock(CASING_PTFE_INERT)
-            .pattern(definition -> {
+            .structure(definition -> {
                 var casing = blocks(CASING_PTFE_INERT.get()).setMinGlobalLimited(10);
                 var abilities = Predicates.autoAbilities(definition.getRecipeTypes())
                         .or(Predicates.autoAbilities(true, false, false));
-                return FactoryBlockPattern.start(definition)
-                        .aisle("XXX", "XCX", "XXX")
-                        .aisle("XCX", "CPC", "XCX")
-                        .aisle("XXX", "XSX", "XXX")
+                var symbols = Symbols.create()
                         .where('S', Predicates.controller(definition))
                         .wherePart('X', casing.or(abilities))
                         .where('P', blocks(CASING_POLYTETRAFLUOROETHYLENE_PIPE.get()))
                         .where('C', Predicates.heatingCoils().setExactLimit(1)
                                 .or(abilities)
-                                .or(casing))
+                                .or(casing));
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XCX", "XXX")
+                        .aisle("XCX", "CPC", "XCX")
+                        .aisle("XXX", "XSX", "XXX")
                         .build();
-            })
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                var baseBuilder = MultiblockShapeInfo.builder()
-                        .where('S', definition, Direction.NORTH)
-                        .where('X', CASING_PTFE_INERT.getDefaultState())
-                        .where('P', CASING_POLYTETRAFLUOROETHYLENE_PIPE.getDefaultState())
-                        .where('C', COIL_CUPRONICKEL.getDefaultState())
-                        .where('I', ITEM_IMPORT_BUS[3], Direction.NORTH)
-                        .where('E', ENERGY_INPUT_HATCH[3], Direction.NORTH)
-                        .where('O', ITEM_EXPORT_BUS[3], Direction.NORTH)
-                        .where('F', FLUID_IMPORT_HATCH[3], Direction.NORTH)
-                        .where('M', MAINTENANCE_HATCH, Direction.NORTH)
-                        .where('H', FLUID_EXPORT_HATCH[3], Direction.NORTH);
-                shapeInfo.add(baseBuilder.shallowCopy()
-                        .aisle("IXO", "FSH", "XMX")
-                        .aisle("XXX", "XPX", "XXX")
-                        .aisle("XEX", "XCX", "XXX")
-                        .build(definition));
-                shapeInfo.add(baseBuilder.shallowCopy()
-                        .aisle("IXO", "FSH", "XMX")
-                        .aisle("XXX", "XPX", "XCX")
-                        .aisle("XEX", "XXX", "XXX")
-                        .build(definition));
-                shapeInfo.add(baseBuilder.shallowCopy()
-                        .aisle("IXO", "FSH", "XMX")
-                        .aisle("XCX", "XPX", "XXX")
-                        .aisle("XEX", "XXX", "XXX")
-                        .build(definition));
-                shapeInfo.add(baseBuilder.shallowCopy()
-                        .aisle("IXO", "FSH", "XMX")
-                        .aisle("XXX", "CPX", "XXX")
-                        .aisle("XEX", "XXX", "XXX")
-                        .build(definition));
-                shapeInfo.add(baseBuilder.shallowCopy()
-                        .aisle("IXO", "FSH", "XMX")
-                        .aisle("XXX", "XPC", "XXX")
-                        .aisle("XEX", "XXX", "XXX")
-                        .build(definition));
-                return shapeInfo;
+                return Structure.root(piece).symbols(symbols).build();
             })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_inert_ptfe"),
                     GTCEu.id("block/multiblock/large_chemical_reactor"))
@@ -229,16 +198,20 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.IMPLOSION_RECIPES)
             .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_STEEL_SOLID)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX")
-                    .aisle("XXX", "X#X", "XXX")
-                    .aisle("XXX", "XSX", "XXX")
-                    .where('S', controller(definition))
-                    .wherePart('X', blocks(CASING_STEEL_SOLID.get()).setMinGlobalLimited(14)
-                            .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                            .or(Predicates.autoAbilities(true, true, false)))
-                    .where('#', Predicates.air())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', controller(definition))
+                        .wherePart('X', blocks(CASING_STEEL_SOLID.get()).setMinGlobalLimited(14)
+                                .or(Predicates.autoAbilities(definition.getRecipeTypes()))
+                                .or(Predicates.autoAbilities(true, true, false)))
+                        .where('#', Predicates.air());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX")
+                        .aisle("XXX", "X#X", "XXX")
+                        .aisle("XXX", "XSX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_solid_steel"),
                     GTCEu.id("block/multiblock/implosion_compressor"))
             .register();
@@ -249,19 +222,23 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.PYROLYSE_RECIPES)
             .recipeModifiers(RecipeModifier.PYROLYSE_OVEN_OVERCLOCK)
             .appearanceBlock(MACHINE_CASING_ULV)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX")
-                    .aisle("CCC", "C#C", "CCC")
-                    .aisle("CCC", "C#C", "CCC")
-                    .aisle("XXX", "XSX", "XXX")
-                    .where('S', Predicates.controller(definition))
-                    .wherePart('X',
-                            blocks(MACHINE_CASING_ULV.get()).setMinGlobalLimited(6)
-                                    .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                                    .or(Predicates.autoAbilities(true, true, false)))
-                    .where('C', Predicates.heatingCoils())
-                    .where('#', Predicates.air())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', Predicates.controller(definition))
+                        .wherePart('X',
+                                blocks(MACHINE_CASING_ULV.get()).setMinGlobalLimited(6)
+                                        .or(Predicates.autoAbilities(definition.getRecipeTypes()))
+                                        .or(Predicates.autoAbilities(true, true, false)))
+                        .where('C', Predicates.heatingCoils())
+                        .where('#', Predicates.air());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX")
+                        .aisle("CCC", "C#C", "CCC")
+                        .aisle("CCC", "C#C", "CCC")
+                        .aisle("XXX", "XSX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/voltage/ulv/side"),
                     GTCEu.id("block/multiblock/pyrolyse_oven"))
             .tooltips(Component.translatable("gtceu.machine.pyrolyse_oven.tooltip.1"))
@@ -281,18 +258,22 @@ public class GTMultiMachines {
             .appearanceBlock(CASING_INVAR_HEATPROOF)
             .tooltips(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
                     Component.translatable("gtceu.electric_furnace"), Component.translatable("gtceu.alloy_smelter")))
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "CCC", "XXX")
-                    .aisle("XXX", "C#C", "XMX")
-                    .aisle("XSX", "CCC", "XXX")
-                    .where('S', controller(definition))
-                    .wherePart('X', blocks(CASING_INVAR_HEATPROOF.get()).setMinGlobalLimited(9)
-                            .or(autoAbilities(definition.getRecipeTypes()))
-                            .or(autoAbilities(true, false, false)))
-                    .where('M', abilities(PartAbility.MUFFLER))
-                    .where('C', heatingCoils())
-                    .where('#', air())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', controller(definition))
+                        .wherePart('X', blocks(CASING_INVAR_HEATPROOF.get()).setMinGlobalLimited(9)
+                                .or(autoAbilities(definition.getRecipeTypes()))
+                                .or(autoAbilities(true, false, false)))
+                        .where('M', abilities(PartAbility.MUFFLER))
+                        .where('C', heatingCoils())
+                        .where('#', air());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "CCC", "XXX")
+                        .aisle("XXX", "C#C", "XMX")
+                        .aisle("XSX", "CCC", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .recoveryStaticItems(
                     () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_heatproof"),
@@ -313,17 +294,21 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.CRACKING_RECIPES)
             .recipeModifiers(RecipeModifier.CRACKER_OVERCLOCK)
             .appearanceBlock(CASING_STAINLESS_CLEAN)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("HCHCH", "HCHCH", "HCHCH")
-                    .aisle("HCHCH", "H###H", "HCHCH")
-                    .aisle("HCHCH", "HCOCH", "HCHCH")
-                    .where('O', Predicates.controller(definition))
-                    .wherePart('H', blocks(CASING_STAINLESS_CLEAN.get()).setMinGlobalLimited(12)
-                            .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                            .or(Predicates.autoAbilities(true, true, false)))
-                    .where('#', Predicates.air())
-                    .where('C', Predicates.heatingCoils())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('O', Predicates.controller(definition))
+                        .wherePart('H', blocks(CASING_STAINLESS_CLEAN.get()).setMinGlobalLimited(12)
+                                .or(Predicates.autoAbilities(definition.getRecipeTypes()))
+                                .or(Predicates.autoAbilities(true, true, false)))
+                        .where('#', Predicates.air())
+                        .where('C', Predicates.heatingCoils());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("HCHCH", "HCHCH", "HCHCH")
+                        .aisle("HCHCH", "H###H", "HCHCH")
+                        .aisle("HCHCH", "HCOCH", "HCHCH")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_clean_stainless_steel"),
                     GTCEu.id("block/multiblock/cracking_unit"))
             .tooltips(Component.translatable("gtceu.machine.cracker.tooltip.1"))
@@ -341,16 +326,12 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.DISTILLATION_RECIPES)
             .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_STAINLESS_CLEAN)
-            .pattern(definition -> {
+            .structure(definition -> {
                 TraceabilityPredicate exportPredicate = abilities(PartAbility.EXPORT_FLUIDS_1X);
-                exportPredicate.setMaxLayerLimited(1);
+                exportPredicate.setMaxLayerLimited(1, 1);
                 TraceabilityPredicate maint = autoAbilities(true, false, false)
                         .setMaxGlobalLimited(1);
-                return FactoryBlockPattern.start(definition, RIGHT, BACK, UP)
-                        .aisle("YSY", "YYY", "YYY")
-                        .aisle("ZZZ", "Z#Z", "ZZZ")
-                        .aisle("XXX", "X#X", "XXX").setRepeatable(0, 10)
-                        .aisle("XXX", "XXX", "XXX")
+                var symbols = Symbols.create()
                         .where('S', Predicates.controller(definition))
                         .wherePart('Y', blocks(CASING_STAINLESS_CLEAN.get())
                                 .or(Predicates.abilities(PartAbility.EXPORT_ITEMS).setMaxGlobalLimited(1))
@@ -362,40 +343,29 @@ public class GTMultiMachines {
                                 .or(exportPredicate)
                                 .or(maint))
                         .where('X', blocks(CASING_STAINLESS_CLEAN.get()).or(exportPredicate))
-                        .where('#', Predicates.air())
+                        .where('#', Predicates.air());
+                var base = Piece.start(RIGHT, BACK, UP)
+                        .aisle("YSY", "YYY", "YYY")
+                        .aisle("ZZZ", "Z#Z", "ZZZ")
+                        .portAfter(DistillationTowerMachine.LAYER_OUT)
                         .build();
-            })
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
-                var builder = MultiblockShapeInfo.builder()
-                        .where('C', definition, Direction.NORTH)
-                        .where('S', CASING_STAINLESS_CLEAN.getDefaultState())
-                        .where('X', ITEM_EXPORT_BUS[HV], Direction.NORTH)
-                        .where('I', FLUID_IMPORT_HATCH[HV], Direction.NORTH)
-                        .where('E', ENERGY_INPUT_HATCH[HV], Direction.SOUTH)
-                        .where('M', MAINTENANCE_HATCH, Direction.SOUTH)
-                        .where('#', Blocks.AIR.defaultBlockState())
-                        .where('F', FLUID_EXPORT_HATCH[HV], Direction.SOUTH);
-                List<String> front = new ArrayList<>(15);
-                front.add("XCI");
-                front.add("SSS");
-                List<String> middle = new ArrayList<>(15);
-                middle.add("SSS");
-                middle.add("SSS");
-                List<String> back = new ArrayList<>(15);
-                back.add("MES");
-                back.add("SFS");
-                for (int i = 1; i <= 11; ++i) {
-                    front.add("SSS");
-                    middle.add(1, "S#S");
-                    back.add("SFS");
-                    var copy = builder.shallowCopy()
-                            .aisle(front.toArray(String[]::new))
-                            .aisle(middle.toArray(String[]::new))
-                            .aisle(back.toArray(String[]::new));
-                    shapeInfos.add(copy.build(definition));
-                }
-                return shapeInfos;
+                var layer = Piece.start(RIGHT, BACK, UP)
+                        .aisle("XXX", "X#X", "XXX")
+                        .portBefore(DistillationTowerMachine.LAYER_IN)
+                        .portAfter(DistillationTowerMachine.LAYER_OUT)
+                        .build();
+                var top = Piece.start(RIGHT, BACK, UP)
+                        .aisle("XXX", "XXX", "XXX")
+                        .portBefore(DistillationTowerMachine.LAYER_IN)
+                        .build();
+                return Structure.root(base)
+                        .symbols(symbols)
+                        .atPort(DistillationTowerMachine.LAYER_OUT, Slot.chain(layer, DistillationTowerMachine.LAYER_IN,
+                                DistillationTowerMachine.LAYER_OUT, DistillationTowerMachine.LAYER_IN)
+                                .count(DistillationTowerMachine.LAYERS, 0, 10)
+                                .atPort(DistillationTowerMachine.LAYER_OUT,
+                                        Slot.one(top, DistillationTowerMachine.LAYER_IN)))
+                        .build();
             })
             .allowExtendedFacing(false)
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_clean_stainless_steel"),
@@ -408,16 +378,20 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.VACUUM_RECIPES)
             .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_ALUMINIUM_FROSTPROOF)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX")
-                    .aisle("XXX", "X#X", "XXX")
-                    .aisle("XXX", "XSX", "XXX")
-                    .where('S', Predicates.controller(definition))
-                    .wherePart('X', blocks(CASING_ALUMINIUM_FROSTPROOF.get()).setMinGlobalLimited(14)
-                            .or(Predicates.autoAbilities(definition.getRecipeTypes()))
-                            .or(Predicates.autoAbilities(true, false, false)))
-                    .where('#', Predicates.air())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', Predicates.controller(definition))
+                        .wherePart('X', blocks(CASING_ALUMINIUM_FROSTPROOF.get()).setMinGlobalLimited(14)
+                                .or(Predicates.autoAbilities(definition.getRecipeTypes()))
+                                .or(Predicates.autoAbilities(true, false, false)))
+                        .where('#', Predicates.air());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX")
+                        .aisle("XXX", "X#X", "XXX")
+                        .aisle("XXX", "XSX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_frost_proof"),
                     GTCEu.id("block/multiblock/vacuum_freezer"))
             .register();
@@ -428,30 +402,49 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.ASSEMBLY_LINE_RECIPES)
             .recipeModifiers(RecipeModifier.OVERCLOCKING)
             .appearanceBlock(CASING_STEEL_SOLID)
-            .pattern(definition -> FactoryBlockPattern.start(definition, BACK, UP, RIGHT)
-                    .aisle("FIF", "RTR", "SAG", "#Y#")
-                    .aisle("FIF", "RTR", "DAG", "#Y#").setRepeatable(3, 15)
-                    .aisle("FOF", "RTR", "DAG", "#Y#")
-                    .where('S', Predicates.controller(definition))
-                    .where('F', blocks(CASING_STEEL_SOLID.get())
-                            .or(!ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids ?
-                                    Predicates.abilities(PartAbility.IMPORT_FLUIDS_1X,
-                                            PartAbility.IMPORT_FLUIDS_4X, PartAbility.IMPORT_FLUIDS_9X) :
-                                    Predicates.abilities(PartAbility.IMPORT_FLUIDS_1X).setMaxGlobalLimited(4)))
-                    .where('O',
-                            Predicates.abilities(PartAbility.EXPORT_ITEMS)
-                                    .addTooltips(Component.translatable("gtceu.multiblock.pattern.location_end")))
-                    .wherePart('Y',
-                            blocks(CASING_STEEL_SOLID.get())
-                                    .or(Predicates.abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2)))
-                    .where('I', blocks(ITEM_IMPORT_BUS[0].get()))
-                    .where('G', blocks(CASING_GRATE.get()))
-                    .where('A', blocks(CASING_ASSEMBLY_CONTROL.get()))
-                    .where('R', blocks(CASING_LAMINATED_GLASS.get()))
-                    .where('T', blocks(CASING_ASSEMBLY_LINE.get()))
-                    .where('D', dataHatchPredicate(blocks(CASING_GRATE.get())))
-                    .where('#', Predicates.any())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', Predicates.controller(definition))
+                        .where('F', blocks(CASING_STEEL_SOLID.get())
+                                .or(!ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids ?
+                                        Predicates.abilities(PartAbility.IMPORT_FLUIDS_1X,
+                                                PartAbility.IMPORT_FLUIDS_4X, PartAbility.IMPORT_FLUIDS_9X) :
+                                        Predicates.abilities(PartAbility.IMPORT_FLUIDS_1X).setMaxGlobalLimited(4)))
+                        .where('O',
+                                Predicates.abilities(PartAbility.EXPORT_ITEMS)
+                                        .addTooltips(Component.translatable("gtceu.multiblock.pattern.location_end")))
+                        .wherePart('Y',
+                                blocks(CASING_STEEL_SOLID.get())
+                                        .or(Predicates.abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(2)))
+                        .where('I', blocks(ITEM_IMPORT_BUS[0].get()))
+                        .where('G', blocks(CASING_GRATE.get()))
+                        .where('A', blocks(CASING_ASSEMBLY_CONTROL.get()))
+                        .where('R', blocks(CASING_LAMINATED_GLASS.get()))
+                        .where('T', blocks(CASING_ASSEMBLY_LINE.get()))
+                        .where('D', dataHatchPredicate(blocks(CASING_GRATE.get())))
+                        .where('#', Predicates.any());
+                var head = Piece.start(BACK, UP, RIGHT)
+                        .aisle("FIF", "RTR", "SAG", "#Y#")
+                        .portAfter(AssemblyLineMachine.SECTION_OUT)
+                        .build();
+                var section = Piece.start(BACK, UP, RIGHT)
+                        .aisle("FIF", "RTR", "DAG", "#Y#")
+                        .portBefore(AssemblyLineMachine.SECTION_IN)
+                        .portAfter(AssemblyLineMachine.SECTION_OUT)
+                        .build();
+                var tail = Piece.start(BACK, UP, RIGHT)
+                        .aisle("FOF", "RTR", "DAG", "#Y#")
+                        .portBefore(AssemblyLineMachine.SECTION_IN)
+                        .build();
+                return Structure.root(head)
+                        .symbols(symbols)
+                        .atPort(AssemblyLineMachine.SECTION_OUT, Slot.chain(section, AssemblyLineMachine.SECTION_IN,
+                                AssemblyLineMachine.SECTION_OUT, AssemblyLineMachine.SECTION_IN)
+                                .count(AssemblyLineMachine.SECTIONS, 3, 15)
+                                .atPort(AssemblyLineMachine.SECTION_OUT,
+                                        Slot.one(tail, AssemblyLineMachine.SECTION_IN)))
+                        .build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_solid_steel"),
                     GTCEu.id("block/multiblock/assembly_line"))
             .register();
@@ -460,18 +453,22 @@ public class GTMultiMachines {
             .multiblock("primitive_pump", PrimitivePumpMachine::new)
             .nonYAxisRotation()
             .appearanceBlock(CASING_PUMP_DECK)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXXX", "##F#", "##F#")
-                    .aisle("XXHX", "F##F", "FFFF")
-                    .aisle("SXXX", "##F#", "##F#")
-                    .where('S', Predicates.controller(definition))
-                    .wherePart('X', blocks(CASING_PUMP_DECK.get()))
-                    .where('F', Predicates.frames(GTMaterials.TreatedWood))
-                    .where('H',
-                            Predicates.abilities(PartAbility.PUMP_FLUID_HATCH)
-                                    .or(blocks(FLUID_EXPORT_HATCH[ULV].get(), FLUID_EXPORT_HATCH[LV].get())))
-                    .where('#', Predicates.any())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', Predicates.controller(definition))
+                        .wherePart('X', blocks(CASING_PUMP_DECK.get()))
+                        .where('F', Predicates.frames(GTMaterials.TreatedWood))
+                        .where('H',
+                                Predicates.abilities(PartAbility.PUMP_FLUID_HATCH)
+                                        .or(blocks(FLUID_EXPORT_HATCH[ULV].get(), FLUID_EXPORT_HATCH[LV].get())))
+                        .where('#', Predicates.any());
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXXX", "##F#", "##F#")
+                        .aisle("XXHX", "F##F", "FFFF")
+                        .aisle("SXXX", "##F#", "##F#")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .allowExtendedFacing(false)
             .sidedWorkableCasingRenderer("block/casings/pump_deck", GTCEu.id("block/multiblock/primitive_pump"))
             .register();
@@ -483,17 +480,21 @@ public class GTMultiMachines {
             .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
             .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
             .addOutputLimit(ItemRecipeInfo.INSTANCE, 1)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX")
-                    .aisle("XXX", "X#X", "XXX")
-                    .aisle("XXX", "XSX", "XXX")
-                    .where('S', Predicates.controller(definition))
-                    .where('#', Predicates.air())
-                    .wherePart('X', blocks(CASING_BRONZE_BRICKS.get()).setMinGlobalLimited(14)
-                            .or(Predicates.abilities(PartAbility.STEAM_IMPORT_ITEMS).setPreviewCount(1))
-                            .or(Predicates.abilities(PartAbility.STEAM_EXPORT_ITEMS).setPreviewCount(1))
-                            .or(Predicates.abilities(PartAbility.STEAM).setExactLimit(1)))
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', Predicates.controller(definition))
+                        .where('#', Predicates.air())
+                        .wherePart('X', blocks(CASING_BRONZE_BRICKS.get()).setMinGlobalLimited(14)
+                                .or(Predicates.abilities(PartAbility.STEAM_IMPORT_ITEMS).setPreviewCount(1))
+                                .or(Predicates.abilities(PartAbility.STEAM_EXPORT_ITEMS).setPreviewCount(1))
+                                .or(Predicates.abilities(PartAbility.STEAM).setExactLimit(1)));
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX")
+                        .aisle("XXX", "X#X", "XXX")
+                        .aisle("XXX", "XSX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"),
                     GTCEu.id("block/multiblock/steam_grinder"))
             .register();
@@ -504,19 +505,23 @@ public class GTMultiMachines {
             .appearanceBlock(CASING_BRONZE_BRICKS)
             .recipeType(GTRecipeTypes.FURNACE_RECIPES)
             .recipeModifier(SteamParallelMultiblockMachine::recipeModifier)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("FFF", "XXX", " X ")
-                    .aisle("FFF", "X#X", " X ")
-                    .aisle("FFF", "XSX", " X ")
-                    .where('S', Predicates.controller(definition))
-                    .where('#', Predicates.air())
-                    .where(' ', Predicates.any())
-                    .wherePart('X', blocks(CASING_BRONZE_BRICKS.get()).setMinGlobalLimited(6)
-                            .or(Predicates.abilities(PartAbility.STEAM_IMPORT_ITEMS).setPreviewCount(1))
-                            .or(Predicates.abilities(PartAbility.STEAM_EXPORT_ITEMS).setPreviewCount(1)))
-                    .where('F', blocks(FIREBOX_BRONZE.get())
-                            .or(Predicates.abilities(PartAbility.STEAM).setExactLimit(1)))
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', Predicates.controller(definition))
+                        .where('#', Predicates.air())
+                        .where(' ', Predicates.any())
+                        .wherePart('X', blocks(CASING_BRONZE_BRICKS.get()).setMinGlobalLimited(6)
+                                .or(Predicates.abilities(PartAbility.STEAM_IMPORT_ITEMS).setPreviewCount(1))
+                                .or(Predicates.abilities(PartAbility.STEAM_EXPORT_ITEMS).setPreviewCount(1)))
+                        .where('F', blocks(FIREBOX_BRONZE.get())
+                                .or(Predicates.abilities(PartAbility.STEAM).setExactLimit(1)));
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("FFF", "XXX", " X ")
+                        .aisle("FFF", "X#X", " X ")
+                        .aisle("FFF", "XSX", " X ")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .renderer(() -> new LargeBoilerRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"),
                     BoilerFireboxType.BRONZE_FIREBOX,
                     GTCEu.id("block/multiblock/steam_oven")))
@@ -535,9 +540,21 @@ public class GTMultiMachines {
                             Component.translatable("gtceu.multiblock.%s_fusion_reactor.description"
                                     .formatted(VN[tier].toLowerCase(Locale.ROOT))))
                     .appearanceBlock(() -> FusionReactorMachine.getCasingState(tier))
-                    .pattern((definition) -> {
+                    .structure((definition) -> {
                         var casing = blocks(FusionReactorMachine.getCasingState(tier));
-                        return FactoryBlockPattern.start(definition)
+                        var symbols = Symbols.create()
+                                .where('S', controller(definition))
+                                .where('G', blocks(FUSION_GLASS.get()).or(casing))
+                                .where('E', casing.or(
+                                        blocks(PartAbility.INPUT_ENERGY.getBlockRange(tier, UV).toArray(Block[]::new))
+                                                .setMinGlobalLimited(1).setPreviewCount(16)))
+                                .where('C', casing)
+                                .where('K', blocks(FusionReactorMachine.getCoilState(tier)))
+                                .where('O', casing.or(abilities(PartAbility.EXPORT_FLUIDS)))
+                                .where('A', air())
+                                .wherePart('I', casing.or(abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)))
+                                .where('#', any());
+                        var piece = Piece.start(LEFT, UP, FRONT)
                                 .aisle("###############", "######OGO######", "###############")
                                 .aisle("######ICI######", "####GGAAAGG####", "######ICI######")
                                 .aisle("####CC###CC####", "###EAAOGOAAE###", "####CC###CC####")
@@ -553,59 +570,8 @@ public class GTMultiMachines {
                                 .aisle("####CC###CC####", "###EAAOGOAAE###", "####CC###CC####")
                                 .aisle("######ICI######", "####GGAAAGG####", "######ICI######")
                                 .aisle("###############", "######OSO######", "###############")
-                                .where('S', controller(definition))
-                                .where('G', blocks(FUSION_GLASS.get()).or(casing))
-                                .where('E', casing.or(
-                                        blocks(PartAbility.INPUT_ENERGY.getBlockRange(tier, UV).toArray(Block[]::new))
-                                                .setMinGlobalLimited(1).setPreviewCount(16)))
-                                .where('C', casing)
-                                .where('K', blocks(FusionReactorMachine.getCoilState(tier)))
-                                .where('O', casing.or(abilities(PartAbility.EXPORT_FLUIDS)))
-                                .where('A', air())
-                                .wherePart('I', casing.or(abilities(PartAbility.IMPORT_FLUIDS).setMinGlobalLimited(2)))
-                                .where('#', any())
                                 .build();
-                    })
-                    .shapeInfos(definition -> {
-                        List<MultiblockShapeInfo> shapeInfos = new ArrayList<>();
-
-                        MultiblockShapeInfo.ShapeInfoBuilder baseBuilder = MultiblockShapeInfo.builder()
-                                .aisle("###############", "######NMN######", "###############")
-                                .aisle("######DCD######", "####GG###GG####", "######UCU######")
-                                .aisle("####CC###CC####", "###w##SGS##e###", "####CC###CC####")
-                                .aisle("###C#######C###", "##nKsG###GsKn##", "###C#######C###")
-                                .aisle("##C#########C##", "#G#e#######w#G#", "##C#########C##")
-                                .aisle("##C#########C##", "#G#G#######G#G#", "##C#########C##")
-                                .aisle("#D###########D#", "W#E#########W#E", "#U###########U#")
-                                .aisle("#C###########C#", "G#G#########G#G", "#C###########C#")
-                                .aisle("#D###########D#", "W#E#########W#E", "#U###########U#")
-                                .aisle("##C#########C##", "#G#G#######G#G#", "##C#########C##")
-                                .aisle("##C#########C##", "#G#e#######w#G#", "##C#########C##")
-                                .aisle("###C#######C###", "##sKnG###GnKs##", "###C#######C###")
-                                .aisle("####CC###CC####", "###w##NGN##e###", "####CC###CC####")
-                                .aisle("######DCD######", "####GG###GG####", "######UCU######")
-                                .aisle("###############", "######SGS######", "###############")
-                                .where('M', definition, Direction.NORTH)
-                                .where('C', FusionReactorMachine.getCasingState(tier))
-                                .where('G', FUSION_GLASS.get())
-                                .where('K', FusionReactorMachine.getCoilState(tier))
-                                .where('W', GTMachines.FLUID_EXPORT_HATCH[tier], Direction.WEST)
-                                .where('E', GTMachines.FLUID_EXPORT_HATCH[tier], Direction.EAST)
-                                .where('S', GTMachines.FLUID_EXPORT_HATCH[tier], Direction.SOUTH)
-                                .where('N', GTMachines.FLUID_EXPORT_HATCH[tier], Direction.NORTH)
-                                .where('w', GTMachines.ENERGY_INPUT_HATCH[tier], Direction.WEST)
-                                .where('e', GTMachines.ENERGY_INPUT_HATCH[tier], Direction.EAST)
-                                .where('s', GTMachines.ENERGY_INPUT_HATCH[tier], Direction.SOUTH)
-                                .where('n', GTMachines.ENERGY_INPUT_HATCH[tier], Direction.NORTH)
-                                .where('U', GTMachines.FLUID_IMPORT_HATCH[tier], Direction.UP)
-                                .where('D', GTMachines.FLUID_IMPORT_HATCH[tier], Direction.DOWN)
-                                .where('#', Blocks.AIR.defaultBlockState());
-
-                        shapeInfos.add(baseBuilder.shallowCopy()
-                                .where('G', FusionReactorMachine.getCasingState(tier))
-                                .build(definition));
-                        shapeInfos.add(baseBuilder.build(definition));
-                        return shapeInfos;
+                        return Structure.root(piece).symbols(symbols).build();
                     })
                     .renderer(() -> new FusionReactorRenderer(FusionReactorMachine.getCasingType(tier).getTexture(),
                             GTCEu.id("block/multiblock/fusion_reactor")))
@@ -628,19 +594,23 @@ public class GTMultiMachines {
                                     FluidDrillMachine.getRigMultiplier(tier),
                                     FormattingUtil.formatNumbers(FluidDrillMachine.getRigMultiplier(tier) * 1.5)))
                     .appearanceBlock(() -> FluidDrillMachine.getCasingState(tier))
-                    .pattern((definition) -> FactoryBlockPattern.start(definition)
-                            .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
-                            .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
-                            .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
-                            .where('S', controller(definition))
-                            .wherePart('X', blocks(FluidDrillMachine.getCasingState(tier)).setMinGlobalLimited(3)
-                                    .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
-                                            .setMaxGlobalLimited(2))
-                                    .or(abilities(PartAbility.EXPORT_FLUIDS).setMaxGlobalLimited(1)))
-                            .where('C', blocks(FluidDrillMachine.getCasingState(tier)))
-                            .where('F', blocks(FluidDrillMachine.getFrameState(tier)))
-                            .where('#', any())
-                            .build())
+                    .structure((definition) -> {
+                        var symbols = Symbols.create()
+                                .where('S', controller(definition))
+                                .wherePart('X', blocks(FluidDrillMachine.getCasingState(tier)).setMinGlobalLimited(3)
+                                        .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
+                                                .setMaxGlobalLimited(2))
+                                        .or(abilities(PartAbility.EXPORT_FLUIDS).setMaxGlobalLimited(1)))
+                                .where('C', blocks(FluidDrillMachine.getCasingState(tier)))
+                                .where('F', blocks(FluidDrillMachine.getFrameState(tier)))
+                                .where('#', any());
+                        var piece = Piece.start(LEFT, UP, FRONT)
+                                .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
+                                .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .build();
+                        return Structure.root(piece).symbols(symbols).build();
+                    })
                     .workableCasingRenderer(FluidDrillMachine.getBaseTexture(tier),
                             GTCEu.id("block/multiblock/fluid_drilling_rig"))
                     .register(),
@@ -653,20 +623,24 @@ public class GTMultiMachines {
                     .langValue("%s Large Miner%s".formatted(VLVH[tier], VLVT[tier]))
                     .recipeType(GTRecipeTypes.MACERATOR_RECIPES)
                     .appearanceBlock(() -> LargeMinerMachine.getCasingState(tier))
-                    .pattern((definition) -> FactoryBlockPattern.start(definition)
-                            .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
-                            .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
-                            .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
-                            .where('S', controller(definition))
-                            .wherePart('X', blocks(LargeMinerMachine.getCasingState(tier))
-                                    .or(abilities(PartAbility.EXPORT_ITEMS).setExactLimit(1).setPreviewCount(1))
-                                    .or(abilities(PartAbility.IMPORT_FLUIDS).setExactLimit(1).setPreviewCount(1))
-                                    .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
-                                            .setMaxGlobalLimited(2).setPreviewCount(1)))
-                            .where('C', blocks(LargeMinerMachine.getCasingState(tier)))
-                            .where('F', frames(LargeMinerMachine.getMaterial(tier)))
-                            .where('#', any())
-                            .build())
+                    .structure((definition) -> {
+                        var symbols = Symbols.create()
+                                .where('S', controller(definition))
+                                .wherePart('X', blocks(LargeMinerMachine.getCasingState(tier))
+                                        .or(abilities(PartAbility.EXPORT_ITEMS).setExactLimit(1).setPreviewCount(1))
+                                        .or(abilities(PartAbility.IMPORT_FLUIDS).setExactLimit(1).setPreviewCount(1))
+                                        .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
+                                                .setMaxGlobalLimited(2).setPreviewCount(1)))
+                                .where('C', blocks(LargeMinerMachine.getCasingState(tier)))
+                                .where('F', frames(LargeMinerMachine.getMaterial(tier)))
+                                .where('#', any());
+                        var piece = Piece.start(LEFT, UP, FRONT)
+                                .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
+                                .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .build();
+                        return Structure.root(piece).symbols(symbols).build();
+                    })
                     .allowExtendedFacing(true)
                     .renderer(() -> new LargeMinerRenderer(
                             MinerRenderer.MATERIALS_TO_CASING_MODELS.get(LargeMinerMachine.getMaterial(tier)),
@@ -712,54 +686,7 @@ public class GTMultiMachines {
                     tooltip.add(Component.translatable("gtceu.machine.cleanroom.tooltip.hold_ctrl"));
                 }
             })
-            .pattern((definition) -> FactoryBlockPattern.start(definition)
-                    .aisle("XXXXX", "XXXXX", "XXXXX", "XXXXX", "XXXXX")
-                    .aisle("XXXXX", "X   X", "X   X", "X   X", "XFFFX")
-                    .aisle("XXXXX", "X   X", "X   X", "X   X", "XFSFX")
-                    .aisle("XXXXX", "X   X", "X   X", "X   X", "XFFFX")
-                    .aisle("XXXXX", "XXXXX", "XXXXX", "XXXXX", "XXXXX")
-                    .wherePart('X', blocks(GTBlocks.PLASTCRETE.get())
-                            .or(blocks(GTBlocks.CLEANROOM_GLASS.get()))
-                            .or(abilities(PartAbility.PASSTHROUGH_HATCH).setMaxGlobalLimited(30, 3))
-                            .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1).setMaxGlobalLimited(3, 2))
-                            .or(blocks(ConfigHolder.INSTANCE.machines.enableMaintenance ?
-                                    GTMachines.MAINTENANCE_HATCH.get() : PLASTCRETE.get()).setExactLimit(1))
-                            .or(blocks(Blocks.IRON_DOOR).setMaxGlobalLimited(8)))
-                    .where('S', controller(definition))
-                    .where(' ', any())
-                    .where('E', abilities(PartAbility.INPUT_ENERGY))
-                    .where('F', cleanroomFilters())
-                    .where('I', abilities(PartAbility.PASSTHROUGH_HATCH))
-                    .build())
-            .shapeInfos(definition -> {
-                List<MultiblockShapeInfo> shapeInfo = new ArrayList<>();
-                MultiblockShapeInfo.ShapeInfoBuilder builder = MultiblockShapeInfo.builder()
-                        .aisle("XXXXX", "XXHXX", "XXDXX", "XXXXX", "XXXXX")
-                        .aisle("XXXXX", "X   X", "G   G", "X   X", "XFFFX")
-                        .aisle("XXXXX", "X   X", "G   G", "X   X", "XFSFX")
-                        .aisle("XXXXX", "X   X", "G   G", "X   X", "XFFFX")
-                        .aisle("XMXEX", "XXOXX", "XXRXX", "XXXXX", "XXXXX")
-                        .where('X', GTBlocks.PLASTCRETE)
-                        .where('G', GTBlocks.CLEANROOM_GLASS)
-                        .where('S', GTMultiMachines.CLEANROOM.get())
-                        .where(' ', Blocks.AIR)
-                        .where('E', GTMachines.ENERGY_INPUT_HATCH[GTValues.LV], Direction.SOUTH)
-                        .where('H', GTMachines.HULL[GTValues.HV], Direction.NORTH)
-                        .where('D', GTMachines.DIODE[GTValues.HV], Direction.NORTH)
-                        .where('O',
-                                Blocks.IRON_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.NORTH)
-                                        .setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER))
-                        .where('R', Blocks.IRON_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.NORTH)
-                                .setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER));
-                if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
-                    builder.where('M', GTMachines.MAINTENANCE_HATCH, Direction.SOUTH);
-                } else {
-                    builder.where('M', GTBlocks.PLASTCRETE.get());
-                }
-                GTCEuAPI.CLEANROOM_FILTERS.values()
-                        .forEach(block -> shapeInfo.add(builder.where('F', block.get()).build(definition)));
-                return shapeInfo;
-            })
+            .structure(CleanroomMachine::structure)
             .workableCasingRenderer(GTCEu.id("block/casings/cleanroom/plascrete"),
                     GTCEu.id("block/multiblock/cleanroom"))
             .register();
@@ -811,15 +738,19 @@ public class GTMultiMachines {
                      components) -> components.add(Component.translatable("gtceu.machine.active_transformer.tooltip.2")
                              .append(Component.translatable("gtceu.machine.active_transformer.tooltip.3")
                                      .withStyle(TooltipHelper.RAINBOW_HSL_SLOW))))
-            .pattern((definition) -> FactoryBlockPattern.start(definition)
-                    .aisle("XXX", "XXX", "XXX")
-                    .aisle("XXX", "XCX", "XXX")
-                    .aisle("XXX", "XSX", "XXX")
-                    .where('S', controller(definition))
-                    .wherePart('X', blocks(GTBlocks.HIGH_POWER_CASING.get()).setMinGlobalLimited(12)
-                            .or(ActiveTransformerMachine.getHatchPredicates()))
-                    .where('C', blocks(GTBlocks.SUPERCONDUCTING_COIL.get()))
-                    .build())
+            .structure((definition) -> {
+                var symbols = Symbols.create()
+                        .where('S', controller(definition))
+                        .wherePart('X', blocks(GTBlocks.HIGH_POWER_CASING.get()).setMinGlobalLimited(12)
+                                .or(ActiveTransformerMachine.getHatchPredicates()))
+                        .where('C', blocks(GTBlocks.SUPERCONDUCTING_COIL.get()));
+                var piece = Piece.start(LEFT, UP, FRONT)
+                        .aisle("XXX", "XXX", "XXX")
+                        .aisle("XXX", "XCX", "XXX")
+                        .aisle("XXX", "XSX", "XXX")
+                        .build();
+                return Structure.root(piece).symbols(symbols).build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/hpca/high_power_casing"),
                     GTCEu.id("block/multiblock/data_bank"))
             .register();
@@ -842,21 +773,39 @@ public class GTMultiMachines {
                              .append(Component.translatable("gtceu.machine.power_substation.tooltip.6")
                                      .withStyle(TooltipHelper.RAINBOW_HSL_SLOW))))
             .appearanceBlock(CASING_PALLADIUM_SUBSTATION)
-            .pattern(definition -> FactoryBlockPattern.start(definition, RIGHT, BACK, UP)
-                    .aisle("XXSXX", "XXXXX", "XXXXX", "XXXXX", "XXXXX")
-                    .aisle("XXXXX", "XCCCX", "XCCCX", "XCCCX", "XXXXX")
-                    .aisle("GGGGG", "GBBBG", "GBBBG", "GBBBG", "GGGGG")
-                    .setRepeatable(1, PowerSubstationMachine.MAX_BATTERY_LAYERS)
-                    .aisle("GGGGG", "GGGGG", "GGGGG", "GGGGG", "GGGGG")
-                    .where('S', controller(definition))
-                    .where('C', blocks(CASING_PALLADIUM_SUBSTATION.get()))
-                    .wherePart('X',
-                            blocks(CASING_PALLADIUM_SUBSTATION.get())
-                                    .setMinGlobalLimited(PowerSubstationMachine.MIN_CASINGS)
-                                    .or(autoAbilities(true, false, false)))
-                    .where('G', blocks(CASING_LAMINATED_GLASS.get()))
-                    .where('B', Predicates.powerSubstationBatteries())
-                    .build())
+            .structure(definition -> {
+                var symbols = Symbols.create()
+                        .where('S', controller(definition))
+                        .where('C', blocks(CASING_PALLADIUM_SUBSTATION.get()))
+                        .wherePart('X',
+                                blocks(CASING_PALLADIUM_SUBSTATION.get())
+                                        .setMinGlobalLimited(PowerSubstationMachine.MIN_CASINGS)
+                                        .or(autoAbilities(true, false, false)))
+                        .where('G', blocks(CASING_LAMINATED_GLASS.get()))
+                        .where('B', Predicates.powerSubstationBatteries());
+                var base = Piece.start(RIGHT, BACK, UP)
+                        .aisle("XXSXX", "XXXXX", "XXXXX", "XXXXX", "XXXXX")
+                        .aisle("XXXXX", "XCCCX", "XCCCX", "XCCCX", "XXXXX")
+                        .portAfter(PowerSubstationMachine.LAYER_OUT)
+                        .build();
+                var layer = Piece.start(RIGHT, BACK, UP)
+                        .aisle("GGGGG", "GBBBG", "GBBBG", "GBBBG", "GGGGG")
+                        .portBefore(PowerSubstationMachine.LAYER_IN)
+                        .portAfter(PowerSubstationMachine.LAYER_OUT)
+                        .build();
+                var top = Piece.start(RIGHT, BACK, UP)
+                        .aisle("GGGGG", "GGGGG", "GGGGG", "GGGGG", "GGGGG")
+                        .portBefore(PowerSubstationMachine.LAYER_IN)
+                        .build();
+                return Structure.root(base)
+                        .symbols(symbols)
+                        .atPort(PowerSubstationMachine.LAYER_OUT, Slot.chain(layer, PowerSubstationMachine.LAYER_IN,
+                                PowerSubstationMachine.LAYER_OUT, PowerSubstationMachine.LAYER_IN)
+                                .count(PowerSubstationMachine.LAYERS, 1, PowerSubstationMachine.MAX_BATTERY_LAYERS)
+                                .atPort(PowerSubstationMachine.LAYER_OUT,
+                                        Slot.one(top, PowerSubstationMachine.LAYER_IN)))
+                        .build();
+            })
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_palladium_substation"),
                     GTCEu.id("block/multiblock/power_substation"))
             .register();
@@ -866,18 +815,7 @@ public class GTMultiMachines {
             .noneRotation()
             .recipeType(DUMMY_RECIPES)
             .appearanceBlock(BRONZE_HULL)
-            .pattern(definition -> FactoryBlockPattern.start(definition)
-                    .aisle("     ", " XXX ", " XXX ", " XXX ", "     ")
-                    .aisle(" BBB ", "XCCCX", "XCCCX", "XCCCX", " DDD ")
-                    .aisle(" BBB ", "XCCCX", "XCCCX", "XCCCX", " DSD ")
-                    .aisle(" BBB ", "XCCCX", "XCCCX", "XCCCX", " DDD ")
-                    .aisle("     ", " XXX ", " XXX ", " XXX ", "     ")
-                    .where('S', controller(definition))
-                    .wherePart('B', blocks(Blocks.BRICKS))
-                    .where('X', blocks(Blocks.DIRT))
-                    .where('D', blocks(Blocks.DIRT))
-                    .where('C', blocks(Blocks.OAK_LOG))
-                    .build())
+            .structure(CharcoalPileIgniterMachine::structure)
             .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"),
                     GTCEu.id("block/multiblock/charcoal_pile_igniter"))
             .register();
@@ -899,20 +837,24 @@ public class GTMultiMachines {
                                     FormattingUtil.formatNumbers(
                                             BedrockOreMinerMachine.getRigMultiplier(tier) * 1.5)))
                     .appearanceBlock(() -> BedrockOreMinerMachine.getCasingState(tier))
-                    .pattern((definition) -> FactoryBlockPattern.start(definition)
-                            .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
-                            .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
-                            .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
-                            .where('S', controller(definition))
-                            .wherePart('X',
-                                    blocks(BedrockOreMinerMachine.getCasingState(tier)).setMinGlobalLimited(3)
-                                            .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
-                                                    .setMaxGlobalLimited(2))
-                                            .or(abilities(PartAbility.EXPORT_ITEMS).setMaxGlobalLimited(1)))
-                            .where('C', blocks(BedrockOreMinerMachine.getCasingState(tier)))
-                            .where('F', blocks(BedrockOreMinerMachine.getFrameState(tier)))
-                            .where('#', any())
-                            .build())
+                    .structure((definition) -> {
+                        var symbols = Symbols.create()
+                                .where('S', controller(definition))
+                                .wherePart('X',
+                                        blocks(BedrockOreMinerMachine.getCasingState(tier)).setMinGlobalLimited(3)
+                                                .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
+                                                        .setMaxGlobalLimited(2))
+                                                .or(abilities(PartAbility.EXPORT_ITEMS).setMaxGlobalLimited(1)))
+                                .where('C', blocks(BedrockOreMinerMachine.getCasingState(tier)))
+                                .where('F', blocks(BedrockOreMinerMachine.getFrameState(tier)))
+                                .where('#', any());
+                        var piece = Piece.start(LEFT, UP, FRONT)
+                                .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
+                                .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .build();
+                        return Structure.root(piece).symbols(symbols).build();
+                    })
                     .workableCasingRenderer(BedrockOreMinerMachine.getBaseTexture(tier),
                             GTCEu.id("block/multiblock/bedrock_ore_miner"))
                     .register(),

@@ -4,28 +4,31 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
+import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Piece;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Size;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.item.tool.behavior.LighterBehavior;
+import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
@@ -49,10 +52,7 @@ import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 
@@ -62,6 +62,14 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
 
     private static final int MIN_RADIUS = 1;
     private static final int MIN_DEPTH = 2;
+    private static final int MAX_RADIUS = 5;
+    private static final int MAX_DEPTH = 5;
+
+    public static final ParamKey LEFT_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.left", "gtceu.multiblock.charcoal_pile_igniter.left.desc");
+    public static final ParamKey RIGHT_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.right", "gtceu.multiblock.charcoal_pile_igniter.right.desc");
+    public static final ParamKey FRONT_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.front", "gtceu.multiblock.charcoal_pile_igniter.front.desc");
+    public static final ParamKey BACK_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.back", "gtceu.multiblock.charcoal_pile_igniter.back.desc");
+    public static final ParamKey HEIGHT = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.height", "gtceu.multiblock.charcoal_pile_igniter.height.desc");
 
     private final Collection<BlockPos> logPos = new OpenCacheHashSet<>();
 
@@ -96,6 +104,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
+        updateDimensions();
         hasAir = false;
         if (getMultiblockState().getMatchContext().containsKey(LOG_POS)) {
             Long2BooleanMap logPositions = getMultiblockState().getMatchContext().get(LOG_POS);
@@ -134,91 +143,56 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     @Override
     public void setWorkingEnabled(boolean isWorkingAllowed) {}
 
-    @Override
-    public Supplier<BlockPattern>[] getPattern() {
-        updateDimensions();
-
-        if (lDist < MIN_RADIUS) lDist = MIN_RADIUS;
-        if (rDist < MIN_RADIUS) rDist = MIN_RADIUS;
-        if (fDist < MIN_RADIUS) fDist = MIN_RADIUS;
-        if (bDist < MIN_RADIUS) bDist = MIN_RADIUS;
-        if (hDist < MIN_DEPTH) hDist = MIN_DEPTH;
-
-        if (this.getFrontFacing().getAxis() == Direction.Axis.X) {
-            int tmp = lDist;
-            lDist = rDist;
-            rDist = tmp;
-        }
-
-        StringBuilder[] floorLayer = new StringBuilder[fDist + bDist + 1];
-        List<StringBuilder[]> wallLayers = new ArrayList<>();
-        StringBuilder[] ceilingLayer = new StringBuilder[fDist + bDist + 1];
-
-        for (int i = 0; i < floorLayer.length; i++) {
-            floorLayer[i] = new StringBuilder(lDist + rDist + 1);
-            ceilingLayer[i] = new StringBuilder(lDist + rDist + 1);
-        }
-
-        for (int i = 0; i < hDist - 1; i++) {
-            wallLayers.add(new StringBuilder[fDist + bDist + 1]);
-            for (int j = 0; j < fDist + bDist + 1; j++) {
-                var s = new StringBuilder(lDist + rDist + 3);
-                wallLayers.get(i)[j] = s;
-            }
-        }
-
-        for (int i = 0; i < lDist + rDist + 1; i++) {
-            for (int j = 0; j < fDist + bDist + 1; j++) {
-                if (i == 0 || i == lDist + rDist || j == 0 || j == fDist + bDist) { // all edges
-                    floorLayer[j].append('A'); // floor edge
-                    for (int k = 0; k < hDist - 1; k++) {
-                        if ((i == 0 || i == lDist + rDist) && (j == 0 || j == fDist + bDist)) {
-                            wallLayers.get(k)[j].append('A');
-                        } else {
-                            wallLayers.get(k)[j].append('W'); // walls
-                        }
-                    }
-                    ceilingLayer[j].append('A'); // ceiling edge
-                } else { // not edges
-                    floorLayer[j].append('B');
-                    for (int k = 0; k < hDist - 1; k++) {
-                        wallLayers.get(k)[j].append('L'); // log or air
-                    }
-                    if (i == lDist && j == fDist) { // very center
-                        ceilingLayer[j].append('S'); // controller
-                    } else {
-                        ceilingLayer[j].append('W'); // grass top
-                    }
-                }
-            }
-        }
-
-        String[] f = new String[bDist + fDist + 1];
-        for (int i = 0; i < floorLayer.length; i++) {
-            f[i] = floorLayer[i].toString();
-        }
-        String[] m = new String[bDist + fDist + 1];
-        for (int i = 0; i < wallLayers.getFirst().length; i++) {
-            m[i] = wallLayers.getFirst()[i].toString();
-        }
-        String[] c = new String[bDist + fDist + 1];
-        for (int i = 0; i < ceilingLayer.length; i++) {
-            c[i] = ceilingLayer[i].toString();
-        }
-
-        return new Supplier[] { () -> FactoryBlockPattern.start(LEFT, FRONT, UP)
-                .aisle(f)
-                .aisle(m).setRepeatable(wallLayers.size())
-                .aisle(c)
-                .where('S', Predicates.controller(getDefinition()))
+    public static Structure structure(MultiblockMachineDefinition definition) {
+        var floor = Predicates.blocks(Blocks.BRICKS);
+        var wallBelow = new TraceabilityPredicate(state -> ILevel.asyncGetBlockState(state.world, state.getPos().below()).is(CustomTags.CHARCOAL_PILE_IGNITER_WALLS), null, null);
+        var symbols = Symbols.create()
+                .where('S', Predicates.controller(definition))
                 .wherePart('B', Predicates.blocks(Blocks.BRICKS))
                 .where('W', Predicates.blockTag(CustomTags.CHARCOAL_PILE_IGNITER_WALLS))
                 .where('L', logPredicate())
-                .where('A', Predicates.any())
-                .info(Component.literal("✘ ")
-                        .append(Component.translatable("gtocore.structure.deprecated"))
-                        .withStyle(ChatFormatting.RED))
-                .build() };
+                .where('A', Predicates.any());
+        return Structure.root(Piece.sized(CharcoalPileIgniterMachine::pile))
+                .symbols(symbols)
+                .measure(m -> m.param(LEFT_DIST).toward(LEFT).until(wallBelow).range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(RIGHT_DIST).toward(RIGHT).until(wallBelow).range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(FRONT_DIST).toward(FRONT).until(wallBelow).range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(BACK_DIST).toward(BACK).until(wallBelow).range(MIN_RADIUS, MAX_RADIUS))
+                .measure(m -> m.param(HEIGHT).toward(DOWN).until(floor).range(MIN_DEPTH, MAX_DEPTH))
+                .require(size -> Math.abs(size.get(LEFT_DIST) - size.get(RIGHT_DIST)) <= 1 && Math.abs(size.get(FRONT_DIST) - size.get(BACK_DIST)) <= 1)
+                .build();
+    }
+
+    private static Piece pile(Size size) {
+        int width = size.get(LEFT_DIST) + size.get(RIGHT_DIST) + 1;
+        int depth = size.get(FRONT_DIST) + size.get(BACK_DIST) + 1;
+        int centerChar = size.get(RIGHT_DIST);
+        int centerRow = size.get(BACK_DIST);
+        var floorLayer = new String[depth];
+        var wallLayer = new String[depth];
+        var ceilingLayer = new String[depth];
+        for (int j = 0; j < depth; j++) {
+            var f = new StringBuilder(width);
+            var m = new StringBuilder(width);
+            var c = new StringBuilder(width);
+            for (int i = 0; i < width; i++) {
+                if (i == 0 || i == width - 1 || j == 0 || j == depth - 1) {
+                    f.append('A');
+                    m.append((i == 0 || i == width - 1) && (j == 0 || j == depth - 1) ? 'A' : 'W');
+                    c.append('A');
+                } else {
+                    f.append('B');
+                    m.append('L');
+                    c.append(i == centerChar && j == centerRow ? 'S' : 'W');
+                }
+            }
+            floorLayer[j] = f.toString();
+            wallLayer[j] = m.toString();
+            ceilingLayer[j] = c.toString();
+        }
+        var builder = Piece.start(LEFT, FRONT, UP).aisle(floorLayer);
+        for (int k = 0; k < size.get(HEIGHT) - 1; k++) builder.aisle(wallLayer);
+        return builder.aisle(ceilingLayer).build();
     }
 
     protected static TraceabilityPredicate logPredicate() {
@@ -240,59 +214,13 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     }
 
     public void updateDimensions() {
-        Level level = getLevel();
-        if (level == null) return;
-        Direction front = getFrontFacing();
-        Direction back = front.getOpposite();
-        Direction left = LEFT.getRelative(front, getUpwardsFacing(), false);
-        Direction right = RIGHT.getRelative(front, getUpwardsFacing(), false);
-
-        BlockPos down = getPos().relative(Direction.DOWN);
-
-        BlockPos.MutableBlockPos lPos = down.mutable();
-        BlockPos.MutableBlockPos rPos = down.mutable();
-        BlockPos.MutableBlockPos fPos = down.mutable();
-        BlockPos.MutableBlockPos bPos = down.mutable();
-        BlockPos.MutableBlockPos hPos = getPos().mutable();
-
-        int lDist = 0;
-        int rDist = 0;
-        int bDist = 0;
-        int fDist = 0;
-        int hDist = 0;
-
-        for (int i = 1; i < 6; i++) {
-            if (lDist != 0 && rDist != 0 && hDist != 0) break;
-            if (lDist == 0 && isBlockWall(level, lPos, left)) lDist = i;
-            if (rDist == 0 && isBlockWall(level, rPos, right)) rDist = i;
-            if (bDist == 0 && isBlockWall(level, bPos, back)) bDist = i;
-            if (fDist == 0 && isBlockWall(level, fPos, front)) fDist = i;
-            if (hDist == 0 && isBlockFloor(level, hPos)) hDist = i;
-        }
-
-        if (Math.abs(lDist - rDist) > 1 || Math.abs(bDist - fDist) > 1) {
-            this.isFormed = false;
-            return;
-        }
-
-        if (lDist < MIN_RADIUS || rDist < MIN_RADIUS || fDist < MIN_RADIUS || bDist < MIN_RADIUS || hDist < MIN_DEPTH) {
-            this.isFormed = false;
-            return;
-        }
-
-        this.lDist = lDist;
-        this.rDist = rDist;
-        this.fDist = fDist;
-        this.bDist = bDist;
-        this.hDist = hDist;
-    }
-
-    private static boolean isBlockWall(Level level, BlockPos.MutableBlockPos pos, Direction direction) {
-        return level.getBlockState(pos.move(direction)).is(CustomTags.CHARCOAL_PILE_IGNITER_WALLS);
-    }
-
-    private static boolean isBlockFloor(Level level, BlockPos.MutableBlockPos pos) {
-        return level.getBlockState(pos.move(Direction.DOWN)).is(Blocks.BRICKS);
+        var assembly = getAssembly();
+        if (assembly == null || !assembly.has(LEFT_DIST)) return;
+        this.lDist = assembly.get(LEFT_DIST);
+        this.rDist = assembly.get(RIGHT_DIST);
+        this.fDist = assembly.get(FRONT_DIST);
+        this.bDist = assembly.get(BACK_DIST);
+        this.hDist = assembly.get(HEIGHT);
     }
 
     @OnlyIn(Dist.CLIENT)

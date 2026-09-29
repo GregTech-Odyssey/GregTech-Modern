@@ -32,6 +32,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -39,6 +40,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.config.EmiConfig;
+import dev.emi.emi.screen.EmiScreenManager;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -75,6 +77,11 @@ import java.util.function.Supplier;
 public class MachineWindow extends FancyMachineUIWidget {
 
     public static final String POPUP_CLOSE = "gtceu.uipro.popup.close";
+
+    private static final ResourceLocation LOGO = GTCEu.id("textures/gui/uipro/gto_logo.png");
+    private static final int LOGO_WIDTH = 33;
+    private static final int LOGO_HEIGHT = 8;
+    private static final int LOGO_GAP = 2;
 
     private final WindowTitleBar title;
     private final WindowTabBar tabs;
@@ -186,9 +193,19 @@ public class MachineWindow extends FancyMachineUIWidget {
         return coveringOverlay(mouseX, mouseY);
     }
 
+    @OnlyIn(Dist.CLIENT)
+    private void drawLogo(GuiGraphics graphics) {
+        if (playerInventory == null || !playerInventory.isVisible()) return;
+        int x = playerInventory.getPositionX() + UISizes.SLOT_ROW_WIDTH - LOGO_WIDTH;
+        int y = playerInventory.getPositionY() - LOGO_HEIGHT - LOGO_GAP;
+        RenderSystem.enableBlend();
+        graphics.blit(LOGO, x, y, 0, 0, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     protected void drawWidgetsBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        drawLogo(graphics);
         var cover = coverAt(mouseX, mouseY);
         if (cover == null) {
             super.drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
@@ -440,7 +457,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     public static int clientPageHeightLimit(boolean inventory) {
         int screen = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-        int usable = screen - clientBottomMargin(screen) - UISizes.POPUP_SCREEN_MARGIN;
+        int usable = screen - clientVerticalReserve();
         int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM;
         if (inventory) chrome += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
         return Math.max(2 * UISizes.SLOT, usable - chrome);
@@ -468,10 +485,15 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static int clientBottomMargin(int screenHeight) {
-        int margin = Math.round(screenHeight * UISizes.WINDOW_BOTTOM_SCREEN_MARGIN);
+    private static int clientBottomMargin() {
+        int margin = UISizes.SCREEN_MARGIN;
         if (GTCEu.Mods.isEMILoaded()) margin += EmiCompat.centeredSearchHeight();
         return margin;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static int clientVerticalReserve() {
+        return UISizes.SCREEN_MARGIN + clientBottomMargin();
     }
 
     private static final class EmiCompat {
@@ -479,7 +501,8 @@ public class MachineWindow extends FancyMachineUIWidget {
         private static final int SEARCH_HEIGHT = 18;
 
         private static int centeredSearchHeight() {
-            return EmiConfig.centerSearchBar ? SEARCH_HEIGHT : 0;
+            boolean shown = !EmiScreenManager.isDisabled() && EmiScreenManager.search.isVisible();
+            return shown && EmiConfig.centerSearchBar ? SEARCH_HEIGHT : 0;
         }
     }
 
@@ -626,8 +649,7 @@ public class MachineWindow extends FancyMachineUIWidget {
      * <li>水平：以第一次摆放时的窗口宽度为基准（{@link #anchorWidth}）按屏幕居中，左边缘固定；页面更宽时只向右长
      * （界面两侧各加宽 {@code extra}、窗口在界面里右移 {@code extra}）。</li>
      * <li>竖直：打开阶段（连同顶部标签栏）按屏幕居中，记下窗口顶边（{@link #anchorTop}），之后标签栏和窗口顶边都停在这里，
-     * 页面变高只向下长。窗口底边离屏幕底边不足屏幕高度的 {@link UISizes#WINDOW_BOTTOM_SCREEN_MARGIN} 时，
-     * 标签栏连同窗口整体上移刚好够的距离；切回矮的页面就回到原位。屏幕尺寸变了重新居中。</li>
+     * 页面变高只向下长。屏幕尺寸变了重新居中。</li>
      * </ul>
      * 界面（ModularUI）尺寸取能包住标签栏和窗口、且按屏幕居中后正好落在上述位置的大小——窗口始终完整在界面范围内
      * （界面外的点击会被原版当成点到界面外）。
@@ -649,8 +671,9 @@ public class MachineWindow extends FancyMachineUIWidget {
             anchorScreenWidth = screenWidth;
             anchorScreenHeight = screenHeight;
         }
-        int bottomLimit = screenHeight - clientBottomMargin(screenHeight);
-        int top = centered ? Math.max(tabsHeight, anchorTop) : Math.max(tabsHeight, Math.min(anchorTop, bottomLimit - height));
+        int bottomLimit = screenHeight - clientBottomMargin();
+        int minTop = tabsHeight + UISizes.SCREEN_MARGIN;
+        int top = centered ? Math.max(minTop, anchorTop) : Math.max(minTop, Math.min(anchorTop, bottomLimit - height));
 
         int extra = Math.max(0, width - anchorWidth);
         int[] placement = clientPlacement(screenWidth, screenHeight, width, top);
@@ -665,7 +688,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     /** 客户端：{主窗口左移量, 面板相对窗口顶边的纵向偏移}，并按屏幕高度设定面板高度上限。{@code top} 是窗口顶边的屏幕坐标。 */
     @OnlyIn(Dist.CLIENT)
     private int[] clientPlacement(int screenWidth, int screenHeight, int width, int top) {
-        int margin = UISizes.POPUP_SCREEN_MARGIN;
+        int margin = UISizes.SCREEN_MARGIN;
         popups.setMaxHeight(Math.max(UISizes.SLOT, screenHeight - 2 * margin));
         int popupWidth = popups.getSizeWidth(), popupHeight = popups.getSizeHeight();
         if (popupWidth == 0) return new int[] { 0, 0 };

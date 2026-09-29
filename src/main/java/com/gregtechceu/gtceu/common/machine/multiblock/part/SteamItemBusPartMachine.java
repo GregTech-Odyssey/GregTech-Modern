@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -45,8 +46,8 @@ public class SteamItemBusPartMachine extends ItemBusPartMachine {
                         .tooltips("gtceu.gui.item_auto_output.tooltip.enabled", "gtceu.gui.item_auto_output.tooltip.disabled");
         toggles.addChild(auto);
         if (io == IO.IN) {
-            toggles.addChild(IconToggle.of(WidgetIcons.INPUT_LIMIT_ON, this::isInputLimit, this::setInputLimit)
-                    .tooltips("gtceu.multiblock.steam.input_limit.enabled", "gtceu.multiblock.steam.input_limit.disabled"));
+            toggles.addChild(IconToggle.of(WidgetIcons.ANTI_CLOG_ON, this::isInputLimit, this::setInputLimit)
+                    .tooltips(IInputLimitableMachine::antiClogTooltips));
         }
         var operation = HatchViews.operations(HatchViews.items(getInventory().storage, io, slotTexture), toggles);
         int slots = getInventorySize();
