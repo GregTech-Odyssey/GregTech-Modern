@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.FriendlyByteBuf;
@@ -94,7 +95,9 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
                 return definition == null ? type.defaultDefinition : definition;
             } else {
                 var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(data, dataVersion);
-                return RECIPES.get(id);
+                var definition = RECIPES.get(id);
+                if (definition == null) return GTRecipeTypes.DUMMY_RECIPES.defaultDefinition;
+                return definition;
             }
         }
     };
