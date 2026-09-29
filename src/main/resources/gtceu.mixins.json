@@ -12,7 +12,6 @@
     "LevelRendererMixin",
     "ModelManagerMixin",
     "MultiPlayerGameModeMixin",
-    "emi.RecipeScreenMixin",
     "ldlib.ClickDataMixin",
     "xaerominimap.HighlighterRegistryMixin",
     "xaerominimap.MinimapFBORendererMixin",

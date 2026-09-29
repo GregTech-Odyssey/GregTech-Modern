@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IObjectHolder;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.BlockableSlotWidget;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IItemComponent;
@@ -13,12 +12,14 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayouts;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -93,7 +94,17 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
     @Override
     public Widget createUIWidget() {
-        return new WidgetGroup(new Position(0, 0)).addWidget(new ImageWidget(46, 15, 84, 60, GuiTextures.PROGRESS_BAR_RESEARCH_STATION_BASE)).addWidget(new BlockableSlotWidget(heldItems, 0, 79, 36).setIsBlocked(this::isLocked).setBackground(GuiTextures.SLOT, GuiTextures.RESEARCH_STATION_OVERLAY)).addWidget(new BlockableSlotWidget(heldItems, 1, 15, 36).setIsBlocked(this::isLocked).setBackground(GuiTextures.SLOT, GuiTextures.DATA_ORB_OVERLAY));
+        var canvas = RecipeSlotLayouts.canvas(115, 60);
+        RecipeSlotLayouts.place(canvas, heldSlot(1, GuiTextures.DATA_ORB_OVERLAY), 0, 21);
+        RecipeSlotLayouts.image(canvas, GuiTextures.PROGRESS_BAR_RESEARCH_STATION_BASE, 31, 0, 84, 60);
+        RecipeSlotLayouts.place(canvas, heldSlot(0, GuiTextures.RESEARCH_STATION_OVERLAY), 64, 21);
+        return canvas;
+    }
+
+    private ItemSlot heldSlot(int index, IGuiTexture overlay) {
+        var slot = ItemSlot.of(heldItems, index).disabled(this::isLocked, null);
+        slot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, overlay));
+        return slot;
     }
 
     @Override

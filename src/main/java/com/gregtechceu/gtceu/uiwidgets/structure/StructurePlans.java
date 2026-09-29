@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBlocks;
 import com.gregtechceu.gtceu.api.pattern.ControllerPredicate;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderModel;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -23,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -40,6 +42,9 @@ public final class StructurePlans {
         }
         var cells = layout.cells();
         var whole = layout.exclude(new boolean[0]);
+        var origin = new ArrayList<TraceabilityPredicate>(cells.size());
+        for (var cell : cells) origin.add(cell.predicate());
+        builder.origin(origin);
         if (whole != layout) {
             var fullModel = modelBuilder(controller, whole, true).build(stack -> null);
             fullModel.selectMinimum();
@@ -72,7 +77,62 @@ public final class StructurePlans {
     }
 
     public static Item[] assign(PatternBuilderModel model, Layout layout) {
-        return model.assign(layout.predicates(), layout.placementOrder(), layout.layers(), sections(layout));
+        var bound = bind(model, layout);
+        if (bound == null) {
+            model = modelBuilder(ItemStack.EMPTY, layout, true).build(stack -> null);
+            model.selectMinimum();
+            bound = layout.predicates();
+        }
+        return model.assign(bound, layout.placementOrder(), layout.layers(), sections(layout));
+    }
+
+    @Nullable
+    private static List<TraceabilityPredicate> bind(PatternBuilderModel model, Layout layout) {
+        var current = layout.predicates();
+        var origin = model.origin();
+        if (origin == null) return current;
+        var cells = layout.cells();
+        if (origin.size() != cells.size()) return null;
+        boolean same = true;
+        for (int i = 0; i < cells.size() && same; i++) same = origin.get(i) == cells.get(i).predicate();
+        if (same) return current;
+        var mapping = new Reference2ObjectOpenHashMap<TraceabilityPredicate, TraceabilityPredicate>();
+        var bound = new ArrayList<TraceabilityPredicate>(cells.size());
+        for (int i = 0; i < cells.size(); i++) {
+            var now = cells.get(i).predicate();
+            var before = origin.get(i);
+            var known = mapping.get(now);
+            if (known == null) {
+                if (!equivalent(before, now)) return null;
+                mapping.put(now, before);
+            } else if (known != before) {
+                return null;
+            }
+            bound.add(current.get(i) == null ? null : before);
+        }
+        return bound;
+    }
+
+    private static boolean equivalent(TraceabilityPredicate a, TraceabilityPredicate b) {
+        if (a == b) return true;
+        if (a.getClass() != b.getClass() || a.testOnly() != b.testOnly() || a.isAny() != b.isAny() || a.isAir() != b.isAir()) return false;
+        return equivalent(a.common, b.common) && equivalent(a.limited, b.limited);
+    }
+
+    private static boolean equivalent(List<SimplePredicate> a, List<SimplePredicate> b) {
+        if (a.size() != b.size()) return false;
+        for (int i = 0; i < a.size(); i++) {
+            var x = a.get(i);
+            var y = b.get(i);
+            if (x == y) continue;
+            if (x == null || y == null || x.getClass() != y.getClass()) return false;
+            if (x.minCount != y.minCount || x.maxCount != y.maxCount || x.minLayerCount != y.minLayerCount || x.maxLayerCount != y.maxLayerCount ||
+                    x.previewCount != y.previewCount)
+                return false;
+            if ((x.candidates == null) != (y.candidates == null)) return false;
+            if (x.candidates != null && !Arrays.equals(x.candidates.get(), y.candidates.get())) return false;
+        }
+        return true;
     }
 
     public record Preview(Layout layout, Item[] items, BlockState controller, List<ItemStack> parts) {

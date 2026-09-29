@@ -33,7 +33,7 @@ public final class PartSlots {
     }
 
     public static List<SlotWidget> create(List<ItemStack> stacks, @Nullable Component hint) {
-        return slots(stacks, hint == null ? Collections.emptyList() : List.of(hint));
+        return slots(stacks, hint == null ? Collections.emptyList() : Collections.singletonList(hint));
     }
 
     public static WidgetGroup grid(List<ItemStack> stacks, List<Component> tips, int columns) {
@@ -50,7 +50,7 @@ public final class PartSlots {
 
     private static List<SlotWidget> slots(List<ItemStack> stacks, List<Component> tips) {
         var lists = new ArrayList<List<ItemStack>>(stacks.size());
-        for (var stack : stacks) lists.add(List.of(stack.copyWithCount(1)));
+        for (var stack : stacks) lists.add(Collections.singletonList(stack.copyWithCount(1)));
         var handler = new CycleItemStackHandler(lists);
         var slots = new ArrayList<SlotWidget>(stacks.size());
         for (int i = 0; i < stacks.size(); i++) {

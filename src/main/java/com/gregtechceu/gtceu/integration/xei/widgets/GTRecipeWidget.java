@@ -75,11 +75,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     public static final int SIDE_BUTTON_PITCH = 14;
     /** 侧边按钮左缘在页面右缘内侧多远：按钮右缘与卡片外缘齐。 */
     public static final int SIDE_BUTTON_INSET = SIDE_BUTTON_SIZE - CARD_MARGIN;
-    /// 卡片：原版窗口的描边、高光、阴影与底色（与配方查看器页面一致）
-    private static final int CARD_OUTLINE = 0xFF000000;
-    private static final int CARD_LIGHT = 0xFFFFFFFF;
-    private static final int CARD_SHADOW = 0xFF555555;
-    private static final int CARD_FILL = 0xFFC6C6C6;
 
     /**
      * 配方页外框。
@@ -249,26 +244,26 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         // 右边、底边在缺口处的终点
         int rightBottom = notch ? notchY : y1;
         int bottomRight = notch ? notchX : x1;
-        graphics.fill(x0 + 1, y0 + 1, x1 - 1, rightBottom - 1, CARD_FILL);
-        graphics.fill(x0 + 1, y0 + 1, bottomRight - 1, y1 - 1, CARD_FILL);
+        graphics.fill(x0 + 1, y0 + 1, x1 - 1, rightBottom - 1, UITheme.CARD_FILL);
+        graphics.fill(x0 + 1, y0 + 1, bottomRight - 1, y1 - 1, UITheme.CARD_FILL);
         // 描边
-        graphics.fill(x0 + 1, y0, x1 - 1, y0 + 1, CARD_OUTLINE);
-        graphics.fill(x0, y0 + 1, x0 + 1, y1 - 1, CARD_OUTLINE);
-        graphics.fill(x1 - 1, y0 + 1, x1, rightBottom - 1, CARD_OUTLINE);
-        graphics.fill(x0 + 1, y1 - 1, bottomRight - 1, y1, CARD_OUTLINE);
+        graphics.fill(x0 + 1, y0, x1 - 1, y0 + 1, UITheme.CARD_OUTLINE);
+        graphics.fill(x0, y0 + 1, x0 + 1, y1 - 1, UITheme.CARD_OUTLINE);
+        graphics.fill(x1 - 1, y0 + 1, x1, rightBottom - 1, UITheme.CARD_OUTLINE);
+        graphics.fill(x0 + 1, y1 - 1, bottomRight - 1, y1, UITheme.CARD_OUTLINE);
         if (notch) {
-            graphics.fill(notchX - 1, notchY - 1, x1 - 1, notchY, CARD_OUTLINE);
-            graphics.fill(notchX - 1, notchY, notchX, y1 - 1, CARD_OUTLINE);
+            graphics.fill(notchX - 1, notchY - 1, x1 - 1, notchY, UITheme.CARD_OUTLINE);
+            graphics.fill(notchX - 1, notchY, notchX, y1 - 1, UITheme.CARD_OUTLINE);
         }
         // 左上高光
-        graphics.fill(x0 + 1, y0 + 1, x1 - 3, y0 + 3, CARD_LIGHT);
-        graphics.fill(x0 + 1, y0 + 3, x0 + 3, y1 - 3, CARD_LIGHT);
+        graphics.fill(x0 + 1, y0 + 1, x1 - 3, y0 + 3, UITheme.CARD_HIGHLIGHT);
+        graphics.fill(x0 + 1, y0 + 3, x0 + 3, y1 - 3, UITheme.CARD_HIGHLIGHT);
         // 右下阴影
-        graphics.fill(x1 - 3, y0 + 3, x1 - 1, rightBottom - 1, CARD_SHADOW);
-        graphics.fill(x0 + 3, y1 - 3, bottomRight - 1, y1 - 1, CARD_SHADOW);
+        graphics.fill(x1 - 3, y0 + 3, x1 - 1, rightBottom - 1, UITheme.CARD_SHADOW);
+        graphics.fill(x0 + 3, y1 - 3, bottomRight - 1, y1 - 1, UITheme.CARD_SHADOW);
         if (notch) {
-            graphics.fill(notchX - 3, notchY - 3, x1 - 1, notchY - 1, CARD_SHADOW);
-            graphics.fill(notchX - 3, notchY - 1, notchX - 1, y1 - 1, CARD_SHADOW);
+            graphics.fill(notchX - 3, notchY - 3, x1 - 1, notchY - 1, UITheme.CARD_SHADOW);
+            graphics.fill(notchX - 3, notchY - 1, notchX - 1, y1 - 1, UITheme.CARD_SHADOW);
         }
     }
 

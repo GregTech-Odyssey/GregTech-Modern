@@ -1413,7 +1413,7 @@ public class LangHandler {
         provider.add("gtceu.structure_preview.layer", "Layer");
         provider.add("gtceu.structure_preview.layer.all", "All");
         provider.add("gtceu.structure_preview.layer.n", "Layer %s");
-        provider.add("gtceu.structure_preview.open", "Open the full preview");
+        provider.add("gtceu.structure_preview.open", "View Full Structure");
         provider.add("gtceu.structure_build.blocked", "Required hatches are not all chosen, or there is nothing to place");
         provider.add("gtceu.multiblock.cleanroom.left.desc", "Blocks from the controller to the left edge; the controller's front counts as forward");
         provider.add("gtceu.multiblock.cleanroom.right.desc", "Blocks from the controller to the right edge; the controller's front counts as forward");

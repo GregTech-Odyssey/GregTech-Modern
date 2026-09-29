@@ -177,7 +177,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
                 if (states != null) {
                     var pl = pos.asLong();
                     for (var structure : states) {
-                        if (structure.cache.contains(pl)) {
+                        if (structure.inStructure(pl)) {
                             serverLevel.getServer().executeBlocking(() -> structure.onBlockStateChanged(pos, newState));
                         }
                     }

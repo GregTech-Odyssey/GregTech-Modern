@@ -61,7 +61,6 @@ public final class UIStyleManager {
             Map.entry("bevel_dark", 0xFF7A7A7A),
             Map.entry("bevel_light", 0xFFFFFFFF),
             Map.entry("button_tint", 0xFFC0C0C0),
-            Map.entry("latched_shadow", 0xFF686868),
             Map.entry("latched_fill", 0xFF969696),
             Map.entry("status_online", 0xFF55DD55),
             Map.entry("status_offline", 0xFFDD4444),
@@ -82,7 +81,29 @@ public final class UIStyleManager {
             Map.entry("canvas_minimap_border", 0xFF373737),
             Map.entry("canvas_minimap_viewport", 0xFFFFC83D),
             Map.entry("canvas_item_block", 0xFF8B8B8B),
-            Map.entry("slot_hover_overlay", 0x80FFFFFF));
+            Map.entry("slot_hover_overlay", 0x80FFFFFF),
+            Map.entry("slot_bevel_dark", 0xFF373737),
+            Map.entry("slot_bevel_light", 0xFFFFFFFF),
+            Map.entry("divider", 0xFF8B8B8B),
+            Map.entry("card_fill", 0xFFC6C6C6),
+            Map.entry("card_outline", 0xFF000000),
+            Map.entry("card_highlight", 0xFFFFFFFF),
+            Map.entry("card_shadow", 0xFF555555),
+            Map.entry("flow_node_fill", 0xFFC6C6C6),
+            Map.entry("flow_node_outline", 0xFF373737),
+            Map.entry("flow_node_highlight", 0xFFDCDCDC),
+            Map.entry("flow_node_shade", 0xFFA2A2A2),
+            Map.entry("flow_wire_idle", 0xFF8A8A8A),
+            Map.entry("flow_wire_disabled", 0xFF9A9A9A),
+            Map.entry("button_text", 0xFF222222),
+            Map.entry("button_text_disabled", 0xFF666666));
+
+    static final Map<String, String> FALLBACK_KEYS = Map.of(
+            "slot_bevel_dark", "bevel_dark",
+            "slot_bevel_light", "bevel_light",
+            "divider", "panel_outline",
+            "card_fill", "window_fill",
+            "flow_node_fill", "window_fill");
 
     private static final TexturePack DEFAULT_TEXTURE_PACK = new TexturePack(
             GTCEu.id("textures/gui/uipro/ore_styles.png"),

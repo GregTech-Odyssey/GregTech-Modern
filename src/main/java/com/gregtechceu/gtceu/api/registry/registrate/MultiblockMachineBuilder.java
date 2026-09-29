@@ -46,6 +46,7 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.*;
 
@@ -326,7 +327,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         if (pattern == null) {
             throw new IllegalStateException("missing structure while creating multiblock " + name);
         }
-        definition.setPatternFactory(List.of(pattern));
+        definition.setPatternFactory(Collections.singletonList(pattern));
         definition.setAllowFlip(allowFlip);
         if (recoveryItems != null) {
             definition.setRecoveryItems(recoveryItems);

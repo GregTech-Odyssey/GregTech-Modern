@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -98,7 +99,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
         var buttons = new IFancyConfigurator[modes.length > 1 ? modes.length + 1 : 1];
         buttons[0] = new IFancyConfiguratorButton.Toggle(WidgetIcons.MAP_LIGHT, WidgetIcons.MAP_DARK,
                 () -> isDarkMap(held(holder)), (clickData, pressed) -> setDarkMap(held(holder), pressed))
-                .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? DARK_MAP : LIGHT_MAP)));
+                .setTooltipsSupplier(pressed -> Collections.singletonList(Component.translatable(pressed ? DARK_MAP : LIGHT_MAP)));
         if (modes.length > 1) {
             for (int i = 0; i < modes.length; i++) buttons[i + 1] = modeButton(holder, i);
         }
@@ -112,7 +113,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
                 (clickData, pressed) -> {
                     if (pressed) setMode(held(holder), index);
                 })
-                .setTooltipsSupplier(pressed -> List.of(Component.translatable(mode.unlocalizedName)));
+                .setTooltipsSupplier(pressed -> Collections.singletonList(Component.translatable(mode.unlocalizedName)));
     }
 
     private static ItemStack held(HeldItemUIFactory.HeldItemHolder holder) {

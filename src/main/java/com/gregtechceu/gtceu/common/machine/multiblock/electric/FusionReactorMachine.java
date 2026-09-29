@@ -64,6 +64,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @SyncToClient
     private int color = -1;
     @Nullable
+    private GTRecipe colorRecipe;
+    @Nullable
     protected TickableSubscription preHeatSubs;
 
     public FusionReactorMachine(MetaMachineBlockEntity holder, int tier) {
@@ -166,7 +168,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
                 this.updatePreHeatSubscription();
             }
         }
-        if (color == -1) {
+        if (recipe != colorRecipe) {
+            colorRecipe = recipe;
             if (!recipe.fluidOutputs.isEmpty()) {
                 var fluid = recipe.fluidOutputs.getFirst().inner.getFluid();
                 int newColor = -16777216 | GTUtil.getFluidColor(fluid);
@@ -192,18 +195,6 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             energyContainer.addEnergy(super.energyContainer.removeEnergy(leftStorage));
         }
         updatePreHeatSubscription();
-    }
-
-    @Override
-    public void onWaiting() {
-        super.onWaiting();
-        color = -1;
-    }
-
-    @Override
-    public void afterWorking() {
-        super.afterWorking();
-        color = -1;
     }
 
     @Override

@@ -57,6 +57,10 @@ public interface IFancyUIProvider {
         return WindowAnchor.TABS;
     }
 
+    default boolean showsWindowLogo() {
+        return true;
+    }
+
     /**
      * Get sub tabs, for example, multiblock will show all its parts tabs.
      */

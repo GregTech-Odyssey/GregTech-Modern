@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -27,7 +26,6 @@ final class SceneCamera {
     private static final float MIN_WHEEL_STEP = 0.5f;
     private static final float MIN_WHEEL_ZOOM = 0.1f;
     private static final float MAX_WHEEL_ZOOM = 999f;
-    private static final float MIN_PIVOT_DEPTH = 0.5f;
 
     private Vector3f center = new Vector3f();
     private float yaw = DEFAULT_YAW;
@@ -85,8 +83,13 @@ final class SceneCamera {
         return new Vector3f((float) Math.cos(p), (float) Math.tan(y), (float) Math.sin(p)).normalize().mul(zoom).add(center);
     }
 
-    void zoomStep(int direction) {
-        zoom = Math.max(MIN_STEP_ZOOM, zoom * (direction > 0 ? 1 / ZOOM_STEP : ZOOM_STEP));
+    void zoomStep(int direction, @Nullable Vector3f anchor) {
+        zoomTo(Math.max(MIN_STEP_ZOOM, zoom * (direction > 0 ? 1 / ZOOM_STEP : ZOOM_STEP)), anchor);
+    }
+
+    private void zoomTo(float target, @Nullable Vector3f anchor) {
+        if (anchor != null && zoom > 0) center = new Vector3f(center).sub(anchor).mul(target / zoom).add(anchor);
+        zoom = target;
     }
 
     String percentText() {
@@ -94,24 +97,24 @@ final class SceneCamera {
         return Math.round(baseZoom / zoom * 100) + "%";
     }
 
-    void resetZoom() {
-        if (baseZoom > 0) zoom = baseZoom;
+    void resetZoom(@Nullable Vector3f anchor) {
+        if (baseZoom > 0) zoomTo(baseZoom, anchor);
     }
 
     void resetView() {
         yaw = DEFAULT_YAW;
         pitch = DEFAULT_PITCH;
         if (home != null) center = new Vector3f(home);
-        resetZoom();
+        if (baseZoom > 0) zoom = baseZoom;
     }
 
     void focus(float x, float z) {
         center = new Vector3f(x, center.y(), z);
     }
 
-    void wheel(double delta) {
+    void wheel(double delta, @Nullable Vector3f anchor) {
         float step = Math.max(MIN_WHEEL_STEP, zoom * WHEEL_RATIO);
-        zoom = Mth.clamp(zoom + (delta < 0 ? step : -step), MIN_WHEEL_ZOOM, MAX_WHEEL_ZOOM);
+        zoomTo(Mth.clamp(zoom + (delta < 0 ? step : -step), MIN_WHEEL_ZOOM, MAX_WHEEL_ZOOM), anchor);
     }
 
     void pan(double dragX, double dragY) {
@@ -127,16 +130,6 @@ final class SceneCamera {
     void rotate(double dragX, double dragY) {
         pitch = (float) ((pitch + dragX * ROTATE_SPEED + 360) % 360);
         yaw = (float) Mth.clamp(yaw + dragY * ROTATE_SPEED, -MAX_YAW, MAX_YAW);
-    }
-
-    void pivotAt(@Nullable Vec3 point) {
-        if (point == null) return;
-        var eye = eye();
-        var forward = new Vector3f(center).sub(eye).normalize();
-        float depth = (float) ((point.x - eye.x()) * forward.x() + (point.y - eye.y()) * forward.y() + (point.z - eye.z()) * forward.z());
-        if (depth < MIN_PIVOT_DEPTH) return;
-        center = new Vector3f(eye).add(forward.mul(depth));
-        zoom = depth;
     }
 
     void move(long window, float seconds) {

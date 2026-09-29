@@ -19,7 +19,7 @@ public class MultiblockInfoEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
     public MultiblockInfoEmiRecipe(MultiblockMachineDefinition definition) {
         super(() -> {
             var structure = StructurePattern.of(definition);
-            return structure != null ? new StructurePreviewWidget(definition, structure, () -> StructurePreviewTrigger.onShown(definition, structure)) :
+            return structure != null ? new StructurePreviewWidget(definition, structure, () -> StructurePreviewTrigger.open(definition, structure)) :
                     new WidgetGroup(0, 0, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT);
         });
         this.definition = definition;

@@ -26,37 +26,54 @@ public final class StructurePattern extends BlockPattern {
 
     @Getter
     private final Structure structure;
-    @Getter
-    private final int width;
-    @Getter
-    private final int height;
-    @Getter
-    private final int depth;
-    private final boolean mirrorSymmetric;
+    @Nullable
+    private volatile int[] size;
+    @Nullable
+    private volatile Boolean mirrorSymmetric;
 
-    private StructurePattern(Structure structure, @Nullable Layout layout) {
+    private StructurePattern(Structure structure) {
         super(new TraceabilityPredicate[0][][], DIRS, new int[0][], new int[5], 0, 0, 0);
         this.structure = structure;
-        this.width = layout == null ? 0 : layout.width();
-        this.height = layout == null ? 0 : layout.height();
-        this.depth = layout == null ? 0 : layout.depth();
-        this.mirrorSymmetric = mirrorSymmetric(structure);
     }
 
     @Nullable
     public static Structure of(MultiblockMachineDefinition definition) {
-        var factories = definition.getPatternFactory();
-        if (factories == null || factories.length == 0) return null;
-        return factories[0].get() instanceof StructurePattern pattern ? pattern.structure : null;
+        return definition.displayPattern() instanceof StructurePattern pattern ? pattern.structure : null;
     }
 
-    static StructurePattern create(Structure structure, @Nullable MultiblockMachineDefinition definition) {
-        var pattern = new StructurePattern(structure, structure.layout(structure.defaultValues()));
-        pattern.predicates = structure.predicates;
-        if (definition != null) {
-            definition.setCheckPriority(-(pattern.width * pattern.height * pattern.depth));
+    static StructurePattern create(Structure structure) {
+        return new StructurePattern(structure);
+    }
+
+    private int[] size() {
+        var result = size;
+        if (result == null) {
+            var layout = structure.layout(structure.defaultValues());
+            result = layout == null ? new int[3] : new int[] { layout.width(), layout.height(), layout.depth() };
+            size = result;
         }
-        return pattern;
+        return result;
+    }
+
+    public int getWidth() {
+        return size()[0];
+    }
+
+    public int getHeight() {
+        return size()[1];
+    }
+
+    public int getDepth() {
+        return size()[2];
+    }
+
+    private boolean mirrorSymmetric() {
+        var result = mirrorSymmetric;
+        if (result == null) {
+            result = mirrorSymmetric(structure);
+            mirrorSymmetric = result;
+        }
+        return result;
     }
 
     @Override
@@ -69,7 +86,7 @@ public final class StructurePattern extends BlockPattern {
     }
 
     private boolean fuller(MultiblockState worldState, BlockPos centerPos, Direction frontFacing, Direction upwardsFacing) {
-        if (mirrorSymmetric) return false;
+        if (mirrorSymmetric()) return false;
         var assembly = worldState.getMatchContext().get(Assembly.KEY);
         if (assembly == null || assembly.getOptionalMissing() == 0 || !worldState.controller.self().allowFlip()) return false;
         var probe = MultiblockState.probe(worldState);

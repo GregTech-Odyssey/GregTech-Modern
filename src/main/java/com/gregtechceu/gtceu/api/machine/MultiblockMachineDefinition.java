@@ -3,9 +3,9 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
-import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -17,6 +17,9 @@ import lombok.Setter;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -56,7 +59,7 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     protected BiConsumer<IMultiController, List<Component>> additionalDisplay;
     @Getter
     @Setter
-    protected List<MachineProtocol> mountedOn = List.of();
+    protected List<MachineProtocol> mountedOn = Collections.emptyList();
 
     protected MultiblockMachineDefinition(ResourceLocation id) {
         super(id);
@@ -66,8 +69,37 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         return new MultiblockMachineDefinition(id);
     }
 
+    @Nullable
+    private volatile StructureInfo structureInfo;
+    private volatile boolean priorityResolved;
+
     public int checkPriority() {
+        if (checkPriority == 0 && !priorityResolved) {
+            var info = getStructureInfo();
+            if (info != null && checkPriority == 0) checkPriority = -(info.width() * info.height() * info.depth());
+            priorityResolved = true;
+        }
         return checkPriority;
+    }
+
+    public boolean hasStructure() {
+        return patternFactory != null && patternFactory.length > 0;
+    }
+
+    @Nullable
+    public BlockPattern displayPattern() {
+        if (!hasStructure()) return null;
+        return patternFactory[0] instanceof PatternFactory factory ? factory.peek() : patternFactory[0].get();
+    }
+
+    @Nullable
+    public StructureInfo getStructureInfo() {
+        var info = structureInfo;
+        if (info == null && displayPattern() instanceof StructurePattern pattern) {
+            info = new StructureInfo(pattern.getWidth(), pattern.getHeight(), pattern.getDepth(), pattern.getStructure().optionalModuleCount());
+            structureInfo = info;
+        }
+        return info;
     }
 
     public void setCheckPriority(final int checkPriority) {
@@ -77,7 +109,7 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     }
 
     public void setPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> patternFactory) {
-        this.patternFactory = patternFactory.stream().map(p -> GTMemoizer.memoize(() -> p.apply(this))).toArray(Supplier[]::new);
+        this.patternFactory = patternFactory.stream().map(p -> new PatternFactory(this, p)).toArray(Supplier[]::new);
     }
 
     public void setRecoveryItems(@Nullable final MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems) {
@@ -87,5 +119,49 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     @Nullable
     public MultiblockMachineBuilder.MufflerProductionGenerator getRecoveryItems() {
         return this.recoveryItems;
+    }
+
+    public record StructureInfo(int width, int height, int depth, int optionalModules) {}
+
+    public static final class PatternFactory implements Supplier<BlockPattern> {
+
+        private final MultiblockMachineDefinition definition;
+        private final Function<MultiblockMachineDefinition, BlockPattern> factory;
+        @Nullable
+        private volatile SoftReference<BlockPattern> cached;
+        @Nullable
+        private volatile WeakReference<BlockPattern> shared;
+
+        private PatternFactory(MultiblockMachineDefinition definition, Function<MultiblockMachineDefinition, BlockPattern> factory) {
+            this.definition = definition;
+            this.factory = factory;
+        }
+
+        @Override
+        public BlockPattern get() {
+            var soft = cached;
+            var pattern = soft == null ? null : soft.get();
+            if (pattern != null) return pattern;
+            pattern = peek();
+            cached = new SoftReference<>(pattern);
+            return pattern;
+        }
+
+        public BlockPattern peek() {
+            var soft = cached;
+            var pattern = soft == null ? null : soft.get();
+            if (pattern != null) return pattern;
+            var weak = shared;
+            pattern = weak == null ? null : weak.get();
+            if (pattern != null) return pattern;
+            pattern = factory.apply(definition);
+            shared = new WeakReference<>(pattern);
+            return pattern;
+        }
+
+        public void invalidate() {
+            cached = null;
+            shared = null;
+        }
     }
 }

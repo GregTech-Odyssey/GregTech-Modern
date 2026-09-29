@@ -28,6 +28,10 @@ public interface ILayoutHost {
         return Integer.MAX_VALUE;
     }
 
+    default int pageHeightLimit() {
+        return Integer.MAX_VALUE;
+    }
+
     /** 从 {@code widget} 往上找最近的外壳。 */
     static ILayoutHost of(Widget widget) {
         for (var ancestor = widget.getParent(); ancestor != null; ancestor = ancestor.getParent()) {

@@ -152,6 +152,7 @@ public class TraceabilityPredicate {
      * Set the minimum number of candidate blocks.
      */
     public TraceabilityPredicate setMinGlobalLimited(int min) {
+        detachShared();
         limited.addAll(common);
         common.clear();
         for (SimplePredicate predicate : limited) {
@@ -168,6 +169,7 @@ public class TraceabilityPredicate {
      * Set the maximum number of candidate blocks.
      */
     public TraceabilityPredicate setMaxGlobalLimited(int max) {
+        detachShared();
         limited.addAll(common);
         common.clear();
         for (SimplePredicate predicate : limited) {
@@ -184,6 +186,7 @@ public class TraceabilityPredicate {
      * Set the minimum number of candidate blocks for each aisle layer.
      */
     public TraceabilityPredicate setMinLayerLimited(int min) {
+        detachShared();
         limited.addAll(common);
         common.clear();
         for (SimplePredicate predicate : limited) {
@@ -200,6 +203,7 @@ public class TraceabilityPredicate {
      * Set the maximum number of candidate blocks for each aisle layer.
      */
     public TraceabilityPredicate setMaxLayerLimited(int max) {
+        detachShared();
         limited.addAll(common);
         common.clear();
         for (SimplePredicate predicate : limited) {
@@ -225,6 +229,7 @@ public class TraceabilityPredicate {
      * Set the number of it appears in JEI pages. It only affects JEI preview. (The specific number)
      */
     public TraceabilityPredicate setPreviewCount(int count) {
+        detachShared();
         common.forEach(predicate -> predicate.previewCount = count);
         limited.forEach(predicate -> predicate.previewCount = count);
         return this;
@@ -234,9 +239,29 @@ public class TraceabilityPredicate {
      * Set renderMask.
      */
     public TraceabilityPredicate disableRenderFormed() {
+        detachShared();
         common.forEach(predicate -> predicate.disableRenderFormed = true);
         limited.forEach(predicate -> predicate.disableRenderFormed = true);
         return this;
+    }
+
+    private static boolean isShared(@Nullable SimplePredicate predicate, SimplePredicate shared) {
+        return predicate != null && predicate.is(shared);
+    }
+
+    private void detachShared() {
+        detachShared(common);
+        detachShared(limited);
+    }
+
+    private void detachShared(List<SimplePredicate> predicates) {
+        for (int i = 0, size = predicates.size(); i < size; i++) {
+            var predicate = predicates.get(i);
+            if (predicate != SimplePredicate.ANY && predicate != SimplePredicate.AIR) continue;
+            var copy = predicate.copyShared();
+            predicates.set(i, copy);
+            if (defaultPredicate == predicate) defaultPredicate = copy;
+        }
     }
 
     public TraceabilityPredicate excluding(PartAbility... abilities) {
@@ -328,11 +353,11 @@ public class TraceabilityPredicate {
     }
 
     public boolean isAny() {
-        return this.common.size() == 1 && this.limited.isEmpty() && this.common.getFirst() == SimplePredicate.ANY;
+        return this.common.size() == 1 && this.limited.isEmpty() && isShared(this.common.getFirst(), SimplePredicate.ANY);
     }
 
     public boolean isAir() {
-        return this.common.size() == 1 && this.limited.isEmpty() && this.common.getFirst() == SimplePredicate.AIR;
+        return this.common.size() == 1 && this.limited.isEmpty() && isShared(this.common.getFirst(), SimplePredicate.AIR);
     }
 
     public boolean isSingle() {
@@ -340,6 +365,9 @@ public class TraceabilityPredicate {
     }
 
     public boolean hasAir() {
-        return this.common.contains(SimplePredicate.AIR);
+        for (int i = 0, size = common.size(); i < size; i++) {
+            if (isShared(common.get(i), SimplePredicate.AIR)) return true;
+        }
+        return false;
     }
 }

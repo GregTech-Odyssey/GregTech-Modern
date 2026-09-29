@@ -2520,7 +2520,7 @@
     "gtceu.structure_preview.layer": "显示层",
     "gtceu.structure_preview.layer.all": "全部",
     "gtceu.structure_preview.layer.n": "第 %s 层",
-    "gtceu.structure_preview.open": "打开大窗口预览",
+    "gtceu.structure_preview.open": "查看完整结构",
     "gtceu.structure_preview.encode": "编码样板",
     "gtceu.structure_preview.build": "建造配置",
     "gtceu.structure_preview.project": "在世界中投影",

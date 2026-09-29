@@ -24,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.vfyjxf.taffy.geometry.FloatSize;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,10 @@ import java.util.function.IntConsumer;
 public class ScrollerView extends DraggableScrollableWidgetGroup implements ILayoutItem {
 
     public static final int SCROLL_BAR_WIDTH = 8;
+    @Nullable
+    private IGuiTexture watermark;
+    private int watermarkWidth, watermarkHeight;
+    private boolean fitPage;
     public static final int SCROLL_BAR_MARGIN = 2;
     /** 滚动条连同与内容的间距所占宽度。 */
     public static final int SCROLL_BAR_SPACE = SCROLL_BAR_WIDTH + SCROLL_BAR_MARGIN;
@@ -165,6 +170,19 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return this;
     }
 
+    public ScrollerView fitPage() {
+        this.fitPage = true;
+        relayout();
+        return this;
+    }
+
+    public ScrollerView watermark(IGuiTexture texture, int width, int height) {
+        this.watermark = texture;
+        this.watermarkWidth = width;
+        this.watermarkHeight = height;
+        return this;
+    }
+
     public ScrollerView viewportInset(int inset) {
         inset = Math.max(0, inset);
         if (this.inset == inset) return this;
@@ -260,9 +278,13 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     /** 高度上限（adaptive）或高度，优先级：锁定的、本次拖出来的、默认值。 */
     private int heightLimit() {
-        if (lockedHeight > 0) return lockedHeight;
-        if (userHeight > 0) return userHeight;
-        return adaptiveMaxHeight > 0 ? adaptiveMaxHeight + 2 * inset : preferredHeight;
+        int limit;
+        if (lockedHeight > 0) limit = lockedHeight;
+        else if (userHeight > 0) limit = userHeight;
+        else limit = adaptiveMaxHeight > 0 ? adaptiveMaxHeight + 2 * inset : preferredHeight;
+        if (!fitPage) return limit;
+        var host = ILayoutHost.of(this);
+        return host == null ? limit : Math.min(limit, host.pageHeightLimit());
     }
 
     /** 客户端：读取锁定的高度，超出屏幕上限（界面不超过屏幕 2/3）或过小时不应用，回到默认。 */
@@ -600,6 +622,12 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         // 鼠标在视口外时，内容按"鼠标不在任何子控件上"绘制：露出一半的槽、按钮不因鼠标停在被裁掉的那一半而高亮
         boolean inside = isInViewport(mouseX, mouseY);
         drawBackgroundTexture(graphics, mouseX, mouseY);
+        if (watermark != null) {
+            int right = viewportRight() - (barShown ? SCROLL_BAR_SPACE : 0) - UITheme.LOGO_GAP;
+            int bottom = viewportBottom() - (resizable ? UITheme.RESIZE_GRIP_SIZE - UITheme.LOGO_GAP : UITheme.LOGO_GAP);
+            RenderSystem.enableBlend();
+            watermark.draw(graphics, mouseX, mouseY, right - watermarkWidth, bottom - watermarkHeight, watermarkWidth, watermarkHeight);
+        }
         enableViewportScissor(graphics);
         drawWidgetsBackground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
         graphics.disableScissor();

@@ -206,6 +206,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             }
             if (result) {
                 state.addShared();
+                state.freeze();
                 waitingTime = 0;
                 return true;
             } else if (!state.error.equals(MultiblockState.UNLOAD_ERROR) && hasCheckButton()) {

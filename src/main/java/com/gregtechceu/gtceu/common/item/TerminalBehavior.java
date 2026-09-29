@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
 
 import net.minecraft.world.InteractionHand;
@@ -24,7 +23,7 @@ public class TerminalBehavior implements IInteractionItem {
         if (context.getPlayer() == null) return InteractionResult.PASS;
         Level level = context.getLevel();
         if (!(MetaMachine.getMachine(level, context.getClickedPos()) instanceof IMultiController controller) ||
-                StructurePattern.of(controller.self().getDefinition()) == null) {
+                !controller.self().getDefinition().hasStructure()) {
             return InteractionResult.PASS;
         }
         if (level.isClientSide) DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> StructureBuildFlow.onTerminalUse(controller));

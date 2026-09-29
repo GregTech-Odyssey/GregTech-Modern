@@ -30,8 +30,8 @@ import java.util.function.Supplier;
 
 public class SimplePredicate {
 
-    public static SimplePredicate ANY = new SimplePredicate(GTUtil.FAVORABLE, null, null);
-    public static SimplePredicate AIR = new SimplePredicate(blockWorldState -> blockWorldState.getBlockState().isAir(), null, null);
+    public static final SimplePredicate ANY = new SimplePredicate(GTUtil.FAVORABLE, null, null);
+    public static final SimplePredicate AIR = new SimplePredicate(blockWorldState -> blockWorldState.getBlockState().isAir(), null, null);
 
     @Nullable
     public Supplier<Block[]> candidates;
@@ -44,6 +44,8 @@ public class SimplePredicate {
     public int maxLayerCount = -1;
     public int previewCount = -1;
     public boolean disableRenderFormed = false;
+    @Nullable
+    private SimplePredicate sharedOrigin;
 
     public SimplePredicate() {}
 
@@ -55,6 +57,26 @@ public class SimplePredicate {
 
     public SimplePredicate buildPredicate() {
         return this;
+    }
+
+    public boolean is(SimplePredicate shared) {
+        return this == shared || sharedOrigin == shared;
+    }
+
+    public SimplePredicate copyShared() {
+        if (getClass() != SimplePredicate.class) {
+            throw new IllegalStateException("Only plain shared predicates can be copied: " + getClass().getName());
+        }
+        var copy = new SimplePredicate(predicate, blockInfo, candidates);
+        copy.toolTips = toolTips == null ? null : new ArrayList<>(toolTips);
+        copy.minCount = minCount;
+        copy.maxCount = maxCount;
+        copy.minLayerCount = minLayerCount;
+        copy.maxLayerCount = maxLayerCount;
+        copy.previewCount = previewCount;
+        copy.disableRenderFormed = disableRenderFormed;
+        copy.sharedOrigin = sharedOrigin == null ? this : sharedOrigin;
+        return copy;
     }
 
     @OnlyIn(Dist.CLIENT)

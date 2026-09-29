@@ -19,8 +19,6 @@ public class RecipeTierChip extends UIElement {
 
     private static final int ARROW_WIDTH = 5;
     private static final int ARROW_GAP = 3;
-    private static final int ARROW_COLOR = 0xFF8A8A8A;
-    private static final int ARROW_HOVER = 0xFF202020;
 
     private final IntSupplier tier;
     private final IntConsumer setTier;
@@ -62,8 +60,8 @@ public class RecipeTierChip extends UIElement {
         int side = hoveredSide(mouseX, mouseY);
         if (side != 0) graphics.fill(arrowX - 1, y, x + w, y + h, UITheme.SEGMENT_HOVER);
         int cy = y + h / 2;
-        if (current < max) drawArrow(graphics, arrowX, cy - 1, true, side > 0 ? ARROW_HOVER : ARROW_COLOR);
-        if (current > min) drawArrow(graphics, arrowX, cy + 1, false, side < 0 ? ARROW_HOVER : ARROW_COLOR);
+        if (current < max) drawArrow(graphics, arrowX, cy - 1, true, side > 0 ? UITheme.TEXT : UITheme.DIVIDER);
+        if (current > min) drawArrow(graphics, arrowX, cy + 1, false, side < 0 ? UITheme.TEXT : UITheme.DIVIDER);
         graphics.drawString(font, plain, textLeft, y + (h - 8) / 2, rgb, false);
     }
 

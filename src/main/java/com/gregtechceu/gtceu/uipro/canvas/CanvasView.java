@@ -513,7 +513,7 @@ public class CanvasView extends UIElement {
     }
 
     /**
-     * 默认尺寸按屏幕撑大（客户端打开界面时算一次）：宽 = 屏幕宽 − {@code reservedWidth}，
+     * 默认尺寸按屏幕撑大（客户端打开界面时算一次），
      * 不小于首选尺寸、不大于 {@code maxWidth}/{@code maxHeight}。{@code reserved} 是同一界面里其他部分
      * （窗口边距、标题栏、标签栏、弹出面板……）要占的空间。锁定的尺寸优先。两端尺寸可以不同（控件树不变）。
      */
@@ -526,9 +526,9 @@ public class CanvasView extends UIElement {
     @OnlyIn(Dist.CLIENT)
     private void applyScreenFill() {
         if (screenFill == null) return;
-        var window = Minecraft.getInstance().getWindow();
-        int w = window.getGuiScaledWidth() - screenFill[0];
-        int h = window.getGuiScaledHeight() - MachineWindow.clientVerticalReserve() - screenFill[1];
+        var area = MachineWindow.clientScreenArea();
+        int w = area.width() - screenFill[0];
+        int h = area.height() - screenFill[1];
         preferredWidth = Mth.clamp(w, preferredWidth, Math.max(preferredWidth, screenFill[2]));
         preferredHeight = Mth.clamp(h, preferredHeight, Math.max(preferredHeight, screenFill[3]));
         applySize();

@@ -29,6 +29,10 @@ public class PredicateAbilities extends PredicateBlocks {
         this.excluded = new PartAbility[0];
     }
 
+    public static PredicateAbilities of(PartAbility... abilities) {
+        return new PredicateAbilities(abilities);
+    }
+
     private PredicateAbilities(PredicateAbilities source, PartAbility[] excluded) {
         super(collect(source.abilities, excluded));
         this.abilities = source.abilities;

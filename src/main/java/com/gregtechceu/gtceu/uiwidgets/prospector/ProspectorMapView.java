@@ -49,6 +49,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -466,7 +467,7 @@ public class ProspectorMapView extends UIElement {
 
         @Override
         public List<Component> tooltip() {
-            if (!inScan) return List.of(Component.translatable(OUT_OF_RANGE));
+            if (!inScan) return Collections.singletonList(Component.translatable(OUT_OF_RANGE));
             List<Component> tooltips = new ArrayList<>();
             tooltips.add(Component.translatable(mode.unlocalizedName));
             if (texture != null) {

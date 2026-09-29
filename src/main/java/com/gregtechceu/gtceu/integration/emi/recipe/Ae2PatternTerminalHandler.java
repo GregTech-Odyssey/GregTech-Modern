@@ -34,6 +34,7 @@ import dev.emi.emi.screen.RecipeScreen;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -82,7 +83,7 @@ public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implem
     }
 
     public static StructurePreviewScreen.Action encodeAction(PatternEncodingTermMenu menu, MultiblockMachineDefinition definition, Screen terminal) {
-        var outputs = List.of(new GenericStack(AEItemKey.of(definition.asStack()), 1));
+        var outputs = Collections.singletonList(new GenericStack(AEItemKey.of(definition.asStack()), 1));
         return encodeAction(menu, menu.getClientRepo(), menu.getProcessingInputSlots().length, definition, terminal,
                 inputs -> EncodingHelper.encodeProcessingRecipe(menu, inputs, outputs));
     }

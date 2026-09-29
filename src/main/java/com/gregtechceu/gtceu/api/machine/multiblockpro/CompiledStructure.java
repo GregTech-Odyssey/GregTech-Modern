@@ -37,7 +37,7 @@ final class CompiledStructure {
         }
         var all = new ReferenceLinkedOpenHashSet<TraceabilityPredicate>();
         for (var piece : compiled.values()) {
-            for (var predicate : piece.predicates) all.add(predicate);
+            for (var predicate : piece.palette) all.add(predicate);
         }
         this.predicates = all;
         int limitCount = definition.limitCount();
@@ -62,10 +62,10 @@ final class CompiledStructure {
     private static Reference2ObjectOpenHashMap<CompiledPiece, int[]> masks(Collection<CompiledPiece> pieces, SimplePredicate[][] limitPredicates) {
         var masks = new Reference2ObjectOpenHashMap<CompiledPiece, int[]>();
         for (var piece : pieces) {
-            var mask = new int[piece.predicates.length];
+            var mask = new int[piece.size()];
             boolean any = false;
             for (int cell = 0; cell < mask.length; cell++) {
-                var predicate = piece.predicates[cell];
+                var predicate = piece.predicate(cell);
                 for (int i = 0; i < limitPredicates.length; i++) {
                     for (var simple : limitPredicates[i]) {
                         if (predicate.common.contains(simple) || predicate.limited.contains(simple)) {

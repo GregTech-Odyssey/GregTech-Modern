@@ -736,6 +736,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     }
 
     default void playSound(Player player) {
+        if (player.level().isClientSide) return;
         if (ConfigHolder.INSTANCE.client.toolUseSounds && getSound() != null && canPlaySound(player)) {
             player.level().playSound(null, player.position().x, player.position().y, player.position().z,
                     getSound().getMainEvent(), SoundSource.PLAYERS, 1F, 1F);

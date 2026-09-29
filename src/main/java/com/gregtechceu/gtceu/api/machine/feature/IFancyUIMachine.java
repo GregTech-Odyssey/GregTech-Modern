@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
@@ -34,6 +35,11 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
     @Override
     default ModularUI createUI(Player entityPlayer) {
         return new ModularUI(176, 166, this, entityPlayer).widget(new MachineWindow(this));
+    }
+
+    @Override
+    default boolean showsWindowLogo() {
+        return !(self() instanceof IMultiController);
     }
 
     /**

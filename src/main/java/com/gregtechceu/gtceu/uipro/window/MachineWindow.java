@@ -67,7 +67,7 @@ import java.util.function.Supplier;
  * <ul>
  * <li>外框 {@link UITheme#WINDOW}；标题栏在窗口内第一行，图标 + 标题 + 悬浮说明图标，历史非空时显示返回键。</li>
  * <li>页面不再居中：宽度不足 {@link UISizes#CONTENT_WIDTH} 时才在内容区内居中，否则左边缘固定在 x = 7。</li>
- * <li>玩家背包改用 Ore 槽位，紧跟页面下方 {@link UISizes#SECTION_GAP}，与页面同一左边缘。</li>
+ * <li>玩家背包改用 Ore 槽位，与页面同一左边缘。</li>
  * <li>页面标签（导航）在窗口顶上横排（{@link WindowTabBar}），机器小组件（开关类）独占左侧——两类东西分开放，不再挤在同一侧。</li>
  * <li>右侧弹出面板见 {@link #registerPopup}：由页面注册，按键打开，每个打开界面的玩家各自独立。</li>
  * </ul>
@@ -78,9 +78,6 @@ public class MachineWindow extends FancyMachineUIWidget {
     public static final String POPUP_CLOSE = "gtceu.uipro.popup.close";
 
     private static final ResourceLocation LOGO = GTCEu.id("textures/gui/uipro/gto_logo.png");
-    private static final int LOGO_WIDTH = 33;
-    private static final int LOGO_HEIGHT = 8;
-    private static final int LOGO_GAP = 2;
 
     private final WindowTitleBar title;
     private final WindowTabBar tabs;
@@ -100,6 +97,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     private MetaMachine backToMachine;
     /// 始终按屏幕居中（见 setCentered）
     private boolean centered;
+    private final boolean windowLogo;
     private boolean titleFollowsTab;
     private boolean placing;
     /** 客户端：第一次摆放时的窗口宽度，之后切页时窗口左边缘按它固定（见 {@link #applyClientPlacement}）。 */
@@ -117,6 +115,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     public MachineWindow(IFancyUIProvider mainPage, Runnable init) {
         super(mainPage, UISizes.WINDOW_WIDTH, UISizes.WINDOW_WIDTH, init);
         this.centered = mainPage.windowAnchor() == WindowAnchor.CENTER;
+        this.windowLogo = mainPage.showsWindowLogo();
         setBackground(UITheme.WINDOW);
         // 标题栏、悬浮说明、页面标签由本类自绘；GTM 的三个控件留作数据容器（标签列表、选中项、导航回调），不进控件树
         removeWidget(titleBar);
@@ -194,11 +193,11 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     private void drawLogo(GuiGraphics graphics) {
-        if (playerInventory == null || !playerInventory.isVisible()) return;
-        int x = playerInventory.getPositionX() + UISizes.SLOT_ROW_WIDTH - LOGO_WIDTH;
-        int y = playerInventory.getPositionY() - LOGO_HEIGHT - LOGO_GAP;
+        if (!windowLogo || playerInventory == null || !playerInventory.isVisible()) return;
+        int x = playerInventory.getPositionX() + UISizes.SLOT_ROW_WIDTH - UITheme.LOGO_WIDTH;
+        int y = playerInventory.getPositionY() - UITheme.LOGO_HEIGHT - UITheme.LOGO_GAP;
         RenderSystem.enableBlend();
-        graphics.blit(LOGO, x, y, 0, 0, LOGO_WIDTH, LOGO_HEIGHT, LOGO_WIDTH, LOGO_HEIGHT);
+        graphics.blit(LOGO, x, y, 0, 0, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT);
     }
 
     @Override
@@ -472,11 +471,22 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     @OnlyIn(Dist.CLIENT)
     public int clientPageHeightLimitFor(boolean inventory) {
-        if (!centered) return clientPageHeightLimit(inventory);
+        int logoExtra = inventory ? inventoryGap() - UISizes.SECTION_GAP : 0;
+        if (!centered) return Math.max(2 * UISizes.SLOT, clientPageHeightLimit(inventory) - tabs.reservedHeight() - logoExtra);
         var area = ScreenArea.current(minWindowGroupWidth());
         int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM + tabs.reservedHeight();
-        if (inventory) chrome += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
+        if (inventory) chrome += inventoryGap() + UISizes.PLAYER_INVENTORY_HEIGHT;
         return Math.max(2 * UISizes.SLOT, area.height() - chrome);
+    }
+
+    @Override
+    public int pageHeightLimit() {
+        return isRemote() ? clientPageHeightLimitFor(pageShowsInventory) : Integer.MAX_VALUE;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static ScreenArea clientScreenArea() {
+        return ScreenArea.current(minWindowGroupWidth());
     }
 
     private static int minWindowGroupWidth() {
@@ -588,16 +598,20 @@ public class MachineWindow extends FancyMachineUIWidget {
             int alignWidth = page.getSizeWidth() - inventoryGutter;
             int inventoryX = inventoryGutter > 0 && alignWidth >= UISizes.SLOT_ROW_WIDTH ? pageX + (alignWidth - UISizes.SLOT_ROW_WIDTH) / 2 :
                     UISizes.WINDOW_PADDING_X + (contentWidth - UISizes.SLOT_ROW_WIDTH) / 2;
-            playerInventory.setSelfPosition(new Position(inventoryX, y + UISizes.SECTION_GAP));
+            playerInventory.setSelfPosition(new Position(inventoryX, y + inventoryGap()));
             playerInventory.setActive(inventory);
             playerInventory.setVisible(inventory);
         }
-        if (inventory) y += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
+        if (inventory) y += inventoryGap() + UISizes.PLAYER_INVENTORY_HEIGHT;
         int height = y + UISizes.WINDOW_PADDING_BOTTOM;
 
         setSize(new Size(width, height));
         pageContainer.setSize(new Size(width, height));
         return contentWidth;
+    }
+
+    private int inventoryGap() {
+        return windowLogo ? Math.max(UISizes.SECTION_GAP, UITheme.LOGO_HEIGHT + 2 * UITheme.LOGO_GAP) : UISizes.SECTION_GAP;
     }
 
     private void placeConfigurators() {
@@ -774,8 +788,6 @@ public class MachineWindow extends FancyMachineUIWidget {
         private static final int TAB_GAP = 1;
         /// Ore 边框在左右两侧的可见宽度：第一个标签的内侧与页面左边缘对齐
         private static final int TAB_BORDER = 2;
-        /// Ore 边框底部的厚边：选中标签伸进窗口的部分要抹掉
-        private static final int TAB_BOTTOM_BORDER = 4;
         private static final int ICON = 16;
         private static final long HINT_PERIOD_MS = 1600;
         private static final int HINT_HEAD = 3;
@@ -892,12 +904,10 @@ public class MachineWindow extends FancyMachineUIWidget {
                 (i == hovered ? UITheme.PAGE_TAB_HOVER : UITheme.PAGE_TAB).draw(graphics, mouseX, mouseY, x, top, tabWidth, UISizes.PAGE_TAB_HEIGHT);
                 tab.getTabIcon().draw(graphics, mouseX, mouseY, x + (tabWidth - ICON) / 2f, top + TAB_BORDER, ICON, ICON);
             }
-            // 选中的标签最后画：盖住窗口顶边，再把标签底边与窗口顶边之间的接缝涂成窗口底色
             if (selectedIndex < 0) return;
             int x = tabX(selectedIndex), top = base - UISizes.PAGE_TAB_HEIGHT - UISizes.PAGE_TAB_RAISE;
             int bottom = base + UISizes.PAGE_TAB_OVERLAP;
             UITheme.PAGE_TAB_SELECTED.draw(graphics, mouseX, mouseY, x, top, tabWidth, bottom - top);
-            graphics.fill(x + TAB_BORDER, bottom - TAB_BOTTOM_BORDER, x + tabWidth - TAB_BORDER, bottom, UITheme.WINDOW_FILL);
             tab(selectedIndex).getTabIcon().draw(graphics, mouseX, mouseY, x + (tabWidth - ICON) / 2f, top + TAB_BORDER + 1, ICON, ICON);
             drawHints(graphics, base, selectedIndex);
         }

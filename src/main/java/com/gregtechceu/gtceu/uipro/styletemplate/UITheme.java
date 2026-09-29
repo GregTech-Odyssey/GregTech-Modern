@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.BooleanSupplier;
@@ -49,6 +50,9 @@ public final class UITheme {
     public static int FIELD_TEXT = OreSprites.TEXT_LIGHT;
     /** 深色框里的占位提示文字。 */
     public static int PLACEHOLDER_TEXT = 0xFF8A8A8A;
+    public static int BUTTON_TEXT = OreSprites.TEXT_DARK;
+    public static int BUTTON_TEXT_DISABLED = OreSprites.TEXT_DISABLED;
+    private static boolean darkSurfaces;
 
     public static int text() {
         return TEXT;
@@ -102,18 +106,18 @@ public final class UITheme {
     }
 
     /** 步进器、翻页的左右箭头（放在 {@code Button.icon} 里），与按钮文字同色。 */
-    private static IGuiTexture arrowLeft = new OreSprites.Arrow(true, OreSprites.TEXT_DARK);
-    private static IGuiTexture arrowRight = new OreSprites.Arrow(false, OreSprites.TEXT_DARK);
+    private static IGuiTexture arrowLeft = new OreSprites.Arrow(true, BUTTON_TEXT);
+    private static IGuiTexture arrowRight = new OreSprites.Arrow(false, BUTTON_TEXT);
     private static IGuiTexture linkArrow = new OreSprites.Arrow(false, LINK_TEXT);
-    private static IGuiTexture arrowUp = new OreSprites.VerticalArrow(true, OreSprites.TEXT_DARK);
-    private static IGuiTexture arrowDown = new OreSprites.VerticalArrow(false, OreSprites.TEXT_DARK);
+    private static IGuiTexture arrowUp = new OreSprites.VerticalArrow(true, BUTTON_TEXT);
+    private static IGuiTexture arrowDown = new OreSprites.VerticalArrow(false, BUTTON_TEXT);
     public static final IGuiTexture ARROW_LEFT = dynamic(() -> arrowLeft);
     public static final IGuiTexture ARROW_RIGHT = dynamic(() -> arrowRight);
     public static final IGuiTexture LINK_ARROW = dynamic(() -> linkArrow);
     public static final IGuiTexture ARROW_UP = dynamic(() -> arrowUp);
     public static final IGuiTexture ARROW_DOWN = dynamic(() -> arrowDown);
     /** "页面"图标（3×3 方格）：标题栏的页面切换按钮、页面切换页自己的标题图标，与箭头同色。 */
-    private static IGuiTexture pages = new OreSprites.Grid(OreSprites.TEXT_DARK);
+    private static IGuiTexture pages = new OreSprites.Grid(BUTTON_TEXT);
     public static final IGuiTexture PAGES = dynamic(() -> pages);
 
     /** 按客户端条件在两张图之间切换的贴图（如图标按钮的开 / 关态：收藏星标）。{@code on} 每次绘制时取值。 */
@@ -141,7 +145,10 @@ public final class UITheme {
         FIELD_TEXT = color(colors, "field_text");
         PLACEHOLDER_TEXT = color(colors, "placeholder_text");
         SCREEN_TEXT = color(colors, "screen_text");
+        BUTTON_TEXT = color(colors, "button_text");
+        BUTTON_TEXT_DISABLED = color(colors, "button_text_disabled");
         WINDOW_FILL = color(colors, "window_fill");
+        darkSurfaces = luminance(WINDOW_FILL & 0xFFFFFF) < 128;
         WINDOW_OUTLINE = color(colors, "window_outline");
         TAB_FILL = color(colors, "tab_fill");
         TAB_HOVER_FILL = color(colors, "tab_hover_fill");
@@ -173,17 +180,31 @@ public final class UITheme {
         calloutIcons = textures.calloutIcons();
         viewIcons = textures.viewIcons();
         disabledHatch = textures.disabledHatch();
-        arrowLeft = new OreSprites.Arrow(true, OreSprites.TEXT_DARK);
-        arrowRight = new OreSprites.Arrow(false, OreSprites.TEXT_DARK);
+        arrowLeft = new OreSprites.Arrow(true, BUTTON_TEXT);
+        arrowRight = new OreSprites.Arrow(false, BUTTON_TEXT);
         linkArrow = new OreSprites.Arrow(false, LINK_TEXT);
-        arrowUp = new OreSprites.VerticalArrow(true, OreSprites.TEXT_DARK);
-        arrowDown = new OreSprites.VerticalArrow(false, OreSprites.TEXT_DARK);
-        pages = new OreSprites.Grid(OreSprites.TEXT_DARK);
+        arrowUp = new OreSprites.VerticalArrow(true, BUTTON_TEXT);
+        arrowDown = new OreSprites.VerticalArrow(false, BUTTON_TEXT);
+        pages = new OreSprites.Grid(BUTTON_TEXT);
+
+        DIVIDER = color(colors, "divider");
+        CARD_FILL = color(colors, "card_fill");
+        CARD_OUTLINE = color(colors, "card_outline");
+        CARD_HIGHLIGHT = color(colors, "card_highlight");
+        CARD_SHADOW = color(colors, "card_shadow");
+        FLOW_NODE_FILL = color(colors, "flow_node_fill");
+        FLOW_NODE_OUTLINE = color(colors, "flow_node_outline");
+        FLOW_NODE_HIGHLIGHT = color(colors, "flow_node_highlight");
+        FLOW_NODE_SHADE = color(colors, "flow_node_shade");
+        FLOW_WIRE_IDLE = WireStyle.solid(color(colors, "flow_wire_idle"));
+        FLOW_WIRE_DISABLED = WireStyle.patterned(color(colors, "flow_wire_disabled"), WireStyle.Pattern.DOTTED);
 
         int bevelDark = color(colors, "bevel_dark");
         int bevelLight = color(colors, "bevel_light");
-        itemSlot = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "slot_fill"));
-        fluidSlot = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "fluid_slot_fill"));
+        int slotBevelDark = color(colors, "slot_bevel_dark");
+        int slotBevelLight = color(colors, "slot_bevel_light");
+        itemSlot = new OreSprites.Bevel(slotBevelDark, slotBevelLight, color(colors, "slot_fill"));
+        fluidSlot = new OreSprites.Bevel(slotBevelDark, slotBevelLight, color(colors, "fluid_slot_fill"));
         panel = new OreSprites.Bevel(color(colors, "panel_outline"), color(colors, "panel_outline"), color(colors, "panel_fill"));
         statusPanel = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "status_panel_fill"));
         progressTrack = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "progress_track_fill"));
@@ -192,22 +213,28 @@ public final class UITheme {
         updateButtonSprites(color(colors, "button_tint"));
         scrollThumb = buttonDefault;
         window = new OreSprites.Refilled(OreSprites.BORDER_7, WINDOW_FILL, 2, 2, 2, 4);
-        pageTabSelected = window;
+        pageTabSelected = new OreSprites.Refilled(OreSprites.TAB_SELECTED, WINDOW_FILL, 2, 2, 2, 0);
         pageTab = new OreSprites.Refilled(OreSprites.BORDER_7, TAB_FILL, 2, 2, 2, 4);
         pageTabHover = new OreSprites.Refilled(OreSprites.BORDER_7, TAB_HOVER_FILL, 2, 2, 2, 4);
         configuratorTab = new OreSprites.Shifted(window, 0, 1);
         configuratorTabHover = new OreSprites.Shifted(pageTabHover, 0, 1);
         configuratorTabPressed = new OreSprites.Shifted(
                 new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_PRESSED_FILL, 2, 2, 2, 4), CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
-        configuratorTabLatched = new OreSprites.Shifted(
-                new OreSprites.Recessed(OreSprites.BORDER_7, WINDOW_FILL, bevelDark, color(colors, "latched_shadow"), bevelLight,
-                        color(colors, "latched_fill")),
-                0, 1);
+        configuratorTabLatched = new OreSprites.Shifted(new OreSprites.Refilled(OreSprites.LATCHED, color(colors, "latched_fill"), 2, 2, 2, 2), 0, 1);
         canvas = new OreSprites.Bevel(bevelDark, bevelLight, CANVAS_FILL);
     }
 
     private static int color(Map<String, Integer> colors, String key) {
-        return colors.getOrDefault(key, UIStyleManager.DEFAULT_COLORS.get(key));
+        var value = schemeColor(colors, key);
+        return value != null ? value : UIStyleManager.DEFAULT_COLORS.get(key);
+    }
+
+    @Nullable
+    private static Integer schemeColor(Map<String, Integer> colors, String key) {
+        var value = colors.get(key);
+        if (value != null) return value;
+        var fallback = UIStyleManager.FALLBACK_KEYS.get(key);
+        return fallback != null ? schemeColor(colors, fallback) : null;
     }
 
     private static IGuiTexture dynamic(Supplier<IGuiTexture> texture) {
@@ -232,7 +259,7 @@ public final class UITheme {
      * 窗口顶部页面标签：与窗口同一套 Ore 边框。选中的标签用窗口底色、向下伸进窗口顶边与窗口连成一体；
      * 未选中的底色暗一档、坐在窗口顶边上，悬停时介于两者之间。
      */
-    private static IGuiTexture pageTabSelected = OreSprites.BORDER_7_BRIGHT;
+    private static IGuiTexture pageTabSelected = new OreSprites.Refilled(OreSprites.TAB_SELECTED, OreSprites.WINDOW_FILL, 2, 2, 2, 0);
     public static final IGuiTexture PAGE_TAB_SELECTED = dynamic(() -> pageTabSelected);
     /// 标签悬停底色（页面标签、配置按钮共用）
     private static int TAB_HOVER_FILL = 0xFFB9B9B9;
@@ -266,7 +293,7 @@ public final class UITheme {
     public static final IGuiTexture CONFIGURATOR_TAB_PRESSED = dynamic(() -> configuratorTabPressed);
     public static final int CONFIGURATOR_TAB_LATCH_DEPTH = 1;
     private static IGuiTexture configuratorTabLatched = new OreSprites.Shifted(
-            new OreSprites.Recessed(OreSprites.BORDER_7, WINDOW_FILL, 0xFF373737, 0xFF686868, 0xFFFFFFFF, 0xFF969696), 0, 1);
+            new OreSprites.Refilled(OreSprites.LATCHED, 0xFF969696, 2, 2, 2, 2), 0, 1);
     public static final IGuiTexture CONFIGURATOR_TAB_LATCHED = dynamic(() -> configuratorTabLatched);
     /** 区块内边距：让开 1 像素细边后留 2 像素空白。 */
     public static final int PANEL_PADDING = 3;
@@ -307,8 +334,8 @@ public final class UITheme {
         DANGER;
 
         public int textColor(boolean enabled) {
-            if (!enabled) return OreSprites.TEXT_DISABLED;
-            return this == DEFAULT ? OreSprites.TEXT_DARK : OreSprites.TEXT_LIGHT;
+            if (!enabled) return BUTTON_TEXT_DISABLED;
+            return this == DEFAULT ? BUTTON_TEXT : OreSprites.TEXT_LIGHT;
         }
 
         private OreSprites.Sprite base() {
@@ -556,6 +583,11 @@ public final class UITheme {
      * 按机器小组件图标的画法（1 像素深色方角描边、细线、降饱和、按外框自动居中），放在画布悬浮栏
      * {@link UISizes#DOCK_BUTTON} 见方的按钮里原尺寸显示。
      */
+    public static final int LOGO_WIDTH = 33;
+    public static final int LOGO_HEIGHT = 8;
+    public static final int LOGO_GAP = 2;
+    public static final IGuiTexture SCREEN_LOGO = new DynamicResourceTexture(() -> GTCEu.id("textures/gui/uipro/gto_logo_screen.png"), 0, 0, 1, 1);
+
     private static ResourceLocation viewIcons = GTCEu.id("textures/gui/uipro/view_icons.png");
     private static final int VIEW_ICON_COUNT = 5;
     public static final int VIEW_ICON_SIZE = 16;
@@ -568,6 +600,12 @@ public final class UITheme {
     private static IGuiTexture viewIcon(int index) {
         return new DynamicResourceTexture(() -> viewIcons, (double) index / VIEW_ICON_COUNT, 0, 1.0 / VIEW_ICON_COUNT, 1);
     }
+
+    public static int DIVIDER = 0xFF8B8B8B;
+    public static int CARD_FILL = 0xFFC6C6C6;
+    public static int CARD_OUTLINE = 0xFF000000;
+    public static int CARD_HIGHLIGHT = 0xFFFFFFFF;
+    public static int CARD_SHADOW = 0xFF555555;
 
     public static int FLOW_NODE_FILL = WINDOW_FILL;
     public static int FLOW_NODE_OUTLINE = 0xFF373737;
@@ -634,6 +672,7 @@ public final class UITheme {
      */
     public static int lightBackgroundColor(int rgb) {
         rgb &= 0xFFFFFF;
+        if (darkSurfaces) return rgb == 0xFFFFFF ? TEXT & 0xFFFFFF : darkBackgroundColor(rgb);
         switch (rgb) {
             case 0xFFFFFF: // WHITE
                 return TEXT & 0xFFFFFF;
@@ -679,6 +718,10 @@ public final class UITheme {
         if (luminance >= floor) return rgb;
         float t = (floor - luminance) / (255 - luminance);
         return Math.round(r + (255 - r) * t) << 16 | Math.round(g + (255 - g) * t) << 8 | Math.round(b + (255 - b) * t);
+    }
+
+    private static float luminance(int rgb) {
+        return 0.299f * (rgb >> 16 & 0xFF) + 0.587f * (rgb >> 8 & 0xFF) + 0.114f * (rgb & 0xFF);
     }
 
     /** 两个 ARGB 颜色相乘（-1 视为白色，即不乘色）。 */

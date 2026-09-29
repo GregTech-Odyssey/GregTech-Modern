@@ -55,17 +55,17 @@ public class Predicates {
     public static TraceabilityPredicate blocks(Block... blocks) {
         if (blocks.length == 0) return any();
         if (blocks.length == 1 && blocks[0] == Blocks.AIR) return air();
-        return new TraceabilityPredicate(new PredicateBlocks(blocks));
+        return new TraceabilityPredicate(PredicateBlocks.of(blocks));
     }
 
     public static TraceabilityPredicate blocks(MetaMachineBlock... blocks) {
         if (blocks.length == 0) return any();
         return new TraceabilityPredicate(
-                new PredicateBlocks(Arrays.stream(blocks).toArray(Block[]::new)));
+                PredicateBlocks.of(Arrays.stream(blocks).toArray(Block[]::new)));
     }
 
     public static TraceabilityPredicate blockDirection(Block block, RelativeDirection... directions) {
-        var predicate = new TraceabilityPredicate(new PredicateDirections(block, directions));
+        var predicate = new TraceabilityPredicate(PredicateDirections.of(block, directions));
         predicate.direction = s -> {
             if (s.controller == null) return directions[0].equivalentGlobal;
             var controller = s.controller.self();
@@ -75,11 +75,11 @@ public class Predicates {
     }
 
     public static TraceabilityPredicate blockTag(TagKey<Block> tag) {
-        return new TraceabilityPredicate(new PredicateBlockTag(tag));
+        return new TraceabilityPredicate(PredicateBlockTag.of(tag));
     }
 
     public static TraceabilityPredicate fluids(Fluid fluid) {
-        return new TraceabilityPredicate(new PredicateFluids(fluid));
+        return new TraceabilityPredicate(PredicateFluids.of(fluid));
     }
 
     public static TraceabilityPredicate custom(Predicate<MultiblockState> predicate, Supplier<BlockInfo> blockInfo, @Nullable Supplier<Block[]> candidates) {
@@ -96,7 +96,7 @@ public class Predicates {
 
     public static TraceabilityPredicate abilities(PartAbility... abilities) {
         if (PredicateAbilities.collect(abilities, new PartAbility[0]).length == 0) return any();
-        return new TraceabilityPredicate(new PredicateAbilities(abilities));
+        return new TraceabilityPredicate(PredicateAbilities.of(abilities));
     }
 
     public static TraceabilityPredicate ability(PartAbility ability, int... tiers) {

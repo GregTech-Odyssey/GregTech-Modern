@@ -24,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 final class StructureMatcher {
 
@@ -67,7 +68,7 @@ final class StructureMatcher {
         busy = true;
         try {
             if (structure.measures.length > 0) return matchMeasured(structure, state, center, front, up, flip, save);
-            return matchSingle(structure.concreteDefault, state, center, front, up, flip, save);
+            return matchSingle(structure.concreteDefault(), state, center, front, up, flip, save);
         } finally {
             busy = false;
             this.state = null;
@@ -81,7 +82,7 @@ final class StructureMatcher {
             machines.clear();
             portProtocols.clear();
             ports.clear();
-            for (int i = 0, size = marks.size(); i < size; i++) marks.get(i).context.clear();
+            for (int i = 0, size = marks.size(); i < size; i++) marks.get(i).clear();
         }
     }
 
@@ -316,7 +317,6 @@ final class StructureMatcher {
 
     private boolean test(Placement placement, boolean overlap) {
         var piece = placement.piece;
-        var predicates = piece.predicates;
         var layerCount = state.getLayerCount();
         var masks = current.limitMasks == null ? null : current.limitMasks.get(piece);
         int i = 0;
@@ -326,11 +326,11 @@ final class StructureMatcher {
                 var pos = new BlockPos(placement.worldX(i), placement.worldY(i), placement.worldZ(i));
                 if (overlap && claimed(pos.asLong())) {
                     placement.tested = i;
-                    state.update(pos, predicates[i]);
+                    state.update(pos, piece.predicate(i));
                     state.setError(new PatternError());
                     return false;
                 }
-                int result = BlockPattern.testCell(state, pos, predicates[i], save);
+                int result = BlockPattern.testCell(state, pos, piece.predicate(i), save);
                 if (result != BlockPattern.CELL_PASS) {
                     placement.tested = i + 1;
                     if (result == BlockPattern.CELL_ABORT) {
@@ -489,6 +489,13 @@ final class StructureMatcher {
 
         Mark(int index) {
             this.index = index;
+        }
+
+        void clear() {
+            context.clear();
+            params.clear();
+            Arrays.fill(globalKeys, null);
+            globalCount = 0;
         }
     }
 }

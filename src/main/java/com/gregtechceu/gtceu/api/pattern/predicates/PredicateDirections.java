@@ -19,6 +19,10 @@ public class PredicateDirections extends SimplePredicate {
         buildPredicate();
     }
 
+    public static PredicateDirections of(Block block, RelativeDirection... directions) {
+        return new PredicateDirections(block, directions);
+    }
+
     public RelativeDirection[] getDirections() {
         return directions;
     }

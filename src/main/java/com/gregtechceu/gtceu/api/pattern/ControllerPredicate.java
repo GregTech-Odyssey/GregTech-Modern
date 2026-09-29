@@ -6,6 +6,6 @@ import com.gregtechceu.gtceu.api.pattern.predicates.PredicateBlocks;
 public final class ControllerPredicate extends TraceabilityPredicate {
 
     ControllerPredicate(MachineDefinition definition) {
-        super(new PredicateBlocks(definition.get()));
+        super(PredicateBlocks.of(definition.get()));
     }
 }

@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureTree;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
@@ -36,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -138,7 +138,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     private Widget machineRow(MachineDefinition machine) {
-        if (onOpen != null && machine instanceof MultiblockMachineDefinition multiblock && StructurePattern.of(multiblock) != null) {
+        if (onOpen != null && machine instanceof MultiblockMachineDefinition multiblock && multiblock.hasStructure()) {
             return new MachineLink(multiblock, () -> onOpen.accept(multiblock));
         }
         return UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
@@ -167,7 +167,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         int inner = chart.spanWidth(column, span) - 2 * UISizes.FLOW_NODE_PADDING;
         var flow = chart.node(row, column, span).state(() -> state(index));
         var key = node.key();
-        if (key != null && key.getDescriptionKey() != null) flow.detail(() -> List.of(Component.translatable(key.getDescriptionKey())));
+        if (key != null && key.getDescriptionKey() != null) flow.detail(() -> Collections.singletonList(Component.translatable(key.getDescriptionKey())));
         flow.addChild(TextLine.constant(LayoutStyle.AUTO, title(index)));
         switch (node.kind()) {
             case ROOT -> {

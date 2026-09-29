@@ -15,6 +15,10 @@ public class PredicateFluids extends SimplePredicate {
         buildPredicate();
     }
 
+    public static PredicateFluids of(Fluid fluid) {
+        return new PredicateFluids(fluid);
+    }
+
     @Override
     public SimplePredicate buildPredicate() {
         if (fluid == null) fluid = Fluids.WATER;

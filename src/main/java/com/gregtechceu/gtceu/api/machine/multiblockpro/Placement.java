@@ -43,7 +43,7 @@ final class Placement {
 
     static Placement root(CompiledPiece root) {
         int c = root.controller;
-        return new Placement(root, 0, -root.x[c], -root.y[c], -root.z[c]);
+        return new Placement(root, 0, -root.x(c), -root.y(c), -root.z(c));
     }
 
     @Nullable
@@ -66,17 +66,17 @@ final class Placement {
 
     int relX(int cell) {
         int[] m = Orientation.ROT[rot];
-        return ox + m[0] * piece.x[cell] + m[1] * piece.y[cell] + m[2] * piece.z[cell];
+        return ox + m[0] * piece.x(cell) + m[1] * piece.y(cell) + m[2] * piece.z(cell);
     }
 
     int relY(int cell) {
         int[] m = Orientation.ROT[rot];
-        return oy + m[3] * piece.x[cell] + m[4] * piece.y[cell] + m[5] * piece.z[cell];
+        return oy + m[3] * piece.x(cell) + m[4] * piece.y(cell) + m[5] * piece.z(cell);
     }
 
     int relZ(int cell) {
         int[] m = Orientation.ROT[rot];
-        return oz + m[6] * piece.x[cell] + m[7] * piece.y[cell] + m[8] * piece.z[cell];
+        return oz + m[6] * piece.x(cell) + m[7] * piece.y(cell) + m[8] * piece.z(cell);
     }
 
     void toWorld(int[] w, int cx, int cy, int cz) {
@@ -100,14 +100,14 @@ final class Placement {
     }
 
     int worldX(int cell) {
-        return wx + piece.x[cell] * e0x + piece.y[cell] * e1x + piece.z[cell] * e2x;
+        return wx + piece.x(cell) * e0x + piece.y(cell) * e1x + piece.z(cell) * e2x;
     }
 
     int worldY(int cell) {
-        return wy + piece.x[cell] * e0y + piece.y[cell] * e1y + piece.z[cell] * e2y;
+        return wy + piece.x(cell) * e0y + piece.y(cell) * e1y + piece.z(cell) * e2y;
     }
 
     int worldZ(int cell) {
-        return wz + piece.x[cell] * e0z + piece.y[cell] * e1z + piece.z[cell] * e2z;
+        return wz + piece.x(cell) * e0z + piece.y(cell) * e1z + piece.z(cell) * e2z;
     }
 }

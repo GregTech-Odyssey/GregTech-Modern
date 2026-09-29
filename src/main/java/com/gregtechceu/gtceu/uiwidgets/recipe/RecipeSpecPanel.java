@@ -44,7 +44,6 @@ public class RecipeSpecPanel extends UIElement {
     public static final int HEADER_HEIGHT = UISizes.CONTROL_HEIGHT;
     /// 分隔线：1 像素线，上下各留 1 像素
     public static final int DIVIDER_HEIGHT = 3;
-    private static final int DIVIDER_COLOR = 0xFF8B8B8B;
     /// 隔行底纹、行内文字离底纹左右边的距离
     private static final int STRIPE_COLOR = 0x1A000000;
     private static final int ROW_INSET = 2;
@@ -212,7 +211,7 @@ public class RecipeSpecPanel extends UIElement {
         @OnlyIn(Dist.CLIENT)
         public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             int y = getPositionY() + DIVIDER_HEIGHT / 2;
-            graphics.fill(getPositionX(), y, getPositionX() + getSizeWidth(), y + 1, DIVIDER_COLOR);
+            graphics.fill(getPositionX(), y, getPositionX() + getSizeWidth(), y + 1, UITheme.DIVIDER);
         }
     }
 

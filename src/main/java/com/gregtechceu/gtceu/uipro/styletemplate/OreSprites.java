@@ -78,6 +78,8 @@ public final class OreSprites {
     public static final Sprite TAB_OFF_DEFAULT = sprite(50, 7, 11, 7, 2, 2, 2, 4);
     public static final Sprite TAB_OFF_HOVER = sprite(50, 14, 11, 7, 2, 2, 2, 4);
     public static final Sprite TAB_ON_DEFAULT = sprite(61, 7, 11, 7, 2, 4, 2, 2);
+    public static final Sprite TAB_SELECTED = sprite(112, 0, 8, 9, 3, 3, 3, 3);
+    public static final Sprite LATCHED = sprite(96, 0, 16, 16, 4, 4, 3, 3);
 
     /** 窗口底色（原版容器的 #C6C6C6）。 */
     public static final int WINDOW_FILL = 0xFFC6C6C6;
@@ -148,38 +150,6 @@ public final class OreSprites {
         }
     }
 
-    public record Recessed(Sprite base, int rim, int shadow, int innerShadow, int highlight, int fill) implements IGuiTexture {
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
-            if (width < 10 || height < 10) return;
-            int l = (int) x, t = (int) y, r = l + width, b = t + height;
-            base.draw(graphics, l, t, width, height);
-            graphics.fill(l + 3, t + 1, r - 3, t + 2, fill);
-            graphics.fill(l + 2, t + 2, r - 2, t + 3, fill);
-            graphics.fill(l + 1, t + 3, r - 1, b - 3, fill);
-            graphics.fill(l + 2, b - 3, r - 2, b - 2, fill);
-            graphics.fill(l + 3, b - 2, r - 3, b - 1, fill);
-            graphics.fill(l + 3, t + 3, r - 2, t + 4, innerShadow);
-            graphics.fill(l + 3, t + 4, l + 4, b - 3, innerShadow);
-            graphics.fill(l + 3, t + 2, r - 3, t + 3, shadow);
-            graphics.fill(l + 2, t + 3, l + 3, b - 3, shadow);
-            graphics.fill(l + 3, t + 1, r - 3, t + 2, rim);
-            graphics.fill(l + 2, t + 2, l + 3, t + 3, rim);
-            graphics.fill(l + 1, t + 3, l + 2, b - 3, rim);
-            graphics.fill(l + 2, b - 3, l + 3, b - 2, rim);
-            graphics.fill(r - 3, t + 2, r - 2, t + 3, highlight);
-            graphics.fill(r - 2, t + 3, r - 1, b - 3, highlight);
-            graphics.fill(r - 3, b - 3, r - 2, b - 2, highlight);
-            graphics.fill(l + 3, b - 2, r - 3, b - 1, highlight);
-        }
-    }
-
-    /**
-     * 先画 {@code base}，再用 {@code fill} 重涂它的内部（距四边 {@code left/top/right/bottom}，四角各再内收 1 像素保住圆角），
-     * 用来在不改贴图的前提下换一个精灵的底色。
-     */
     public record Refilled(Sprite base, int fill, int left, int top, int right, int bottom) implements IGuiTexture {
 
         @Override
@@ -187,11 +157,8 @@ public final class OreSprites {
         public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
             if (width <= 0 || height <= 0) return;
             int l = (int) x, t = (int) y;
+            graphics.fill(l + left, t + top, l + width - right, t + height - bottom, fill);
             base.draw(graphics, l, t, width, height);
-            int x0 = l + left, y0 = t + top, x1 = l + width - right, y1 = t + height - bottom;
-            graphics.fill(x0 + 1, y0, x1 - 1, y1, fill);
-            graphics.fill(x0, y0 + 1, x0 + 1, y1 - 1, fill);
-            graphics.fill(x1 - 1, y0 + 1, x1, y1 - 1, fill);
         }
     }
 

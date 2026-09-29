@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.*;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -209,9 +208,8 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         definition.getTooltipBuilder().accept(stack, tooltip);
         String mainKey = String.format("%s.machine.%s.tooltip", definition.getId().getNamespace(), definition.getId().getPath());
         if (GTUtil.isShiftDown()) {
-            if (definition instanceof MultiblockMachineDefinition multiblockDefinition &&
-                    multiblockDefinition.getPatternFactory()[0].get() instanceof StructurePattern pattern) {
-                tooltip.add(Component.translatable("gtceu.multiblock.dimension", pattern.getDepth(), pattern.getHeight(), pattern.getWidth()));
+            if (definition instanceof MultiblockMachineDefinition multiblockDefinition && multiblockDefinition.getStructureInfo() instanceof MultiblockMachineDefinition.StructureInfo info) {
+                tooltip.add(Component.translatable("gtceu.multiblock.dimension", info.depth(), info.height(), info.width()));
             }
         }
         if (Language.getInstance().has(mainKey)) {

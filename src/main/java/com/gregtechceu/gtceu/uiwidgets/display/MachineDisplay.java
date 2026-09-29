@@ -82,6 +82,8 @@ public final class MachineDisplay {
         var scroller = new ScrollerView(SCROLLER_ID, UISizes.CONTENT_WIDTH, height)
                 .layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
         scroller.setBackground(UITheme.DISPLAY_SCREEN);
+        scroller.watermark(UITheme.SCREEN_LOGO, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT);
+        scroller.fitPage();
         scroller.addScrollViewChild(text.darkBackground());
         return scroller;
     }
@@ -106,6 +108,11 @@ public final class MachineDisplay {
             @Override
             public Component getTitle() {
                 return machine.self().getBlockState().getBlock().getName();
+            }
+
+            @Override
+            public boolean showsWindowLogo() {
+                return false;
             }
         };
     }

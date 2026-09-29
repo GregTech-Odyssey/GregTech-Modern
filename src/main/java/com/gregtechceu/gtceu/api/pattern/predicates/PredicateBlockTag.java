@@ -32,6 +32,10 @@ public class PredicateBlockTag extends SimplePredicate {
         buildPredicate();
     }
 
+    public static PredicateBlockTag of(TagKey<Block> tag) {
+        return new PredicateBlockTag(tag);
+    }
+
     public static int generation() {
         return GENERATION.get();
     }

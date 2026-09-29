@@ -92,7 +92,7 @@ public class MultiblockWorldData {
 
     public void addMapping(MultiblockState state) {
         synchronized (chunkPosMapping) {
-            state.cache.forEach(posLong -> chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(posLong), c -> new ReferenceOpenHashSet<>()).add(state));
+            state.forEachStructurePos(posLong -> chunkPosMapping.computeIfAbsent(PosUtils.getChunkLong(posLong), c -> new ReferenceOpenHashSet<>()).add(state));
         }
     }
 

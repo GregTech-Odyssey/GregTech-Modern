@@ -7,14 +7,18 @@ import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.core.IServerChunkCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongConsumer;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
@@ -61,8 +65,10 @@ public class MultiblockState {
 
     public final List<PatternError> errorRecord = new ArrayList<>();
 
-    public Long2ObjectOpenHashMap<BlockState> blockStateCache;
+    private Long2ObjectOpenHashMap<LevelChunk> chunkCache;
     public final LongOpenHashSet blockEntityCache;
+    @Nullable
+    private volatile FormedCells formed;
 
     public MultiblockState(IMultiController controller, Level world, BlockPos controllerPos) {
         this.controller = controller;
@@ -70,7 +76,7 @@ public class MultiblockState {
         this.controllerPos = controllerPos;
         this.error = UNINIT_ERROR;
         this.matchContext = new PatternMatchContext();
-        this.blockStateCache = new Long2ObjectOpenHashMap<>();
+        this.chunkCache = new Long2ObjectOpenHashMap<>();
         this.blockEntityCache = new LongOpenHashSet();
         this.data = world instanceof ServerLevel serverLevel ? MultiblockWorldData.getOrCreate(serverLevel) : null;
     }
@@ -81,7 +87,7 @@ public class MultiblockState {
         this.controllerPos = source.controllerPos;
         this.error = UNINIT_ERROR;
         this.matchContext = new PatternMatchContext();
-        this.blockStateCache = source.blockStateCache;
+        this.chunkCache = source.chunkCache;
         this.blockEntityCache = new LongOpenHashSet();
         this.data = source.data;
     }
@@ -91,6 +97,7 @@ public class MultiblockState {
     }
 
     public void clear() {
+        this.formed = null;
         this.removeShared();
         this.matchContext.reset();
         this.globalCount.clear();
@@ -103,7 +110,7 @@ public class MultiblockState {
     public void clearCache() {
         this.globalCount = new Reference2IntOpenHashMap<>();
         this.layerCount = new Reference2IntOpenHashMap<>();
-        this.blockStateCache = new Long2ObjectOpenHashMap<>();
+        this.chunkCache = new Long2ObjectOpenHashMap<>();
         this.predicate = null;
         this.blockState = null;
         this.tileEntity = null;
@@ -140,9 +147,42 @@ public class MultiblockState {
 
     public BlockState getBlockState() {
         if (this.blockState == null) {
-            this.blockState = blockStateCache.computeIfAbsent(pos.asLong(), k -> ILevel.asyncGetBlockState(world, pos));
+            this.blockState = blockStateAt(pos);
         }
         return this.blockState;
+    }
+
+    public BlockState blockStateAt(BlockPos pos) {
+        if (!(world instanceof ServerLevel serverLevel)) return world.getBlockState(pos);
+        int chunkX = pos.getX() >> 4, chunkZ = pos.getZ() >> 4;
+        long key = ChunkPos.asLong(chunkX, chunkZ);
+        var chunk = chunkCache.get(key);
+        if (chunk == null) {
+            if (!(serverLevel.getChunkSource() instanceof IServerChunkCache cache)) return ILevel.OUTSIDE_WORLD_BLOCK;
+            chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
+            if (chunk == null) return ILevel.OUTSIDE_WORLD_BLOCK;
+            chunkCache.put(key, chunk);
+        }
+        return chunk.getBlockState(pos);
+    }
+
+    public boolean inStructure(long pos) {
+        var cells = formed;
+        return cells != null ? cells.contains(pos) : cache.contains(pos);
+    }
+
+    public void forEachStructurePos(LongConsumer consumer) {
+        var cells = formed;
+        if (cells != null) cells.forEach(consumer);
+        else cache.forEach(consumer);
+    }
+
+    public void freeze() {
+        var cells = FormedCells.of(cache);
+        if (cells == null) return;
+        formed = cells;
+        cache.clear();
+        cache.trim();
     }
 
     @Nullable

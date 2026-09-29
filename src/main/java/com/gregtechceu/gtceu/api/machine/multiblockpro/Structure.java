@@ -15,9 +15,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,8 +28,6 @@ public final class Structure {
 
     private static final Size NO_SIZE = new Size(new ParamKey[0], new int[0]);
     private static final int RESOLVED_LIMIT = 64;
-    private static final int LAYOUT_LIMIT = 8;
-    private static final int LARGE_LAYOUT = 1 << 16;
     private static final int[][] NO_CHILDREN = new int[0][];
 
     final Piece root;
@@ -48,8 +44,8 @@ public final class Structure {
     final int[] slotOptions;
     final int[][] childNodes;
     final PortKey[][] childPorts;
-    final CompiledStructure concreteDefault;
-    final Collection<TraceabilityPredicate> predicates;
+    @Nullable
+    private volatile CompiledStructure concreteDefault;
     private final List<Limit> limits;
     private final List<Option> options;
     private final StructureTree tree;
@@ -60,13 +56,6 @@ public final class Structure {
         @Override
         protected boolean removeEldestEntry(Map.Entry<Size, CompiledStructure> eldest) {
             return size() > RESOLVED_LIMIT;
-        }
-    };
-    private final LinkedHashMap<ValuesKey, SoftReference<Layout>> layouts = new LinkedHashMap<>(16, 0.75f, true) {
-
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<ValuesKey, SoftReference<Layout>> eldest) {
-            return size() > LAYOUT_LIMIT;
         }
     };
 
@@ -106,14 +95,29 @@ public final class Structure {
         this.optionalModuleCount = modules;
         this.protocols = index.protocols.toArray(new MachineProtocol[0]);
         this.perSize = measures.length > 0 && (index.sized || !limits.isEmpty());
-        if (perSize) {
-            var minimum = new int[measures.length];
-            for (int i = 0; i < minimum.length; i++) minimum[i] = measures[i].min();
-            this.concreteDefault = forSize(new Size(measureKeys, minimum));
-        } else {
-            this.concreteDefault = new CompiledStructure(this, NO_SIZE);
+    }
+
+    CompiledStructure concreteDefault() {
+        var concrete = concreteDefault;
+        if (concrete != null) return concrete;
+        synchronized (this) {
+            concrete = concreteDefault;
+            if (concrete == null) {
+                if (perSize) {
+                    var minimum = new int[measures.length];
+                    for (int i = 0; i < minimum.length; i++) minimum[i] = measures[i].min();
+                    concrete = forSize(new Size(measureKeys, minimum));
+                } else {
+                    concrete = new CompiledStructure(this, NO_SIZE);
+                }
+                concreteDefault = concrete;
+            }
         }
-        this.predicates = concreteDefault.predicates;
+        return concrete;
+    }
+
+    public Collection<TraceabilityPredicate> predicates() {
+        return concreteDefault().predicates;
     }
 
     void validateRootPorts(Piece template) {
@@ -188,27 +192,11 @@ public final class Structure {
     @Nullable
     public Layout layout(int[] values) {
         if (!accepts(values)) return null;
-        var key = new ValuesKey(values.clone());
-        synchronized (layouts) {
-            var cached = layouts.get(key);
-            var layout = cached == null ? null : cached.get();
-            if (layout != null) return layout;
-        }
-        var layout = buildLayout(key.values);
-        synchronized (layouts) {
-            if (layout.cells().size() >= LARGE_LAYOUT) {
-                layouts.values().removeIf(reference -> {
-                    var existing = reference.get();
-                    return existing == null || existing.cells().size() >= LARGE_LAYOUT;
-                });
-            }
-            layouts.put(key, new SoftReference<>(layout));
-        }
-        return layout;
+        return buildLayout(values.clone());
     }
 
     private Layout buildLayout(int[] values) {
-        var concrete = measures.length == 0 ? concreteDefault : forSize(sizeOf(values));
+        var concrete = measures.length == 0 ? concreteDefault() : forSize(sizeOf(values));
         var cells = new Cells();
         var host = Placement.root(concrete.root);
         emit(host, cells, 0);
@@ -265,13 +253,12 @@ public final class Structure {
 
     private static void emit(Placement placement, Cells cells, int node) {
         var piece = placement.piece;
-        var predicates = piece.predicates;
         int i = 0;
         for (int aisle = 0; aisle < piece.aisleCount; aisle++) {
             int layer = cells.nextLayer++;
             for (int end = piece.aisleEnd[aisle]; i < end; i++) {
                 long pos = BlockPos.asLong(placement.relX(i), placement.relY(i), placement.relZ(i));
-                if (cells.predicates.putIfAbsent(pos, predicates[i]) == null) {
+                if (cells.predicates.putIfAbsent(pos, piece.predicate(i)) == null) {
                     cells.layers.put(pos, layer);
                     cells.nodes.put(pos, node);
                 }
@@ -287,29 +274,8 @@ public final class Structure {
         int nextLayer;
     }
 
-    private static final class ValuesKey {
-
-        final int[] values;
-        private final int hash;
-
-        ValuesKey(int[] values) {
-            this.values = values;
-            this.hash = Arrays.hashCode(values);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return o instanceof ValuesKey other && hash == other.hash && Arrays.equals(values, other.values);
-        }
-
-        @Override
-        public int hashCode() {
-            return hash;
-        }
-    }
-
     CompiledStructure forSize(Size size) {
-        if (!perSize) return concreteDefault;
+        if (!perSize) return concreteDefault();
         synchronized (resolved) {
             var cached = resolved.get(size);
             if (cached != null) return cached;
@@ -329,7 +295,7 @@ public final class Structure {
         if (definition != null) {
             for (var protocol : protocols) protocol.addHost(definition);
         }
-        return StructurePattern.create(this, definition);
+        return StructurePattern.create(this);
     }
 
     public record Option(Kind kind, @Nullable ParamKey key, int min, int max, int defaultValue) {

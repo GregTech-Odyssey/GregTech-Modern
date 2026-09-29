@@ -26,6 +26,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -310,7 +311,7 @@ public final class PatternBuilderModel {
 
         public List<Candidate> getCandidates(int section) {
             var list = bySection.get(section);
-            return list == null ? List.of() : list;
+            return list == null ? Collections.emptyList() : list;
         }
 
         void index() {
@@ -341,9 +342,12 @@ public final class PatternBuilderModel {
     private int version;
     @Nullable
     private List<Input> inputs;
+    @Nullable
+    private final List<TraceabilityPredicate> origin;
 
     private PatternBuilderModel(Builder builder, Function<ItemStack, Stock> stock) {
         this.stock = stock;
+        this.origin = builder.origin;
         this.sectionTitles = builder.sectionTitles;
         var assembly = new ModelAssembly(this, builder);
         this.groupOf = assembly.groupOf;
@@ -524,6 +528,11 @@ public final class PatternBuilderModel {
         if (amount > 0) pool.get(favorite).selected += amount;
     }
 
+    @Nullable
+    public List<TraceabilityPredicate> origin() {
+        return origin;
+    }
+
     public Item[] assign(List<TraceabilityPredicate> cells, IntComparator order, @Nullable int[] layers, @Nullable int[] sections) {
         return ModelPlacement.assign(this, cells, order, layers, sections);
     }
@@ -555,6 +564,8 @@ public final class PatternBuilderModel {
         final Map<List<Item>, Integer> extraMinimums = new LinkedHashMap<>();
         final List<Preplaced> preplaced = new ArrayList<>();
         private final RoleNames names = new RoleNames();
+        @Nullable
+        List<TraceabilityPredicate> origin;
 
         private Builder(ItemStack controller) {
             this.controller = controller;
@@ -562,6 +573,11 @@ public final class PatternBuilderModel {
 
         public Builder abilityNames(Function<PartAbility, Component> abilityNames) {
             names.setAbilityNames(abilityNames);
+            return this;
+        }
+
+        public Builder origin(List<TraceabilityPredicate> predicates) {
+            this.origin = List.copyOf(predicates);
             return this;
         }
 

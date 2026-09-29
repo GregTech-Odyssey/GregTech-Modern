@@ -11,6 +11,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.Collections;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
@@ -29,7 +30,7 @@ final class SceneMarkers {
     private static final float LAYER_Z = 200;
     private static final int HIDDEN = 0, FAR = 1, NEAR = 2;
 
-    private List<StructureScene.Marker> markers = List.of();
+    private List<StructureScene.Marker> markers = Collections.emptyList();
     @Nullable
     private StructureScene.Marker hovered;
     private int[] points = new int[0];

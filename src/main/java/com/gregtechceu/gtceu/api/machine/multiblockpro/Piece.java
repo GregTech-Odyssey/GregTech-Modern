@@ -10,6 +10,8 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
@@ -31,8 +33,8 @@ public final class Piece {
     private Piece(Function<Size, Piece> sizer) {
         this.sizer = sizer;
         this.dirs = new RelativeDirection[0];
-        this.aisles = List.of();
-        this.portSpecs = List.of();
+        this.aisles = Collections.emptyList();
+        this.portSpecs = Collections.emptyList();
         this.ports = new Reference2ObjectArrayMap<>();
     }
 
@@ -157,13 +159,16 @@ public final class Piece {
         private final RelativeDirection[] dirs;
         private final List<String[]> aisles = new ArrayList<>();
         private final List<PortSpec> ports = new ArrayList<>();
+        private final HashMap<String, String> rows = new HashMap<>();
 
         private Builder(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir) {
             this.dirs = new RelativeDirection[] { charDir, stringDir, aisleDir };
         }
 
         public Builder aisle(String... aisle) {
-            aisles.add(aisle);
+            var shared = new String[aisle.length];
+            for (int i = 0; i < aisle.length; i++) shared[i] = rows.computeIfAbsent(aisle[i], row -> row);
+            aisles.add(shared);
             return this;
         }
 

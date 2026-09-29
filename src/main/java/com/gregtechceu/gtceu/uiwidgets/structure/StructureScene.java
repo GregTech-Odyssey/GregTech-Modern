@@ -13,7 +13,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
@@ -101,8 +100,6 @@ public final class StructureScene extends WidgetGroup {
     private boolean dragging;
     @Nullable
     private BlockPos hoverPos;
-    @Nullable
-    private Vec3 hoverHit;
     @Nullable
     private Direction hoverFace;
     @Nullable
@@ -270,7 +267,7 @@ public final class StructureScene extends WidgetGroup {
     }
 
     public void zoomStep(int direction) {
-        camera.zoomStep(direction);
+        camera.zoomStep(direction, zoomAnchor());
     }
 
     public String percentText() {
@@ -278,7 +275,16 @@ public final class StructureScene extends WidgetGroup {
     }
 
     public void resetZoom() {
-        camera.resetZoom();
+        camera.resetZoom(zoomAnchor());
+    }
+
+    @Nullable
+    private Vector3f zoomAnchor() {
+        var eye = camera.eye();
+        var center = camera.center();
+        double entry = ScenePick.entry(bounds, eye, center);
+        if (entry <= 0) return null;
+        return new Vector3f(center).sub(eye).mul((float) entry).add(eye);
     }
 
     public void resetView() {
@@ -403,7 +409,6 @@ public final class StructureScene extends WidgetGroup {
         var previous = hoverPos;
         hoverPos = null;
         hoverFace = null;
-        hoverHit = null;
         if (level != null && isMouseOverElement(mouseX, mouseY)) {
             var inverse = new Matrix4f(combined).invert();
             var from = inverse.transformProject(ndcX, ndcY, -1, new Vector3f());
@@ -412,7 +417,6 @@ public final class StructureScene extends WidgetGroup {
             if (hit != null) {
                 hoverPos = hit.getBlockPos();
                 hoverFace = hit.getDirection();
-                hoverHit = hit.getLocation();
             }
         }
         if (hoverPos == null) {
@@ -441,7 +445,6 @@ public final class StructureScene extends WidgetGroup {
         if (isMouseOverElement(mouseX, mouseY)) {
             dragging = true;
             clickPos = hoverPos;
-            if (button == 0) camera.pivotAt(hoverHit);
             return true;
         }
         dragging = false;
@@ -465,7 +468,7 @@ public final class StructureScene extends WidgetGroup {
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
         if (super.mouseWheelMove(mouseX, mouseY, wheelDelta)) return true;
         if (!isMouseOverElement(mouseX, mouseY)) return false;
-        camera.wheel(wheelDelta);
+        camera.wheel(wheelDelta, zoomAnchor());
         return true;
     }
 

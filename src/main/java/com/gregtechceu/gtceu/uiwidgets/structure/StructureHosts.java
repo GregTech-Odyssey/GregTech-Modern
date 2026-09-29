@@ -12,6 +12,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
@@ -25,7 +26,7 @@ public final class StructureHosts {
     public static List<MultiblockMachineDefinition> of(MachineProtocol protocol) {
         if (index == null) index = build();
         var hosts = index.get(protocol);
-        return hosts == null ? List.of() : hosts;
+        return hosts == null ? Collections.emptyList() : hosts;
     }
 
     private static Reference2ObjectOpenHashMap<MachineProtocol, List<MultiblockMachineDefinition>> build() {
