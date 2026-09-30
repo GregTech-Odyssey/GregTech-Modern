@@ -54,6 +54,9 @@ final class StructureMatcher {
     @Nullable
     private PatternError deepest;
     private int deepestDepth;
+    private int formedWidth;
+    private int formedHeight;
+    private int formedDepth;
     @Nullable
     private Size measured;
     private CompiledStructure current;
@@ -180,10 +183,34 @@ final class StructureMatcher {
         if (measured != null) {
             for (int i = 0; i < measured.size(); i++) params.put(measured.key(i), measured.value(i));
         }
-        state.getMatchContext().set(Assembly.KEY, new Assembly(params, optionalFormed, optionalMissing, machineProtocols, machines, portProtocols, ports));
+        calculateDimensions();
+        state.getMatchContext().set(Assembly.KEY, new Assembly(params, optionalFormed, optionalMissing,
+                formedWidth, formedHeight, formedDepth, machineProtocols, machines, portProtocols, ports));
         state.setNeededFlip(flip);
         state.setError(null);
         return true;
+    }
+
+    private void calculateDimensions() {
+        if (log.isEmpty()) {
+            formedWidth = 0;
+            formedHeight = 0;
+            formedDepth = 0;
+            return;
+        }
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+        for (var placement : log) {
+            minX = Math.min(minX, placement.minX);
+            minY = Math.min(minY, placement.minY);
+            minZ = Math.min(minZ, placement.minZ);
+            maxX = Math.max(maxX, placement.maxX);
+            maxY = Math.max(maxY, placement.maxY);
+            maxZ = Math.max(maxZ, placement.maxZ);
+        }
+        formedWidth = maxX - minX + 1;
+        formedHeight = maxY - minY + 1;
+        formedDepth = maxZ - minZ + 1;
     }
 
     private boolean bindings(Placement host, int node) {

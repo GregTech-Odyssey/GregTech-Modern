@@ -177,6 +177,21 @@ public class MultiblockState {
         else cache.forEach(consumer);
     }
 
+    public int getWidth() {
+        var cells = formed;
+        return cells == null ? 0 : cells.getWidth();
+    }
+
+    public int getHeight() {
+        var cells = formed;
+        return cells == null ? 0 : cells.getHeight();
+    }
+
+    public int getDepth() {
+        var cells = formed;
+        return cells == null ? 0 : cells.getDepth();
+    }
+
     public void freeze() {
         var cells = FormedCells.of(cache);
         if (cells == null) return;

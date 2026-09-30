@@ -123,4 +123,16 @@ public final class FormedCells {
         for (long word : bits) count += Long.bitCount(word);
         return count;
     }
+
+    public int getWidth() {
+        return sizeX;
+    }
+
+    public int getHeight() {
+        return sizeY;
+    }
+
+    public int getDepth() {
+        return sizeZ;
+    }
 }

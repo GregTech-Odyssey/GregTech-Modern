@@ -26,15 +26,24 @@ public final class Assembly {
     private final int optionalFormed;
     @Getter
     private final int optionalMissing;
+    @Getter
+    private final int width;
+    @Getter
+    private final int height;
+    @Getter
+    private final int depth;
 
     private final Reference2ObjectMap<MachineProtocol, List<MetaMachine>> machines;
     private final Reference2ObjectMap<MachineProtocol, List<BlockPos>> ports;
 
-    Assembly(Reference2IntOpenHashMap<ParamKey> params, int optionalFormed, int optionalMissing, List<MachineProtocol> protocols,
-             List<MetaMachine> machineList, List<MachineProtocol> portProtocols, List<BlockPos> portList) {
+    Assembly(Reference2IntOpenHashMap<ParamKey> params, int optionalFormed, int optionalMissing, int width, int height, int depth,
+             List<MachineProtocol> protocols, List<MetaMachine> machineList, List<MachineProtocol> portProtocols, List<BlockPos> portList) {
         this.params = params.isEmpty() ? Reference2IntMaps.emptyMap() : params.clone();
         this.optionalFormed = optionalFormed;
         this.optionalMissing = optionalMissing;
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
         this.machines = group(protocols, machineList);
         this.ports = group(portProtocols, portList);
     }
