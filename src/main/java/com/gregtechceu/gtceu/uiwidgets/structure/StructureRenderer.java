@@ -6,6 +6,7 @@ import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -59,6 +60,8 @@ final class StructureRenderer {
     });
     @Nullable
     private static BufferBuilder uploader;
+    @Nullable
+    private static MultiBufferSource.BufferSource blockEntityBuffers;
     private static boolean errorLogged;
 
     private final Long2ObjectOpenHashMap<Section> sections = new Long2ObjectOpenHashMap<>();
@@ -348,6 +351,11 @@ final class StructureRenderer {
         return uploader;
     }
 
+    private static MultiBufferSource.BufferSource blockEntityBuffers() {
+        if (blockEntityBuffers == null) blockEntityBuffers = MultiBufferSource.immediate(new BufferBuilder(BUILDER_SIZE));
+        return blockEntityBuffers;
+    }
+
     void render(FrustumIntersection frustum, Vector3f eye, float partialTicks) {
         render(frustum, eye, partialTicks, 0, 0, 0);
     }
@@ -430,9 +438,8 @@ final class StructureRenderer {
 
     private void renderBlockEntities(FrustumIntersection frustum, float partialTicks) {
         if (rendered.isEmpty()) return;
-        var minecraft = Minecraft.getInstance();
-        var dispatcher = minecraft.getBlockEntityRenderDispatcher();
-        var buffers = minecraft.renderBuffers().bufferSource();
+        var dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+        var buffers = blockEntityBuffers();
         var pose = new PoseStack();
         WorldSceneRenderer.setDefaultRenderLayerState(null);
         for (var it = rendered.iterator(); it.hasNext();) {

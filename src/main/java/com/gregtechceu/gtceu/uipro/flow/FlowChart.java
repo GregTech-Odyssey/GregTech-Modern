@@ -6,9 +6,9 @@ import com.gregtechceu.gtceu.uipro.canvas.CanvasPainter;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasRect;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasRoute;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasWire;
-import com.gregtechceu.gtceu.uipro.canvas.PanView;
-import com.gregtechceu.gtceu.uipro.canvas.ZoomTools;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.view.FlowView;
+import com.gregtechceu.gtceu.uipro.view.ZoomBar;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntFunction;
 
 public class FlowChart extends UIElement {
 
@@ -87,14 +88,40 @@ public class FlowChart extends UIElement {
         return columnStarts[last] + columnWidths[last] - columnStarts[first];
     }
 
-    public PanView toView(boolean inventory) {
-        return new PanView(this).limitToWindow(inventory);
+    public FlowView toView(boolean inventory) {
+        return new FlowView("flow", this, false).limitToWindow(inventory);
     }
 
-    public PanView toView(FancyMachineUIWidget window, boolean inventory, String zoomKey) {
-        var view = toView(inventory).zoomable(zoomKey);
-        if (window instanceof MachineWindow machineWindow) machineWindow.addTitleTool(() -> new ZoomTools(view));
+    public FlowView toView(FancyMachineUIWidget window, boolean inventory, String zoomKey) {
+        var view = new FlowView(zoomKey, this, true).limitToWindow(inventory);
+        if (window instanceof MachineWindow machineWindow) machineWindow.addTitleTool(() -> ZoomBar.title(view));
         return view;
+    }
+
+    public record Tree(int[] row, int[] column, int[] span, int columns) {}
+
+    public static Tree tree(int count, int root, IntFunction<int[]> children) {
+        int[] span = new int[count], column = new int[count], row = new int[count];
+        measure(root, children, span);
+        place(root, 0, 0, children, span, column, row);
+        return new Tree(row, column, span, span[root]);
+    }
+
+    private static int measure(int index, IntFunction<int[]> children, int[] span) {
+        int sum = 0;
+        for (int child : children.apply(index)) sum += measure(child, children, span);
+        span[index] = Math.max(1, sum);
+        return span[index];
+    }
+
+    private static void place(int index, int depth, int start, IntFunction<int[]> children, int[] span, int[] column, int[] row) {
+        row[index] = depth;
+        column[index] = start;
+        int next = start;
+        for (int child : children.apply(index)) {
+            place(child, depth + 1, next, children, span, column, row);
+            next += span[child];
+        }
     }
 
     public FlowNode node(int row, int column) {

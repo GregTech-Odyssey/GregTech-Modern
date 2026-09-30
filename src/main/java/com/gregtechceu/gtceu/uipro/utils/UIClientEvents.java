@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.uipro.utils;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.uipro.UIInput;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.elements.TextField;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uipro.window.PageOverlay;
@@ -9,6 +11,7 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -33,5 +36,32 @@ public final class UIClientEvents {
             TextField.beforeGuiClick(screen, event.getMouseX(), event.getMouseY());
             MachineWindow.beforeGuiClick(screen.modularUI.mainGroup, event.getMouseX(), event.getMouseY());
         }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onMouseDragged(ScreenEvent.MouseDragged.Pre event) {
+        if (!(event.getScreen() instanceof ModularUIGuiContainer screen)) return;
+        var captured = UIInput.capturedIn(screen.modularUI);
+        if (captured == null) return;
+        var local = UIInput.toLocal(captured, event.getMouseX(), event.getMouseY());
+        captured.mouseDragged(local[0], local[1], event.getMouseButton(), event.getDragX() / local[2], event.getDragY() / local[2]);
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onMouseReleased(ScreenEvent.MouseButtonReleased.Pre event) {
+        var captured = UIInput.captured();
+        if (captured == null || event.getButton() != UIInput.capturedButton()) return;
+        if (event.getScreen() instanceof ModularUIGuiContainer screen && captured.getGui() == screen.modularUI) {
+            var local = UIInput.toLocal(captured, event.getMouseX(), event.getMouseY());
+            captured.mouseReleased(local[0], local[1], event.getButton());
+            event.setCanceled(true);
+        }
+        UIInput.clear();
+    }
+
+    @SubscribeEvent
+    public static void onRenderTick(TickEvent.RenderTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) UIClock.beginFrame();
     }
 }

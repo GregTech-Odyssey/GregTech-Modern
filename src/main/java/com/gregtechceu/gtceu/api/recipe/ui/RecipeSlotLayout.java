@@ -16,4 +16,23 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 public interface RecipeSlotLayout {
 
     UIElement build(RecipeSlots slots);
+
+    default boolean fitsRecipe() {
+        return false;
+    }
+
+    static RecipeSlotLayout fitting(RecipeSlotLayout layout) {
+        return new RecipeSlotLayout() {
+
+            @Override
+            public UIElement build(RecipeSlots slots) {
+                return layout.build(slots);
+            }
+
+            @Override
+            public boolean fitsRecipe() {
+                return true;
+            }
+        };
+    }
 }

@@ -5,12 +5,16 @@ import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
+import com.lowdragmc.lowdraglib.gui.ingredient.Target;
+import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
+import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -23,9 +27,13 @@ import dev.vfyjxf.taffy.tree.NodeId;
 import dev.vfyjxf.taffy.tree.TaffyTree;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector4f;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -55,6 +63,14 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     protected final LayoutStyle style = new LayoutStyle(this::markLayoutDirty);
     private final SyncValueHost syncValues = new SyncValueHost(this);
     private final ElementState state = new ElementState(this, this::addSyncValue);
+    public static final int OUTSIDE = -100000;
+    private static final Vector4f SCISSOR_MIN = new Vector4f(), SCISSOR_MAX = new Vector4f();
+
+    @Nullable
+    private ViewTransform transform;
+    private boolean clipChildren;
+    private boolean closeListener;
+    private boolean closeHooked;
 
     /// 本元素作为树根时持有的布局树；不是根时为 null
     @Nullable
@@ -173,8 +189,17 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (transform == null) {
+            if (isSelected()) UITheme.drawSelection(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+            return;
+        }
+        var pose = graphics.pose();
+        pose.pushPose();
+        transform.apply(pose, getPositionX(), getPositionY());
         if (isSelected()) UITheme.drawSelection(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
-        super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+        super.drawInForeground(graphics, (int) Math.floor(toLocalX(mouseX)), (int) Math.floor(toLocalY(mouseY)), partialTicks);
+        pose.popPose();
     }
 
     /**
@@ -407,6 +432,291 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
                 return;
             }
         }
+    }
+
+    public UIElement setTransform(@Nullable ViewTransform transform) {
+        this.transform = transform;
+        return this;
+    }
+
+    @Nullable
+    public ViewTransform getTransform() {
+        return transform;
+    }
+
+    public UIElement setClipChildren(boolean clipChildren) {
+        this.clipChildren = clipChildren;
+        return this;
+    }
+
+    public boolean isClipChildren() {
+        return clipChildren;
+    }
+
+    public int clipX() {
+        return getPositionX();
+    }
+
+    public int clipY() {
+        return getPositionY();
+    }
+
+    public int clipWidth() {
+        return getSizeWidth();
+    }
+
+    public int clipHeight() {
+        return getSizeHeight();
+    }
+
+    public boolean isInClip(double localX, double localY) {
+        return !clipChildren || isMouseOver(clipX(), clipY(), clipWidth(), clipHeight(), localX, localY);
+    }
+
+    public double toLocalX(double x) {
+        return transform == null ? x : transform.toLocalX(x, getPositionX());
+    }
+
+    public double toLocalY(double y) {
+        return transform == null ? y : transform.toLocalY(y, getPositionY());
+    }
+
+    private double localScale() {
+        return transform == null ? 1 : transform.scale();
+    }
+
+    public boolean isPointerOver(double mouseX, double mouseY) {
+        if (!isVisible() || !isMouseOverElement(mouseX, mouseY)) return false;
+        Widget current = this;
+        double x = mouseX, y = mouseY;
+        while (current.getParent() != null) {
+            var parent = current.getParent();
+            int index = parent.widgets.indexOf(current);
+            for (int i = index + 1; i < parent.widgets.size(); i++) {
+                var sibling = parent.widgets.get(i);
+                if (sibling.isVisible() && sibling.isActive() && sibling.isMouseOverElement(x, y)) return false;
+            }
+            if (parent instanceof UIElement element) {
+                if (!element.isInClip(x, y)) return false;
+                if (element.transform != null) {
+                    x = element.transform.toParentX(x, element.getPositionX());
+                    y = element.transform.toParentY(y, element.getPositionY());
+                }
+            }
+            if (parent instanceof ILayoutHost) break;
+            current = parent;
+        }
+        return true;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public boolean isTextInputFocused() {
+        return gui != null && gui.getModularUIGui() != null && gui.getModularUIGui().lastFocus instanceof TextFieldWidget;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void capturePointer(int button) {
+        UIInput.capture(this, button);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void releasePointer() {
+        UIInput.release(this);
+    }
+
+    protected final void listenUIClose() {
+        closeListener = true;
+        if (gui != null) hookClose();
+    }
+
+    protected void onUIClosed() {}
+
+    private void hookClose() {
+        if (closeHooked || gui == null) return;
+        closeHooked = true;
+        gui.registerCloseListener(this::onUIClosed);
+    }
+
+    @Override
+    public void setGui(ModularUI gui) {
+        super.setGui(gui);
+        if (closeListener && gui != null) hookClose();
+    }
+
+    @Nullable
+    private Widget childToward(Widget target) {
+        for (Widget current = target; current != null; current = current.getParent()) {
+            if (current.getParent() == this) return current;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isMouseOverElement(double mouseX, double mouseY) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        if (!clipChildren) return super.isMouseOverElement(x, y);
+        return isMouseOver(getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), x, y);
+    }
+
+    @Override
+    public @Nullable Widget getHoverElement(double mouseX, double mouseY) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        if (!isInClip(x, y)) return isMouseOver(getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), x, y) ? this : null;
+        return super.getHoverElement(x, y);
+    }
+
+    @Override
+    public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        if (!isInClip(x, y)) return null;
+        return super.getXEIIngredientOverMouse(x, y);
+    }
+
+    @Override
+    public List<Target> getPhantomTargets(Object ingredient) {
+        var targets = super.getPhantomTargets(ingredient);
+        if (transform == null && !clipChildren || targets.isEmpty()) return targets;
+        return mapTargets(targets);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private List<Target> mapTargets(List<Target> targets) {
+        var mapped = new ArrayList<Target>(targets.size());
+        for (var target : targets) {
+            var area = transform == null ? target.getArea() : transform.toParent(target.getArea(), getPositionX(), getPositionY());
+            if (clipChildren && !intersectsClip(area)) continue;
+            mapped.add(new Target() {
+
+                @Override
+                public Rect2i getArea() {
+                    return area;
+                }
+
+                @Override
+                public void accept(Object value) {
+                    target.accept(value);
+                }
+            });
+        }
+        return mapped.isEmpty() ? Collections.emptyList() : mapped;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean intersectsClip(Rect2i area) {
+        double x0 = clipX(), y0 = clipY(), x1 = x0 + clipWidth(), y1 = y0 + clipHeight();
+        if (transform != null) {
+            x0 = transform.toParentX(x0, getPositionX());
+            y0 = transform.toParentY(y0, getPositionY());
+            x1 = transform.toParentX(x1, getPositionX());
+            y1 = transform.toParentY(y1, getPositionY());
+        }
+        return area.getX() < x1 && area.getX() + area.getWidth() > x0 && area.getY() < y1 && area.getY() + area.getHeight() > y0;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        if (!isInClip(x, y)) return false;
+        return super.mouseClicked(x, y, button);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY), s = localScale();
+        var captured = UIInput.captured();
+        if (captured != null && captured != this) {
+            var child = childToward(captured);
+            if (child == null) return false;
+            child.mouseDragged(x, y, button, dragX / s, dragY / s);
+            return true;
+        }
+        return super.mouseDragged(x, y, button, dragX / s, dragY / s);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        var captured = UIInput.captured();
+        if (captured != null && captured != this && button == UIInput.capturedButton()) {
+            var child = childToward(captured);
+            if (child == null) return false;
+            child.mouseReleased(x, y, button);
+            UIInput.release(captured);
+            return true;
+        }
+        return super.mouseReleased(x, y, button);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        if (!isInClip(x, y)) return false;
+        return super.mouseWheelMove(x, y, wheelDelta);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean mouseMoved(double mouseX, double mouseY) {
+        double x = toLocalX(mouseX), y = toLocalY(mouseY);
+        if (!isInClip(x, y)) return false;
+        return super.mouseMoved(x, y);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (transform == null) {
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+            return;
+        }
+        var pose = graphics.pose();
+        pose.pushPose();
+        transform.apply(pose, getPositionX(), getPositionY());
+        super.drawInBackground(graphics, (int) Math.floor(toLocalX(mouseX)), (int) Math.floor(toLocalY(mouseY)), partialTicks);
+        pose.popPose();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected void drawWidgetsBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (!clipChildren) {
+            super.drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
+            return;
+        }
+        enableClip(graphics);
+        boolean inside = isInClip(mouseX, mouseY);
+        super.drawWidgetsBackground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
+        graphics.disableScissor();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected void drawWidgetsForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (!clipChildren) {
+            super.drawWidgetsForeground(graphics, mouseX, mouseY, partialTicks);
+            return;
+        }
+        enableClip(graphics);
+        boolean inside = isInClip(mouseX, mouseY);
+        super.drawWidgetsForeground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
+        graphics.disableScissor();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void enableClip(GuiGraphics graphics) {
+        enableScissor(graphics, clipX(), clipY(), clipWidth(), clipHeight());
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static void enableScissor(GuiGraphics graphics, int x, int y, int width, int height) {
+        var matrix = graphics.pose().last().pose();
+        matrix.transform(SCISSOR_MIN.set(x, y, 0, 1));
+        matrix.transform(SCISSOR_MAX.set(x + width, y + height, 0, 1));
+        graphics.enableScissor(Math.round(SCISSOR_MIN.x), Math.round(SCISSOR_MIN.y), Math.round(SCISSOR_MAX.x), Math.round(SCISSOR_MAX.y));
     }
 
     // ==================== 同步 ====================

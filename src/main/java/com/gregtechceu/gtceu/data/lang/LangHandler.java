@@ -1396,9 +1396,6 @@ public class LangHandler {
         provider.add("gtceu.structure_preview.project", "Project");
         provider.add("gtceu.pattern_builder.favorite", "Favorite: chosen first by default");
         provider.add("gtceu.pattern_builder.total", "All parts combined: %s");
-        provider.add("gtceu.structure_preview.reset", "Reset");
-        provider.add("gtceu.structure_preview.zoom", "Current zoom. Click to return to 100%%");
-        provider.add("gtceu.structure_preview.minimap", "Minimap: click to jump there");
         provider.add("gtceu.structure_preview.parts.filter", "Middle-click: show only this block (multiple allowed)");
         provider.add("gtceu.structure_preview.back", "Back (Esc / E / mouse back button)");
         provider.add("gtceu.structure_preview.forward", "Forward (mouse forward button)");
@@ -1704,6 +1701,19 @@ public class LangHandler {
         provider.add("gtceu.gui.output_side.dir.south", "South");
         provider.add("gtceu.gui.output_side.dir.west", "West");
         provider.add("gtceu.gui.output_side.dir.east", "East");
+        provider.add("gtceu.gui.face_net.pass_through", "Access side: follows the accessing side");
+        provider.add("gtceu.gui.face_net.pass_through.detail", "Accessing this block from a side accesses the same side of the target");
+        provider.add("gtceu.gui.face_net.single", "Access side: %s");
+        provider.add("gtceu.gui.face_net.none", "No access side");
+        provider.add("gtceu.gui.face_net.legend", "Top-down net: center is up, bottom right is down");
+        provider.add("gtceu.gui.face_net.click", "Click to change the access side");
+        provider.add("gtceu.gui.face_picker.select", "Use the %s side");
+        provider.add("gtceu.gui.face_picker.short.up", "U");
+        provider.add("gtceu.gui.face_picker.short.down", "D");
+        provider.add("gtceu.gui.face_picker.short.north", "N");
+        provider.add("gtceu.gui.face_picker.short.south", "S");
+        provider.add("gtceu.gui.face_picker.short.west", "W");
+        provider.add("gtceu.gui.face_picker.short.east", "E");
         multiLang(provider, "gtceu.gui.output_setting.tooltips", "left-click to tune the item auto output",
                 "right-click to tune the fluid auto output.");
         provider.add("gtceu.gui.item_auto_output.allow_input.enabled",
@@ -1784,8 +1794,6 @@ public class LangHandler {
         provider.add("gtceu.uipro.disabled", "Operation not allowed");
         provider.add("gtceu.uipro.popup.close", "Close");
         provider.add("gtceu.gui.details", "Details");
-        provider.add("gtceu.uipro.flow.zoom_reset", "Current zoom. Click to reset to 100%%. Ctrl + scroll over the chart to zoom; scroll or drag to pan.");
-        provider.add("gtceu.uipro.flow.zoom_lock", "Lock zoom: machines of this type open at the locked level. Zooming is disabled while locked.");
         provider.add("gtceu.flow.amount", "%s mB");
         provider.add("gtceu.flow.issue.ok", "Normal");
         provider.add("gtceu.flow.issue.ok.desc", "The requirement for this cycle is met.");
@@ -1864,6 +1872,10 @@ public class LangHandler {
         provider.add("gtceu.uipro.canvas.zoom_out", "Zoom out");
         provider.add("gtceu.uipro.canvas.fit", "Fit all");
         provider.add("gtceu.uipro.canvas.minimap", "Minimap (click or drag it to jump)");
+        provider.add("gtceu.uipro.view.zoom_percent", "Current zoom. Click to fit the view. Scroll over the view to zoom, Shift + scroll to pan, drag to pan.");
+        provider.add("gtceu.uipro.view.reset", "Reset view");
+        provider.add("gtceu.uipro.view.zoom_distance", "Distance relative to the default view. Click to return to the default distance");
+        provider.add("gtceu.structure_preview.highlight", "Highlight part positions: positions that accept hatches, buses and other parts");
 
         // 配方页（uipro）
         provider.add("gtceu.recipe.info.duration", "Duration");

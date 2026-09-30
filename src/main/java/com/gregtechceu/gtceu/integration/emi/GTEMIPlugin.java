@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.integration.emi.orevein.GTBedrockFluidEmiCategory;
 import com.gregtechceu.gtceu.integration.emi.orevein.GTBedrockOreEmiCategory;
 import com.gregtechceu.gtceu.integration.emi.orevein.GTOreVeinEmiCategory;
 import com.gregtechceu.gtceu.integration.emi.recipe.Ae2PatternTerminalHandler;
+import com.gregtechceu.gtceu.integration.emi.recipe.FrontLitEmiStack;
 import com.gregtechceu.gtceu.integration.emi.recipe.GTEmiRecipeHandler;
 import com.gregtechceu.gtceu.integration.emi.recipe.GTRecipeEMICategory;
 
@@ -60,6 +61,7 @@ public class GTEMIPlugin implements EmiPlugin {
             registry.addRecipeHandler(WETMenu.TYPE, new Ae2PatternTerminalHandler<>());
         }
         registry.addCategory(GTProgrammedCircuitCategory.CATEGORY);
+        registry.addIngredientSerializer(FrontLitEmiStack.class, new FrontLitEmiStack.Serializer());
 
         // Recipes
         MultiblockInfoEmiCategory.registerDisplays(registry);

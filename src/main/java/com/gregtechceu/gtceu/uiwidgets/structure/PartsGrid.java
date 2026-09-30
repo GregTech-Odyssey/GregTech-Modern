@@ -5,16 +5,15 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.Position;
-import com.lowdragmc.lowdraglib.utils.Size;
-
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import dev.vfyjxf.taffy.style.FlexWrap;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
-final class PartsGrid extends WidgetGroup {
+final class PartsGrid extends UIElement {
 
     private final Consumer<Item> onToggle;
     private final int minColumns;
@@ -33,9 +32,9 @@ final class PartsGrid extends WidgetGroup {
     private int columns;
 
     PartsGrid(Consumer<Item> onToggle, int minColumns) {
-        super(0, 0, minColumns * UISizes.SLOT, UISizes.SLOT);
         this.onToggle = onToggle;
         this.minColumns = minColumns;
+        layout(l -> l.row().flexWrap(FlexWrap.WRAP).width(minColumns * UISizes.SLOT).minHeight(UISizes.SLOT));
     }
 
     void fill(List<ItemStack> stacks, List<SlotWidget> slots, Set<Item> shown, int columns) {
@@ -51,12 +50,8 @@ final class PartsGrid extends WidgetGroup {
     void arrange(int columns) {
         if (columns == this.columns) return;
         this.columns = columns;
-        for (int i = 0; i < widgets.size(); i++) {
-            widgets.get(i).setSelfPosition(new Position((i % columns) * UISizes.SLOT, (i / columns) * UISizes.SLOT));
-        }
-        int rows = Math.max(1, (widgets.size() + columns - 1) / columns);
-        setSize(new Size(Math.min(columns, Math.max(minColumns, widgets.size())) * UISizes.SLOT, rows * UISizes.SLOT));
-        UIElement.markLayoutDirty(this);
+        int width = Math.min(columns, Math.max(minColumns, widgets.size())) * UISizes.SLOT;
+        layout(l -> l.width(width));
     }
 
     @Override
@@ -71,6 +66,12 @@ final class PartsGrid extends WidgetGroup {
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
+        if (GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_MIDDLE) == GLFW.GLFW_PRESS) return null;
+        return super.getXEIIngredientOverMouse(mouseX, mouseY);
     }
 
     @Override

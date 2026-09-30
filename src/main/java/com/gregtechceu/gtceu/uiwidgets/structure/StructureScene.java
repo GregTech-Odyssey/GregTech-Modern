@@ -1,13 +1,12 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
+import com.gregtechceu.gtceu.uipro.view.scene.SceneView;
+
 import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.LoadingOverlay;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -15,70 +14,48 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexSorting;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 import org.joml.FrustumIntersection;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 @OnlyIn(Dist.CLIENT)
-public final class StructureScene extends WidgetGroup {
+public final class StructureScene extends SceneView {
 
     public static final int ALL_LAYERS = PreviewLevel.ALL_LAYERS;
     private static final float FIT_PER_SIZE = 5f;
     private static final float DEFAULT_PER_SIZE = 3.5f;
-    private static final float FOV = (float) Math.toRadians(60);
-    private static final float MIN_NEAR = 0.05f;
-    private static final float NEAR_PER_ZOOM = 0.005f;
-    private static final float FAR_PLANE = 10000f;
     private static final float SELECTION_RED = 0.6f;
     private static final float SELECTION_SCALE = 1.01f;
-    private static final float MAX_FRAME_SECONDS = 0.1f;
-    private static final int IDLE_TICKS = 40;
+    private static final float HIGHLIGHT_INSET = -0.02f;
     private static final int PROGRESS_COLOR = 0xFF55C255;
     private static final int PROGRESS_TRACK = 0x40000000;
     private static final float WAIT_SHARE = 0.7f;
-    private static final Vector3f UP = new Vector3f(0, 1, 0);
-    private static final Set<StructureScene> LIVE = Collections.newSetFromMap(new WeakHashMap<>());
-    private static int ticks;
+    private static final long ORBIT_TICKS = 180;
+    private static final float ORBIT_DEGREES_PER_TICK = 2;
+    private static final float ORBIT_ELEVATION = 25;
 
-    static {
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, TickEvent.ClientTickEvent.class, StructureScene::onClientTick);
-    }
-
-    private final boolean movable;
     private final StructureRenderer renderer = new StructureRenderer();
-    private final SceneCamera camera = new SceneCamera();
     private final SceneMarkers markers = new SceneMarkers();
     private final PreviewBounds bounds = new PreviewBounds();
-    private final Matrix4f projection = new Matrix4f();
-    private final Matrix4f viewMatrix = new Matrix4f();
-    private final Matrix4f combined = new Matrix4f();
     @Nullable
     private PreviewLevel level;
-    @Setter
-    private BiPredicate<Double, Double> blocked = (x, y) -> false;
     @Setter
     @Nullable
     private BiConsumer<BlockPos, Direction> onSelected;
@@ -96,26 +73,22 @@ public final class StructureScene extends WidgetGroup {
     private int pendingLayer = ALL_LAYERS;
     private float pendingZoom = -1;
     private boolean hasPending;
-    private boolean hasMatrix;
-    private boolean dragging;
     @Nullable
     private BlockPos hoverPos;
     @Nullable
     private Direction hoverFace;
     @Nullable
-    private BlockPos clickPos;
-    @Nullable
     private BlockPos selectedPos;
     private ItemStack hoverItem = ItemStack.EMPTY;
-    private long lastFrame;
-    private int drawnTick;
-    private boolean registered;
-    private boolean closeHooked;
     private final List<Overlay> overlays = new ArrayList<>();
+    private LongArrayList highlight = new LongArrayList();
+    private int highlightColor;
+    @Setter
+    private boolean autoOrbit;
+    @Setter
+    private boolean selectable = true;
 
     public record Marker(Vector3f pos, int color, boolean selected, List<Component> tooltip) {}
-
-    public record Camera(Vector3f center, float yaw, float pitch, float zoom) {}
 
     private static final class Overlay {
 
@@ -131,9 +104,11 @@ public final class StructureScene extends WidgetGroup {
     }
 
     public StructureScene(int width, int height, boolean movable) {
-        super(0, 0, width, height);
-        this.movable = movable;
-        setClientSideWidget();
+        this("structure_scene", width, height, movable);
+    }
+
+    public StructureScene(String id, int width, int height, boolean movable) {
+        super(id, width, height, movable);
     }
 
     public static float fitZoom(int width, int height, int depth) {
@@ -144,16 +119,8 @@ public final class StructureScene extends WidgetGroup {
         return perSize * (float) Math.sqrt(Math.max(size, 1));
     }
 
-    private static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        ticks++;
-        if (LIVE.isEmpty()) return;
-        for (var scene : LIVE.toArray(new StructureScene[0])) {
-            if (scene != null && ticks - scene.drawnTick > IDLE_TICKS) scene.idle();
-        }
-    }
-
-    private void idle() {
+    @Override
+    protected void idle() {
         if (reloader != null) dispose();
         else releaseGpu();
     }
@@ -185,6 +152,11 @@ public final class StructureScene extends WidgetGroup {
         overlays.sort((x, y) -> Float.compare(y.alpha, x.alpha));
     }
 
+    public void setHighlight(@Nullable LongArrayList positions, int argb) {
+        this.highlight = positions == null ? new LongArrayList() : positions;
+        this.highlightColor = argb;
+    }
+
     public void setMarkers(List<Marker> markers) {
         this.markers.set(markers);
     }
@@ -214,17 +186,8 @@ public final class StructureScene extends WidgetGroup {
         overlays.clear();
         if (level != null) level.clear();
         level = null;
-        hoverPos = clickPos = selectedPos = null;
+        hoverPos = selectedPos = null;
         hoverItem = ItemStack.EMPTY;
-    }
-
-    @Override
-    public void setGui(ModularUI gui) {
-        super.setGui(gui);
-        if (gui != null && !closeHooked) {
-            closeHooked = true;
-            gui.registerCloseListener(this::idle);
-        }
     }
 
     private void applyPending() {
@@ -237,7 +200,7 @@ public final class StructureScene extends WidgetGroup {
             if (level == null) level = new PreviewLevel(minecraft.level);
             level.setBlocks(pendingBlocks);
             pendingBlocks = null;
-            hoverPos = clickPos = selectedPos = null;
+            hoverPos = selectedPos = null;
             hoverItem = ItemStack.EMPTY;
         }
         if (level == null) return;
@@ -254,71 +217,102 @@ public final class StructureScene extends WidgetGroup {
         renderer.show(view, changed, camera.center());
     }
 
-    public Camera camera() {
-        return camera.snapshot();
-    }
-
-    public void recenter(@Nullable Camera camera) {
-        this.camera.recenter(camera);
-    }
-
-    public Vector3f getCenter() {
-        return camera.center();
-    }
-
-    public void zoomStep(int direction) {
-        camera.zoomStep(direction, zoomAnchor());
-    }
-
-    public String percentText() {
-        return camera.percentText();
-    }
-
-    public void resetZoom() {
-        camera.resetZoom(zoomAnchor());
-    }
-
-    @Nullable
-    private Vector3f zoomAnchor() {
+    @Override
+    protected float reach() {
+        if (bounds.empty) return camera.zoom();
         var eye = camera.eye();
-        var center = camera.center();
-        double entry = ScenePick.entry(bounds, eye, center);
-        if (entry <= 0) return null;
-        return new Vector3f(center).sub(eye).mul((float) entry).add(eye);
-    }
-
-    public void resetView() {
-        camera.resetView();
-    }
-
-    public void focus(float x, float z) {
-        camera.focus(x, z);
+        float dx = Math.max(Math.max(bounds.minX - eye.x(), eye.x() - bounds.maxX - 1), 0);
+        float dy = Math.max(Math.max(bounds.minY - eye.y(), eye.y() - bounds.maxY - 1), 0);
+        float dz = Math.max(Math.max(bounds.minZ - eye.z(), eye.z() - bounds.maxZ - 1), 0);
+        return (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     @Override
-    public boolean isMouseOverElement(double mouseX, double mouseY) {
-        return super.isMouseOverElement(mouseX, mouseY) && !blocked.test(mouseX, mouseY);
+    protected boolean hasContent() {
+        return renderer.hasData();
     }
 
     @Override
-    public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        drawnTick = ticks;
-        if (!registered) {
-            registered = true;
-            LIVE.add(this);
-        }
+    protected void beforeRender() {
         if (!hasPending && !renderer.hasData() && reloader != null) reloader.run();
         applyPending();
-        long now = System.nanoTime();
-        float seconds = lastFrame == 0 ? 0 : Math.min(MAX_FRAME_SECONDS, (now - lastFrame) / 1e9f);
-        lastFrame = now;
-        if (movable && seconds > 0) move(seconds);
-        if (renderer.hasData()) {
-            renderScene(graphics, mouseX, mouseY, partialTicks);
-            if (hasMatrix) {
-                markers.draw(graphics, combined, camera.eye(), level == null ? null : level.view(), bounds, getPositionX(), getPositionY(),
-                        getSizeWidth(), getSizeHeight(), isMouseOverElement(mouseX, mouseY), mouseX, mouseY);
-            }
+        if (autoOrbit) {
+            var minecraft = Minecraft.getInstance();
+            float ticks = (minecraft.level == null ? 0 : minecraft.level.getGameTime() % ORBIT_TICKS) + minecraft.getFrameTime();
+            camera.orbit(ticks * ORBIT_DEGREES_PER_TICK, ORBIT_ELEVATION);
+        }
+        if (!renderer.hasData()) return;
+        renderer.upload();
+        for (var overlay : overlays) overlay.renderer.upload();
+    }
+
+    @Override
+    protected void renderContent(FrustumIntersection frustum, Vector3f eye, float partialTicks) {
+        renderer.render(frustum, eye, partialTicks);
+        for (var overlay : overlays) overlay.renderer.render(frustum, eye, partialTicks);
+    }
+
+    @Override
+    protected void renderExtras(float partialTicks) {
+        if (!highlight.isEmpty()) renderHighlight();
+        if (selectedPos != null) RenderUtils.renderBlockOverLay(new PoseStack(), selectedPos, SELECTION_RED, 0, 0, SELECTION_SCALE);
+    }
+
+    private void renderHighlight() {
+        float a = (highlightColor >>> 24) / 255f, r = (highlightColor >> 16 & 0xFF) / 255f, g = (highlightColor >> 8 & 0xFF) / 255f,
+                b = (highlightColor & 0xFF) / 255f;
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        int onlyY = level == null ? ALL_LAYERS : level.view().onlyY;
+        for (int i = 0; i < highlight.size(); i++) {
+            long pos = highlight.getLong(i);
+            if (onlyY != ALL_LAYERS && BlockPos.getY(pos) != onlyY) continue;
+            float x0 = BlockPos.getX(pos) + HIGHLIGHT_INSET, y0 = BlockPos.getY(pos) + HIGHLIGHT_INSET, z0 = BlockPos.getZ(pos) + HIGHLIGHT_INSET;
+            float x1 = x0 + 1 - 2 * HIGHLIGHT_INSET, y1 = y0 + 1 - 2 * HIGHLIGHT_INSET, z1 = z0 + 1 - 2 * HIGHLIGHT_INSET;
+            box(buffer, x0, y0, z0, x1, y1, z1, r, g, b, a);
+        }
+        Tesselator.getInstance().end();
+        RenderSystem.enableCull();
+        RenderSystem.depthMask(true);
+    }
+
+    private static void box(BufferBuilder buffer, float x0, float y0, float z0, float x1, float y1, float z1, float r, float g, float b, float a) {
+        buffer.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y0, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y1, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y1, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y1, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y1, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y1, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y1, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y0, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y1, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y1, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y0, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y1, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x0, y1, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y1, z0).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y1, z1).color(r, g, b, a).endVertex();
+        buffer.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
+    }
+
+    @Override
+    protected void drawOverScene(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (hasContent() && hasMatrix) {
+            markers.draw(graphics, combined, camera.eye(), level == null ? null : level.view(), bounds, getPositionX(), getPositionY(),
+                    getSizeWidth(), getSizeHeight(), !isInteracting() && isPointerOver(mouseX, mouseY), mouseX, mouseY);
         }
         double wait = waiting.getAsDouble();
         if (wait >= 0) {
@@ -328,9 +322,6 @@ public final class StructureScene extends WidgetGroup {
         } else {
             renderStart = 0;
         }
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 
     public void continueProgress() {
@@ -343,76 +334,12 @@ public final class StructureScene extends WidgetGroup {
         graphics.fill(x, y, x + Math.round(width * progress), y + 2, PROGRESS_COLOR);
     }
 
-    private void renderScene(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        var minecraft = Minecraft.getInstance();
-        if (minecraft.getOverlay() instanceof LoadingOverlay) return;
-        renderer.upload();
-        for (var overlay : overlays) overlay.renderer.upload();
-        var window = minecraft.getWindow();
-        var pose = graphics.pose().last().pose();
-        var topLeft = pose.transform(new Vector4f(getPositionX(), getPositionY(), 0, 1));
-        var bottomRight = pose.transform(new Vector4f(getPositionX() + getSizeWidth(), getPositionY() + getSizeHeight(), 0, 1));
-        float gx = topLeft.x(), gy = topLeft.y(), gw = bottomRight.x() - gx, gh = bottomRight.y() - gy;
-        if (gw <= 0 || gh <= 0) return;
-        double sx = window.getWidth() / (double) window.getGuiScaledWidth(), sy = window.getHeight() / (double) window.getGuiScaledHeight();
-        int vw = (int) (gw * sx), vh = (int) (gh * sy), vx = (int) (gx * sx), vy = window.getHeight() - (int) (gy * sy) - vh;
-        if (vw <= 0 || vh <= 0) return;
-        var eye = camera.eye();
-        float near = Math.max(MIN_NEAR, camera.zoom() * NEAR_PER_ZOOM);
-        projection.setPerspective(FOV, vw / (float) vh, near, FAR_PLANE);
-        viewMatrix.setLookAt(eye, camera.center(), UP);
-        combined.set(projection).mul(viewMatrix);
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.viewport(vx, vy, vw, vh);
-        RenderSystem.depthMask(true);
-        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-        RenderSystem.backupProjectionMatrix();
-        RenderSystem.setProjectionMatrix(new Matrix4f(projection), VertexSorting.byDistance(eye));
-        var modelView = RenderSystem.getModelViewStack();
-        modelView.pushPose();
-        modelView.setIdentity();
-        modelView.mulPoseMatrix(viewMatrix);
-        RenderSystem.applyModelViewMatrix();
-        RenderSystem.activeTexture(GL13.GL_TEXTURE0);
-        RenderSystem.enableCull();
-        try {
-            var frustum = new FrustumIntersection(combined);
-            renderer.render(frustum, eye, partialTicks);
-            for (var overlay : overlays) overlay.renderer.render(frustum, eye, partialTicks);
-            hasMatrix = true;
-            if (selectedPos != null) RenderUtils.renderBlockOverLay(new PoseStack(), selectedPos, SELECTION_RED, 0, 0, SELECTION_SCALE);
-        } finally {
-            RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-            RenderSystem.viewport(0, 0, window.getWidth(), window.getHeight());
-            RenderSystem.restoreProjectionMatrix();
-            modelView.popPose();
-            RenderSystem.applyModelViewMatrix();
-            RenderSystem.depthMask(false);
-            RenderSystem.disableDepthTest();
-            RenderSystem.enableBlend();
-        }
-        var mouse = pose.transform(new Vector4f(mouseX, mouseY, 0, 1));
-        updateHover(mouseX, mouseY, (mouse.x() - gx) / gw * 2 - 1, 1 - (mouse.y() - gy) / gh * 2);
-    }
-
     @Override
-    public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
-        var hovered = markers.hovered();
-        if (hovered != null && !hovered.tooltip().isEmpty()) {
-            graphics.renderComponentTooltip(Minecraft.getInstance().font, hovered.tooltip(), mouseX, mouseY);
-        }
-    }
-
-    private void updateHover(int mouseX, int mouseY, float ndcX, float ndcY) {
+    protected void onHoverRay(Vector3f from, Vector3f to, boolean pointerOver) {
         var previous = hoverPos;
         hoverPos = null;
         hoverFace = null;
-        if (level != null && isMouseOverElement(mouseX, mouseY)) {
-            var inverse = new Matrix4f(combined).invert();
-            var from = inverse.transformProject(ndcX, ndcY, -1, new Vector3f());
-            var to = inverse.transformProject(ndcX, ndcY, 1, new Vector3f());
+        if (level != null && pointerOver) {
             var hit = ScenePick.pick(level.view(), bounds, from, to);
             if (hit != null) {
                 hoverPos = hit.getBlockPos();
@@ -428,65 +355,27 @@ public final class StructureScene extends WidgetGroup {
     }
 
     @Override
+    protected List<Component> hoverTooltip() {
+        var hovered = markers.hovered();
+        return hovered == null ? Collections.emptyList() : hovered.tooltip();
+    }
+
+    @Override
     public Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
         var result = super.getXEIIngredientOverMouse(mouseX, mouseY);
-        if (result == null && !hoverItem.isEmpty() && isMouseOverElement(mouseX, mouseY)) return hoverItem;
+        if (result == null && !hoverItem.isEmpty() && isPointerOver(mouseX, mouseY) && !isFlying()) return hoverItem;
         return result;
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (super.mouseClicked(mouseX, mouseY, button)) return true;
+    protected void onSceneClick(double mouseX, double mouseY, int button) {
         var hovered = markers.hovered();
-        if (hovered != null && onMarker != null && isMouseOverElement(mouseX, mouseY) && (button == 0 || button == 1)) {
+        if (hovered != null && onMarker != null) {
             onMarker.accept(hovered);
-            return true;
+            return;
         }
-        if (isMouseOverElement(mouseX, mouseY)) {
-            dragging = true;
-            clickPos = hoverPos;
-            return true;
-        }
-        dragging = false;
-        return false;
-    }
-
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        dragging = false;
-        if (hoverPos != null && hoverPos.equals(clickPos)) {
-            selectedPos = hoverPos;
-            clickPos = null;
-            if (onSelected != null) onSelected.accept(selectedPos, hoverFace == null ? Direction.UP : hoverFace);
-            return true;
-        }
-        clickPos = null;
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
-        if (super.mouseWheelMove(mouseX, mouseY, wheelDelta)) return true;
-        if (!isMouseOverElement(mouseX, mouseY)) return false;
-        camera.wheel(wheelDelta, zoomAnchor());
-        return true;
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (button == 1) {
-            camera.pan(dragX, dragY);
-            return true;
-        }
-        if (dragging) {
-            camera.rotate(dragX, dragY);
-            return false;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    private void move(float seconds) {
-        if (gui != null && gui.getModularUIGui() != null && gui.getModularUIGui().lastFocus instanceof TextFieldWidget) return;
-        camera.move(Minecraft.getInstance().getWindow().getWindow(), seconds);
+        if (!selectable || button != 0 || hoverPos == null) return;
+        selectedPos = hoverPos;
+        if (onSelected != null) onSelected.accept(selectedPos, hoverFace == null ? Direction.UP : hoverFace);
     }
 }

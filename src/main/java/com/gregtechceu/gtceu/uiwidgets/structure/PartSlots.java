@@ -2,21 +2,21 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
 import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
-import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import dev.vfyjxf.taffy.style.FlexWrap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -36,15 +36,9 @@ public final class PartSlots {
         return slots(stacks, hint == null ? Collections.emptyList() : Collections.singletonList(hint));
     }
 
-    public static WidgetGroup grid(List<ItemStack> stacks, List<Component> tips, int columns) {
-        var slots = slots(stacks, tips);
-        int rows = Math.max(1, (slots.size() + columns - 1) / columns);
-        var grid = new WidgetGroup(0, 0, columns * UISizes.SLOT, rows * UISizes.SLOT);
-        for (int i = 0; i < slots.size(); i++) {
-            var slot = slots.get(i);
-            slot.setSelfPosition(new Position((i % columns) * UISizes.SLOT, (i / columns) * UISizes.SLOT));
-            grid.addWidget(slot);
-        }
+    public static UIElement grid(List<ItemStack> stacks, List<Component> tips, int columns) {
+        var grid = new UIElement().layout(l -> l.row().flexWrap(FlexWrap.WRAP).width(columns * UISizes.SLOT));
+        for (var slot : slots(stacks, tips)) grid.addChild(slot);
         return grid;
     }
 

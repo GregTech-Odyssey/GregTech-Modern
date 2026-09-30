@@ -1,9 +1,8 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
-
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 
 @OnlyIn(Dist.CLIENT)
-public final class StructureMinimap extends Widget {
+public final class StructureMinimap extends UIElement {
 
     private static final int BORDER = 2;
     private static final int MARKER = 0xFFFF3030;
@@ -37,9 +36,11 @@ public final class StructureMinimap extends Widget {
     private int minX, minZ, mapWidth, mapDepth;
     private boolean dirty;
 
+    private boolean dragging;
+
     public StructureMinimap(StructureScene scene, int size) {
-        super(0, 0, size, size);
         this.scene = scene;
+        layout(l -> l.size(size, size));
         setClientSideWidget();
     }
 
@@ -113,6 +114,7 @@ public final class StructureMinimap extends Widget {
 
     @Override
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         UITheme.PANEL.draw(graphics, mouseX, mouseY, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
         if (dirty) upload();
         if (texture == null) return;
@@ -127,19 +129,35 @@ public final class StructureMinimap extends Widget {
         graphics.fill(mx - 1, my - 1, mx + 2, my + 2, MARKER);
     }
 
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!isMouseOverElement(mouseX, mouseY) || mapWidth == 0 || button != 0) return super.mouseClicked(mouseX, mouseY, button);
+    private void focusAt(double mouseX, double mouseY) {
         float scale = scale();
         float x = (float) (mouseX - originX()) / scale + minX;
         float z = (float) (mouseY - originY()) / scale + minZ;
         scene.focus(x, z);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!isVisible() || !isMouseOverElement(mouseX, mouseY)) return false;
+        if (mapWidth == 0 || button != 0) return true;
+        dragging = true;
+        capturePointer(0);
+        focusAt(mouseX, mouseY);
         return true;
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (!isMouseOverElement(mouseX, mouseY) || mapWidth == 0 || button != 0) return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-        return mouseClicked(mouseX, mouseY, button);
+        if (!dragging) return false;
+        focusAt(mouseX, mouseY);
+        return true;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (!dragging) return false;
+        dragging = false;
+        releasePointer();
+        return true;
     }
 }

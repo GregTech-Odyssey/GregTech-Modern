@@ -11,6 +11,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import dev.vfyjxf.taffy.style.TaffyPosition;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ public final class RecipeSlotLayouts {
      * <li>一侧没有槽位时（如发电机界面不显示输出）照样占位，箭头不偏。</li>
      * </ul>
      */
-    public static final RecipeSlotLayout DEFAULT = slots -> {
+    public static final RecipeSlotLayout DEFAULT = RecipeSlotLayout.fitting(slots -> {
         if (slots.isRecipeView()) return compact(slots);
         var inputs = side(slots, IO.IN);
         var outputs = side(slots, IO.OUT);
@@ -54,11 +55,11 @@ public final class RecipeSlotLayouts {
         return new UIElement()
                 .layout(l -> l.row().paddingAll(PADDING).gapAll(PROGRESS_MARGIN).alignCenter())
                 .addChildren(inputs, progress, outputs);
-    };
+    });
 
     private static UIElement compact(RecipeSlots slots) {
-        var inputs = groups(slots, IO.IN);
-        var outputs = groups(slots, IO.OUT);
+        var inputs = shape(slots, IO.IN);
+        var outputs = shape(slots, IO.OUT);
         int rows = 1, inColumns, outColumns;
         while (true) {
             inColumns = minColumns(inputs, rows, false);
@@ -77,37 +78,34 @@ public final class RecipeSlotLayouts {
         }
         var row = new UIElement().layout(l -> l.row().paddingHorizontal(PADDING).paddingVertical(COMPACT_PADDING_VERTICAL)
                 .gapAll(COMPACT_PROGRESS_MARGIN).alignCenter());
-        if (!inputs.isEmpty()) row.addChild(compactSide(inputs, inBreak ? inBreakColumns : inColumns, inBreak));
+        if (!inputs.isEmpty()) row.addChild(compactSide(slots, IO.IN, inBreak ? inBreakColumns : inColumns, inBreak));
         row.addChild(slots.progress());
-        if (!outputs.isEmpty()) row.addChild(compactSide(outputs, outBreak ? outBreakColumns : outColumns, outBreak));
+        if (!outputs.isEmpty()) row.addChild(compactSide(slots, IO.OUT, outBreak ? outBreakColumns : outColumns, outBreak));
         return row;
     }
 
-    private static List<List<Widget>> groups(RecipeSlots slots, IO io) {
-        var groups = new ArrayList<List<Widget>>();
-        for (var cap : slots.capabilities(io)) {
-            var capSlots = slots.slots(io, cap);
-            if (!capSlots.isEmpty()) groups.add(capSlots);
-        }
-        return groups;
+    private static IntList shape(RecipeSlots slots, IO io) {
+        var counts = new IntArrayList();
+        for (var cap : slots.shapeCapabilities(io)) counts.add(slots.shapeCount(io, cap));
+        return counts;
     }
 
-    private static int total(List<List<Widget>> groups) {
+    private static int total(IntList groups) {
         int total = 0;
-        for (var group : groups) total += group.size();
+        for (int i = 0; i < groups.size(); i++) total += groups.getInt(i);
         return total;
     }
 
-    private static int rows(List<List<Widget>> groups, int columns, boolean breakGroups) {
+    private static int rows(IntList groups, int columns, boolean breakGroups) {
         if (!breakGroups) return (total(groups) + columns - 1) / columns;
         int rows = 0;
-        for (var group : groups) rows += (group.size() + columns - 1) / columns;
+        for (int i = 0; i < groups.size(); i++) rows += (groups.getInt(i) + columns - 1) / columns;
         return rows;
     }
 
-    private static int minColumns(List<List<Widget>> groups, int rows, boolean breakGroups) {
+    private static int minColumns(IntList groups, int rows, boolean breakGroups) {
         int widest = 0;
-        for (var group : groups) widest = Math.max(widest, breakGroups ? group.size() : total(groups));
+        for (int i = 0; i < groups.size(); i++) widest = Math.max(widest, breakGroups ? groups.getInt(i) : total(groups));
         if (widest == 0) return 0;
         for (int columns = 1; columns <= widest; columns++) {
             if (rows(groups, columns, breakGroups) <= rows) return columns;
@@ -115,15 +113,16 @@ public final class RecipeSlotLayouts {
         return -1;
     }
 
-    private static UIElement compactSide(List<List<Widget>> groups, int columns, boolean breakGroups) {
-        if (!breakGroups) {
-            var all = new ArrayList<Widget>();
-            for (var group : groups) all.addAll(group);
-            return grid(all, columns);
+    private static UIElement compactSide(RecipeSlots slots, IO io, int columns, boolean breakGroups) {
+        var side = new UIElement().layout(l -> l.column().alignStart().width(columns * UISizes.SLOT));
+        var all = new ArrayList<Widget>();
+        for (var cap : slots.capabilities(io)) {
+            var capSlots = slots.slots(io, cap);
+            if (breakGroups) side.addChild(grid(capSlots, columns));
+            else all.addAll(capSlots);
         }
-        var stack = new UIElement().layout(l -> l.column().alignStart());
-        for (var group : groups) stack.addChild(grid(group, columns));
-        return stack;
+        if (!all.isEmpty()) side.addChild(grid(all, columns));
+        return side;
     }
 
     /**

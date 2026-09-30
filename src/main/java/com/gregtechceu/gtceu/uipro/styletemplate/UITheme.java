@@ -198,6 +198,24 @@ public final class UITheme {
         FLOW_NODE_SHADE = color(colors, "flow_node_shade");
         FLOW_WIRE_IDLE = WireStyle.solid(color(colors, "flow_wire_idle"));
         FLOW_WIRE_DISABLED = WireStyle.patterned(color(colors, "flow_wire_disabled"), WireStyle.Pattern.DOTTED);
+        FLOW_STRIP_EDGE = color(colors, "flow_strip_edge");
+        FLOW_OFF_LIGHT = color(colors, "flow_off_light");
+        FLOW_OFF_MID = color(colors, "flow_off_mid");
+        FLOW_GREEN_LIGHT = color(colors, "flow_green_light");
+        FLOW_GREEN_MID = color(colors, "flow_green_mid");
+        FLOW_CYAN_LIGHT = color(colors, "flow_cyan_light");
+        FLOW_CYAN_MID = color(colors, "flow_cyan_mid");
+        FLOW_CYAN_BRIGHT = color(colors, "flow_cyan_bright");
+        FLOW_AMBER_LIGHT = color(colors, "flow_amber_light");
+        FLOW_AMBER_MID = color(colors, "flow_amber_mid");
+        FLOW_AMBER_DARK = color(colors, "flow_amber_dark");
+        FLOW_RED_LIGHT = color(colors, "flow_red_light");
+        FLOW_RED_MID = color(colors, "flow_red_mid");
+        FLOW_RED_DARK = color(colors, "flow_red_dark");
+        FLOW_WIRE_READY = WireStyle.solid(FLOW_GREEN_MID);
+        FLOW_WIRE_ACTIVE = WireStyle.flowing(FLOW_CYAN_MID, 0xFFA4BDC1, 0xFF8FC9D2, 0xFFF2FDFF, FLOW_CYAN_BRIGHT);
+        FLOW_WIRE_WARNING = WireStyle.solid(FLOW_AMBER_MID);
+        FLOW_WIRE_MISSING = WireStyle.patterned(FLOW_RED_MID, WireStyle.Pattern.DASHED);
 
         int bevelDark = color(colors, "bevel_dark");
         int bevelLight = color(colors, "bevel_light");
@@ -617,6 +635,8 @@ public final class UITheme {
     public static int FLOW_CYAN_LIGHT = 0xFF86CEDA, FLOW_CYAN_MID = 0xFF419CAD, FLOW_CYAN_BRIGHT = 0xFFBDEAF0;
     public static int FLOW_AMBER_LIGHT = 0xFFECC66E, FLOW_AMBER_MID = 0xFFD19B36, FLOW_AMBER_DARK = 0xFFA2711F;
     public static int FLOW_RED_LIGHT = 0xFFE27F6C, FLOW_RED_MID = 0xFFC24D3E, FLOW_RED_DARK = 0xFF8F3328;
+    public static int FACE_NET_OFF = 0x38000000;
+    public static int LIST_ROW_FILL = 0x14000000;
     public static WireStyle FLOW_WIRE_DISABLED = WireStyle.patterned(0xFF9A9A9A, WireStyle.Pattern.DOTTED);
     public static WireStyle FLOW_WIRE_IDLE = WireStyle.solid(0xFF8A8A8A);
     public static WireStyle FLOW_WIRE_READY = WireStyle.solid(FLOW_GREEN_MID);

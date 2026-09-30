@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
+import com.gregtechceu.gtceu.uipro.animation.ColorMath;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -83,7 +85,7 @@ final class SceneMarkers {
                 hovered = marker;
             }
         }
-        float pulse = (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / PULSE_PERIOD_MS));
+        float pulse = (float) (0.5 + 0.5 * Math.sin(UIClock.millis() / PULSE_PERIOD_MS));
         var pose = graphics.pose();
         pose.pushPose();
         pose.translate(0, 0, LAYER_Z);
@@ -100,7 +102,7 @@ final class SceneMarkers {
             int ring = marker.selected() ? UITheme.SELECTION_COLOR : isHovered ? HOVER_RING_COLOR : RING_COLOR;
             drawDiamond(graphics, sx, sy, radius + 1, ring);
             int fill = 0xFF000000 | (marker.color() & 0xFFFFFF);
-            if (isHovered) fill = blend(fill, 0xFFFFFFFF, HOVER_BLEND + HOVER_BLEND * pulse);
+            if (isHovered) fill = 0xFF000000 | ColorMath.lerp(fill, 0xFFFFFFFF, HOVER_BLEND + HOVER_BLEND * pulse);
             drawDiamond(graphics, sx, sy, radius, fill);
             drawDiamond(graphics, sx, sy, Math.max(1, radius - CORE_INSET), CORE_COLOR);
         }
@@ -116,12 +118,6 @@ final class SceneMarkers {
         for (int i = 0; i < markers.size(); i++) {
             occluded[i] = view != null && ScenePick.pick(view, bounds, eye, markers.get(i).pos()) != null;
         }
-    }
-
-    private static int blend(int a, int b, float t) {
-        int ar = a >> 16 & 0xFF, ag = a >> 8 & 0xFF, ab = a & 0xFF;
-        int br = b >> 16 & 0xFF, bg = b >> 8 & 0xFF, bb = b & 0xFF;
-        return 0xFF000000 | Math.round(ar + (br - ar) * t) << 16 | Math.round(ag + (bg - ag) * t) << 8 | Math.round(ab + (bb - ab) * t);
     }
 
     private static void drawDiamond(GuiGraphics graphics, int cx, int cy, int radius, int color) {

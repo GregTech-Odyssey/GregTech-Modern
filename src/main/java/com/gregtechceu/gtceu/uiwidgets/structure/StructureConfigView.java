@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.canvas.PanView;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -22,6 +21,7 @@ import com.gregtechceu.gtceu.uipro.flow.FlowNode;
 import com.gregtechceu.gtceu.uipro.flow.FlowState;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.view.FlowView;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -79,7 +79,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     private Layout listed;
     private int blocks;
     @Nullable
-    private PanView view;
+    private FlowView view;
     private final int viewWidth;
     private int viewMaxHeight;
 
@@ -99,7 +99,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         layout(l -> l.column().width(LayoutStyle.AUTO).gapAll(UISizes.GAP));
         if (tree.nodes().length > 1 || tree.sizes().length > 0 || !mounted.isEmpty()) {
             viewMaxHeight = Math.max(UISizes.SLOT * 2, viewHeight - TextLine.HEIGHT - UISizes.GAP);
-            view = new PanView(chart()).maxSize(viewWidth, viewMaxHeight).minSize(minWidth, 0);
+            view = new FlowView("structure_config", chart(), false).maxSize(viewWidth, viewMaxHeight).minSize(minWidth, 0);
             addChild(view);
         }
         addChild(TextLine.of(LayoutStyle.AUTO, this::summary).level(() -> layout == null ? StatusLine.Level.ERROR : StatusLine.Level.NORMAL));
@@ -108,22 +108,18 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     private FlowChart chart() {
         var nodes = tree.nodes();
-        int[] width = new int[nodes.length];
-        int[] column = new int[nodes.length];
-        int[] row = new int[nodes.length];
-        measure(0, width);
-        place(0, 0, 0, width, column, row);
-        var widths = new int[width[0]];
+        var layout = FlowChart.tree(nodes.length, 0, index -> nodes[index].children());
+        var widths = new int[layout.columns()];
         Arrays.fill(widths, COLUMN);
         var chart = new FlowChart(0, widths);
         int offset = mounted.isEmpty() ? 0 : 1;
         var flowNodes = new FlowNode[nodes.length];
         for (int i = 0; i < nodes.length; i++) {
-            flowNodes[i] = node(chart, i, row[i] + offset, column[i], width[i]);
+            flowNodes[i] = node(chart, i, layout.row()[i] + offset, layout.column()[i], layout.span()[i]);
             int parent = nodes[i].parent();
             if (parent >= 0) chart.link(flowNodes[parent], flowNodes[i]).follow(flowNodes[i]);
         }
-        if (offset > 0) chart.link(hosts(chart, width[0]), flowNodes[0]).follow(flowNodes[0]);
+        if (offset > 0) chart.link(hosts(chart, layout.columns()), flowNodes[0]).follow(flowNodes[0]);
         return chart;
     }
 
@@ -143,23 +139,6 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         }
         return UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
                 .addChildren(ItemView.of(machine.asStack()), TextLine.constant(0, machine.asStack().getHoverName()).layout(l -> l.flex(1)));
-    }
-
-    private int measure(int index, int[] width) {
-        int sum = 0;
-        for (int child : tree.nodes()[index].children()) sum += measure(child, width);
-        width[index] = Math.max(1, sum);
-        return width[index];
-    }
-
-    private void place(int index, int depth, int start, int[] width, int[] column, int[] row) {
-        row[index] = depth;
-        column[index] = start;
-        int next = start;
-        for (int child : tree.nodes()[index].children()) {
-            place(child, depth + 1, next, width, column, row);
-            next += width[child];
-        }
     }
 
     private FlowNode node(FlowChart chart, int index, int row, int column, int span) {

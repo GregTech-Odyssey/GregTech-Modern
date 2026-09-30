@@ -5,13 +5,13 @@ import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
+import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
@@ -158,7 +158,7 @@ public final class Piece {
         private final RelativeDirection[] dirs;
         private final List<String[]> aisles = new ArrayList<>();
         private final List<PortSpec> ports = new ArrayList<>();
-        private final HashMap<String, String> rows = new HashMap<>();
+        private final OpenCacheHashSet<String> rows = new OpenCacheHashSet<>();
 
         private Builder(RelativeDirection charDir, RelativeDirection stringDir, RelativeDirection aisleDir) {
             this.dirs = new RelativeDirection[] { charDir, stringDir, aisleDir };
@@ -166,7 +166,7 @@ public final class Piece {
 
         public Builder aisle(String... aisle) {
             var shared = new String[aisle.length];
-            for (int i = 0; i < aisle.length; i++) shared[i] = rows.computeIfAbsent(aisle[i], row -> row);
+            for (int i = 0; i < aisle.length; i++) shared[i] = rows.addOrGet(aisle[i]);
             aisles.add(shared);
             return this;
         }

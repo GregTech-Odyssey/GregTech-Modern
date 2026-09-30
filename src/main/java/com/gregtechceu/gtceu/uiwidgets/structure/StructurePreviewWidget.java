@@ -9,12 +9,13 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import dev.vfyjxf.taffy.style.TaffyPosition;
 
 @OnlyIn(Dist.CLIENT)
 public final class StructurePreviewWidget extends UIElement implements ILocalUI {
@@ -40,12 +41,19 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
         int sceneHeight = height - Button.HEIGHT - UISizes.GAP;
         layout(l -> l.column().size(width, height).gapAll(UISizes.GAP));
         setSize(new Size(width, height));
-        scene = new StructureScene(width, sceneHeight, false);
+        scene = new StructureScene("structure_preview.card", width, sceneHeight, false);
         scene.setReloader(() -> sceneShown = false);
-        var stage = new WidgetGroup(0, 0, width, sceneHeight);
-        stage.addWidget(scene);
-        stage.addWidget(new ImageWidget(3, 3, width - 6, 10, new TextTexture(definition.getDescriptionId(), -1)
-                .setType(TextTexture.TextType.ROLL).setWidth(width - 6).setDropShadow(true)));
+        var title = new ImageWidget(0, 0, width - 6, 10, new TextTexture(definition.getDescriptionId(), -1)
+                .setType(TextTexture.TextType.ROLL).setWidth(width - 6).setDropShadow(true));
+        var stage = new UIElement().layout(l -> l.size(width, sceneHeight));
+        stage.addChild(scene);
+        stage.addChild(new UIElement() {
+
+            @Override
+            public boolean isMouseOverElement(double mouseX, double mouseY) {
+                return false;
+            }
+        }.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(3).top(3)).addChild(title));
         var open = Button.translatable(width, StructurePreviewScreen.OPEN).setOnClientClick(openFull);
         addChildren(stage, open);
     }

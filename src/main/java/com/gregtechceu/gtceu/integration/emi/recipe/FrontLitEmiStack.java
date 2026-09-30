@@ -5,7 +5,11 @@ import com.gregtechceu.gtceu.client.renderer.machine.MachineRenderer;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 
+import com.google.gson.JsonElement;
+import dev.emi.emi.api.stack.EmiIngredient;
+import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.stack.ItemEmiStack;
+import dev.emi.emi.api.stack.serializer.EmiIngredientSerializer;
 
 public class FrontLitEmiStack extends ItemEmiStack {
 
@@ -20,6 +24,24 @@ public class FrontLitEmiStack extends ItemEmiStack {
             super.render(draw, x, y, delta, flags);
         } finally {
             MachineRenderer.frontLitGui = false;
+        }
+    }
+
+    public static final class Serializer implements EmiIngredientSerializer<FrontLitEmiStack> {
+
+        @Override
+        public String getType() {
+            return "gtceu_front_lit_item";
+        }
+
+        @Override
+        public EmiIngredient deserialize(JsonElement element) {
+            return EmiStack.EMPTY;
+        }
+
+        @Override
+        public JsonElement serialize(FrontLitEmiStack stack) {
+            return EmiIngredientSerializer.getSerialized(EmiStack.of(stack.getItemStack(), stack.getAmount()));
         }
     }
 }

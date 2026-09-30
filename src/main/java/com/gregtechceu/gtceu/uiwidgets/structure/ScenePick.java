@@ -69,15 +69,6 @@ final class ScenePick {
         return null;
     }
 
-    static double entry(PreviewBounds bounds, Vector3f from, Vector3f to) {
-        if (bounds.empty) return -1;
-        double[] range = { 0, 1 };
-        if (!slab(from.x(), to.x() - from.x(), bounds.minX, bounds.maxX + 1, range) || !slab(from.y(), to.y() - from.y(), bounds.minY, bounds.maxY + 1, range) ||
-                !slab(from.z(), to.z() - from.z(), bounds.minZ, bounds.maxZ + 1, range))
-            return -1;
-        return range[0];
-    }
-
     private static boolean slab(double origin, double delta, double min, double max, double[] range) {
         if (Math.abs(delta) < PARALLEL_EPSILON) return origin >= min && origin <= max;
         double a = (min - origin) / delta, b = (max - origin) / delta;

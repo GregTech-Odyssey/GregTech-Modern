@@ -10,6 +10,8 @@ import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
+import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayouts;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeTierPreview;
@@ -47,6 +49,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Supplier;
@@ -285,10 +288,26 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public void collectStorage(Table<IO, RecipeInfo, Object> extraTable,
                                Table<IO, RecipeInfo, List<Content>> extraContents, GTRecipeDefinition recipe) {
-        collectStorage(extraTable, extraContents, IO.IN, ItemRecipeInfo.INSTANCE, (List) recipe.itemInputs);
+        collectStorage(extraTable, extraContents, IO.IN, ItemRecipeInfo.INSTANCE, (List) displayItemInputs(recipe));
         collectStorage(extraTable, extraContents, IO.IN, FluidRecipeInfo.INSTANCE, (List) recipe.fluidInputs);
         collectStorage(extraTable, extraContents, IO.OUT, ItemRecipeInfo.INSTANCE, (List) recipe.itemOutputs);
         collectStorage(extraTable, extraContents, IO.OUT, FluidRecipeInfo.INSTANCE, (List) recipe.fluidOutputs);
+    }
+
+    private static List<Content<ItemIngredient>> displayItemInputs(GTRecipeDefinition recipe) {
+        var inputs = recipe.itemInputs;
+        if (!recipe.recipeType.getRecipeUI().getSlotLayout().fitsRecipe()) return inputs;
+        boolean sorted = true;
+        for (int i = 1; i < inputs.size() && sorted; i++) sorted = inputOrder(inputs.get(i - 1)) <= inputOrder(inputs.get(i));
+        if (sorted) return inputs;
+        var result = new ArrayList<>(inputs);
+        result.sort(Comparator.comparingInt(GTRecipeWidget::inputOrder));
+        return result;
+    }
+
+    private static int inputOrder(Content<ItemIngredient> content) {
+        if (content.chance > 0) return 2;
+        return content.inner instanceof IntCircuitIngredient ? 0 : 1;
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

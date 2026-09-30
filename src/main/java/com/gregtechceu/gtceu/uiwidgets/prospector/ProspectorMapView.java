@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.uipro.canvas.CanvasLayer;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasPainter;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasRect;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasView;
-import com.gregtechceu.gtceu.uipro.canvas.CanvasZoomTools;
 import com.gregtechceu.gtceu.uipro.canvas.ItemLayer;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
@@ -25,6 +24,7 @@ import com.gregtechceu.gtceu.uipro.elements.TextField;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.view.ZoomBar;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
@@ -131,7 +131,7 @@ public class ProspectorMapView extends UIElement {
         addSyncValue(SyncValue.of(darkSource::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, dark)).onChanged(this::setDark);
         addSyncValue(SyncValue.ofInt(() -> modeIndex, modeIndex)).onChanged(this::applyMode);
 
-        window.addTitleTool(() -> new CanvasZoomTools(canvas));
+        window.addTitleTool(() -> ZoomBar.title(canvas));
         window.addTitleTool(() -> new InfoIcon(InfoIcon.Kind.INFO, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
                 Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
     }
@@ -332,17 +332,16 @@ public class ProspectorMapView extends UIElement {
 
     private final class MapCanvas extends CanvasView {
 
-        private float clickX, clickZ;
-
         private MapCanvas(int size) {
             super("prospector.map", size, size);
-            float fit = Math.min(1, (size - 2) / (displaySide * 16f));
             setResizable(false);
+            setRememberView(false);
             setGrid(null);
             setClampInside(true);
             setFitPadding(0);
             setLodThresholds(0, 0);
-            setScaleRange(fit, MAX_SCALE);
+            setScaleRange(0.01f, MAX_SCALE);
+            setMinScaleFits(true);
             setInitialView(view -> view.fitContent(false));
             setScene(view -> {
                 var cells = new ItemLayer<ChunkCell>();
@@ -351,17 +350,9 @@ public class ProspectorMapView extends UIElement {
                 }
                 view.addLayer(new MapLayer()).addLayer(cells);
             });
-            setOnItemClick((item, button) -> {
-                if (button == 0 && item instanceof ChunkCell cell && cell.inScan) addWaypoint(clickX, clickZ);
+            setOnItemClick((item, button, worldX, worldZ) -> {
+                if (button == 0 && item instanceof ChunkCell cell && cell.inScan) addWaypoint(worldX, worldZ);
             });
-        }
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public boolean mouseReleased(double mouseX, double mouseY, int button) {
-            clickX = toWorldX(mouseX);
-            clickZ = toWorldY(mouseY);
-            return super.mouseReleased(mouseX, mouseY, button);
         }
 
         @OnlyIn(Dist.CLIENT)

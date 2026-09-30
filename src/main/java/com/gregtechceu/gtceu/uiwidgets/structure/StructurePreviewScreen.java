@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
+import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
@@ -10,7 +11,6 @@ import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.canvas.CanvasControls;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.elements.Stepper;
@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
+import com.gregtechceu.gtceu.uipro.view.ZoomBar;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uipro.window.Popup;
 import com.gregtechceu.gtceu.uipro.window.PopupCard;
@@ -28,9 +29,6 @@ import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.Position;
-import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -44,7 +42,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import dev.vfyjxf.taffy.style.TaffyPosition;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -69,15 +70,15 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
     public static final String BUILD = "gtceu.structure_preview.build";
     public static final String PROJECT = "gtceu.structure_preview.project";
     public static final String CANDIDATES = "gtceu.structure_preview.candidates";
-    public static final String RESET = "gtceu.structure_preview.reset";
-    public static final String ZOOM = "gtceu.structure_preview.zoom";
-    public static final String MINIMAP = "gtceu.structure_preview.minimap";
+    public static final String HIGHLIGHT = "gtceu.structure_preview.highlight";
     public static final String BACK = "gtceu.structure_preview.back";
     public static final String FORWARD = "gtceu.structure_preview.forward";
     public static final String ROOT_ONLY = "gtceu.structure_preview.root_only";
-    private static final String MINIMAP_PREFERENCE = "structure_preview.minimap";
+    private static final String VIEW_ID = "structure_preview";
+    private static final String HIGHLIGHT_PREFERENCE = "structure_preview.highlight";
+    private static final String LEGACY_MINIMAP_PREFERENCE = "structure_preview.minimap";
+    private static final int HIGHLIGHT_COLOR = 0x5055FF55;
     private static final int MINIMAP_THRESHOLD = 64;
-    private static final int PERCENT_WIDTH = 32;
 
     private static final int MARGIN = 8;
     private static final int PARTS_PER_ROW = UISizes.SLOTS_PER_ROW;
@@ -162,7 +163,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         return false;
     }
 
-    private static final class Host extends WidgetGroup implements ILayoutHost, ILocalUI {
+    private static final class Host extends UIElement implements ILayoutHost, ILocalUI {
 
         private static final String CARD_ID = "structure_preview.config";
         private static final String CANDIDATES_ID = "structure_preview.candidates";
@@ -177,7 +178,11 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private final UIElement frame;
         private final StructureScene scene;
         private final StructureMinimap minimap;
-        private boolean minimapOn;
+        private boolean placedMinimap;
+        private boolean highlightOn;
+        private final Reference2BooleanOpenHashMap<TraceabilityPredicate> replaceable = new Reference2BooleanOpenHashMap<>();
+        @Nullable
+        private LongArrayList highlightCells;
         private final PartsGrid parts = new PartsGrid(this::toggleShown, PARTS_PER_ROW);
         @Nullable
         private UIElement partsSection;
@@ -201,7 +206,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
         private Host(MultiblockMachineDefinition definition, Structure structure, int width, int height, Action[] actions,
                      Runnable onBack) {
-            super(0, 0, width, height);
+            layout(l -> l.size(width, height));
             for (var action : actions) {
                 if (action != null) this.actions.add(action);
             }
@@ -209,21 +214,20 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             setClientSideWidget();
             page = new PreviewHistory.Page(definition, structure);
             history = new PreviewHistory(page);
-            scene = new StructureScene(100, 100, true);
+            scene = new StructureScene(VIEW_ID, 100, 100, true);
             minimap = new StructureMinimap(scene, UISizes.POPUP_CONTENT_WIDTH + 2 * UISizes.POPUP_PADDING);
-            minimapOn = Boolean.parseBoolean(UIPreferences.get(MINIMAP_PREFERENCE, "true"));
+            scene.setMinimapAvailable(() -> minimapUseful() && minimap.hasMap());
+            scene.setMinimapDefault(Boolean.parseBoolean(UIPreferences.get(LEGACY_MINIMAP_PREFERENCE, "true")));
+            highlightOn = Boolean.parseBoolean(UIPreferences.get(HIGHLIGHT_PREFERENCE, "false"));
             heading = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter().flex(1));
             frame = new UIElement().layout(l -> l.column().paddingAll(UISizes.POPUP_PADDING).gapAll(UISizes.GAP));
             frame.setBackground(UITheme.WINDOW);
             frame.addChild(titleRow());
             scene.setOnSelected((pos, facing) -> showCandidates(pos));
-            scene.setBlocked(this::overPanel);
             scene.setWaiting(pipeline::waitProgress);
             config = createConfig();
             fillHeading();
-            addWidget(frame);
-            addWidget(scene);
-            addWidget(minimap);
+            addChildren(frame, scene, minimap);
             rebuild();
             openCard();
         }
@@ -234,20 +238,12 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             var toggle = Button.icon(WidgetIcons.SETTINGS).setOnClientClick(this::toggleCard);
             toggle.setSelected(() -> card != null);
             toggle.setHoverTooltips(CONFIG);
-            var zoomOut = Button.icon(UITheme.CANVAS_ZOOM_OUT).setOnClientClick(() -> scene.zoomStep(-1));
-            zoomOut.setHoverTooltips(CanvasControls.ZOOM_OUT);
-            var percent = Button.text(PERCENT_WIDTH, UISizes.ICON_BUTTON, scene::percentText).setOnClientClick(scene::resetZoom);
-            percent.setHoverTooltips(ZOOM);
-            var zoomIn = Button.icon(UITheme.CANVAS_ZOOM_IN).setOnClientClick(() -> scene.zoomStep(1));
-            zoomIn.setHoverTooltips(CanvasControls.ZOOM_IN);
-            var reset = Button.icon(UITheme.CANVAS_FIT).setOnClientClick(scene::resetView);
-            reset.setHoverTooltips(RESET);
-            var mapToggle = Button.icon(UITheme.CANVAS_MINIMAP).setOnClientClick(this::toggleMinimap)
-                    .setVariant(() -> minimapOn ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
-                    .disabled(() -> !minimapUseful(), null);
-            mapToggle.setHoverTooltips(MINIMAP);
+            var highlight = Button.icon(WidgetIcons.HIGHLIGHT).setOnClientClick(this::toggleHighlight)
+                    .setVariant(() -> highlightOn ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
+            highlight.setHoverTooltips(HIGHLIGHT);
+            var tools = ZoomBar.of(scene, false).fit(ZoomBar.RESET).minimap().add(highlight).build();
             return UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
-                    .addChildren(heading, zoomOut, percent, zoomIn, reset, mapToggle, toggle, close);
+                    .addChildren(heading, tools, toggle, close);
         }
 
         private StructureConfigView createConfig() {
@@ -304,13 +300,8 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             if (open) openCard();
         }
 
-        private boolean overPanel(double x, double y) {
-            return minimapShown() && minimap.isMouseOverElement(x, y) || card != null && card.isMouseOverElement(x, y) ||
-                    candidates != null && candidates.isMouseOverElement(x, y);
-        }
-
         private void resize(int width, int height) {
-            setSize(new Size(width, height));
+            layout(l -> l.size(width, height));
         }
 
         private int frameWidth() {
@@ -323,33 +314,34 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
         private void place() {
             int width = frameWidth(), height = frameHeight();
-            frame.layout(l -> l.size(width, height));
-            frame.setSelfPosition(new Position(MARGIN, MARGIN));
+            frame.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(MARGIN).top(MARGIN).size(width, height));
             int top = MARGIN + UISizes.POPUP_PADDING + UISizes.CONTROL_HEIGHT + UISizes.GAP;
             int left = MARGIN + UISizes.POPUP_PADDING;
             int right = MARGIN + width - UISizes.POPUP_PADDING;
-            scene.setSelfPosition(new Position(left, top));
-            scene.setSize(new Size(right - left, MARGIN + height - UISizes.POPUP_PADDING - top));
+            int inset = getSizeWidth() - right + UISizes.GAP;
+            scene.setPreferredSize(right - left, MARGIN + height - UISizes.POPUP_PADDING - top);
+            scene.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(left).top(top));
             int cardTop = top + UISizes.GAP;
-            minimap.setVisible(minimapShown());
-            minimap.setActive(minimapShown());
-            if (minimapShown()) {
-                minimap.setSelfPosition(new Position(right - minimap.getSizeWidth() - UISizes.GAP, cardTop));
-                cardTop += minimap.getSizeHeight() + UISizes.GAP;
-            }
+            placedMinimap = minimapShown();
+            minimap.setDisplay(placedMinimap);
+            int minimapTop = cardTop;
+            minimap.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(inset).top(minimapTop));
+            if (placedMinimap) cardTop += minimap.getSizeHeight() + UISizes.GAP;
             int cardHeight = MARGIN + height - UISizes.POPUP_PADDING - cardTop - UISizes.GAP;
+            int finalCardTop = cardTop;
             if (card != null) {
                 card.setMaxHeight(cardHeight);
-                card.setSelfPosition(new Position(right - card.getSizeWidth() - UISizes.GAP, cardTop));
+                card.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(inset).top(finalCardTop));
             }
             if (candidates != null) {
                 candidates.setMaxHeight(cardHeight);
-                candidates.setSelfPosition(new Position(left + UISizes.GAP, top + UISizes.GAP));
+                candidates.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(left + UISizes.GAP).top(top + UISizes.GAP));
             }
         }
 
         @Override
         public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            if (placedMinimap != minimapShown()) place();
             long now = System.currentTimeMillis();
             if (pipeline.modelChanged(chosenModel()) && layout != null) pipeline.scheduleRebuild();
             if (pipeline.rebuildDue(now)) {
@@ -372,13 +364,44 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         }
 
         private boolean minimapShown() {
-            return minimapOn && minimapUseful() && minimap.hasMap();
+            return scene.isMinimapShown() && scene.isMinimapAvailable();
         }
 
-        private void toggleMinimap() {
-            minimapOn = !minimapOn;
-            UIPreferences.put(MINIMAP_PREFERENCE, String.valueOf(minimapOn));
-            place();
+        private void toggleHighlight() {
+            highlightOn = !highlightOn;
+            UIPreferences.put(HIGHLIGHT_PREFERENCE, String.valueOf(highlightOn));
+            applyHighlight();
+        }
+
+        private void applyHighlight() {
+            if (!highlightOn || layout == null) {
+                scene.setHighlight(null, HIGHLIGHT_COLOR);
+                return;
+            }
+            if (highlightCells == null) {
+                highlightCells = new LongArrayList();
+                for (var cell : layout.cells()) {
+                    if (isReplaceable(cell.predicate())) highlightCells.add(BlockPos.asLong(cell.x(), cell.y(), cell.z()));
+                }
+            }
+            scene.setHighlight(highlightCells, HIGHLIGHT_COLOR);
+        }
+
+        private boolean isReplaceable(TraceabilityPredicate predicate) {
+            if (replaceable.containsKey(predicate)) return replaceable.getBoolean(predicate);
+            boolean[] part = { false };
+            predicate.forEachSimple(simple -> {
+                if (simple == null || part[0]) return;
+                for (var stack : simple.getCandidates()) {
+                    if (stack.getItem() instanceof MetaMachineItem machine && machine.getDefinition() != page.definition) {
+                        part[0] = true;
+                        return;
+                    }
+                }
+            });
+            boolean result = part[0];
+            replaceable.put(predicate, result);
+            return result;
         }
 
         private void toggleCard() {
@@ -403,8 +426,8 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
                 if (!actions.isEmpty()) column.addChild(actionRow());
             });
             card = new PopupCard(CARD_ID, popup, Math.max(UISizes.SLOT, frameHeight()), this::closeCard);
-            addWidget(card);
             place();
+            addChild(card);
         }
 
         private UIElement actionRow() {
@@ -460,8 +483,8 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             var popup = Popup.of(() -> Component.translatable(CANDIDATES),
                     column -> predicate.forEachSimple(simple -> addCandidates(column, predicate, simple)));
             candidates = new PopupCard(CANDIDATES_ID, popup, Math.max(UISizes.SLOT, frameHeight()), this::closeCandidates);
-            addWidget(candidates);
             place();
+            addChild(candidates);
         }
 
         private static void addCandidates(UIElement column, TraceabilityPredicate predicate, @Nullable SimplePredicate simple) {
@@ -503,7 +526,10 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
                 cellsLayout = layout;
                 cells.clear();
                 for (var cell : layout.cells()) cells.put(BlockPos.asLong(cell.x(), cell.y(), cell.z()), cell.predicate());
+                highlightCells = null;
+                replaceable.clear();
             }
+            applyHighlight();
             closeCandidates();
             var blocks = preview.blocks();
             bounds = PreviewBounds.of(blocks);
@@ -548,12 +574,11 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         }
 
         @Override
-        public void onContentResized(Widget root) {
-            if (root == card) fitParts();
-            if (root == frame || root == card || root == candidates) place();
-        }
+        public void onContentResized(Widget root) {}
 
         @Override
-        protected void onChildSizeUpdate(@Nullable Widget child) {}
+        protected void onLayoutFinished() {
+            fitParts();
+        }
     }
 }

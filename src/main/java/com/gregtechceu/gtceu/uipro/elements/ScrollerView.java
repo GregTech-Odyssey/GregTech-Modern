@@ -331,6 +331,12 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     }
 
     /** 尺寸相关的配置或内容变了：让父布局重新测量；不在 UIElement 里时自己定尺寸。 */
+    @Override
+    public void initWidget() {
+        super.initWidget();
+        if (fitPage) relayout();
+    }
+
     private void relayout() {
         if (getParent() instanceof UIElement parent && parent.widgets.contains(this)) {
             UIElement.markLayoutDirty(this);
@@ -583,7 +589,10 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
             LockedScrollerSizes.lock(id, lockedHeight);
         }
         playButtonClickSound();
+        var host = ILayoutHost.of(this);
+        if (host != null) host.beginInteractiveResize();
         relayout();
+        if (host != null) host.endInteractiveResize();
     }
 
     @Override

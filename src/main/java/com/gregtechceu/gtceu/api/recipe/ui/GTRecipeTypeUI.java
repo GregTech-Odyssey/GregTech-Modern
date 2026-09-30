@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.editor.IEditableUI;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
+import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
@@ -25,7 +26,8 @@ import com.google.common.collect.Table;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectArrayMap;
 import it.unimi.dsi.fastutil.bytes.Byte2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -70,7 +72,8 @@ public class GTRecipeTypeUI {
     @Getter
     @NotNull
     private RecipeSlotLayout slotLayout = RecipeSlotLayouts.DEFAULT;
-    private final Long2ObjectOpenHashMap<SlotAreaMetrics> recipeSlotAreaSizes = new Long2ObjectOpenHashMap<>();
+    private final Object2ObjectOpenHashMap<SlotAreaKey, SlotAreaMetrics> recipeSlotAreaSizes = new Object2ObjectOpenHashMap<>();
+    private final Reference2LongOpenHashMap<GTRecipeCategory> categoryShapes = new Reference2LongOpenHashMap<>();
 
     /**
      * @param recipeType the recipemap corresponding to this ui
@@ -95,8 +98,7 @@ public class GTRecipeTypeUI {
     }
 
     private SlotAreaMetrics slotAreaMetrics(GTRecipeDefinition recipe) {
-        long key = (long) recipe.itemInputs.size() << 48 | (long) recipe.fluidInputs.size() << 32 |
-                (long) recipe.itemOutputs.size() << 16 | recipe.fluidOutputs.size();
+        var key = new SlotAreaKey(counts(recipe), slotLayout == RecipeSlotLayouts.DEFAULT ? categoryShape(recipe) : 0);
         var metrics = recipeSlotAreaSizes.get(key);
         if (metrics == null) {
             var group = slotLayout.build(recipeSlots(recipe));
@@ -112,6 +114,38 @@ public class GTRecipeTypeUI {
 
     private record SlotAreaMetrics(Size size, int overflow) {}
 
+    private record SlotAreaKey(long counts, long shape) {}
+
+    private static long counts(GTRecipeDefinition recipe) {
+        return pack(recipe.itemInputs.size(), recipe.fluidInputs.size(), recipe.itemOutputs.size(), recipe.fluidOutputs.size());
+    }
+
+    private static long pack(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs) {
+        return (long) itemInputs << 48 | (long) fluidInputs << 32 | (long) itemOutputs << 16 | fluidOutputs;
+    }
+
+    private static int unpack(long counts, IO io, ContentRecipeInfo<?, ?> cap) {
+        int shift;
+        if (cap == ItemRecipeInfo.INSTANCE) shift = io == IO.IN ? 48 : 16;
+        else if (cap == FluidRecipeInfo.INSTANCE) shift = io == IO.IN ? 32 : 0;
+        else return 0;
+        return (int) (counts >>> shift) & 0xFFFF;
+    }
+
+    public void addToCategoryShape(GTRecipeCategory category, GTRecipeDefinition recipe) {
+        long shape = categoryShapes.getLong(category);
+        long counts = counts(recipe);
+        long merged = 0;
+        for (int shift = 0; shift < 64; shift += 16) {
+            merged |= Math.max(shape >>> shift & 0xFFFF, counts >>> shift & 0xFFFF) << shift;
+        }
+        if (merged != shape) categoryShapes.put(category, merged);
+    }
+
+    private long categoryShape(GTRecipeDefinition recipe) {
+        return categoryShapes.getLong(recipe.recipeCategory);
+    }
+
     public WidgetGroup createRecipeTemplate(GTRecipeDefinition recipe, Table<IO, RecipeInfo, Object> storages) {
         var group = slotLayout.build(recipeSlots(recipe));
         bind(group, new RecipeHolder(ProgressWidget.JEIProgress, storages, recipe.data.clone(), List.of(recipe.conditions), false, false));
@@ -119,13 +153,10 @@ public class GTRecipeTypeUI {
     }
 
     private RecipeSlots recipeSlots(GTRecipeDefinition recipe) {
-        return new RecipeSlots(this, false, false, (output, cap) -> true, (io, cap) -> recipeSlotCount(recipe, io, cap));
-    }
-
-    private static int recipeSlotCount(GTRecipeDefinition recipe, IO io, ContentRecipeInfo<?, ?> cap) {
-        if (cap == ItemRecipeInfo.INSTANCE) return (io == IO.IN ? recipe.itemInputs : recipe.itemOutputs).size();
-        if (cap == FluidRecipeInfo.INSTANCE) return (io == IO.IN ? recipe.fluidInputs : recipe.fluidOutputs).size();
-        return 0;
+        long counts = counts(recipe);
+        long shape = slotLayout == RecipeSlotLayouts.DEFAULT ? categoryShape(recipe) : counts;
+        return new RecipeSlots(this, false, false, (output, cap) -> true,
+                (io, cap) -> unpack(counts, io, cap), (io, cap) -> unpack(shape, io, cap));
     }
 
     public record RecipeHolder(DoubleSupplier progressSupplier, Table<IO, RecipeInfo, Object> storages, DataComponentMap data, List<RecipeCondition> conditions, boolean isSteam, boolean isHighPressure) {}

@@ -161,6 +161,11 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
     }
 
     /** 悬浮提示由服务端计算后下发，适合依赖服务端独有状态的提示。 */
+    public Button clientDisabled(BooleanSupplier disabled) {
+        state.setClientDisabled(disabled);
+        return this;
+    }
+
     public Button bindTooltip(Supplier<Component> tooltip) {
         syncValues.add(SyncValue.ofComponent(tooltip).onChanged(this::applyTooltip));
         applyTooltip(tooltip.get());

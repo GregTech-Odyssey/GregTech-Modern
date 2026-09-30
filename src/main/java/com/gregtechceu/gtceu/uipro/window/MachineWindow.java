@@ -9,7 +9,8 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.OutputSideConfigurator;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.canvas.CanvasPulse;
+import com.gregtechceu.gtceu.uipro.animation.ColorMath;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.CalloutBubble;
 import com.gregtechceu.gtceu.uipro.elements.ItemTitle;
@@ -750,6 +751,15 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     @Override
+    public void endInteractiveResize() {
+        if (isRemote()) {
+            anchorTop = Integer.MIN_VALUE;
+            updatePlacement();
+        }
+        super.endInteractiveResize();
+    }
+
+    @Override
     @OnlyIn(Dist.CLIENT)
     public void onScreenSizeUpdate(int screenWidth, int screenHeight) {
         super.onScreenSizeUpdate(screenWidth, screenHeight);
@@ -922,9 +932,9 @@ public class MachineWindow extends FancyMachineUIWidget {
         @OnlyIn(Dist.CLIENT)
         private void drawHint(GuiGraphics graphics, int x, int y, int width, int height) {
             if (width != hintWidth || height != hintHeight) buildHintOutline(width, height);
-            float phase = CanvasPulse.phase();
+            float phase = UIClock.pulse();
             int rgb = UITheme.TAB_HINT_GLOW & 0xFFFFFF;
-            int ring = CanvasPulse.lerp(UITheme.TAB_HINT_DIM, UITheme.TAB_HINT_GLOW, phase);
+            int ring = ColorMath.lerp(UITheme.TAB_HINT_DIM, UITheme.TAB_HINT_GLOW, phase);
             int halo = (int) (UITheme.TAB_HINT_HALO_ALPHA_MIN + (UITheme.TAB_HINT_HALO_ALPHA_MAX - UITheme.TAB_HINT_HALO_ALPHA_MIN) * phase) << 24 | rgb;
             int length = hintLoopX.length;
             int head = (int) ((System.currentTimeMillis() % HINT_PERIOD_MS) / (float) HINT_PERIOD_MS * length);
@@ -936,7 +946,7 @@ public class MachineWindow extends FancyMachineUIWidget {
                     int d = Math.floorMod(head - i, length);
                     int color;
                     if (d < HINT_HEAD) color = UITheme.TAB_HINT_SPARK;
-                    else if (d < HINT_HEAD + HINT_TAIL) color = CanvasPulse.lerp(UITheme.TAB_HINT_GLOW, ring, (d - HINT_HEAD) / (float) HINT_TAIL);
+                    else if (d < HINT_HEAD + HINT_TAIL) color = ColorMath.lerp(UITheme.TAB_HINT_GLOW, ring, (d - HINT_HEAD) / (float) HINT_TAIL);
                     else color = ring;
                     graphics.fill(x + hintLoopX[i], y + hintLoopY[i], x + hintLoopX[i] + 1, y + hintLoopY[i] + 1, color);
                 }

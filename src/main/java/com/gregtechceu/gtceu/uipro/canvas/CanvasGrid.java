@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
+import com.gregtechceu.gtceu.uipro.animation.ColorMath;
 import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -70,7 +71,7 @@ public final class CanvasGrid {
         float coarse = fine * subdivisions;
         var levels = new ArrayList<Level>(3);
         if (fade > 0.004f) levels.add(new Level(fine, withAlphaFactor(lineColor, fade), subdivisions));
-        levels.add(new Level(coarse, blend(lineColor, accentColor, fade), subdivisions));
+        levels.add(new Level(coarse, ColorMath.lerp(lineColor, accentColor, fade), subdivisions));
         levels.add(new Level(coarse * subdivisions, accentColor, 0));
         return levels;
     }
@@ -104,14 +105,5 @@ public final class CanvasGrid {
     private static int withAlphaFactor(int color, float factor) {
         int alpha = Math.round(((color >>> 24) & 0xFF) * Mth.clamp(factor, 0f, 1f));
         return alpha << 24 | (color & 0xFFFFFF);
-    }
-
-    /** 逐通道（含透明度）线性插值。 */
-    static int blend(int from, int to, float t) {
-        int a = Math.round(Mth.lerp(t, from >>> 24, to >>> 24));
-        int r = Math.round(Mth.lerp(t, from >> 16 & 0xFF, to >> 16 & 0xFF));
-        int g = Math.round(Mth.lerp(t, from >> 8 & 0xFF, to >> 8 & 0xFF));
-        int b = Math.round(Mth.lerp(t, from & 0xFF, to & 0xFF));
-        return a << 24 | r << 16 | g << 8 | b;
     }
 }

@@ -56,7 +56,7 @@ public class MachineRenderer extends TextureOverrideRenderer
     public static final ResourceLocation FLUID_OUTPUT_OVERLAY = GTCEu.id("block/overlay/machine/overlay_fluid_output");
     public static final ResourceLocation ITEM_OUTPUT_OVERLAY = GTCEu.id("block/overlay/machine/overlay_item_output");
     private static final Vector3f GUI_LIGHT_0 = new Vector3f(-0.304f, 0.406f, 0.862f).normalize();
-    private static final Vector3f GUI_LIGHT_1 = new Vector3f(0.681f, 0.426f, 0.596f).normalize();
+    private static final Vector3f GUI_LIGHT_1 = new Vector3f(0.234f, 0.700f, 0.674f).normalize();
     public static boolean frontLitGui;
 
     public MachineRenderer(ResourceLocation modelLocation) {

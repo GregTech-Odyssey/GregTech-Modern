@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
 import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -20,7 +21,7 @@ public final class CanvasWire {
 
     public static void glow(CanvasPainter painter, float[] points, float width, WireStyle style) {
         if (!style.glows()) return;
-        painter.path(points, painter.atLeastPixel(width) + 2 * painter.px(GLOW), CanvasPulse.breathe(style.glowLow(), style.glowHigh()));
+        painter.path(points, painter.atLeastPixel(width) + 2 * painter.px(GLOW), UIClock.breathe(style.glowLow(), style.glowHigh()));
     }
 
     public static void core(CanvasPainter painter, float[] points, float width, WireStyle style, float origin) {

@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.uipro.view.scene.SceneView;
 
 import net.minecraft.world.item.Item;
 import net.minecraftforge.api.distmarker.Dist;
@@ -24,7 +25,7 @@ final class PreviewHistory {
         final boolean[] excluded;
         final ReferenceOpenHashSet<Item> shown = new ReferenceOpenHashSet<>();
         @Nullable
-        StructureScene.Camera camera;
+        SceneView.Camera camera;
         int layer;
 
         Page(MultiblockMachineDefinition definition, Structure structure) {

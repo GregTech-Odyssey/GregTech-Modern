@@ -23,6 +23,7 @@ public class ItemCell extends UIElement {
     public static final int SIZE = UISizes.SLOT;
 
     private final SyncValue<SyncItem> item;
+    private boolean plain;
 
     public ItemCell(Supplier<ItemStack> stack, ItemStack initial) {
         layout(l -> l.size(SIZE, SIZE));
@@ -35,6 +36,11 @@ public class ItemCell extends UIElement {
 
     public static ItemCell constant(ItemStack stack) {
         return new ItemCell(() -> stack, stack);
+    }
+
+    public ItemCell plain() {
+        this.plain = true;
+        return this;
     }
 
     public ItemStack getStack() {
@@ -51,10 +57,10 @@ public class ItemCell extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         int x = getPositionX(), y = getPositionY();
-        UITheme.ITEM_SLOT.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
+        if (!plain) UITheme.ITEM_SLOT.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
         var stack = getStack();
         if (!stack.isEmpty()) graphics.renderItem(stack, x + 1, y + 1);
-        if (isMouseOverElement(mouseX, mouseY)) {
+        if (!plain && isMouseOverElement(mouseX, mouseY)) {
             RenderSystem.colorMask(true, true, true, false);
             graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 200, UITheme.SLOT_HOVER_OVERLAY);
             RenderSystem.colorMask(true, true, true, true);

@@ -51,6 +51,8 @@ public final class ElementState {
     private SyncValue<Boolean> disabledValue;
     @Nullable
     private Component disabledReason;
+    @Nullable
+    private BooleanSupplier clientDisabled;
 
     /** {@code register} 即元素的 {@code addSyncValue}。 */
     public ElementState(Widget owner, Function<SyncValue<Boolean>, SyncValue<Boolean>> register) {
@@ -79,7 +81,12 @@ public final class ElementState {
     }
 
     /** 本元素自己是否禁用（不看上级）：客户端读服务端下发的值，服务端直接判定。 */
+    public void setClientDisabled(@Nullable BooleanSupplier clientDisabled) {
+        this.clientDisabled = clientDisabled;
+    }
+
     private boolean isDisabledHere() {
+        if (clientDisabled != null && owner.isRemote() && clientDisabled.getAsBoolean()) return true;
         if (disabledCondition == null || disabledValue == null) return false;
         return owner.getGui() != null && owner.isRemote() ? disabledValue.getValue() : disabledCondition.getAsBoolean();
     }

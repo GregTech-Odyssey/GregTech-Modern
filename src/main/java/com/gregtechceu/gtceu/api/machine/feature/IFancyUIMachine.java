@@ -6,26 +6,23 @@ import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.structure.MachinePreviewScene;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.SceneWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
-import org.jetbrains.annotations.NotNull;
+import dev.vfyjxf.taffy.style.TaffyPosition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,33 +60,13 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
      * Create the core widget of this machine.
      */
     default Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 100, 100);
+        var group = new UIElement().layout(l -> l.size(100, 100));
         if (isRemote()) {
-            group.addWidget(new ImageWidget((100 - 48) / 2, 60, 48, 16, GuiTextures.SCENE));
-            SceneWidget sceneWidget = new SceneWidget(0, 0, 100, 100, self().getLevel()) {
-
-                @Override
-                @OnlyIn(Dist.CLIENT)
-                public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY,
-                                             float partialTicks) {
-                    // AUTO ROTATION
-                    if (renderer != null) {
-                        this.rotationPitch = (partialTicks + getGui().getTickCount()) * 2;
-                        renderer.setCameraLookAt(this.center, 0.1f, Math.toRadians(this.rotationPitch),
-                                Math.toRadians(this.rotationYaw));
-                    }
-                    super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
-                }
-            };
-            sceneWidget.useOrtho(true)
-                    .setOrthoRange(0.5f)
-                    .setScalable(false)
-                    .setDraggable(false)
-                    .setRenderFacing(false)
-                    .setRenderSelect(false);
-            sceneWidget.getRenderer().setFov(30);
-            group.addWidget(sceneWidget);
-            sceneWidget.setRenderedCore(List.of(self().getPos()), null);
+            var plate = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left((100 - 48) / 2).top(60))
+                    .addChild(new ImageWidget(0, 0, 48, 16, GuiTextures.SCENE));
+            plate.setClientSideWidget();
+            group.addChild(plate);
+            group.addChild(MachinePreviewScene.create(self().getLevel(), self().getPos(), 100));
         }
         return group;
     }
