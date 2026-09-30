@@ -70,13 +70,14 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
 
     public static VeinInfo of(GTOreDefinition definition) {
         var entries = new ArrayList<Entry>();
-        var weights = new Object2IntLinkedOpenHashMap<Object>();
+        var weights = new Object2IntLinkedOpenHashMap<>();
         for (var entry : definition.veinGenerator().getAllEntries()) {
             weights.addTo(entry.vein().<Object>map(BlockState::getBlock, material -> material), entry.chance());
         }
-        var indices = new Object2IntOpenHashMap<Object>();
+        var indices = new Object2IntOpenHashMap<>();
         indices.defaultReturnValue(-1);
-        for (var entry : weights.object2IntEntrySet()) {
+        for (var it = weights.object2IntEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             if (entry.getKey() instanceof Material material) {
                 indices.put(material, entries.size());
                 entries.add(new Entry(ChemicalHelper.get(TagPrefix.rawOre, material), entry.getIntValue(), material.getMaterialRGB()));
@@ -114,7 +115,8 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
         var weights = new Object2IntLinkedOpenHashMap<Material>();
         for (var material : definition.materials()) weights.addTo(material.material(), material.weight());
         var entries = new ArrayList<Entry>();
-        for (var entry : weights.object2IntEntrySet()) {
+        for (var it = weights.object2IntEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             entries.add(new Entry(ChemicalHelper.get(TagPrefix.rawOre, entry.getKey()), entry.getIntValue(), entry.getKey().getMaterialRGB()));
         }
         var specs = new ArrayList<Spec>();

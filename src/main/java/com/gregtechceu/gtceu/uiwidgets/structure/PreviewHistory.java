@@ -31,7 +31,7 @@ final class PreviewHistory {
             this.definition = definition;
             this.structure = structure;
             this.values = StructureBuildFlow.remembered(definition, structure);
-            this.excluded = new boolean[structure.tree().nodes().size()];
+            this.excluded = new boolean[structure.tree().nodes().length];
         }
     }
 

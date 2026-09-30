@@ -23,20 +23,20 @@ public final class StructureTree {
         }
     }
 
-    private final List<Node> nodes;
+    private final Node[] nodes;
     private final int[] sizes;
 
     StructureTree(List<Node> nodes, int[] sizes) {
-        this.nodes = List.copyOf(nodes);
+        this.nodes = nodes.toArray(new Node[0]);
         this.sizes = sizes;
     }
 
-    public List<Node> nodes() {
+    public Node[] nodes() {
         return nodes;
     }
 
     public Node root() {
-        return nodes.getFirst();
+        return nodes[0];
     }
 
     public int[] sizes() {
@@ -44,9 +44,9 @@ public final class StructureTree {
     }
 
     public boolean active(int index, int[] values) {
-        var node = nodes.get(index);
+        var node = nodes[index];
         if (node.parent() < 0) return true;
-        var parent = nodes.get(node.parent());
+        var parent = nodes[node.parent()];
         if (!active(node.parent(), values)) return false;
         return switch (parent.kind()) {
             case CHOICE -> value(node.parent(), values) == node.branch() + 1;
@@ -56,7 +56,7 @@ public final class StructureTree {
     }
 
     public int value(int index, int[] values) {
-        var node = nodes.get(index);
+        var node = nodes[index];
         if (node.option() >= 0 && node.option() < values.length) return values[node.option()];
         return node.kind() == Kind.CHOICE ? 1 : node.min();
     }

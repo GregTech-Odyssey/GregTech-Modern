@@ -97,7 +97,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         }
         setClientSideWidget();
         layout(l -> l.column().width(LayoutStyle.AUTO).gapAll(UISizes.GAP));
-        if (tree.nodes().size() > 1 || tree.sizes().length > 0 || !mounted.isEmpty()) {
+        if (tree.nodes().length > 1 || tree.sizes().length > 0 || !mounted.isEmpty()) {
             viewMaxHeight = Math.max(UISizes.SLOT * 2, viewHeight - TextLine.HEIGHT - UISizes.GAP);
             view = new PanView(chart()).maxSize(viewWidth, viewMaxHeight).minSize(minWidth, 0);
             addChild(view);
@@ -108,19 +108,19 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     private FlowChart chart() {
         var nodes = tree.nodes();
-        int[] width = new int[nodes.size()];
-        int[] column = new int[nodes.size()];
-        int[] row = new int[nodes.size()];
+        int[] width = new int[nodes.length];
+        int[] column = new int[nodes.length];
+        int[] row = new int[nodes.length];
         measure(0, width);
         place(0, 0, 0, width, column, row);
         var widths = new int[width[0]];
         Arrays.fill(widths, COLUMN);
         var chart = new FlowChart(0, widths);
         int offset = mounted.isEmpty() ? 0 : 1;
-        var flowNodes = new FlowNode[nodes.size()];
-        for (int i = 0; i < nodes.size(); i++) {
+        var flowNodes = new FlowNode[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
             flowNodes[i] = node(chart, i, row[i] + offset, column[i], width[i]);
-            int parent = nodes.get(i).parent();
+            int parent = nodes[i].parent();
             if (parent >= 0) chart.link(flowNodes[parent], flowNodes[i]).follow(flowNodes[i]);
         }
         if (offset > 0) chart.link(hosts(chart, width[0]), flowNodes[0]).follow(flowNodes[0]);
@@ -147,7 +147,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     private int measure(int index, int[] width) {
         int sum = 0;
-        for (int child : tree.nodes().get(index).children()) sum += measure(child, width);
+        for (int child : tree.nodes()[index].children()) sum += measure(child, width);
         width[index] = Math.max(1, sum);
         return width[index];
     }
@@ -156,14 +156,14 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         row[index] = depth;
         column[index] = start;
         int next = start;
-        for (int child : tree.nodes().get(index).children()) {
+        for (int child : tree.nodes()[index].children()) {
             place(child, depth + 1, next, width, column, row);
             next += width[child];
         }
     }
 
     private FlowNode node(FlowChart chart, int index, int row, int column, int span) {
-        var node = tree.nodes().get(index);
+        var node = tree.nodes()[index];
         int inner = chart.spanWidth(column, span) - 2 * UISizes.FLOW_NODE_PADDING;
         var flow = chart.node(row, column, span).state(() -> state(index));
         var key = node.key();
@@ -236,8 +236,8 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     public static Component nodeTitle(StructureTree tree, int index) {
-        if (index < 0 || index >= tree.nodes().size()) return Component.translatable(PART);
-        var node = tree.nodes().get(index);
+        if (index < 0 || index >= tree.nodes().length) return Component.translatable(PART);
+        var node = tree.nodes()[index];
         if (node.key() != null) return node.key().getName();
         if (node.protocol() != null) return node.protocol().getName();
         if (node.branch() >= 0) return Component.translatable(BRANCH, node.branch() + 1);
@@ -253,7 +253,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     private FlowState state(int index) {
         if (!tree.active(index, values)) return FlowState.DISABLED;
-        var node = tree.nodes().get(index);
+        var node = tree.nodes()[index];
         return switch (node.kind()) {
             case ROOT, FIXED, MACHINES -> FlowState.READY;
             case TOGGLE, COUNT, CHOICE -> tree.value(index, values) > 0 ? FlowState.READY : FlowState.IDLE;
@@ -301,8 +301,8 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     private void followBuild(int option, int previous, int value) {
         var nodes = tree.nodes();
-        for (int i = 0; i < nodes.size() && i < excluded.length; i++) {
-            var node = nodes.get(i);
+        for (int i = 0; i < nodes.length && i < excluded.length; i++) {
+            var node = nodes[i];
             if (node.option() != option) continue;
             switch (node.kind()) {
                 case TOGGLE, COUNT -> {
@@ -310,7 +310,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
                 }
                 case CHOICE -> {
                     for (int child : node.children()) {
-                        if (child < excluded.length) excluded[child] = nodes.get(child).branch() != value - 1;
+                        if (child < excluded.length) excluded[child] = nodes[child].branch() != value - 1;
                     }
                 }
                 default -> {}

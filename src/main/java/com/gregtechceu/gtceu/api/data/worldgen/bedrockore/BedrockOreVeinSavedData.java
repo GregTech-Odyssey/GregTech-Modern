@@ -61,7 +61,8 @@ public class BedrockOreVeinSavedData extends SavedData {
     @Override
     public CompoundTag save(CompoundTag nbt) {
         var oreList = new ListTag();
-        for (var entry : veinOres.long2ObjectEntrySet()) {
+        for (var it = veinOres.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             var tag = new CompoundTag();
             tag.putLong("pos", entry.getLongKey());
             tag.put("data", entry.getValue().writeToNBT());

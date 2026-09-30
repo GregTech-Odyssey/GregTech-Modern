@@ -14,7 +14,6 @@ import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguratio
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import com.mojang.datafixers.util.Either;
-import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,7 +103,7 @@ public final class VeinPreview {
         return preview;
     }
 
-    private static VeinPreview voxelize(Long2ByteMap samples) {
+    private static VeinPreview voxelize(Long2ByteOpenHashMap samples) {
         var preview = new VeinPreview(false, null);
         if (samples.isEmpty()) return preview;
         int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
@@ -117,7 +116,8 @@ public final class VeinPreview {
         int bottom = (minY + maxY) / 2 - HEIGHT * BLOCKS_PER_VOXEL / 2;
         int center = BLOCKS_PER_VOXEL / 2;
         var centered = new boolean[preview.voxels.length];
-        for (var sample : samples.long2ByteEntrySet()) {
+        for (var it = samples.long2ByteEntrySet().fastIterator(); it.hasNext();) {
+            var sample = it.next();
             long key = sample.getLongKey();
             int bx = BlockPos.getX(key) + half, by = BlockPos.getY(key) - bottom, bz = BlockPos.getZ(key) + half;
             int x = Math.floorDiv(bx, BLOCKS_PER_VOXEL), y = Math.floorDiv(by, BLOCKS_PER_VOXEL), z = Math.floorDiv(bz, BLOCKS_PER_VOXEL);

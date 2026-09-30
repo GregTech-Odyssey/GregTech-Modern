@@ -90,7 +90,8 @@ public class MedicalConditionCommands {
             target.sendSystemMessage(
                     Component.translatable("command.gtceu.medical_condition.get", target.getName()));
         }
-        for (var entry : tracker.getMedicalConditions().reference2FloatEntrySet()) {
+        for (var it = tracker.getMedicalConditions().reference2FloatEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             String langKey = "command.gtceu.medical_condition.get.element";
             if (entry.getKey().maxProgression * 2 <= entry.getFloatValue() &&
                     entry.getKey().canBePermanent) {

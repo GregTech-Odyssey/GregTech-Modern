@@ -45,7 +45,8 @@ public final class Symbols {
     }
 
     void applyTo(FactoryBlockPattern pattern) {
-        for (var entry : predicates.char2ObjectEntrySet()) {
+        for (var it = predicates.char2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             pattern.where(entry.getCharKey(), entry.getValue());
         }
     }

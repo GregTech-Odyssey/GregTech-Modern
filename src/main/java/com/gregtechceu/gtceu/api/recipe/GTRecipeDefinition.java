@@ -19,6 +19,7 @@ import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
 import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.util.DataCodecs;
 import com.gto.datasynclib.util.StreamCodecs;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
@@ -79,14 +80,17 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
 
         @Override
         public Data encode(GTRecipeDefinition recipe) {
-            if (recipe.registered) return DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id);
-            throw new IllegalStateException("非注册配方无法保存");
+            if (recipe.registered) {
+                return DataCodecs.RESOURCE_LOCATION_CODEC.encode(recipe.id);
+            } else {
+                return ListData.of(GTRegistries.RECIPE_TYPES.dataCodec().encode(recipe.recipeType));
+            }
         }
 
         @Override
         public GTRecipeDefinition decode(Data data, int dataVersion) {
+            var list = data.getList();
             if (dataVersion < 3) {
-                var list = data.getList();
                 var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst(), dataVersion);
                 var idData = list.get(1);
                 if (idData.isNull()) return type.defaultDefinition;
@@ -94,10 +98,15 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
                 var definition = type.recipes.get(id);
                 return definition == null ? type.defaultDefinition : definition;
             } else {
-                var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(data, dataVersion);
-                var definition = RECIPES.get(id);
-                if (definition == null) return GTRecipeTypes.DUMMY_RECIPES.defaultDefinition;
-                return definition;
+                if (list.isEmpty()) {
+                    var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(data, dataVersion);
+                    var definition = RECIPES.get(id);
+                    if (definition == null) return GTRecipeTypes.DUMMY_RECIPES.defaultDefinition;
+                    return definition;
+                } else {
+                    var type = GTRegistries.RECIPE_TYPES.dataCodec().decode(list.getFirst(), dataVersion);
+                    return type.defaultDefinition;
+                }
             }
         }
     };

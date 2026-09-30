@@ -90,7 +90,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     protected boolean recipeLocked;
 
     @Getter
-    @SaveToDisk(skipWhen = "supportSaveLockRecipe")
+    @SaveToDisk(skipWhen = "skipSaveLockRecipe")
     protected GTRecipeDefinition lockedRecipe;
 
     public TickableSubscription subscription;
@@ -107,8 +107,8 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         this.monitor = super.machine.holder.monitorTick(GTTickTimeMonitors.RECIPE_LOGIC, this::serverTick);
     }
 
-    private boolean supportSaveLockRecipe(GTRecipeDefinition recipe) {
-        return recipe.registered && !recipeLocked;
+    private boolean skipSaveLockRecipe(GTRecipeDefinition recipe) {
+        return !recipeLocked || !recipe.registered;
     }
 
     public void setRecipeLocked(boolean value) {

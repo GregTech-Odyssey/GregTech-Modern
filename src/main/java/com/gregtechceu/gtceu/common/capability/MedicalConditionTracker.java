@@ -171,7 +171,8 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
         ListTag effectsTag = new ListTag();
-        for (var entry : medicalConditions.reference2FloatEntrySet()) {
+        for (var it = medicalConditions.reference2FloatEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             CompoundTag medicalConditionTag = new CompoundTag();
             medicalConditionTag.putString("condition", entry.getKey().name);
             medicalConditionTag.putFloat("progression", entry.getFloatValue());

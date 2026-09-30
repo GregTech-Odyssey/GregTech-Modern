@@ -24,10 +24,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongArrays;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.*;
 import org.jetbrains.annotations.Nullable;
 import org.joml.FrustumIntersection;
 import org.joml.Vector3f;
@@ -130,7 +127,8 @@ final class StructureRenderer {
         stale = false;
         rendered.clear();
         var dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-        for (var entry : view.entities.long2ObjectEntrySet()) {
+        for (var it = view.entities.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             if (!view.visible(entry.getLongKey())) continue;
             var entity = entry.getValue();
             if (dispatcher.getRenderer(entity) != null) rendered.add(entity);

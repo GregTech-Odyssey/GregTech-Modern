@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 final class CompiledStructure {
@@ -37,7 +38,7 @@ final class CompiledStructure {
         }
         var all = new ReferenceLinkedOpenHashSet<TraceabilityPredicate>();
         for (var piece : compiled.values()) {
-            for (var predicate : piece.palette) all.add(predicate);
+            all.addAll(Arrays.asList(piece.palette));
         }
         this.predicates = all;
         int limitCount = definition.limitCount();

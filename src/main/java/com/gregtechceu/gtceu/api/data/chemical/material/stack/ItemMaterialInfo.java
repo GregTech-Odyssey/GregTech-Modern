@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.data.chemical.material.stack;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 
-import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -34,7 +33,7 @@ public class ItemMaterialInfo {
         setSortedMaterials(materials);
     }
 
-    public ItemMaterialInfo(Reference2LongMap<Material> materialList) {
+    public ItemMaterialInfo(Reference2LongOpenHashMap<Material> materialList) {
         setSortedMaterials(materialList);
     }
 
@@ -60,10 +59,11 @@ public class ItemMaterialInfo {
         setSortedMaterials(materials);
     }
 
-    private void setSortedMaterials(Reference2LongMap<Material> matStacks) {
+    private void setSortedMaterials(Reference2LongOpenHashMap<Material> matStacks) {
         sortedMaterials.clear();
 
-        for (var entry : matStacks.reference2LongEntrySet()) {
+        for (var it = matStacks.reference2LongEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             sortedMaterials.add(new MaterialStack(entry.getKey(), entry.getLongValue()));
         }
         sortedMaterials.sort(Comparator.comparingLong(MaterialStack::amount));

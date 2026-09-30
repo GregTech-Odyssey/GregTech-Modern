@@ -53,7 +53,8 @@ final class PreviewLevel extends DummyWorld {
 
     void setBlocks(Long2ObjectOpenHashMap<BlockState> states) {
         var entities = new Long2ObjectOpenHashMap<BlockEntity>();
-        for (var entry : states.long2ObjectEntrySet()) {
+        for (var it = states.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             var state = entry.getValue();
             if (!state.hasBlockEntity() || !(state.getBlock() instanceof EntityBlock block)) continue;
             var pos = BlockPos.of(entry.getLongKey());

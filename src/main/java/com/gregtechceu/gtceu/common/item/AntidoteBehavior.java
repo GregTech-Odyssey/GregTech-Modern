@@ -42,7 +42,8 @@ public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
         if (tracker == null) {
             return itemstack;
         }
-        for (var entry : tracker.getMedicalConditions().reference2FloatEntrySet()) {
+        for (var it = tracker.getMedicalConditions().reference2FloatEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
             MedicalCondition condition = entry.getKey();
             if (condition == null) {
                 continue;

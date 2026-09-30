@@ -48,8 +48,7 @@ public final class Piece {
         int[] aisleVec = Orientation.VEC[dirs[2].ordinal()];
         this.ports = new Reference2ObjectArrayMap<>(portSpecs.size());
         for (var spec : portSpecs) {
-            if (ports.containsKey(spec.key)) throw new IllegalStateException("duplicate port " + spec.key);
-            ports.put(spec.key, resolve(spec, charVec, stringVec, aisleVec));
+            if (ports.put(spec.key, resolve(spec, charVec, stringVec, aisleVec)) != null) throw new IllegalStateException("duplicate port " + spec.key);
         }
     }
 
