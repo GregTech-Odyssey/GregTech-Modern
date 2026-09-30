@@ -269,6 +269,11 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @OnlyIn(Dist.CLIENT)
+    public void setFormed() {
+        isFormed = true;
+    }
+
+    @OnlyIn(Dist.CLIENT)
     public void onStructureFormedClient() {}
 
     @MustBeInvokedByOverriders

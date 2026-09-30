@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 
 import com.lowdragmc.lowdraglib.utils.DummyWorld;
 
@@ -25,6 +28,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -53,6 +57,8 @@ final class PreviewLevel extends DummyWorld {
 
     void setBlocks(Long2ObjectOpenHashMap<BlockState> states) {
         var entities = new Long2ObjectOpenHashMap<BlockEntity>();
+        var parts = new ReferenceOpenHashSet<IMultiPart>();
+        IMultiController controller = null;
         for (var it = states.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             var state = entry.getValue();
@@ -63,9 +69,21 @@ final class PreviewLevel extends DummyWorld {
                 if (entity == null) continue;
                 entity.setLevel(this);
                 entities.put(entry.getLongKey(), entity);
+                if (entity instanceof MetaMachineBlockEntity metaMachineBlock) {
+                    if (metaMachineBlock.metaMachine instanceof IMultiController multiController) {
+                        controller = multiController;
+                        controller.setFormed();
+                    } else if (metaMachineBlock.metaMachine instanceof IMultiPart multiPart) {
+                        parts.add(multiPart);
+                    }
+                }
             } catch (Throwable t) {
                 GTCEu.LOGGER.warn("structure preview failed to create block entity for {}", state, t);
             }
+        }
+        if (controller != null) {
+            var finalController = controller;
+            parts.forEach(entry -> entry.addedToController(finalController));
         }
         view = new View(this, states, entities, ALL_LAYERS);
     }

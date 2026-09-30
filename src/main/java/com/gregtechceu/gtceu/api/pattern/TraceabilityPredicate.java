@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.predicates.PredicateAbilities;
-import com.gregtechceu.gtceu.api.pattern.predicates.PredicateBlockTag;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -286,15 +285,14 @@ public class TraceabilityPredicate {
     }
 
     public ReferenceSet<Item> candidateItems() {
-        int generation = PredicateBlockTag.generation();
         int count = common.size() + limited.size();
         var cached = candidateItems;
-        if (cached != null && cached.generation == generation && cached.count == count) return cached.items;
+        if (cached != null && cached.count == count) return cached.items;
         var items = new ReferenceLinkedOpenHashSet<Item>();
         addCandidates(common, items);
         addCandidates(limited, items);
         var result = ReferenceSets.unmodifiable(items);
-        candidateItems = new CandidateItems(generation, count, result);
+        candidateItems = new CandidateItems(count, result);
         return result;
     }
 
@@ -309,7 +307,7 @@ public class TraceabilityPredicate {
         }
     }
 
-    private record CandidateItems(int generation, int count, ReferenceSet<Item> items) {}
+    private record CandidateItems(int count, ReferenceSet<Item> items) {}
 
     public boolean test(MultiblockState blockWorldState) {
         boolean flag = false;

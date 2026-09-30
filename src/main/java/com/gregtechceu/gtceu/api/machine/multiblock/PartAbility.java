@@ -1,20 +1,16 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
-import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
-
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 public class PartAbility {
 
@@ -60,16 +56,7 @@ public class PartAbility {
      * tier -> available blocks
      */
     private final Int2ObjectOpenHashMap<Set<Block>> registry = new Int2ObjectOpenHashMap<>();
-    private final Supplier<Collection<Block>> allBlocks = GTMemoizer.memoize(() -> {
-        List<Block> result = new ArrayList<>();
-        var entries = new ArrayList<>(registry.int2ObjectEntrySet());
-        entries.sort(Comparator.comparingInt(Int2ObjectMap.Entry::getIntKey));
-        for (var entry : entries) {
-            result.addAll(entry.getValue());
-        }
-        result.sort(Comparator.comparingInt(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().length()));
-        return result;
-    });
+    private Collection<Block> allBlocks;
     @Getter
     private final String name;
     @Getter
@@ -107,7 +94,18 @@ public class PartAbility {
     }
 
     public Collection<Block> getAllBlocks() {
-        return allBlocks.get();
+        if (allBlocks == null) {
+            List<Block> result = new ArrayList<>();
+            var entries = new ArrayList<>(registry.int2ObjectEntrySet());
+            entries.sort(Comparator.comparingInt(Int2ObjectMap.Entry::getIntKey));
+            for (var entry : entries) {
+                result.addAll(entry.getValue());
+            }
+            result.sort(Comparator.comparingInt(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().length()));
+            allBlocks = result;
+            return result;
+        }
+        return allBlocks;
     }
 
     public boolean isApplicable(Block block) {
@@ -116,7 +114,7 @@ public class PartAbility {
 
     public Collection<Block> getBlocks(int... tiers) {
         List<Block> result = new ArrayList<>();
-        for (ObjectIterator<Int2ObjectMap.Entry<Set<Block>>> it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
+        for (var it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var e = it.next();
             if (ArrayUtils.contains(tiers, e.getIntKey())) {
                 result.addAll(e.getValue());
@@ -130,7 +128,7 @@ public class PartAbility {
      */
     public Collection<Block> getBlockRange(int from, int to) {
         List<Block> result = new ArrayList<>();
-        for (ObjectIterator<Int2ObjectMap.Entry<Set<Block>>> it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
+        for (var it = registry.int2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var e = it.next();
             var key = e.getIntKey();
             if (key >= from && key <= to) {

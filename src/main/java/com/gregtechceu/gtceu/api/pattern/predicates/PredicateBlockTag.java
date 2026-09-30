@@ -1,34 +1,28 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.event.TagsUpdatedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
-import org.jetbrains.annotations.Nullable;
+import com.gto.fastcollection.cache.WeakValueIdentityHashCache;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class PredicateBlockTag extends SimplePredicate {
 
-    private static final AtomicInteger GENERATION = new AtomicInteger();
+    private static final WeakValueIdentityHashCache<TagKey<Block>, Candidates> CANDIDATES = new WeakValueIdentityHashCache<>(Candidates::new);
 
-    protected final TagKey<Block> tag;
-    @Nullable
-    private volatile Members members;
+    private final Candidates shared;
 
     public PredicateBlockTag(TagKey<Block> tag) {
-        this.tag = tag;
+        this.shared = CANDIDATES.getCache(tag);
         buildPredicate();
     }
 
@@ -36,49 +30,44 @@ public class PredicateBlockTag extends SimplePredicate {
         return new PredicateBlockTag(tag);
     }
 
-    public static int generation() {
-        return GENERATION.get();
-    }
-
     @Override
     public SimplePredicate buildPredicate() {
-        if (tag == null) {
-            predicate = GTUtil.NEGATIVE;
-            blockInfo = () -> BlockInfo.EMPTY;
-            candidates = () -> new Block[] { Blocks.AIR };
-            return this;
-        }
-        predicate = state -> state.getBlockState().is(tag);
-        candidates = () -> members().blocks;
-        blockInfo = () -> members().info;
+        this.candidates = shared;
+        this.blockInfo = shared.blockInfo;
+        this.predicate = shared;
         return this;
     }
 
-    private Members members() {
-        int generation = GENERATION.get();
-        var cached = members;
-        if (cached != null && cached.generation == generation) return cached;
-        var blocks = BuiltInRegistries.BLOCK.getTag(tag)
-                .stream()
-                .flatMap(HolderSet.Named::stream)
-                .map(Holder::value)
-                .toArray(Block[]::new);
-        if (blocks.length == 0) blocks = new Block[] { Blocks.BARRIER };
-        var resolved = new Members(generation, blocks, BlockInfo.fromBlock(blocks[0]));
-        if (generation > 0) members = resolved;
-        return resolved;
-    }
+    private static final class Candidates implements Predicate<MultiblockState>, Supplier<Block[]> {
 
-    private record Members(int generation, Block[] blocks, BlockInfo info) {}
+        private final TagKey<Block> tag;
+        private final Block[] blocks;
+        private final Supplier<BlockInfo> blockInfo;
 
-    @Mod.EventBusSubscriber(modid = GTCEu.MOD_ID)
-    public static final class TagReloads {
+        private Candidates(TagKey<Block> tagKey) {
+            this.blocks = BuiltInRegistries.BLOCK.getTag(tagKey).map(holders -> holders.stream().map(Holder::value).toArray(Block[]::new)).orElseThrow();
+            if (this.blocks.length > 0) {
+                var b = this.blocks[0];
+                if (b instanceof MetaMachineBlock) {
+                    blockInfo = () -> BlockInfo.fromBlock(b);
+                } else {
+                    var info = BlockInfo.fromBlock(b);
+                    blockInfo = () -> info;
+                }
+            } else {
+                blockInfo = () -> BlockInfo.EMPTY;
+            }
+            tag = tagKey;
+        }
 
-        private TagReloads() {}
+        @Override
+        public boolean test(MultiblockState state) {
+            return state.getBlockState().is(tag);
+        }
 
-        @SubscribeEvent
-        public static void onTagsUpdated(TagsUpdatedEvent event) {
-            GENERATION.incrementAndGet();
+        @Override
+        public Block[] get() {
+            return blocks;
         }
     }
 }

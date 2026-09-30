@@ -20,6 +20,10 @@ dependencies {
 
     modImplementation("org.appliedenergistics:guideme:20.1.13")
 
+    modRuntimeOnly("curse.maven:spark-361579:4738952")
+    modRuntimeOnly("curse.maven:modernfix-790626:7928686")
+    modRuntimeOnly("dev:jecharacters:1.20.1-forge-4.5.11-dev-shadow")
+
     // LDLib
     modApi(forge.ldlib.get())
 

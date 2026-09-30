@@ -16,6 +16,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -146,6 +148,9 @@ public interface IMultiController extends IMachineFeature {
      * 2 - Literally, structure formed.
      */
     void onStructureFormed();
+
+    @OnlyIn(Dist.CLIENT)
+    void setFormed();
 
     /**
      * Called when structure is invalid. (server-side / fake scene only)

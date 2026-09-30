@@ -42,7 +42,7 @@ import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.fastutil.OpenCacheHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,7 +59,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     public static final int BASE_PUMP_RADIUS = 16;
     public static final int EXTRA_PUMP_RADIUS = 4;
     public static final int PUMP_SPEED_BASE = 80;
-    private final Set<BlockPos> forbiddenBlocks = new OpenCacheHashSet<>();
+    private final LongOpenHashSet forbiddenBlocks = new LongOpenHashSet();
     private PumpQueue pumpQueue = null;
     @Getter
     @SaveToDisk
@@ -181,7 +181,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
      * Returns the next block to search at.
      */
     @Nullable
-    private SearchResult searchNext(Level level, BlockPos headPosBelow, BlockPos searchHead, FluidType fluidType, int maxPumpRange, boolean goUp, Set<BlockPos> checked) {
+    private SearchResult searchNext(Level level, BlockPos headPosBelow, BlockPos searchHead, FluidType fluidType, int maxPumpRange, boolean goUp, LongOpenHashSet checked) {
         // Vector from the pump head to the search head, so points in the direction away from the pump head
         Vec3i subVec = searchHead.subtract(headPosBelow);
         List<Direction> searchList = biasedInVecDirections(level.getRandom(), subVec, goUp);
@@ -191,11 +191,11 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
             // This is to compute the square distance only in the horizontal plane
             BlockPos pumpY = headPosBelow.atY(check.getY());
             // Skip if outside pump range or not loaded or already checked
-            if (check.distSqr(pumpY) > maxPumpRange * maxPumpRange || checked.contains(check) || !level.isLoaded(check) || forbiddenBlocks.contains(check)) {
+            if (check.distSqr(pumpY) > maxPumpRange * maxPumpRange || checked.contains(check.asLong()) || !level.isLoaded(check) || forbiddenBlocks.contains(check.asLong())) {
                 continue;
             }
             // Make sure we don't look at it again
-            checked.add(check);
+            checked.add(check.asLong());
             BlockState state = level.getBlockState(check);
             FluidState fluidState;
             // If it's not a fluid of the right type, we stop
@@ -246,10 +246,10 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
      * one that has a source at a higher location. If it cannot find one, it will return the original path.
      */
     private PumpQueue buildPumpQueue(Level level, BlockPos headPos, FluidType fluidType, int queueSourceAmount, boolean upSources) {
-        Set<BlockPos> checked = new OpenCacheHashSet<>();
+        LongOpenHashSet checked = new LongOpenHashSet();
         BlockPos headPosBelow = headPos.below();
-        checked.add(headPos);
-        checked.add(headPosBelow);
+        checked.add(headPos.asLong());
+        checked.add(headPosBelow.asLong());
         int maxPumpRange = getMaxPumpRadius(getTier());
         List<BlockPos> pathStack = new ArrayList<>();
         Deque<BlockPos> nonSources = new ArrayDeque<>();
@@ -414,7 +414,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
                         } else {
                             // drain stack is empty even though it's a fluid source, probably something went wrong
                             // ignore block for a while
-                            forbiddenBlocks.add(pos);
+                            forbiddenBlocks.add(pos.asLong());
                             return;
                         }
                     }
