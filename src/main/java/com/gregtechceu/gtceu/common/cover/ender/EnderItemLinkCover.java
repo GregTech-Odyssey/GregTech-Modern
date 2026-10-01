@@ -94,7 +94,7 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
             if (!visible.getAsBoolean()) return EnderLinkUI.NO_VALUE;
             var stack = storedStack();
             return stack.isEmpty() ? Component.translatable("cover.ender_link.ui.empty") : stack.getHoverName();
-        }).icon(() -> visible.getAsBoolean() ? storedStack() : ItemStack.EMPTY);
+        }).bindIcon(() -> visible.getAsBoolean() ? storedStack() : ItemStack.EMPTY);
         panel.addLine("cover.ender_link.ui.count", () -> visible.getAsBoolean() ?
                 Component.literal(FormattingUtil.formatNumbers(storedStack().getCount())) : EnderLinkUI.NO_VALUE);
     }

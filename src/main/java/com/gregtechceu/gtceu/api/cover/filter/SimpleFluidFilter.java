@@ -3,12 +3,12 @@ package com.gregtechceu.gtceu.api.cover.filter;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -17,7 +17,6 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -35,7 +34,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class SimpleFluidFilter implements FluidFilter {
 
-    private static final int SCROLL_ID = SyncValueHost.ID_BASE - 14;
+    private static final int MAX_SCROLL_DELTA = 100_000;
 
     @Getter
     protected boolean isBlackList;
@@ -109,17 +108,17 @@ public class SimpleFluidFilter implements FluidFilter {
     @Override
     public Widget createConfigUI() {
         var grid = UIElement.column(LayoutStyle.AUTO);
-        var showAmount = grid.addSyncValue(SyncValue.of(() -> maxStackSize > 1, ByteStreamCodec.BOOLEAN_CODEC, false));
+        var showAmount = grid.addSyncValue(SyncValue.ofBool(() -> maxStackSize > 1));
         for (int row = 0; row < 3; row++) {
-            var line = UIElement.row(UISizes.SLOT);
+            var line = UIElement.row(UISizes.SLOT_SIZE);
             for (int col = 0; col < 3; col++) {
                 line.addChild(matchSlot(col * 3 + row, showAmount));
             }
             grid.addChild(line);
         }
         var options = UIElement.column(LayoutStyle.AUTO).layout(l -> l.flex(1).gapAll(UISizes.GAP)).addChildren(
-                CoverUIs.controlRow("cover.filter.blacklist.enabled", Switch.of(this::isBlackList, this::setBlackList)),
-                CoverUIs.controlRow("cover.item_filter.ignore_nbt.enabled", Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
+                Form.controlRow("cover.filter.blacklist.enabled", Switch.of(this::isBlackList, this::setBlackList)),
+                Form.controlRow("cover.item_filter.ignore_nbt.enabled", Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
         return UIElement.row(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP)).addChildren(grid, options);
     }
 
@@ -146,11 +145,14 @@ public class SimpleFluidFilter implements FluidFilter {
 
         private final CustomFluidTank tank;
         private final SyncValue<Boolean> showAmount;
+        private final RPC<Integer> scroll;
 
         private AmountSlot(CustomFluidTank tank, SyncValue<Boolean> showAmount) {
             super(tank, 0, tank::getFluid, tank::setFluid);
             this.tank = tank;
             this.showAmount = showAmount;
+            this.scroll = addRPC(ByteStreamCodec.INT_CODEC, (player, delta) -> scrollAmount(delta))
+                    .validate(delta -> delta >= -MAX_SCROLL_DELTA && delta <= MAX_SCROLL_DELTA);
         }
 
         @Override
@@ -168,19 +170,12 @@ public class SimpleFluidFilter implements FluidFilter {
             if (GTUtil.isShiftDown()) delta *= 10;
             if (GTUtil.isCtrlDown()) delta *= 100;
             if (!GTUtil.isAltDown()) delta *= 1000;
-            int change = delta;
-            writeClientAction(SCROLL_ID, buf -> buf.writeInt(change));
+            scroll.send(delta);
             return true;
         }
 
-        @Override
-        public void handleClientAction(int id, FriendlyByteBuf buffer) {
-            if (id != SCROLL_ID) {
-                super.handleClientAction(id, buffer);
-                return;
-            }
-            int delta = buffer.readInt();
-            if (isDisabled() || SimpleFluidFilter.this.maxStackSize <= 1) return;
+        private void scrollAmount(int delta) {
+            if (SimpleFluidFilter.this.maxStackSize <= 1) return;
             FluidStack fluid = tank.getFluidInTank(0);
             if (fluid.isEmpty()) return;
             long amount = Math.min(Math.max((long) fluid.getAmount() + delta, 0), tank.getTankCapacity(0));

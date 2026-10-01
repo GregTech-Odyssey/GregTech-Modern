@@ -5,15 +5,16 @@ import com.gregtechceu.gtceu.integration.ae2.utils.KeyStorage;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.data.UIEvent;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.lowdragmc.lowdraglib.gui.ingredient.IIngredientSlot;
 import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
-import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.side.fluid.forge.FluidHelperImpl;
 
@@ -30,14 +31,18 @@ import net.minecraftforge.fluids.FluidStack;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AmountFormat;
 import appeng.api.stacks.GenericStack;
 import appeng.integration.modules.emi.EmiStackHelper;
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import dev.emi.emi.api.stack.EmiStackInteraction;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * AE 物品 / 流体的只读展示网格（如 ME 输出总线、输出仓的"等待输出"列表），每行 {@link UISizes#SLOTS_PER_ROW} 格，
@@ -48,12 +53,11 @@ import java.util.List;
  * 同步：服务端只在内容变化时下发增量（新增 / 数量变化 / 移除），打开界面时下发全量；两端控件树不变（只有一个控件），
  * 高度只在客户端随内容变化。
  */
-public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot {
+public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot, UIChannel.Host {
 
-    /// 内容增量的更新 ID（登记见框架说明：ID_BASE-1 列表行、-2 步进器、-3/-4 弹出面板）
-    private static final int CONTENT_ID = SyncValueHost.ID_BASE - 5;
+    private static final ByteStreamCodec<List<Change>> CHANGES = ByteStreamCodec.of(AEStackGrid::writeChanges, AEStackGrid::readChangeList);
     private static final int COLUMNS = UISizes.SLOTS_PER_ROW;
-    private static final int CELL = UISizes.SLOT;
+    private static final int CELL = UISizes.SLOT_SIZE;
 
     private final KeyStorage list;
     /// 空格子的底图：流体列表用流体槽，其余用物品槽
@@ -64,6 +68,9 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot 
     private final Reference2LongOpenHashMap<AEKey> cached = new Reference2LongOpenHashMap<>();
     /// 客户端：显示的内容（按首次出现的顺序）
     private final List<GenericStack> displayList = new ArrayList<>();
+    private final Object2IntOpenHashMap<AEKey> displayIndex = new Object2IntOpenHashMap<>();
+    private final UIChannel channel = new UIChannel(this);
+    private final UIEvent<List<Change>> content;
 
     public AEStackGrid(KeyStorage list, boolean fluidList, int minRows) {
         super(0, 0, COLUMNS * CELL, Math.max(1, minRows) * CELL);
@@ -71,6 +78,13 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot 
         this.fluidList = fluidList;
         this.minRows = Math.max(1, minRows);
         this.layoutStyle = LayoutStyle.fixed(COLUMNS * CELL, this.minRows * CELL, () -> UIElement.markLayoutDirty(this));
+        displayIndex.defaultReturnValue(-1);
+        content = addEvent(CHANGES, this::applyChanges);
+    }
+
+    @Override
+    public UIChannel getChannel() {
+        return channel;
     }
 
     @Override
@@ -109,63 +123,100 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot 
         return changes;
     }
 
-    private static void writeChanges(FriendlyByteBuf buf, Reference2LongOpenHashMap<AEKey> changes) {
-        buf.writeVarInt(changes.size());
-        changes.reference2LongEntrySet().fastForEach(entry -> {
-            AEKey.writeKey(buf, entry.getKey());
-            buf.writeVarLong(entry.getLongValue());
-        });
+    private record Change(AEKey key, long delta) {}
+
+    private static List<Change> toList(Reference2LongOpenHashMap<AEKey> changes) {
+        var result = new ArrayList<Change>(changes.size());
+        changes.reference2LongEntrySet().fastForEach(entry -> result.add(new Change(entry.getKey(), entry.getLongValue())));
+        return result;
     }
 
-    /** 客户端：把增量合进显示列表，并按条目数调整高度。 */
-    private void readChanges(FriendlyByteBuf buf) {
+    private static void writeChanges(FriendlyByteBuf buf, List<Change> changes) {
+        buf.writeVarInt(changes.size());
+        for (var change : changes) {
+            AEKey.writeKey(buf, change.key());
+            buf.writeVarLong(change.delta());
+        }
+    }
+
+    private static List<Change> readChangeList(FriendlyByteBuf buf) {
         int size = buf.readVarInt();
+        var result = new ArrayList<Change>(Math.min(size, 1024));
         for (int i = 0; i < size; i++) {
             var key = AEKey.readKey(buf);
             long delta = buf.readVarLong();
-            if (key == null) continue;
-            boolean found = false;
-            for (var it = displayList.listIterator(); it.hasNext();) {
-                var stack = it.next();
-                if (stack.what().equals(key)) {
-                    long amount = stack.amount() + delta;
-                    if (amount > 0) it.set(new GenericStack(key, amount));
-                    else it.remove();
-                    found = true;
-                    break;
+            if (key != null) result.add(new Change(key, delta));
+        }
+        return result;
+    }
+
+    private void applyChanges(List<Change> changes) {
+        boolean removed = false;
+        for (var change : changes) {
+            var key = change.key();
+            long delta = change.delta();
+            int index = displayIndex.getInt(key);
+            if (index >= 0) {
+                long amount = displayList.get(index).amount() + delta;
+                if (amount > 0) {
+                    displayList.set(index, new GenericStack(key, amount));
+                } else {
+                    displayList.set(index, null);
+                    displayIndex.removeInt(key);
+                    removed = true;
                 }
+            } else if (delta > 0) {
+                displayIndex.put(key, displayList.size());
+                displayList.add(new GenericStack(key, delta));
             }
-            if (!found && delta > 0) displayList.add(new GenericStack(key, delta));
+        }
+        if (removed) {
+            displayList.removeIf(Objects::isNull);
+            displayIndex.clear();
+            for (int i = 0; i < displayList.size(); i++) displayIndex.put(displayList.get(i).what(), i);
         }
         int rows = Math.max(minRows, (displayList.size() + COLUMNS - 1) / COLUMNS);
-        if (rows * CELL != layoutStyle.declaredHeight()) layoutStyle.height(rows * CELL);
+        if (rows * CELL != layoutStyle.getDeclaredHeight()) layoutStyle.height(rows * CELL);
+    }
+
+    @Override
+    public void initWidget() {
+        super.initWidget();
+        channel.prime();
     }
 
     @Override
     public void writeInitialData(FriendlyByteBuf buffer) {
         super.writeInitialData(buffer);
+        channel.writeInitialData(buffer);
         cached.clear();
-        writeChanges(buffer, collectChanges());
+        writeChanges(buffer, toList(collectChanges()));
     }
 
     @Override
     public void readInitialData(FriendlyByteBuf buffer) {
         super.readInitialData(buffer);
-        readChanges(buffer);
+        channel.readInitialData(buffer);
+        applyChanges(readChangeList(buffer));
     }
 
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
+        channel.detectAndSendChanges();
         var changes = collectChanges();
-        if (!changes.isEmpty()) writeUpdateInfo(CONTENT_ID, buf -> writeChanges(buf, changes));
+        if (!changes.isEmpty()) content.send(toList(changes));
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-        if (id == CONTENT_ID) readChanges(buffer);
-        else super.readUpdateInfo(id, buffer);
+        if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    @Override
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
+        if (!channel.handleClientAction(id, buffer)) super.handleClientAction(id, buffer);
     }
 
     // ==================== 绘制 ====================
@@ -188,24 +239,21 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot 
             boolean fluid = stack == null ? fluidList : stack.what() instanceof AEFluidKey;
             (fluid ? UITheme.FLUID_SLOT : UITheme.ITEM_SLOT).draw(graphics, mouseX, mouseY, x, y, CELL, CELL);
             if (stack != null) drawStack(graphics, stack, x + 1, y + 1);
-            if (i == hovered && stack != null) graphics.fill(x + 1, y + 1, x + CELL - 1, y + CELL - 1, 0x80FFFFFF);
+            if (i == hovered && stack != null) UIDraw.hoverOverlay(graphics, x, y, CELL, CELL);
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     private static void drawStack(GuiGraphics graphics, GenericStack stack, int x, int y) {
-        String amount;
         if (stack.what() instanceof AEItemKey key) {
             DrawerHelper.drawItemStack(graphics, key.toStack(), x, y, -1, null);
-            amount = TextFormattingUtil.formatLongToCompactString(stack.amount(), 4);
         } else if (stack.what() instanceof AEFluidKey key) {
             var fluid = new FluidStack(key.getFluid(), GTMath.saturatedCast(stack.amount()), key.getTag());
             DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(fluid), stack.amount(), x, y, 16, 16);
-            amount = FormattingUtil.formatNumberReadable(stack.amount(), true, FormattingUtil.DECIMAL_FORMAT_0F, "B");
         } else {
             return;
         }
-        DrawerHelper.drawStringFixedCorner(graphics, amount, x + 17, y + 17, 0xFFFFFF, true, 0.5f);
+        UIText.drawItemCount(graphics, stack.what().formatAmount(stack.amount(), AmountFormat.SLOT_LARGE_FONT), x, y);
     }
 
     /** 悬停：名称 + 精确数量（物品带原版物品提示）。 */

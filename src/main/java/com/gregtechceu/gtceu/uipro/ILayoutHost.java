@@ -28,7 +28,7 @@ public interface ILayoutHost {
         return Integer.MAX_VALUE;
     }
 
-    default int pageHeightLimit() {
+    default int getPageHeightLimit() {
         return Integer.MAX_VALUE;
     }
 

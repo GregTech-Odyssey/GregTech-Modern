@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.cover.ConveyorCover;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
@@ -78,11 +79,11 @@ public class ItemVoidingCover extends ConveyorCover {
 
     @Override
     public Widget createUIWidget() {
-        var settings = CoverUIs.section("cover.ui.voiding").addChild(
-                CoverUIs.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
+        var settings = Form.section("cover.ui.voiding").addChild(
+                Form.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
                         "cover.voiding.tooltip"));
         buildAdditionalUI(settings);
-        return CoverUIs.page().addChildren(settings, CoverUIs.filterSection(filterHandler));
+        return Form.page().addChildren(settings, CoverUIs.filterSection(filterHandler));
     }
 
     @Override

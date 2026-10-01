@@ -27,7 +27,7 @@ public final class FlowLink {
         return this;
     }
 
-    public FlowLink state(Supplier<FlowState> state) {
+    public FlowLink bindState(Supplier<FlowState> state) {
         this.explicit = chart.addSyncValue(SyncValue.ofInt(() -> state.get().ordinal(), FlowState.IDLE.ordinal()));
         return this;
     }

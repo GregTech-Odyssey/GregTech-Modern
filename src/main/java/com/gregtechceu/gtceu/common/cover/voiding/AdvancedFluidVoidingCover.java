@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTMath;
@@ -97,14 +98,14 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     //////////////////////////////////////
     @Override
     protected void buildAdditionalUI(UIElement page) {
-        var field = new NumberField(LayoutStyle.AUTO, this::getCurrentBucketModeTransferSize, value -> setCurrentBucketModeTransferSize((int) value),
+        var field = NumberField.ofInt(LayoutStyle.AUTO, this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize,
                 () -> 1, () -> Integer.MAX_VALUE / transferBucketMode.multiplier);
         var amount = fluidAmountRow(this::getKeepAmountLabel, List.of(BucketMode.values()), () -> transferBucketMode,
                 this::setTransferBucketMode, field)
                 .disabled(this::isStackSizeFromFilter, "cover.fluid.voiding.ui.amount_from_filter");
         var amountRow = UIElement.column(LayoutStyle.AUTO).addChild(amount)
                 .disabled(() -> voidingMode == VoidingMode.VOID_ANY, "cover.fluid.voiding.ui.amount_unused");
-        page.addChild(CoverUIs.section("cover.fluid.voiding.ui.mode_settings").addChildren(
+        page.addChild(Form.section("cover.fluid.voiding.ui.mode_settings").addChildren(
                 CoverUIs.enumRow("cover.fluid.voiding.ui.mode", List.of(VoidingMode.values()), () -> voidingMode, this::setVoidingMode,
                         "cover.voiding.voiding_mode.description.0",
                         "cover.voiding.voiding_mode.description.1"),

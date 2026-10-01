@@ -1,8 +1,13 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.IHoverOwner;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -21,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -38,7 +44,6 @@ import java.util.function.Supplier;
 public class ProgressBar extends UIElement implements IHoverOwner {
 
     public static final int HEIGHT = UISizes.PROGRESS_BAR_HEIGHT;
-    private static final long BONUS_PULSE_MS = 2000;
 
     /**
      * 一条进度。
@@ -88,24 +93,24 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         }
     };
 
-    public record Callout(int level, Component text, List<Component> detail) {
+    public record Callout(boolean shown, Level level, Component text, List<Component> detail) {
 
-        public static final int HIDDEN_LEVEL = 0;
-        public static final int INFO = 1;
-        public static final int WARNING = 2;
-        public static final int DANGER = 3;
-        public static final Callout HIDDEN = new Callout(HIDDEN_LEVEL, Component.empty(), List.of());
+        public static final Callout HIDDEN = new Callout(false, Level.NORMAL, Component.empty(), List.of());
+
+        public static Callout of(Level level, Component text, List<Component> detail) {
+            return new Callout(true, level, text, detail);
+        }
 
         public boolean isShown() {
-            return level > HIDDEN_LEVEL;
+            return shown;
         }
 
         public boolean hasTooltip() {
             return !detail.isEmpty();
         }
 
-        public CalloutBubble.Tone tone() {
-            return level >= DANGER ? CalloutBubble.Tone.DANGER : level >= WARNING ? CalloutBubble.Tone.WARNING : CalloutBubble.Tone.INFO;
+        public CalloutBubble.Tone getTone() {
+            return CalloutBubble.Tone.of(level);
         }
     }
 
@@ -113,7 +118,9 @@ public class ProgressBar extends UIElement implements IHoverOwner {
 
         @Override
         public void encode(FriendlyByteBuf buf, Callout value) {
-            buf.writeVarInt(value.level());
+            buf.writeBoolean(value.shown());
+            if (!value.shown()) return;
+            buf.writeVarInt(value.level().ordinal());
             StreamCodecs.COMPONENT_CODEC.encode(buf, value.text());
             buf.writeVarInt(value.detail().size());
             for (var line : value.detail()) StreamCodecs.COMPONENT_CODEC.encode(buf, line);
@@ -121,12 +128,13 @@ public class ProgressBar extends UIElement implements IHoverOwner {
 
         @Override
         public Callout decode(FriendlyByteBuf buf) {
-            int level = buf.readVarInt();
+            if (!buf.readBoolean()) return Callout.HIDDEN;
+            var level = Level.of(buf.readVarInt());
             var text = StreamCodecs.COMPONENT_CODEC.decode(buf);
             int size = buf.readVarInt();
             var detail = new ArrayList<Component>(size);
             for (int i = 0; i < size; i++) detail.add(StreamCodecs.COMPONENT_CODEC.decode(buf));
-            return new Callout(level, text, detail);
+            return Callout.of(level, text, detail);
         }
     };
 
@@ -152,6 +160,8 @@ public class ProgressBar extends UIElement implements IHoverOwner {
     @Nullable
     private String labelText;
     private final int color;
+    @Nullable
+    private IntSupplier clientColor;
     private final SyncValue<Progress> progress;
     @Nullable
     private SyncValue<Component> detail;
@@ -161,6 +171,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
     private String valueText = "";
     private boolean percent;
     private boolean currentOnly;
+    private boolean ticks;
     @Nullable
     private String unit;
     private final List<Marker> markers = new ArrayList<>(0);
@@ -176,16 +187,25 @@ public class ProgressBar extends UIElement implements IHoverOwner {
      * @param color    填充色（ARGB，两端相同；取亮一些的颜色，上面要压深色字）
      * @param progress 服务端取值
      */
-    public ProgressBar(int width, Component label, int color, Supplier<Progress> progress) {
+    protected ProgressBar(int width, Component label, int color, Supplier<Progress> progress) {
         this.label = label;
         this.color = color;
         layout(l -> l.size(width, HEIGHT));
         this.progress = addSyncValue(SyncValue.of(progress, PROGRESS, Progress.EMPTY));
     }
 
+    public static ProgressBar of(int width, Component label, int color, Supplier<Progress> progress) {
+        return new ProgressBar(width, label, color, progress);
+    }
+
+    public ProgressBar bindClientColor(IntSupplier color) {
+        this.clientColor = color;
+        return this;
+    }
+
     /** 服务端下发的悬停说明（如加成从哪里来）；为空时悬停只在名称被截断时显示全文。 */
-    public ProgressBar detail(Supplier<Component> detail) {
-        this.detail = addSyncValue(SyncValue.of(detail, StreamCodecs.COMPONENT_CODEC, Component.empty()));
+    public ProgressBar bindDetail(Supplier<Component> detail) {
+        this.detail = addSyncValue(SyncValue.ofComponent(detail, Component.empty()));
         return this;
     }
 
@@ -199,22 +219,27 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         return this;
     }
 
-    public ProgressBar unit(String unit) {
+    public ProgressBar ticks() {
+        this.ticks = true;
+        return this;
+    }
+
+    public ProgressBar setUnit(String unit) {
         this.unit = unit;
         return this;
     }
 
-    public ProgressBar marker(long position, int color) {
+    public ProgressBar addMarker(long position, int color) {
         markers.add(new Marker(position, color, null));
         return this;
     }
 
-    public ProgressBar marker(long position, int color, Supplier<Callout> callout) {
+    public ProgressBar addMarker(long position, int color, Supplier<Callout> callout) {
         markers.add(new Marker(position, color, addSyncValue(SyncValue.of(callout, CALLOUT, Callout.HIDDEN))));
         return this;
     }
 
-    public ProgressBar range(Supplier<Range> range, int color) {
+    public ProgressBar bindRange(Supplier<Range> range, int color) {
         this.range = addSyncValue(SyncValue.of(range, RANGE, Range.NONE));
         this.rangeColor = color;
         return this;
@@ -236,6 +261,8 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             if (percent) {
                 float ratio = value.total() <= 0 ? 1 : Math.min(1, Math.max(0, (float) shown / value.total()));
                 valueText = (int) Math.floor(ratio * 100) + "%";
+            } else if (ticks) {
+                valueText = value.total() <= 0 ? "—" : seconds(seconds(new StringBuilder(), shown).append('/'), value.total()).append('s').toString();
             } else if (currentOnly) {
                 valueText = readable(shown);
             } else {
@@ -243,6 +270,11 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             }
         }
         return valueText;
+    }
+
+    private static StringBuilder seconds(StringBuilder builder, long ticks) {
+        long tenths = ticks / 2;
+        return builder.append(tenths / 10).append('.').append(tenths % 10);
     }
 
     private String readable(long amount) {
@@ -255,71 +287,26 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         int x = getPositionX(), y = getPositionY(), h = getSizeHeight(), w = trackWidth();
         var value = progress.getValue();
-        drawTrack(graphics, x, y, w, h);
+        int fill = clientColor == null ? color : clientColor.getAsInt();
+        UIDraw.progressTrack(graphics, x, y, w, h);
         int inner = w - 2;
-        int filled = drawFill(graphics, x, y, w, h, 0, value.ratio(), color);
-        if (range != null) drawRange(graphics, x, y, w, h, range.getValue(), value.total(), rangeColor);
-        for (var marker : markers) drawMarker(graphics, x, y, w, h, marker.position(), value.total(), marker.color());
+        int filled = UIDraw.progressFill(graphics, x, y, w, h, 0, ticks && value.total() <= 0 ? 0 : value.ratio(), fill);
+        if (range != null) {
+            var shown = range.getValue();
+            UIDraw.progressRange(graphics, x, y, w, h, shown.from(), shown.to(), value.total(), rangeColor);
+        }
+        for (var marker : markers) UIDraw.progressMarker(graphics, x, y, w, h, marker.position(), value.total(), marker.color());
         if (value.bonusPermille() > 0 && filled < inner) {
             int bonus = Math.min(inner - filled, Math.round(inner * value.bonusPermille() / 1000f));
-            double phase = (System.currentTimeMillis() % BONUS_PULSE_MS) / (double) BONUS_PULSE_MS;
-            int alpha = (int) (0x60 + 0x40 * (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
-            graphics.fill(x + 1 + filled, y + 1, x + 1 + filled + bonus, y + h - 1, alpha << 24 | (color & 0xFFFFFF));
+            UIDraw.progressBonus(graphics, x, y, h, filled, bonus, fill);
         }
         if (labelText == null) labelText = label.getString();
-        drawText(graphics, x, y, w, h, labelText, valueText(value), value.isComplete() ? UITheme.STATUS_TEXT_GOOD : UITheme.TEXT);
+        UIText.drawLabelValue(graphics, x, y, w, h, labelText, valueText(value), value.isComplete() ? UITheme.STATUS_TEXT_GOOD : UITheme.TEXT);
         if (hasTooltip()) {
             int ix = infoIconX();
             var icon = infoTone().icon();
-            if (icon != null) icon.draw(graphics, 0, 0, ix + (h - CalloutBubble.ICON) / 2, y + (h - CalloutBubble.ICON) / 2, CalloutBubble.ICON, CalloutBubble.ICON);
+            if (icon != null) icon.draw(graphics, 0, 0, UIPixels.center(ix, h, CalloutBubble.ICON), UIPixels.center(y, h, CalloutBubble.ICON), CalloutBubble.ICON, CalloutBubble.ICON);
         }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawTrack(GuiGraphics graphics, int x, int y, int w, int h) {
-        UITheme.PROGRESS_TRACK.draw(graphics, 0, 0, x, y, w, h);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static int drawFill(GuiGraphics graphics, int x, int y, int w, int h, int from, float ratio, int color) {
-        int filled = Math.min(w - 2 - from, Math.round((w - 2) * Math.max(0, ratio)));
-        if (filled <= 0) return from;
-        graphics.fill(x + 1 + from, y + 1, x + 1 + from + filled, y + h - 1, color);
-        return from + filled;
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawRange(GuiGraphics graphics, int x, int y, int w, int h, Range range, long total, int color) {
-        if (range.isEmpty() || total <= 0) return;
-        int inner = w - 2;
-        int from = (int) Math.round(inner * Math.min(1, Math.max(0, (double) range.from() / total)));
-        int to = (int) Math.round(inner * Math.min(1, Math.max(0, (double) range.to() / total)));
-        if (to <= from) to = Math.min(inner, from + 1);
-        graphics.fill(x + 1 + from, y + 1, x + 1 + to, y + h - 1, (color & 0xFFFFFF) | 0x50000000);
-        graphics.fill(x + 1 + from, y + 1, x + 2 + from, y + h - 1, color);
-        graphics.fill(x + to, y + 1, x + 1 + to, y + h - 1, color);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawMarker(GuiGraphics graphics, int x, int y, int w, int h, long position, long total, int color) {
-        if (total <= 0) return;
-        int inner = w - 2;
-        int at = (int) Math.round((inner - 1) * Math.min(1, Math.max(0, (double) position / total)));
-        int tick = Math.max(1, (h - 8) / 2);
-        graphics.fill(x + 1 + at, y, x + 2 + at, y + tick, color);
-        graphics.fill(x + 1 + at, y + h - tick, x + 2 + at, y + h, color);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void drawText(GuiGraphics graphics, int x, int y, int w, int h, String label, String value, int valueColor) {
-        var font = Minecraft.getInstance().font;
-        // 字形占行高 8 的上 6~7 行，按行高居中后正好落在 1 像素边框之内的正中
-        int textY = y + (h - 8) / 2;
-        int valueWidth = Math.min(font.width(value), (w - 2 * UISizes.TEXT_PADDING) / 2);
-        String shownValue = UITheme.clip(font, value, valueWidth);
-        graphics.drawString(font, shownValue, x + w - UISizes.TEXT_PADDING + 1 - font.width(shownValue), textY, valueColor, false);
-        String shownLabel = UITheme.clip(font, label, w - 3 * UISizes.TEXT_PADDING - font.width(shownValue));
-        graphics.drawString(font, shownLabel, x + UISizes.TEXT_PADDING - 1, textY, UITheme.TEXT, false);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -343,8 +330,8 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             boolean overBubble = mouseX >= bx && mouseX < bx + bw && mouseY >= by - CalloutBubble.NOTCH && mouseY < by + CalloutBubble.LABEL_HEIGHT;
             if (!overBar && !(wasShown && overBubble)) continue;
             graphics.pose().pushPose();
-            graphics.pose().translate(0, 0, UITheme.PAGE_OVERLAY_Z);
-            CalloutBubble.drawLabel(graphics, font, bx, by, cx, callout.tone(), text);
+            graphics.pose().translate(0, 0, UILayers.PAGE_OVERLAY);
+            CalloutBubble.drawLabel(graphics, font, bx, by, cx, callout.getTone(), text);
             graphics.pose().popPose();
             if (!bubbleShown) {
                 bubbleShown = true;
@@ -373,11 +360,11 @@ public class ProgressBar extends UIElement implements IHoverOwner {
     }
 
     private CalloutBubble.Tone infoTone() {
-        int level = Callout.INFO;
+        var level = Level.NORMAL;
         for (var marker : markers) {
-            if (marker.callout() != null) level = Math.max(level, marker.callout().getValue().level());
+            if (marker.callout() != null) level = Level.worst(level, marker.callout().getValue().level());
         }
-        return level >= Callout.DANGER ? CalloutBubble.Tone.DANGER : level >= Callout.WARNING ? CalloutBubble.Tone.WARNING : CalloutBubble.Tone.INFO;
+        return CalloutBubble.Tone.of(level);
     }
 
     private int infoIconX() {

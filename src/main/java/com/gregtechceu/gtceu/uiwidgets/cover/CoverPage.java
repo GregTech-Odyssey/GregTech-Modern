@@ -17,14 +17,10 @@ import net.minecraft.network.chat.Component;
 
 public record CoverPage(IUICover cover) implements IFancyUIProvider {
 
-    private static final int SERVER_HEIGHT_LIMIT = Integer.MAX_VALUE / 4;
-
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
         if (widget instanceof MachineWindow window) window.setTitleItem(() -> cover.self().getAttachItem(), cover::getCoverTitle);
-        var scroller = new ScrollerView("cover.page", UISizes.CONTENT_WIDTH, UISizes.SLOT).adaptiveWidth().setResizable(false);
-        scroller.addScrollViewChild(cover.createUIWidget());
-        scroller.adaptiveHeight(widget.isRemote() ? MachineWindow.clientPageHeightLimit(hasPlayerInventory()) : SERVER_HEIGHT_LIMIT);
+        var scroller = ScrollerView.page("cover.page", UISizes.CONTENT_WIDTH).adaptiveWidth().addScrollViewChild(cover.createUIWidget());
         return UIElement.column(LayoutStyle.AUTO).addChild(scroller);
     }
 

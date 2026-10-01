@@ -43,8 +43,8 @@ public final class CircuitSelector {
         var root = UIElement.column(UISizes.SLOT_ROW_WIDTH).layout(l -> l.gapAll(UISizes.SECTION_GAP));
         var clear = Button.glyph("×").setVariant(UITheme.ButtonVariant.DANGER)
                 .setOnServerClick(() -> circuitSlot.setStackInSlot(0, ItemStack.EMPTY));
-        clear.setHoverTooltips(Component.translatable(CLEAR));
-        root.addChild(UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter())
+        clear.tooltips(Component.translatable(CLEAR));
+        root.addChild(UIElement.row(UISizes.SLOT_SIZE).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter())
                 .addChildren(ItemSlot.display(circuitSlot, 0, null), clear));
 
         var grid = grid(() -> currentOf(circuitSlot), circuit -> setCircuit(circuitSlot, circuit));
@@ -55,14 +55,14 @@ public final class CircuitSelector {
         var grid = UIElement.column(UISizes.SLOT_ROW_WIDTH);
         var synced = grid.addSyncValue(SyncValue.ofInt(current::getAsInt, -1));
         for (int rowStart = 0; rowStart <= IntCircuitBehaviour.CIRCUIT_MAX; rowStart += PER_ROW) {
-            var row = UIElement.row(UISizes.SLOT);
+            var row = UIElement.row(UISizes.SLOT_SIZE);
             for (int n = rowStart; n <= Math.min(IntCircuitBehaviour.CIRCUIT_MAX, rowStart + PER_ROW - 1); n++) {
                 int circuit = n;
                 var stack = IntCircuitBehaviour.stack(circuit);
                 var cell = SlotButton.of(new ItemStackTexture(stack))
                         .setSelected(() -> synced.getValue() == circuit)
                         .setOnServerClick(() -> select.accept(circuit));
-                cell.setHoverTooltips(stack.getHoverName());
+                cell.tooltips(stack.getHoverName());
                 row.addChild(cell);
             }
             grid.addChild(row);

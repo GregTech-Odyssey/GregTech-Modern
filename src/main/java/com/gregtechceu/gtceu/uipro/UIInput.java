@@ -64,7 +64,7 @@ public final class UIInput {
             var element = chain.get(i);
             x = element.toLocalX(x);
             y = element.toLocalY(y);
-            scale *= element.getTransform().scale();
+            scale *= element.getTransform().getScale();
         }
         return new double[] { x, y, scale };
     }

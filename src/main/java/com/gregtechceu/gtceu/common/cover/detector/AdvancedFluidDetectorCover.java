@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
@@ -99,16 +100,16 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var output = CoverUIs.section("cover.advanced_detector.output").addChildren(
-                CoverUIs.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
+        var output = Form.section("cover.advanced_detector.output").addChildren(
+                Form.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
                         "cover.advanced_detector.inverted.tooltip"),
-                CoverUIs.controlRow("cover.advanced_detector.latched", Switch.of(this::isLatched, this::setLatched),
+                Form.controlRow("cover.advanced_detector.latched", Switch.of(this::isLatched, this::setLatched),
                         "cover.advanced_detector.latched.tooltip"));
-        var thresholds = CoverUIs.section("cover.advanced_detector.thresholds").addChildren(
-                CoverUIs.numberRow("cover.advanced_fluid_detector.min", new NumberField(LayoutStyle.AUTO, this::getMinValue,
-                        value -> setMinValue((int) value), () -> 0, () -> Math.max(0, maxValue - 1))),
-                CoverUIs.numberRow("cover.advanced_fluid_detector.max", new NumberField(LayoutStyle.AUTO, this::getMaxValue,
-                        value -> setMaxValue((int) value), () -> 0, () -> Integer.MAX_VALUE)));
-        return CoverUIs.page().addChildren(output, thresholds, CoverUIs.filterSection(filterHandler));
+        var thresholds = Form.section("cover.advanced_detector.thresholds").addChildren(
+                Form.numberRow("cover.advanced_fluid_detector.min", NumberField.ofInt(LayoutStyle.AUTO, this::getMinValue,
+                        this::setMinValue, () -> 0, () -> Math.max(0, maxValue - 1))),
+                Form.numberRow("cover.advanced_fluid_detector.max", NumberField.ofInt(LayoutStyle.AUTO, this::getMaxValue,
+                        this::setMaxValue, 0, Integer.MAX_VALUE)));
+        return Form.page().addChildren(output, thresholds, CoverUIs.filterSection(filterHandler));
     }
 }

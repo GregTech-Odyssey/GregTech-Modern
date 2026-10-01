@@ -177,7 +177,7 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
         }
 
         private int popupMaxHeight() {
-            return Math.max(UISizes.SLOT, getSizeHeight() - 2 * UISizes.SCREEN_MARGIN);
+            return Math.max(UISizes.SLOT_SIZE, getSizeHeight() - 2 * UISizes.SCREEN_MARGIN);
         }
 
         private void place() {

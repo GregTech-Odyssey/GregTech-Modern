@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.uipro.window;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -56,7 +56,7 @@ public abstract class PageOverlay extends UIElement {
         var pose = graphics.pose();
         pose.pushPose();
         // 抬到页内浮层高度：盖住下面格子里的物品模型与数量文字
-        pose.translate(0, 0, UITheme.PAGE_OVERLAY_Z);
+        pose.translate(0, 0, UILayers.PAGE_OVERLAY);
         try {
             drawInBackground(graphics, mouseX, mouseY, partialTicks);
             drawInForeground(graphics, mouseX, mouseY, partialTicks);

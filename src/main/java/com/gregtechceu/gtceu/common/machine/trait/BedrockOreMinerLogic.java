@@ -38,7 +38,7 @@ public class BedrockOreMinerLogic extends VeinDrillLogic {
 
     @Override
     protected boolean canDrill() {
-        return getMachine().getEnergyTier() >= getMachine().getTier();
+        return checkEnergyTier(getMachine().getEnergyTier(), getMachine().getTier());
     }
 
     @Override

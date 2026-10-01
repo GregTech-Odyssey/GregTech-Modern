@@ -91,13 +91,14 @@ public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implem
     public static StructurePreviewScreen.Action encodeAction(AbstractContainerMenu menu, @Nullable IClientRepo repo, int inputLimit, MultiblockMachineDefinition definition,
                                                              Screen terminal, Consumer<List<List<GenericStack>>> encode) {
         var icon = definition.asStack();
+        var target = terminal instanceof RecipeScreen recipes && recipes.old != null ? recipes.old : terminal;
         return StructureBuildFlow.action(StructurePreviewScreen.ENCODE, (layout, values, navigator, preview) -> {
             var model = Ae2PatternBuilder.model(menu, repo, StructurePlans.modelBuilder(icon, layout, true));
             model.selectMinimum();
             return new PatternBuilderPanel(model, AEItems.BLANK_PATTERN.stack(), icon.getHoverName(), inputLimit, navigator.maxHeight(), () -> {
                 var minecraft = Minecraft.getInstance();
                 if (minecraft.player != null && minecraft.player.containerMenu == menu) encode.accept(Ae2PatternBuilder.inputs(model));
-                minecraft.setScreen(terminal);
+                minecraft.setScreen(target);
             }, navigator::close, new PatternBuilderPanel.Footer(PatternBuilderPanel.TITLE, PatternBuilderPanel.WRITE, PatternBuilderPanel.INCLUDE,
                     PatternBuilderPanel.CANNOT_WRITE, true, false, navigator::close));
         });

@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -31,8 +31,8 @@ public final class RecipeSlotLayouts {
     public static final int PROGRESS_MARGIN = 14;
     private static final int COMPACT_PADDING_VERTICAL = 2;
     private static final int COMPACT_PROGRESS_MARGIN = 8;
-    private static final int COMPACT_COLUMNS = (UISizes.CONTENT_WIDTH - 2 * UITheme.PANEL_PADDING - 2 * PADDING -
-            RecipeSlots.PROGRESS_SIZE - 2 * COMPACT_PROGRESS_MARGIN) / UISizes.SLOT;
+    private static final int COMPACT_COLUMNS = (UISizes.CONTENT_WIDTH - 2 * UISizes.PANEL_PADDING - 2 * PADDING -
+            RecipeSlots.PROGRESS_SIZE - 2 * COMPACT_PROGRESS_MARGIN) / UISizes.SLOT_SIZE;
 
     /**
      * 默认排布：{@code [输入] → [输出]}。
@@ -114,14 +114,14 @@ public final class RecipeSlotLayouts {
     }
 
     private static UIElement compactSide(RecipeSlots slots, IO io, int columns, boolean breakGroups) {
-        var side = new UIElement().layout(l -> l.column().alignStart().width(columns * UISizes.SLOT));
+        var side = new UIElement().layout(l -> l.column().alignStart().width(columns * UISizes.SLOT_SIZE));
         var all = new ArrayList<Widget>();
         for (var cap : slots.capabilities(io)) {
             var capSlots = slots.slots(io, cap);
-            if (breakGroups) side.addChild(grid(capSlots, columns));
+            if (breakGroups) side.addChild(SlotGrid.of(columns, capSlots));
             else all.addAll(capSlots);
         }
-        if (!all.isEmpty()) side.addChild(grid(all, columns));
+        if (!all.isEmpty()) side.addChild(SlotGrid.of(columns, all));
         return side;
     }
 
@@ -141,14 +141,14 @@ public final class RecipeSlotLayouts {
             var first = groups.get(0);
             widest = columns(first.size()) + 1;
             stack.addChild(new UIElement().layout(l -> l.row().alignStart())
-                    .addChildren(grid(first, columns(first.size())), grid(groups.get(1), 1)));
+                    .addChildren(SlotGrid.of(columns(first.size()), first), SlotGrid.of(1, groups.get(1))));
             next = 2;
         }
         for (int i = next; i < groups.size(); i++) {
             var group = groups.get(i);
             int columns = stackedColumns(group.size(), widest);
             widest = Math.max(widest, columns);
-            stack.addChild(grid(group, columns));
+            stack.addChild(SlotGrid.of(columns, group));
         }
         return new UIElement().layout(l -> l.column().alignCenter()).addChild(stack);
     }
@@ -170,7 +170,7 @@ public final class RecipeSlotLayouts {
             next = 2;
         }
         for (int i = next; i < counts.size(); i++) columns = Math.max(columns, stackedColumns(counts.getInt(i), columns));
-        return columns * UISizes.SLOT;
+        return columns * UISizes.SLOT_SIZE;
     }
 
     /**
@@ -187,17 +187,6 @@ public final class RecipeSlotLayouts {
         int columns = columns(firstCount);
         int rows = (firstCount + columns - 1) / columns;
         return columns < 3 && rows >= secondCount;
-    }
-
-    /** 紧排的槽位网格，每行 {@code columns} 格，最后一行靠左。 */
-    public static UIElement grid(List<? extends Widget> slots, int columns) {
-        var grid = new UIElement().layout(l -> l.column().width(Math.min(columns, slots.size()) * UISizes.SLOT));
-        for (int start = 0; start < slots.size(); start += columns) {
-            var row = UIElement.row(UISizes.SLOT);
-            for (int i = start; i < Math.min(slots.size(), start + columns); i++) row.addChild(slots.get(i));
-            grid.addChild(row);
-        }
-        return grid;
     }
 
     /**

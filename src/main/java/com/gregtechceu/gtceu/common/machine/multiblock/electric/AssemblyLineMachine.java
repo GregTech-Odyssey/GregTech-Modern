@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
@@ -9,9 +11,10 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
@@ -43,23 +46,30 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         var items = RecipeHelper.copyContents(recipe.itemInputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidInputs, 1);
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
-            if (!consumeOrderedItemInputs(items, true)) {
-                setIdleReason(ActionResult.FAIL_ORDERED_ITEM);
+            int failed = consumeOrderedItemInputs(items, true);
+            if (failed >= 0) {
+                reportIssue(GTIssues.ORDERED_INPUT, null, IO.IN, ItemRecipeInfo.INSTANCE, failed, 0, 0, recipe.definition);
                 return false;
             }
         } else {
             if (!unit.handleRecipeItem(IO.IN, recipe, items, true)) {
+                reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, ItemRecipeInfo.INSTANCE, -1, -1, -1, recipe.definition);
                 return false;
             }
         }
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
-            if (!consumeOrderedFluidInputs(fluids, true)) {
-                setIdleReason(ActionResult.FAIL_ORDERED_FLUID);
+            int failed = consumeOrderedFluidInputs(fluids, true);
+            if (failed >= 0) {
+                reportIssue(GTIssues.ORDERED_INPUT, null, IO.IN, FluidRecipeInfo.INSTANCE, failed, 0, 0, recipe.definition);
                 return false;
             }
             return true;
         } else {
-            return unit.handleRecipeFluid(IO.IN, recipe, fluids, true);
+            if (!unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
+                reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, FluidRecipeInfo.INSTANCE, -1, -1, -1, recipe.definition);
+                return false;
+            }
+            return true;
         }
     }
 
@@ -87,25 +97,37 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
         var items = RecipeHelper.copyAndRoll(recipe, recipe.itemInputs);
         var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidInputs);
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineItems) {
-            if (!consumeOrderedItemInputs(items, false)) {
+            int failed = consumeOrderedItemInputs(items, false);
+            if (failed >= 0) {
+                reportIssue(GTIssues.ORDERED_INPUT, IssueStage.SETUP, IO.IN, ItemRecipeInfo.INSTANCE, failed, 0, 0, recipe.definition);
                 return false;
             }
         } else {
             if (!unit.handleRecipeItem(IO.IN, recipe, items, false)) {
+                reportIssue(GTIssues.INPUT_SHORT, IssueStage.SETUP, IO.IN, ItemRecipeInfo.INSTANCE, -1, -1, -1, recipe.definition);
                 return false;
             }
         }
         if (ConfigHolder.INSTANCE.machines.orderedAssemblyLineFluids) {
-            return consumeOrderedFluidInputs(fluids, false);
+            int failed = consumeOrderedFluidInputs(fluids, false);
+            if (failed >= 0) {
+                reportIssue(GTIssues.ORDERED_INPUT, IssueStage.SETUP, IO.IN, FluidRecipeInfo.INSTANCE, failed, 0, 0, recipe.definition);
+                return false;
+            }
+            return true;
         } else {
-            return unit.handleRecipeFluid(IO.IN, recipe, fluids, false);
+            if (!unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
+                reportIssue(GTIssues.INPUT_SHORT, IssueStage.SETUP, IO.IN, FluidRecipeInfo.INSTANCE, -1, -1, -1, recipe.definition);
+                return false;
+            }
+            return true;
         }
     }
 
-    private boolean consumeOrderedItemInputs(List<Content<ItemIngredient>> items, boolean simulate) {
-        if (items.isEmpty()) return true;
+    private int consumeOrderedItemInputs(List<Content<ItemIngredient>> items, boolean simulate) {
+        if (items.isEmpty()) return -1;
         var machineInputs = itemStackTransfers;
-        if (machineInputs.size() < items.size()) return false;
+        if (machineInputs.size() < items.size()) return machineInputs.size();
 
         for (int i = 0; i < items.size(); i++) {
             var inputSlot = machineInputs.get(i);
@@ -113,18 +135,18 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
             var stack = inputSlot.getStackInSlot(0);
             if (stack.getCount() < recipeInput.amount ||
                     !recipeInput.inner.test(stack)) {
-                return false;
+                return i;
             }
             if (simulate) continue;
             inputSlot.extractItem(0, recipeInput.getIntAmount(), false);
         }
-        return true;
+        return -1;
     }
 
-    private boolean consumeOrderedFluidInputs(List<Content<FluidIngredient>> fluids, boolean simulate) {
-        if (fluids.isEmpty()) return true;
+    private int consumeOrderedFluidInputs(List<Content<FluidIngredient>> fluids, boolean simulate) {
+        if (fluids.isEmpty()) return -1;
         var machineInputs = fluidStackTransfers;
-        if (machineInputs.size() < fluids.size()) return false;
+        if (machineInputs.size() < fluids.size()) return machineInputs.size();
 
         for (int i = 0; i < fluids.size(); i++) {
             var inputTank = machineInputs.get(i);
@@ -132,11 +154,11 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
             var stack = inputTank.getFluid();
             if (stack.getAmount() < recipeInput.amount ||
                     !recipeInput.inner.test(stack)) {
-                return false;
+                return i;
             }
             if (simulate) continue;
             inputTank.drain(recipeInput.getIntAmount(), IFluidHandler.FluidAction.EXECUTE);
         }
-        return true;
+        return -1;
     }
 }

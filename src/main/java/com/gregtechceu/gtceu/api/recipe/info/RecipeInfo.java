@@ -35,21 +35,26 @@ public abstract class RecipeInfo extends DataComponentKey<Object> {
     /** 按 {@link #sortIndex} 升序排列，用于决定各类内容在配方界面里的先后。 */
     public static final Comparator<RecipeInfo> COMPARATOR = Comparator.comparingInt(o -> o.sortIndex);
 
+    private final String[] slotNames;
+
     protected RecipeInfo(String name, int color, boolean doRenderSlot, int sortIndex) {
         super(name, null);
         this.color = color;
         this.doRenderSlot = doRenderSlot;
         this.sortIndex = sortIndex;
+        var values = IO.values();
+        this.slotNames = new String[values.length];
+        for (var io : values) slotNames[io.ordinal()] = name + "_" + io.name().toLowerCase(Locale.ROOT);
     }
 
     /** 生成槽位标识 {@code 种类_方向}（全小写），用作槽位控件的 id。 */
     public String slotName(IO io) {
-        return "%s_%s".formatted(name, io.name().toLowerCase(Locale.ROOT));
+        return slotNames[io.ordinal()];
     }
 
     /** {@link #slotName(IO)} 的带序号版本，用于同方向上的多个槽位。 */
     public String slotName(IO io, int index) {
-        return "%s_%s_%s".formatted(name, io.name().toLowerCase(Locale.ROOT), index);
+        return slotNames[io.ordinal()] + "_" + index;
     }
 
     /** 本地化名称，取自 {@code recipe.capability.<name>.name}。 */

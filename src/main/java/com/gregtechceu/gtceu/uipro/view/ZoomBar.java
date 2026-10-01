@@ -8,8 +8,6 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
-import net.minecraft.network.chat.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,22 +36,22 @@ public final class ZoomBar extends UIElement {
     }
 
     public static ZoomBar title(ViewController view) {
-        return new ZoomBar(view, UISizes.ICON_BUTTON).zoom(true).build();
+        return new ZoomBar(view, UISizes.ICON_BUTTON_SIZE).zoom(true).build();
     }
 
     public static ZoomBar dock(ViewController view) {
-        return new ZoomBar(view, UISizes.DOCK_BUTTON).zoom(false).fit(FIT).minimap().build();
+        return new ZoomBar(view, UISizes.DOCK_BUTTON_SIZE).zoom(false).fit(FIT).minimap().build();
     }
 
     public static ZoomBar of(ViewController view, boolean dock) {
-        return new ZoomBar(view, dock ? UISizes.DOCK_BUTTON : UISizes.ICON_BUTTON);
+        return new ZoomBar(view, dock ? UISizes.DOCK_BUTTON_SIZE : UISizes.ICON_BUTTON_SIZE);
     }
 
     public ZoomBar zoom(boolean percent) {
         parts.add(button(UITheme.CANVAS_ZOOM_OUT, ZOOM_OUT, () -> view.zoomStep(-1)).clientDisabled(() -> !view.canZoomOut()));
         if (percent) {
-            var label = Button.text(PERCENT_WIDTH, size, view::percentText).setOnClientClick(view::percentClicked);
-            label.setHoverTooltips(Component.translatable(view.percentTooltip()));
+            var label = Button.of(PERCENT_WIDTH, size).bindClientText(view::percentText).setOnClientClick(view::percentClicked)
+                    .tooltips(view.percentTooltip());
             parts.add(label);
         }
         parts.add(button(UITheme.CANVAS_ZOOM_IN, ZOOM_IN, () -> view.zoomStep(1)).clientDisabled(() -> !view.canZoomIn()));
@@ -67,7 +65,7 @@ public final class ZoomBar extends UIElement {
 
     public ZoomBar minimap() {
         parts.add(button(UITheme.CANVAS_MINIMAP, MINIMAP, () -> view.setMinimapShown(!view.isMinimapShown()))
-                .setVariant(() -> view.isMinimapShown() && view.isMinimapAvailable() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
+                .bindClientVariant(() -> view.isMinimapShown() && view.isMinimapAvailable() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
                 .clientDisabled(() -> !view.isMinimapAvailable()));
         return this;
     }
@@ -92,16 +90,14 @@ public final class ZoomBar extends UIElement {
     }
 
     public static Button button(IGuiTexture icon, String tooltipKey, Runnable onClick, int size) {
-        var button = Button.icon(icon, size).setOnClientClick(onClick);
-        button.setHoverTooltips(Component.translatable(tooltipKey));
-        return button;
+        return Button.icon(size, icon).setOnClientClick(onClick).tooltips(tooltipKey);
     }
 
     public static Button dockButton(IGuiTexture icon, String tooltipKey, Runnable onClick) {
-        return button(icon, tooltipKey, onClick, UISizes.DOCK_BUTTON);
+        return button(icon, tooltipKey, onClick, UISizes.DOCK_BUTTON_SIZE);
     }
 
     public static UIElement dockRow() {
-        return UIElement.row(UISizes.DOCK_BUTTON).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+        return UIElement.centeredRow(UISizes.DOCK_BUTTON_SIZE);
     }
 }

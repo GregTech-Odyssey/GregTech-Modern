@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.storage;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
-import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.ButtonConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
@@ -13,11 +12,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTItems;
-import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
@@ -50,7 +48,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine {
 
     private static final int WIDE_INVENTORY = 90;
-    private static final int PAGE_HEIGHT_LIMIT = 1024;
 
     @Getter
     private final Material material;
@@ -71,24 +68,15 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
     }
 
     @Override
-    public Widget createMainPage(FancyMachineUIWidget widget) {
-        if (widget instanceof MachineWindow window) window.setInventoryGutter(ScrollerView.SCROLL_BAR_SPACE);
-        return createUIWidget();
+    public int getInventoryGutter() {
+        return ScrollerView.SCROLL_BAR_SPACE;
     }
 
     @Override
     public Widget createUIWidget() {
         int columns = inventorySize >= WIDE_INVENTORY ? 2 * UISizes.SLOTS_PER_ROW : UISizes.SLOTS_PER_ROW;
-        var grid = UIElement.column(columns * UISizes.SLOT);
-        for (int start = 0; start < inventorySize; start += columns) {
-            var row = UIElement.row(UISizes.SLOT);
-            for (int i = start; i < Math.min(inventorySize, start + columns); i++) row.addChild(ItemSlot.of(inventory.storage, i));
-            grid.addChild(row);
-        }
-        var scroller = new ScrollerView("crate.slots", columns * UISizes.SLOT, UISizes.SLOT).adaptiveWidth().setResizable(false);
-        scroller.addScrollViewChild(grid);
-        scroller.adaptiveHeight(isRemote() ? MachineWindow.clientPageHeightLimit(true) : PAGE_HEIGHT_LIMIT);
-        return scroller;
+        return ScrollerView.page("crate.slots", columns * UISizes.SLOT_SIZE).adaptiveWidth()
+                .addScrollViewChild(SlotGrid.of(columns, inventorySize, i -> ItemSlot.of(inventory.storage, i)));
     }
 
     @Override

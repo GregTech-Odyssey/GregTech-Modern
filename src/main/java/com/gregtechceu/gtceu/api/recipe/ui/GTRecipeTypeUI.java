@@ -104,7 +104,7 @@ public class GTRecipeTypeUI {
             var group = slotLayout.build(recipeSlots(recipe));
             int overflow = 0;
             for (var widget : group.getContainedWidgets(true)) {
-                if (widget instanceof ScrollerView scroller) overflow += scroller.adaptiveOverflow();
+                if (widget instanceof ScrollerView scroller) overflow += scroller.getAdaptiveOverflow();
             }
             metrics = new SlotAreaMetrics(group.getSize(), overflow);
             recipeSlotAreaSizes.put(key, metrics);
@@ -197,7 +197,7 @@ public class GTRecipeTypeUI {
      */
     private void bind(WidgetGroup template, RecipeHolder holder) {
         var isJEI = holder.progressSupplier() == ProgressWidget.JEIProgress;
-        WidgetUtils.widgetByIdForEach(template, "^" + RecipeProgressWidget.ID + "$", ProgressWidget.class, progress -> {
+        WidgetUtils.widgetWithIdForEach(template, RecipeProgressWidget.ID, ProgressWidget.class, progress -> {
             progress.setProgressSupplier(holder.progressSupplier());
             if (!isJEI && progress instanceof RecipeProgressWidget recipeProgress) recipeProgress.setOpenCategory(recipeType.getCategory());
         });
@@ -208,10 +208,8 @@ public class GTRecipeTypeUI {
                 var widgetClass = cap.getWidgetClass();
                 if (widgetClass == null) continue;
                 Object storage = storagesEntry.getValue();
-                WidgetUtils.widgetByIdForEach(template, "^%s_[0-9]+$".formatted(cap.slotName(io)), widgetClass, widget -> {
-                    var index = WidgetUtils.widgetIdIndex(widget);
-                    cap.applyWidgetInfo(widget, index, isJEI, io, holder, recipeType, null, null, storage, 0, 0);
-                });
+                WidgetUtils.indexedWidgetForEach(template, cap.slotName(io), widgetClass,
+                        (widget, index) -> cap.applyWidgetInfo(widget, index, isJEI, io, holder, recipeType, null, null, storage, 0, 0));
             }
         }
     }

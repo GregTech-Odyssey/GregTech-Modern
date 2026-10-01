@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.uipro;
 
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.data.UICodecs;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -10,13 +13,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * 元素的交互状态，概念与命名照搬 LDLib2 {@code UIElement}：
@@ -40,9 +44,11 @@ public final class ElementState {
 
     /// 禁用提示的第一行：先告诉玩家"斜纹 = 禁止操作"，再给具体原因
     private static final String DISABLED_TITLE = "gtceu.uipro.disabled";
+    private static final int MAX_TOOLTIP_LINES = 64;
+    private static final Component[] NO_TOOLTIPS = new Component[0];
 
     private final Widget owner;
-    private final Function<SyncValue<Boolean>, SyncValue<Boolean>> register;
+    private final UIChannel.Host channel;
     @Nullable
     private BooleanSupplier selected;
     @Nullable
@@ -54,10 +60,9 @@ public final class ElementState {
     @Nullable
     private BooleanSupplier clientDisabled;
 
-    /** {@code register} 即元素的 {@code addSyncValue}。 */
-    public ElementState(Widget owner, Function<SyncValue<Boolean>, SyncValue<Boolean>> register) {
+    public ElementState(Widget owner, UIChannel.Host channel) {
         this.owner = owner;
-        this.register = register;
+        this.channel = channel;
     }
 
     /** 选中条件（客户端每帧判定）；传 null 取消。 */
@@ -76,13 +81,39 @@ public final class ElementState {
     public void setDisabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
         if (disabledValue != null) throw new IllegalStateException("disabled can only be set once per element");
         this.disabledCondition = serverCondition;
-        this.disabledValue = register.apply(SyncValue.of(serverCondition::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false));
+        this.disabledValue = channel.addSyncValue(SyncValue.ofBool(serverCondition));
         this.disabledReason = reasonKey == null ? null : Component.translatable(reasonKey);
     }
 
-    /** 本元素自己是否禁用（不看上级）：客户端读服务端下发的值，服务端直接判定。 */
     public void setClientDisabled(@Nullable BooleanSupplier clientDisabled) {
         this.clientDisabled = clientDisabled;
+    }
+
+    public void setTooltips(Component... tooltips) {
+        owner.setHoverTooltips(tooltips);
+    }
+
+    public void setTooltips(String... translationKeys) {
+        var tooltips = new Component[translationKeys.length];
+        for (int i = 0; i < translationKeys.length; i++) tooltips[i] = Component.translatable(translationKeys[i]);
+        owner.setHoverTooltips(tooltips);
+    }
+
+    public void bindTooltip(Supplier<Component> tooltip) {
+        channel.addSyncValue(SyncValue.ofComponent(tooltip, Component.empty()).onChanged(this::applyTooltip));
+    }
+
+    public void bindTooltips(Supplier<List<Component>> tooltips) {
+        channel.addSyncValue(SyncValue.of(tooltips, UICodecs.list(StreamCodecs.COMPONENT_CODEC, MAX_TOOLTIP_LINES), Collections.emptyList())
+                .onChanged(this::applyTooltips));
+    }
+
+    private void applyTooltip(Component tooltip) {
+        owner.setHoverTooltips(tooltip.getString().isEmpty() ? NO_TOOLTIPS : new Component[] { tooltip });
+    }
+
+    private void applyTooltips(List<Component> tooltips) {
+        owner.setHoverTooltips(tooltips.toArray(NO_TOOLTIPS));
     }
 
     private boolean isDisabledHere() {
@@ -132,21 +163,39 @@ public final class ElementState {
      * 在控件的 {@code drawInForeground} 里调用。
      */
     @OnlyIn(Dist.CLIENT)
-    public static boolean drawDisabledTooltip(Widget widget, int mouseX, int mouseY, List<Component> tooltips) {
+    public static boolean showDisabledTooltip(Widget widget, int mouseX, int mouseY, List<Component> tooltips) {
         var gui = widget.getGui();
-        if (gui == null || !widget.isMouseOverElement(mouseX, mouseY) || widget.getHoverElement(mouseX, mouseY) != widget) return false;
+        if (gui == null || !isHovered(widget, mouseX, mouseY)) return false;
         if (!isDisabled(widget)) return false;
         gui.getModularUIGui().setHoverTooltip(withDisabledLines(widget, tooltips), ItemStack.EMPTY, null, null);
         return true;
     }
 
+    @OnlyIn(Dist.CLIENT)
+    public static boolean isHovered(Widget widget, double mouseX, double mouseY) {
+        return widget.isMouseOverElement(mouseX, mouseY) && widget.getHoverElement(mouseX, mouseY) == widget;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static int resolve(Widget widget, int mouseX, int mouseY) {
+        int states = UIStates.NONE;
+        if (isDisabled(widget)) states |= UIStates.DISABLED;
+        else if (isHovered(widget, mouseX, mouseY)) states |= UIStates.HOVERED;
+        if (widget instanceof Host host && host.getState().isSelected()) states |= UIStates.SELECTED;
+        return states;
+    }
+
     /**
-     * 带状态的元素，查询方法名同 LDLib2。实现类只需提供 {@link #getState()}；
-     * 链式返回自身类型的设置方法（{@code setSelected}、{@code disabled}）由各实现类自己写。
+     * 带状态的元素，查询方法名同 LDLib2。实现类只需提供 {@link #getState()}，{@code T} 为实现类自身。
      */
-    public interface Host {
+    public interface Host<T extends Host<T>> {
 
         ElementState getState();
+
+        @SuppressWarnings("unchecked")
+        private T self() {
+            return (T) this;
+        }
 
         /** 自身或上级被禁用（LDLib2 {@code !isActive()}，含继承）。 */
         default boolean isDisabled() {
@@ -156,6 +205,41 @@ public final class ElementState {
         /** 本元素是否选中（LDLib2 {@code isSelected}）。 */
         default boolean isSelected() {
             return getState().isSelected();
+        }
+
+        default T setSelected(@Nullable BooleanSupplier selected) {
+            getState().setSelected(selected);
+            return self();
+        }
+
+        default T disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
+            getState().setDisabled(serverCondition, reasonKey);
+            return self();
+        }
+
+        default T clientDisabled(BooleanSupplier disabled) {
+            getState().setClientDisabled(disabled);
+            return self();
+        }
+
+        default T tooltips(Component... tooltips) {
+            getState().setTooltips(tooltips);
+            return self();
+        }
+
+        default T tooltips(String... translationKeys) {
+            getState().setTooltips(translationKeys);
+            return self();
+        }
+
+        default T bindTooltip(Supplier<Component> tooltip) {
+            getState().bindTooltip(tooltip);
+            return self();
+        }
+
+        default T bindTooltips(Supplier<List<Component>> tooltips) {
+            getState().bindTooltips(tooltips);
+            return self();
         }
     }
 }

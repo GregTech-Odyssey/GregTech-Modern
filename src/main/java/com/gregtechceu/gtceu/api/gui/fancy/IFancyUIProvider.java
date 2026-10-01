@@ -1,11 +1,13 @@
 package com.gregtechceu.gtceu.api.gui.fancy;
 
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.uipro.window.WindowAnchor;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +47,11 @@ public interface IFancyUIProvider {
      */
     default void attachTooltips(TooltipsPanel tooltipsPanel) {}
 
+    @Nullable
+    default MetaMachine getIssueMachine() {
+        return this instanceof MetaMachine machine ? machine : null;
+    }
+
     default boolean hasPlayerInventory() {
         return true;
     }
@@ -59,6 +66,15 @@ public interface IFancyUIProvider {
 
     default boolean showsWindowLogo() {
         return true;
+    }
+
+    @Nullable
+    default ResourceLocation getWindowSkin() {
+        return null;
+    }
+
+    default int getInventoryGutter() {
+        return 0;
     }
 
     /**

@@ -2,13 +2,17 @@ package com.gregtechceu.gtceu.uiwidgets.display;
 
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
+import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
+import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.RichText;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.TextPane;
+import com.gregtechceu.gtceu.uipro.issue.MachineDiagnosisTab;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
@@ -52,7 +56,23 @@ public final class MachineDisplay {
 
     /** 同样写法的其他机器：{@code text} 只在服务端调用，{@code click} 可为 null。 */
     public static UIElement page(MetaMachine machine, Consumer<List<Component>> text, @Nullable BiConsumer<String, ClickData> click) {
-        return column().addChild(display(machine, text, click));
+        return page(machine, text, click, UISizes.MACHINE_PAGE_HEIGHT);
+    }
+
+    public static UIElement page(MetaMachine machine, Consumer<List<Component>> text, @Nullable BiConsumer<String, ClickData> click, int height) {
+        return column().addChild(display(machine, text, click, height));
+    }
+
+    public static UIElement page(MetaMachine machine, Consumer<List<Component>> text) {
+        return page(machine, text, (BiConsumer<String, ClickData>) null);
+    }
+
+    public static UIElement page(MetaMachine machine, Consumer<List<Component>> text, Consumer<ControlPanel> controls) {
+        var panel = ControlPanel.of(machine);
+        controls.accept(panel);
+        var page = page(machine, text);
+        if (!panel.isEmpty()) page.addChild(panel.build());
+        return page;
     }
 
     /** 与其他页面同宽、区块间距 {@link UISizes#SECTION_GAP} 的纵向容器。 */
@@ -72,20 +92,18 @@ public final class MachineDisplay {
     }
 
     public static ScrollerView display(MetaMachine machine, Consumer<List<Component>> text, @Nullable BiConsumer<String, ClickData> click) {
+        return display(machine, text, click, UISizes.MACHINE_PAGE_HEIGHT);
+    }
+
+    public static ScrollerView display(MetaMachine machine, Consumer<List<Component>> text, @Nullable BiConsumer<String, ClickData> click, int height) {
         var richText = new RichText();
         richText.textSupplier(machine.isRemote() ? null : text);
         if (click != null) richText.clickHandler(click);
-        return wrap(richText, UISizes.MACHINE_PAGE_HEIGHT);
+        return wrap(richText, height);
     }
 
     private static ScrollerView wrap(RichText text, int height) {
-        var scroller = new ScrollerView(SCROLLER_ID, UISizes.CONTENT_WIDTH, height)
-                .layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
-        scroller.setBackground(UITheme.DISPLAY_SCREEN);
-        scroller.watermark(UITheme.SCREEN_LOGO, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT);
-        scroller.fitPage();
-        scroller.addScrollViewChild(text.darkBackground());
-        return scroller;
+        return TextPane.screen(SCROLLER_ID, UISizes.CONTENT_WIDTH, height, text).fitPage();
     }
 
     /**
@@ -113,6 +131,22 @@ public final class MachineDisplay {
             @Override
             public boolean showsWindowLogo() {
                 return false;
+            }
+
+            @Override
+            public MetaMachine getIssueMachine() {
+                return machine.self();
+            }
+
+            @Override
+            public void attachSideTabs(TabsWidget sideTabs) {
+                sideTabs.setMainTab(this);
+                MachineDiagnosisTab.attachIfEnabled(sideTabs, machine);
+            }
+
+            @Override
+            public void attachTooltips(TooltipsPanel tooltipsPanel) {
+                tooltipsPanel.attachRecipeLogics(machine.self());
             }
         };
     }

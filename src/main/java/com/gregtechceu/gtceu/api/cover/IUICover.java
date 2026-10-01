@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.cover;
 
-import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverPage;
 
@@ -34,8 +33,7 @@ public interface IUICover extends IUIHolder {
 
     @Override
     default ModularUI createUI(Player entityPlayer) {
-        var modularUI = new ModularUI(UISizes.WINDOW_WIDTH, UISizes.WINDOW_WIDTH, this, entityPlayer)
-                .widget(new MachineWindow(new CoverPage(this)));
+        var modularUI = MachineWindow.createUI(new CoverPage(this), this, entityPlayer);
         modularUI.registerCloseListener(this::onUIClosed);
         return modularUI;
     }

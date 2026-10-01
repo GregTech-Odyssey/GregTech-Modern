@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.integration.map.cache.client.GTClientCache;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.OreRenderLayer;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasItem;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasLayer;
@@ -22,6 +23,7 @@ import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.TextField;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.view.ZoomBar;
@@ -44,7 +46,6 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,24 +116,24 @@ public class ProspectorMapView extends UIElement {
         layout(l -> l.row().height(height).gapAll(UISizes.SECTION_GAP).alignCenter());
 
         canvas = new MapCanvas(height);
-        var search = new TextField(SIDE_WIDTH, () -> query, this::search).setPlaceholder(() -> Component.translatable(SEARCH));
+        var search = TextField.of(SIDE_WIDTH, () -> query, this::search).setPlaceholder(Component.translatable(SEARCH));
         list = new ScrollerView("prospector.list", SIDE_WIDTH, ROW_HEIGHT);
         list.setResizable(false);
         list.getLayoutStyle().flex(1);
         list.setBackground(UITheme.STATUS_PANEL);
-        list.layoutContent(l -> l.paddingAll(UITheme.PANEL_PADDING));
+        list.contentLayout(l -> l.paddingAll(UISizes.PANEL_PADDING));
         search.setClientSideWidget();
         list.setClientSideWidget();
 
         var side = UIElement.column(SIDE_WIDTH).layout(l -> l.height(height).gapAll(UISizes.GAP)).addChildren(
-                new TextLine(SIDE_WIDTH, () -> Component.translatable(mode.unlocalizedName), Component.translatable(mode.unlocalizedName)),
+                TextLine.translatable(SIDE_WIDTH, mode.unlocalizedName),
                 search, list);
         addChildren(canvas, side);
-        addSyncValue(SyncValue.of(darkSource::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, dark)).onChanged(this::setDark);
+        addSyncValue(SyncValue.ofBool(darkSource, dark)).onChanged(this::setDark);
         addSyncValue(SyncValue.ofInt(() -> modeIndex, modeIndex)).onChanged(this::applyMode);
 
         window.addTitleTool(() -> ZoomBar.title(canvas));
-        window.addTitleTool(() -> new InfoIcon(InfoIcon.Kind.INFO, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
+        window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
                 Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
     }
 
@@ -165,7 +166,7 @@ public class ProspectorMapView extends UIElement {
         packets.clear();
         items.clear();
         rows.clear();
-        list.clearScrollViewChildren();
+        list.clearAllScrollViewChildren();
         selected = ProspectingTexture.SELECTED_ALL;
         search(query);
         createTexture();
@@ -302,7 +303,7 @@ public class ProspectorMapView extends UIElement {
             var text = TextLine.constant(0, name);
             text.layout(l -> l.flex(1));
             layout(l -> l.row().height(ROW_HEIGHT).gapAll(UISizes.GAP).alignCenter());
-            addChildren(new ItemView(icon, ROW_HEIGHT), text);
+            addChildren(ItemView.of(ROW_HEIGHT, icon), text);
             setSelected(() -> uid.equals(selected));
             rows.put(uid, this);
         }
@@ -350,7 +351,7 @@ public class ProspectorMapView extends UIElement {
                 }
                 view.addLayer(new MapLayer()).addLayer(cells);
             });
-            setOnItemClick((item, button, worldX, worldZ) -> {
+            setOnClientItemClick((item, button, worldX, worldZ) -> {
                 if (button == 0 && item instanceof ChunkCell cell && cell.inScan) addWaypoint(worldX, worldZ);
             });
         }
@@ -421,7 +422,7 @@ public class ProspectorMapView extends UIElement {
             painter.flush();
             for (int cz = 0; cz < displaySide; cz++) {
                 for (int cx = 0; cx < displaySide; cx++) {
-                    if (!inScan(cx, cz)) UITheme.drawDisabled(graphics, cx * 16, cz * 16, 17, 17);
+                    if (!inScan(cx, cz)) UIDraw.disabledHatch(graphics, cx * 16, cz * 16, 17, 17);
                 }
             }
         }

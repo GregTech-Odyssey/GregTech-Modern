@@ -1,8 +1,16 @@
 package com.gregtechceu.gtceu.api.recipe;
 
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
+import com.gregtechceu.gtceu.api.machine.issue.IssueType;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.ui.IRecipeInfo;
+
+import net.minecraft.network.chat.Component;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * 配方触发条件：判断当前环境 / 机器状态是否允许这条配方运行。
@@ -49,4 +57,21 @@ public abstract class RecipeCondition implements IRecipeInfo {
 
     /** 子类实现的原始判定，不需要自己处理反转。 */
     protected abstract boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe);
+
+    public IssueType getIssueType() {
+        return GTIssues.CONDITION;
+    }
+
+    public void reportFailure(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe, int index) {
+        holder.reportIssue(getIssueType(), IssueStage.CONDITION, IO.NONE, null, index, 0, 0, recipe);
+    }
+
+    @Nullable
+    public Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        return null;
+    }
+
+    public boolean isDiagnosable() {
+        return true;
+    }
 }

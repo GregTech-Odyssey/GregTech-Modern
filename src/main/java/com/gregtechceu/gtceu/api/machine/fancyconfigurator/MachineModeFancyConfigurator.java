@@ -60,13 +60,16 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
 
     public class MachineModeConfigurator extends WidgetGroup {
 
+        private int sentRecipeType = -1;
+
         public MachineModeConfigurator(int x, int y, int width, int height) {
             super(x, y, width, height);
         }
 
         @Override
         public void writeInitialData(FriendlyByteBuf buffer) {
-            buffer.writeVarInt(machine.getActiveRecipeType());
+            sentRecipeType = machine.getActiveRecipeType();
+            buffer.writeVarInt(sentRecipeType);
             ByteStreamEncoder.array(GTRegistries.RECIPE_TYPES.streamCodec()).encode(buffer, machine.getAvailableRecipeTypes());
         }
 
@@ -78,7 +81,10 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
 
         @Override
         public void detectAndSendChanges() {
-            this.writeUpdateInfo(0, buf -> buf.writeVarInt(machine.getActiveRecipeType()));
+            int current = machine.getActiveRecipeType();
+            if (current == sentRecipeType) return;
+            sentRecipeType = current;
+            this.writeUpdateInfo(0, buf -> buf.writeVarInt(current));
         }
 
         @Override

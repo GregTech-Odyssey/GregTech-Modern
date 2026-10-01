@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -34,7 +34,7 @@ final class PartsGrid extends UIElement {
     PartsGrid(Consumer<Item> onToggle, int minColumns) {
         this.onToggle = onToggle;
         this.minColumns = minColumns;
-        layout(l -> l.row().flexWrap(FlexWrap.WRAP).width(minColumns * UISizes.SLOT).minHeight(UISizes.SLOT));
+        layout(l -> l.row().flexWrap(FlexWrap.WRAP).width(minColumns * UISizes.SLOT_SIZE).minHeight(UISizes.SLOT_SIZE));
     }
 
     void fill(List<ItemStack> stacks, List<SlotWidget> slots, Set<Item> shown, int columns) {
@@ -50,7 +50,7 @@ final class PartsGrid extends UIElement {
     void arrange(int columns) {
         if (columns == this.columns) return;
         this.columns = columns;
-        int width = Math.min(columns, Math.max(minColumns, widgets.size())) * UISizes.SLOT;
+        int width = Math.min(columns, Math.max(minColumns, widgets.size())) * UISizes.SLOT_SIZE;
         layout(l -> l.width(width));
     }
 
@@ -81,7 +81,7 @@ final class PartsGrid extends UIElement {
         for (int i = 0; i < widgets.size(); i++) {
             if (!shown.contains(items.get(i))) continue;
             var slot = widgets.get(i);
-            UITheme.drawSelection(graphics, slot.getPositionX(), slot.getPositionY(), slot.getSizeWidth(), slot.getSizeHeight());
+            UIDraw.selectionFrame(graphics, slot.getPositionX(), slot.getPositionY(), slot.getSizeWidth(), slot.getSizeHeight());
         }
     }
 }

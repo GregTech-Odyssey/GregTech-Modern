@@ -9,11 +9,11 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureTree;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
-import com.gregtechceu.gtceu.uipro.elements.StatusLine;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.flow.FlowChart;
@@ -98,11 +98,11 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         setClientSideWidget();
         layout(l -> l.column().width(LayoutStyle.AUTO).gapAll(UISizes.GAP));
         if (tree.nodes().length > 1 || tree.sizes().length > 0 || !mounted.isEmpty()) {
-            viewMaxHeight = Math.max(UISizes.SLOT * 2, viewHeight - TextLine.HEIGHT - UISizes.GAP);
+            viewMaxHeight = Math.max(UISizes.SLOT_SIZE * 2, viewHeight - TextLine.HEIGHT - UISizes.GAP);
             view = new FlowView("structure_config", chart(), false).maxSize(viewWidth, viewMaxHeight).minSize(minWidth, 0);
             addChild(view);
         }
-        addChild(TextLine.of(LayoutStyle.AUTO, this::summary).level(() -> layout == null ? StatusLine.Level.ERROR : StatusLine.Level.NORMAL));
+        addChild(TextLine.of(LayoutStyle.AUTO, this::summary).bindLevel(() -> layout == null ? Level.ERROR : Level.NORMAL));
         refresh();
     }
 
@@ -124,7 +124,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     private FlowNode hosts(FlowChart chart, int span) {
-        var flow = chart.node(0, 0, span).state(() -> FlowState.READY);
+        var flow = chart.node(0, 0, span).bindState(() -> FlowState.READY);
         flow.addChild(TextLine.translatable(LayoutStyle.AUTO, HOSTS));
         for (var protocol : mounted) {
             flow.addChild(TextLine.constant(LayoutStyle.AUTO, Component.translatable(HOSTS_PORT, protocol.getName())).setColor(UITheme.PANEL_TEXT));
@@ -137,16 +137,16 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         if (onOpen != null && machine instanceof MultiblockMachineDefinition multiblock && multiblock.hasStructure()) {
             return new MachineLink(multiblock, () -> onOpen.accept(multiblock));
         }
-        return UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
+        return UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                 .addChildren(ItemView.of(machine.asStack()), TextLine.constant(0, machine.asStack().getHoverName()).layout(l -> l.flex(1)));
     }
 
     private FlowNode node(FlowChart chart, int index, int row, int column, int span) {
         var node = tree.nodes()[index];
-        int inner = chart.spanWidth(column, span) - 2 * UISizes.FLOW_NODE_PADDING;
-        var flow = chart.node(row, column, span).state(() -> state(index));
+        int inner = chart.widthFor(column, span) - 2 * UISizes.FLOW_NODE_PADDING;
+        var flow = chart.node(row, column, span).bindState(() -> state(index));
         var key = node.key();
-        if (key != null && key.getDescriptionKey() != null) flow.detail(() -> Collections.singletonList(Component.translatable(key.getDescriptionKey())));
+        if (key != null && key.getDescriptionKey() != null) flow.bindDetail(() -> Collections.singletonList(Component.translatable(key.getDescriptionKey())));
         flow.addChild(TextLine.constant(LayoutStyle.AUTO, title(index)));
         switch (node.kind()) {
             case ROOT -> {
@@ -163,7 +163,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
             case TOGGLE -> {
                 var toggle = Switch.of(() -> values[node.option()] > 0, on -> set(node.option(), on ? 1 : 0))
                         .disabled(() -> !tree.active(index, values), INACTIVE);
-                flow.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
+                flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                         .addChildren(TextLine.translatable(0, ENABLED).layout(l -> l.flex(1)), toggle));
             }
             case COUNT -> flow.addChild(field(index, node.option(), inner, node.min(), node.max()));
@@ -176,7 +176,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
             case ROOT, FIXED, TOGGLE, COUNT -> {
                 if (excluded != null && index < excluded.length) {
                     var listed = Switch.of(() -> !excluded[index], on -> setListed(index, on)).disabled(() -> !tree.active(index, values), INACTIVE);
-                    flow.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
+                    flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                             .addChildren(TextLine.translatable(0, LISTED).layout(l -> l.flex(1)), listed));
                 }
             }
@@ -194,7 +194,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     private UIElement field(int index, int option, int width, int min, int max) {
-        var field = new NumberField(width, () -> values[option], value -> set(option, (int) value), () -> min, () -> max, STEPS);
+        var field = NumberField.ofInt(width, () -> values[option], value -> set(option, value), min, max).setSteps(STEPS);
         field.disabled(() -> !tree.active(index, values), INACTIVE);
         return field;
     }
@@ -244,7 +244,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     public void fitViewHeight(int height) {
-        int max = Math.max(UISizes.SLOT * 2, height);
+        int max = Math.max(UISizes.SLOT_SIZE * 2, height);
         if (view == null || max == viewMaxHeight) return;
         viewMaxHeight = max;
         view.maxSize(viewWidth, max);
@@ -276,6 +276,24 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         if (excluded != null) followBuild(index, previous, value);
         refresh();
         onChange.run();
+    }
+
+    public static boolean[] defaultExcluded(StructureTree tree, int[] values) {
+        var nodes = tree.nodes();
+        var excluded = new boolean[nodes.length];
+        for (int i = 0; i < nodes.length; i++) {
+            var node = nodes[i];
+            int option = node.option();
+            if (option < 0 || option >= values.length) continue;
+            switch (node.kind()) {
+                case TOGGLE, COUNT -> excluded[i] = values[option] == 0;
+                case CHOICE -> {
+                    for (int child : node.children()) excluded[child] = nodes[child].branch() != values[option] - 1;
+                }
+                default -> {}
+            }
+        }
+        return excluded;
     }
 
     private void followBuild(int option, int previous, int value) {

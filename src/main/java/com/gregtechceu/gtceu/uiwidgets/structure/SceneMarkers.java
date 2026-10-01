@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.uipro.animation.ColorMath;
 import com.gregtechceu.gtceu.uipro.animation.UIClock;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -29,7 +30,6 @@ final class SceneMarkers {
     private static final int FAR_ALPHA = 0xB0000000;
     private static final float HOVER_BLEND = 0.25f;
     private static final double PULSE_PERIOD_MS = 250.0;
-    private static final float LAYER_Z = 200;
     private static final int HIDDEN = 0, FAR = 1, NEAR = 2;
 
     private List<StructureScene.Marker> markers = Collections.emptyList();
@@ -88,7 +88,7 @@ final class SceneMarkers {
         float pulse = (float) (0.5 + 0.5 * Math.sin(UIClock.millis() / PULSE_PERIOD_MS));
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(0, 0, LAYER_Z);
+        pose.translate(0, 0, UILayers.OVERLAY);
         for (int i = 0; i < markers.size(); i++) {
             var marker = markers.get(i);
             int mode = points[i * 3 + 2], sx = points[i * 3], sy = points[i * 3 + 1];

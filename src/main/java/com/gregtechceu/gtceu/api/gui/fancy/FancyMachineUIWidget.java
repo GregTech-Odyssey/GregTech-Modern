@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
 import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
-import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -118,6 +118,11 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
         addWidget(this.titleBar = new TitleBarWidget(width, this::navigateBack, this::openPageSwitcher));
         addWidget(this.sideTabsWidget = new VerticalTabsWidget(this::navigate, -20, 0, 24, height));
         addWidget(this.tooltipsPanel = new TooltipsPanel());
+        var issues = IssueSyncWidget.of(mainPage.getIssueMachine());
+        if (issues != null) {
+            addWidget(issues);
+            tooltipsPanel.setIssues(issues);
+        }
         addWidget(this.configuratorPanel = new ConfiguratorPanel(-(24 + 2), height));
         this.pageSwitcher = new PageSwitcher(this::switchPage);
         setBackground(GuiTextures.BACKGROUND.copy().setColor(Long.decode(ConfigHolder.INSTANCE.client.defaultUIColor).intValue() | -16777216));
@@ -416,7 +421,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
         animations.updateFrame();
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(PixelSnap.residual(offsetX), PixelSnap.residual(offsetY), 0);
+        pose.translate(UIPixels.residual(offsetX), UIPixels.residual(offsetY), 0);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         pose.popPose();
     }
@@ -426,7 +431,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(PixelSnap.residual(offsetX), PixelSnap.residual(offsetY), 0);
+        pose.translate(UIPixels.residual(offsetX), UIPixels.residual(offsetY), 0);
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
         pose.popPose();
     }

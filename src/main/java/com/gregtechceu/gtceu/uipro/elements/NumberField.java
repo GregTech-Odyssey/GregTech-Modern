@@ -4,11 +4,14 @@ import com.gregtechceu.gtceu.uipro.utils.NumberExpressions;
 
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.regex.Pattern;
@@ -78,12 +81,31 @@ public class NumberField extends Adjuster {
      * @param max    最大值（服务端取值，下发给客户端）
      * @param steps  四档步长（默认 / Shift / Ctrl / Ctrl+Shift），不传用 {@link #DEFAULT_STEPS}，不足四个时沿用最后一个
      */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
     public NumberField(int width, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, long... steps) {
         super(width, INTEGER, getter, setter, min, max, steps.length == 0 ? DEFAULT_STEPS : steps);
     }
 
-    /** 固定上下限、默认步长。 */
+    public static NumberField ofLong(int width, LongSupplier getter, LongConsumer setter, long min, long max) {
+        return new NumberField(width, getter, setter, () -> min, () -> max);
+    }
+
+    public static NumberField ofLong(int width, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max) {
+        return new NumberField(width, getter, setter, min, max);
+    }
+
+    public static NumberField ofInt(int width, IntSupplier getter, IntConsumer setter, int min, int max) {
+        return new NumberField(width, getter::getAsInt, value -> setter.accept((int) value), () -> min, () -> max);
+    }
+
+    public static NumberField ofInt(int width, IntSupplier getter, IntConsumer setter, IntSupplier min, IntSupplier max) {
+        return new NumberField(width, getter::getAsInt, value -> setter.accept((int) value), min::getAsInt, max::getAsInt);
+    }
+
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
     public static NumberField of(int width, LongSupplier getter, LongConsumer setter, long min, long max) {
-        return new NumberField(width, getter, setter, () -> min, () -> max, DEFAULT_STEPS);
+        return ofLong(width, getter, setter, min, max);
     }
 }

@@ -11,7 +11,8 @@ import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.Button;
-import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.ServerList;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextField;
@@ -40,8 +41,9 @@ final class EnderLinkUI {
     private static final int DESCRIPTION_MAX_LENGTH = 64;
     private static final int MAX_CHANNELS = 256;
     private static final int LIST_MAX_ROWS = 5;
-    private static final int ROW_HEIGHT = 3 * UISizes.SMALL_TEXT_HEIGHT;
-    private static final int LIST_WIDTH = UISizes.CONTENT_WIDTH - 2 * UITheme.PANEL_PADDING;
+    private static final int LIST_RESCAN_TICKS = 20;
+    private static final int ROW_HEIGHT = 3 * TextLine.HEIGHT;
+    private static final int LIST_WIDTH = UISizes.CONTENT_WIDTH - 2 * UISizes.PANEL_PADDING;
     private static final int ACCESS_CHECK_TICKS = 20;
 
     private EnderLinkUI() {}
@@ -51,8 +53,8 @@ final class EnderLinkUI {
         var main = mainPage(ctx);
         var list = listPage(ctx);
         list.setDisplay(false);
-        var root = CoverUIs.page();
-        root.addSyncValue(SyncValue.of(ctx::listShown, ByteStreamCodec.BOOLEAN_CODEC, false).onChanged(shown -> {
+        var root = Form.page();
+        root.addSyncValue(SyncValue.ofBool(ctx::listShown).onChanged(shown -> {
             main.setDisplay(!shown);
             list.setDisplay(shown);
         }));
@@ -62,7 +64,7 @@ final class EnderLinkUI {
 
     private static UIElement mainPage(Context ctx) {
         var cover = ctx.cover;
-        var page = CoverUIs.page();
+        var page = Form.page();
         page.addChild(channelSection(ctx));
         var status = new StatusPanel();
         cover.addEntryStatus(status, ctx::canAccess);
@@ -75,25 +77,25 @@ final class EnderLinkUI {
 
     private static UIElement channelSection(Context ctx) {
         var cover = ctx.cover;
-        var section = CoverUIs.section("cover.ender_link.ui.channel");
+        var section = Form.section("cover.ender_link.ui.channel");
         section.disabled(() -> !ctx.canAccess(), "cover.ender_link.ui.private_no_access");
 
         section.addChild(CoverUIs.enumRow("cover.ender_link.ui.permission", List.of(AbstractEnderLinkCover.Permissions.values()),
                 cover::getPermission, cover::setPermission));
 
-        var name = new TextField(0, () -> cover.colorStr, ctx::submitChannelName);
+        var name = TextField.of(0, () -> cover.colorStr, ctx::submitChannelName);
         name.layout(l -> l.flex(1));
         name.commitOnSubmit(text -> AbstractEnderLinkCover.COLOR_INPUT_PATTERN.matcher(text).matches());
         name.getInput().setMaxStringLength(COLOR_LENGTH);
-        name.setHoverTooltips(Component.translatable("cover.ender_link.ui.channel_name.tooltip"));
-        section.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
+        name.tooltips(Component.translatable("cover.ender_link.ui.channel_name.tooltip"));
+        section.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                 .addChildren(EnderColorBlock.of(cover::getColor), name));
 
-        var description = new TextField(0, ctx::currentDescription, ctx::setCurrentDescription);
+        var description = TextField.of(0, ctx::currentDescription, ctx::setCurrentDescription);
         description.layout(l -> l.flex(1));
-        description.setPlaceholder(() -> Component.translatable("cover.ender_link.ui.description.placeholder"));
+        description.setPlaceholder(Component.translatable("cover.ender_link.ui.description.placeholder"));
         description.getInput().setMaxStringLength(DESCRIPTION_MAX_LENGTH);
-        description.setHoverTooltips(Component.translatable("cover.ender_link.ui.description.tooltip"));
+        description.tooltips(Component.translatable("cover.ender_link.ui.description.tooltip"));
         section.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.alignCenter()).addChild(description));
 
         section.addChild(Button.translatable(LayoutStyle.AUTO, "cover.ender_link.ui.open_list").setOnServerClick(ctx::openList));
@@ -101,8 +103,8 @@ final class EnderLinkUI {
     }
 
     private static UIElement transferSection(AbstractEnderLinkCover<?> cover) {
-        var section = CoverUIs.section("cover.ui.transfer").addChildren(
-                CoverUIs.controlRow("cover.ender_link.ui.working", Switch.of(cover::isWorkingEnabled, cover::setWorkingEnabled)),
+        var section = Form.section("cover.ui.transfer").addChildren(
+                Form.controlRow("cover.ender_link.ui.working", Switch.of(cover::isWorkingEnabled, cover::setWorkingEnabled)),
                 CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), cover::getIo, cover::setIo, cover.ioTooltipKey()));
         if (cover.hasManualIO()) {
             section.addChild(CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES),
@@ -116,44 +118,40 @@ final class EnderLinkUI {
 
     private static UIElement listPage(Context ctx) {
         var cover = ctx.cover;
-        var page = CoverUIs.page();
+        var page = Form.page();
         var back = Button.icon(UITheme.ARROW_LEFT).setOnServerClick(ctx::closeList);
-        back.setHoverTooltips("cover.ender_link.ui.back");
+        back.tooltips("cover.ender_link.ui.back");
         var title = TextLine.of(0, () -> Component.translatable(cover.getPermission() == AbstractEnderLinkCover.Permissions.PRIVATE ?
                 "cover.ender_link.ui.list.private" : "cover.ender_link.ui.list.public"));
         title.layout(l -> l.flex(1));
-        page.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(back, title));
+        page.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(back, title));
 
-        var scroller = new ScrollerView("ender_link.channels", LIST_WIDTH, listHeight(1)).adaptiveHeight(listHeight(LIST_MAX_ROWS));
-        scroller.addScrollViewChild(new EnderChannelRows(ctx.remote, ctx::listNames, ctx::revision,
-                key -> channelRow(ctx, key), Component.translatable("cover.ender_link.ui.list.empty")));
-        page.addChild(UIElement.section().addChild(scroller));
+        var list = ServerList.of(ByteStreamCodec.STRING_CODEC, ctx::listNames, key -> channelRow(ctx, key))
+                .version(ctx::revision).rescanEvery(LIST_RESCAN_TICKS).emptyText("cover.ender_link.ui.list.empty")
+                .rowHeight(ROW_HEIGHT).maxRows(LIST_MAX_ROWS).scroll("ender_link.channels", LIST_WIDTH);
+        page.addChild(UIElement.section().addChild(list));
         return page;
-    }
-
-    private static int listHeight(int rows) {
-        return rows * ROW_HEIGHT + (rows - 1) * UISizes.GAP;
     }
 
     private static UIElement channelRow(Context ctx, String key) {
         var cover = ctx.cover;
-        var row = UIElement.row(ROW_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
-        var current = row.addSyncValue(SyncValue.of(() -> ctx.isCurrent(key), ByteStreamCodec.BOOLEAN_CODEC, false));
+        var row = UIElement.centeredRow(ROW_HEIGHT);
+        var current = row.addSyncValue(SyncValue.ofBool(() -> ctx.isCurrent(key)));
 
         var colorText = key.substring(Math.min(key.length(), cover.identifier().length()));
-        var name = TextLine.constant(LayoutStyle.AUTO, Component.literal(colorText)).setSmall().setColor(UITheme::panelText);
-        var description = TextLine.of(LayoutStyle.AUTO, () -> ctx.descriptionOf(key)).setSmall().setColor(UITheme::textSecondary);
-        var summary = TextLine.of(LayoutStyle.AUTO, () -> ctx.summaryOf(key)).setSmall().setColor(UITheme::textSecondary);
+        var name = TextLine.constant(LayoutStyle.AUTO, Component.literal(colorText)).bindClientColor(UITheme::panelText);
+        var description = TextLine.of(LayoutStyle.AUTO, () -> ctx.descriptionOf(key)).bindClientColor(UITheme::textSecondary);
+        var summary = TextLine.of(LayoutStyle.AUTO, () -> ctx.summaryOf(key)).bindClientColor(UITheme::textSecondary);
         var info = new UIElement().layout(l -> l.column().flex(1)).addChildren(name, description, summary);
 
-        var select = Button.text(UISizes.BUTTON_WIDTH, () -> Component.translatable(current.getValue() ?
+        var select = Button.of(UISizes.BUTTON_WIDTH).bindClientText(() -> Component.translatable(current.getValue() ?
                 "cover.ender_link.ui.current" : "cover.ender_link.ui.select").getString())
                 .disabled(() -> ctx.isCurrent(key), "cover.ender_link.ui.already_current")
                 .setOnServerClick(() -> ctx.select(key));
         var clear = Button.glyph("×")
                 .disabled(() -> !ctx.hasDescription(key), "cover.ender_link.ui.no_description")
                 .setOnServerClick(() -> ctx.clearDescription(key));
-        clear.setHoverTooltips("cover.ender_link.ui.clear_description");
+        clear.tooltips("cover.ender_link.ui.clear_description");
 
         return row.addChildren(EnderColorBlock.constant(parseColor(colorText)), info, select, clear);
     }

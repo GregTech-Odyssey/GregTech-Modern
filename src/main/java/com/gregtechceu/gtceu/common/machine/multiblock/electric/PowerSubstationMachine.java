@@ -270,7 +270,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
 
     @Override
     public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(198, 208, this, entityPlayer).widget(new MachineWindow(this));
+        return MachineWindow.createUI(this, this, entityPlayer);
     }
 
     @Override
@@ -482,5 +482,10 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             amount++;
             return this;
         }
+    }
+
+    @Override
+    public boolean hasDiagnosisTab() {
+        return false;
     }
 }

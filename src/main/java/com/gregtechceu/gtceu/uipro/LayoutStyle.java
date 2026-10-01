@@ -49,7 +49,7 @@ public final class LayoutStyle {
     }
 
     /** 底层的 Taffy 样式（只读用途；改动请走本类的方法，才会通知重新布局）。 */
-    public TaffyStyle taffyStyle() {
+    public TaffyStyle getTaffyStyle() {
         return style;
     }
 
@@ -321,15 +321,15 @@ public final class LayoutStyle {
     // ==================== 读取声明值 ====================
 
     /** 声明的宽度（像素）；auto 或百分比时返回 {@link #AUTO}。 */
-    public int declaredWidth() {
+    public int getDeclaredWidth() {
         return style.size.width.isLength() ? Math.round(style.size.width.getValue()) : AUTO;
     }
 
-    public int declaredHeight() {
+    public int getDeclaredHeight() {
         return style.size.height.isLength() ? Math.round(style.size.height.getValue()) : AUTO;
     }
 
-    public int declaredMinWidth() {
+    public int getDeclaredMinWidth() {
         return style.minSize.width.isLength() ? Math.round(style.minSize.width.getValue()) : 0;
     }
 

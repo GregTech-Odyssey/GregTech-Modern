@@ -8,6 +8,8 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
+import org.jetbrains.annotations.Nullable;
+
 public class ThunderCondition extends RecipeCondition {
 
     public final float level;
@@ -19,7 +21,15 @@ public class ThunderCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
+        if (isReverse) return Component.translatable("recipe.condition.thunder.reverse.tooltip", level);
         return Component.translatable("recipe.condition.thunder.tooltip", level);
+    }
+
+    @Override
+    public @Nullable Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        Level level = holder.self().getLevel();
+        if (level == null) return null;
+        return Component.translatable("gtceu.issue.current.thunder", String.format("%.2f", level.getThunderLevel(1)));
     }
 
     @Override

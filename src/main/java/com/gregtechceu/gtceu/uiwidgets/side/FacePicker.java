@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 public final class FacePicker {
 
-    public static final int BUTTON = UISizes.SLOT + 2;
+    public static final int BUTTON = UISizes.SLOT_SIZE + 2;
     private static final String SELECT = "gtceu.gui.face_picker.select";
 
     private FacePicker() {}
@@ -43,10 +43,10 @@ public final class FacePicker {
         if (direction == null) return UIElement.spacer(BUTTON, BUTTON);
         var name = Component.translatable(FaceNet.nameKey(direction));
         var shortName = Component.translatable(shortKey(direction));
-        var button = Button.text(BUTTON, BUTTON, shortName::getString)
-                .setVariant(() -> selected.getValue() == direction.get3DDataValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
+        var button = Button.text(BUTTON, BUTTON, shortName)
+                .bindClientVariant(() -> selected.getValue() == direction.get3DDataValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
                 .setOnServerClick(() -> select.accept(direction));
-        button.setHoverTooltips(Component.translatable(SELECT, name));
+        button.tooltips(Component.translatable(SELECT, name));
         return button;
     }
 

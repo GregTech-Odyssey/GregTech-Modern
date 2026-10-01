@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uiwidgets.recipe;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.client.Minecraft;
@@ -62,7 +63,7 @@ public class RecipeTierChip extends UIElement {
         int cy = y + h / 2;
         if (current < max) drawArrow(graphics, arrowX, cy - 1, true, side > 0 ? UITheme.TEXT : UITheme.DIVIDER);
         if (current > min) drawArrow(graphics, arrowX, cy + 1, false, side < 0 ? UITheme.TEXT : UITheme.DIVIDER);
-        graphics.drawString(font, plain, textLeft, y + (h - 8) / 2, rgb, false);
+        graphics.drawString(font, plain, textLeft, UIText.centerY(y, h), rgb, false);
     }
 
     @OnlyIn(Dist.CLIENT)

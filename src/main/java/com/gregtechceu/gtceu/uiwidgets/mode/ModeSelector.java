@@ -40,7 +40,7 @@ public final class ModeSelector {
      */
     public static UIElement create(int count, IntFunction<Component> name, IntSupplier current, IntConsumer select) {
         var section = UIElement.section(UISizes.CONTENT_WIDTH);
-        section.addChild(TextLine.translatable(LayoutStyle.AUTO, TITLE).setColor(UITheme::panelText));
+        section.addChild(TextLine.translatable(LayoutStyle.AUTO, TITLE).bindClientColor(UITheme::panelText));
         return section.addChild(ButtonGroup.single(count, name, current, select));
     }
 }

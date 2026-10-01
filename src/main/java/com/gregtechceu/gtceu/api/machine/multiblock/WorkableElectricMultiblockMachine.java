@@ -1,26 +1,26 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
 import com.gregtechceu.gtceu.api.machine.feature.*;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.window.MachineWindow;
-import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
+import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
+import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
-
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IFancyUIMachine, IDisplayUIMachine, IOverclockMachine, IComputationContainerMachine, IElectricMachine {
+public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IMultiblockFancyUIMachine, IOverclockMachine, IComputationContainerMachine, IElectricMachine {
 
     // runtime
     @Getter
@@ -84,40 +84,49 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
             numParallels = Optional.ofNullable(getParallelHatch()).map(IParallelHatch::getCurrentParallel).orElse(0L);
             batchParallels = 0;
         }
-        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getAvailableRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addWorkingStatusLine().addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
+        MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(recipeLogic.isWorkingEnabled(), recipeLogic.isActive()).addEnergyUsageLine(energyContainer).addEnergyTierLine(tier).addMachineModeLine(getRecipeType(), getAvailableRecipeTypes().length > 1).addParallelsLine(numParallels, exact).addBatchModeLine(isBatchEnabled(), batchParallels).addIssueLines(recipeLogic).addProgressLine(recipeLogic.getProgress(), recipeLogic.getMaxProgress(), recipeLogic.getProgressPercent()).addOutputLines(recipeLogic.getLastRecipe());
         getDefinition().getAdditionalDisplay().accept(this, textList);
-        IDisplayUIMachine.super.addDisplayText(textList);
+        IMultiblockFancyUIMachine.super.addDisplayText(textList);
     }
 
-    /** 主页：新式状态显示窗（{@link MachineDisplay}）。 */
+    public static final String LANG_MAX_POWER = "gtceu.gui.multiblock.max_power";
+    public static final String LANG_ENERGY_USAGE = "gtceu.gui.multiblock.energy_usage";
+    public static final String LANG_ENERGY_OUTPUT = "gtceu.gui.multiblock.energy_output";
+    public static final String LANG_ENERGY = "gtceu.gui.multiblock.energy";
+
     @Override
     public UIElement createUIWidget() {
-        return MachineDisplay.page(this);
+        var page = MultiblockPage.of(this).setScreen(MachineEra.CLASSIC.getScreen());
+        addPageContent(page);
+        return page.build();
     }
 
-    @Override
-    public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(198, 208, this, entityPlayer).widget(new MachineWindow(this));
+    protected void addPageContent(MultiblockPage page) {
+        page.addLine(LANG_MAX_POWER, MultiblockPage.cached(this::getMaxVoltage,
+                voltage -> Component.literal(FormattingUtil.formatNumbers(voltage) + " EU/t (" + GTValues.VNF[GTUtil.getFloorTierByVoltage(voltage)] + "§r)")));
+        boolean generator = isGenerator();
+        page.addLine(generator ? LANG_ENERGY_OUTPUT : LANG_ENERGY_USAGE, MultiblockPage.cached(() -> {
+            var recipe = recipeLogic.isWorking() ? recipeLogic.getLastRecipe() : null;
+            return recipe == null ? 0 : generator ? recipe.getOutputEUt() : recipe.getInputEUt();
+        }, usage -> Component.literal(FormattingUtil.formatNumbers(usage) + " EU/t")));
+        page.addLine(MultiblockPage.PARALLEL, MultiblockPage.cached(() -> {
+            var recipe = recipeLogic.isIdle() ? null : recipeLogic.getLastRecipe();
+            return recipe == null ? 0 : recipe.parallels;
+        }, parallels -> Component.literal(FormattingUtil.formatNumbers(parallels))));
+        page.addBar(LANG_ENERGY, UITheme::barEnergy, () -> new ProgressBar.Progress(energyContainer.getEnergyStored(), Math.max(1, energyContainer.getEnergyCapacity()), 0)).percent()
+                .bindDetail(MultiblockPage.cached(energyContainer::getEnergyStored, stored -> Component.literal(FormattingUtil.formatNumbers(stored) + " EU")));
+        addScreenReadouts(page);
+        page.addText(this::addScreenText, this::handleDisplayClick);
+        addControls(page.getControls());
     }
 
-    @Override
-    public List<IFancyUIProvider> getSubTabs() {
-        return Arrays.stream(getParts()).map(IFancyUIProvider.class::cast).toList();
-    }
+    protected void addScreenText(List<Component> textList) {}
 
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        IVoidable.attachConfigurators(configuratorPanel, this);
-        attachBatchConfigurator(configuratorPanel);
-        IRecipeLogicMachine.attachRecipeLockConfigurator(configuratorPanel, this);
-        IFancyUIMachine.super.attachConfigurators(configuratorPanel);
-    }
-
-    @Override
-    public void attachTooltips(TooltipsPanel tooltipsPanel) {
-        for (IMultiPart part : getParts()) {
-            part.attachFancyTooltipsToController(this, tooltipsPanel);
-        }
+        attachRecipeConfigurators(configuratorPanel);
+        attachPowerConfigurator(configuratorPanel);
+        attachCoverConfigurators(configuratorPanel);
     }
 
     //////////////////////////////////////

@@ -1,7 +1,10 @@
 package com.gregtechceu.gtceu.uipro;
 
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.data.UIFrames;
+import com.gregtechceu.gtceu.uipro.render.UIClip;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -27,7 +30,6 @@ import dev.vfyjxf.taffy.tree.NodeId;
 import dev.vfyjxf.taffy.tree.TaffyTree;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector4f;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -54,17 +56,16 @@ import java.util.function.Consumer;
  * <p>
  * 布局两端都算（控件树两端一致，尺寸可以不同：文字只在客户端测量），服务端的尺寸不影响同步。
  */
-public class UIElement extends WidgetGroup implements ElementState.Host {
+public class UIElement extends WidgetGroup implements ElementState.Host<UIElement>, UIChannel.Host {
 
     private static final Logger LOGGER = LogUtils.getLogger();
     /// 一次布局里"算完、写回后又被标脏"最多重算的次数，超过说明样式在互相震荡
     private static final int MAX_LAYOUT_PASSES = 10;
 
     protected final LayoutStyle style = new LayoutStyle(this::markLayoutDirty);
-    private final SyncValueHost syncValues = new SyncValueHost(this);
-    private final ElementState state = new ElementState(this, this::addSyncValue);
+    private final UIChannel channel = new UIChannel(this);
+    private final ElementState state = new ElementState(this, this);
     public static final int OUTSIDE = -100000;
-    private static final Vector4f SCISSOR_MIN = new Vector4f(), SCISSOR_MAX = new Vector4f();
 
     @Nullable
     private ViewTransform transform;
@@ -80,6 +81,11 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     private NodeId node;
     @Nullable
     private LayoutTree nodeTree;
+    private boolean layoutDeferred;
+    private int addingChild;
+    private int updatingPosition;
+    private int styleBatch;
+    private boolean styleBatchDirty;
 
     public UIElement() {
         super(Position.ORIGIN, Size.ZERO);
@@ -95,6 +101,10 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
         return new UIElement().layout(l -> l.row().height(height));
     }
 
+    public static UIElement centeredRow(int height) {
+        return row(height).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+    }
+
     /** 占位空白，对应 LDLib2 里一个只设了尺寸的空元素。 */
     public static Widget spacer(int width, int height) {
         return new Widget(0, 0, width, height);
@@ -106,7 +116,7 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
      */
     public static UIElement section(int width) {
         var section = new UIElement().layout(l -> l.column().width(width).gapAll(UISizes.GAP)
-                .paddingAll(UITheme.PANEL_PADDING).paddingBottom(UITheme.PANEL_PADDING_BOTTOM));
+                .paddingAll(UISizes.PANEL_PADDING).paddingBottom(UISizes.PANEL_PADDING_BOTTOM));
         section.setBackground(UITheme.PANEL);
         return section;
     }
@@ -122,7 +132,27 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     }
 
     public UIElement layout(Consumer<LayoutStyle> layout) {
-        layout.accept(style);
+        styleBatch++;
+        Throwable failure = null;
+        try {
+            layout.accept(style);
+        } catch (Throwable t) {
+            failure = t;
+            throw t;
+        } finally {
+            if (--styleBatch == 0 && styleBatchDirty) {
+                styleBatchDirty = false;
+                if (failure == null) {
+                    markLayoutDirty();
+                } else {
+                    try {
+                        markLayoutDirty();
+                    } catch (Throwable t) {
+                        failure.addSuppressed(t);
+                    }
+                }
+            }
+        }
         return this;
     }
 
@@ -140,8 +170,14 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
         return this;
     }
 
+    @Override
     public <T> SyncValue<T> addSyncValue(SyncValue<T> value) {
-        return syncValues.add(value);
+        return channel.addSyncValue(value);
+    }
+
+    @Override
+    public UIChannel getChannel() {
+        return channel;
     }
 
     /**
@@ -167,22 +203,22 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     }
 
     /**
-     * 选中（LDLib2 {@code setSelected}）：条件为真时画统一选中框（{@link UITheme#drawSelection}），物品槽、列表项等都用它。
+     * 选中（LDLib2 {@code setSelected}）：条件为真时画统一选中框（{@link UIDraw#selectionFrame}），物品槽、列表项等都用它。
      * 条件在客户端每帧判定，只应依赖本端界面状态（如所在窗口的弹出面板是否打开）——选中是"这个界面"的状态，
      * 放在机器字段上多人同时打开时会互相干扰。
      */
+    @Override
     public UIElement setSelected(@Nullable BooleanSupplier selected) {
-        state.setSelected(selected);
-        return this;
+        return ElementState.Host.super.setSelected(selected);
     }
 
     /**
      * 按服务端条件禁用（LDLib2 {@code disabled()}）：本元素下所有可操作的控件都禁用、叠统一斜纹，
      * 悬停提示先"禁止操作"再原因 {@code reasonKey}（翻译键，可为 null）。整行、整个区块设一次即可。建界面时两端都要调用。
      */
+    @Override
     public UIElement disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        state.setDisabled(serverCondition, reasonKey);
-        return this;
+        return ElementState.Host.super.disabled(serverCondition, reasonKey);
     }
 
     /** 选中框画在前景层：所有元素的背景（含之后才绘制的相邻槽）都画完后再画，外扩的那 1 像素不会被邻格盖住。 */
@@ -190,14 +226,14 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (transform == null) {
-            if (isSelected()) UITheme.drawSelection(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+            if (isSelected()) UIDraw.selectionFrame(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
             return;
         }
         var pose = graphics.pose();
         pose.pushPose();
         transform.apply(pose, getPositionX(), getPositionY());
-        if (isSelected()) UITheme.drawSelection(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+        if (isSelected()) UIDraw.selectionFrame(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
         super.drawInForeground(graphics, (int) Math.floor(toLocalX(mouseX)), (int) Math.floor(toLocalY(mouseY)), partialTicks);
         pose.popPose();
     }
@@ -207,14 +243,14 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
      * 只用于尺寸本来就固定的界面（如一行 9 个槽）；会随父元素变化的，用拉伸 / flexGrow，不要按它写死。
      */
     public int getContentWidth() {
-        int width = style.declaredWidth();
-        if (width == LayoutStyle.AUTO) width = style.declaredMinWidth() > 0 ? style.declaredMinWidth() : LayoutStyle.AUTO;
+        int width = style.getDeclaredWidth();
+        if (width == LayoutStyle.AUTO) width = style.getDeclaredMinWidth() > 0 ? style.getDeclaredMinWidth() : LayoutStyle.AUTO;
         return width == LayoutStyle.AUTO ? Integer.MAX_VALUE : width - style.horizontalPadding();
     }
 
     /** 声明了高度时为它减去上下内边距，否则 {@link Integer#MAX_VALUE}。 */
     public int getContentHeight() {
-        int height = style.declaredHeight();
+        int height = style.getDeclaredHeight();
         return height == LayoutStyle.AUTO ? Integer.MAX_VALUE : height - style.verticalPadding();
     }
 
@@ -245,10 +281,16 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
 
     /** 样式或测量结果变了：标脏并重新布局。 */
     public void markLayoutDirty() {
+        if (styleBatch > 0) {
+            styleBatchDirty = true;
+            return;
+        }
         var root = layoutRoot();
-        var tree = root.tree();
-        if (!tree.structureDirty && node != null && nodeTree == tree) tree.taffy.markDirty(node);
-        else tree.structureDirty = true;
+        var tree = root.layoutTree;
+        if (tree != null) {
+            if (!tree.structureDirty && node != null && nodeTree == tree) tree.taffy.markDirty(node);
+            else tree.structureDirty = true;
+        }
         root.requestLayout();
     }
 
@@ -263,16 +305,18 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
 
     private void markLeafDirty(Widget leaf) {
         var root = layoutRoot();
-        var tree = root.tree();
-        var leafNode = tree.leaves.get(leaf);
-        if (!tree.structureDirty && leafNode != null) tree.taffy.markDirty(leafNode);
-        else tree.structureDirty = true;
+        var tree = root.layoutTree;
+        if (tree != null) {
+            var leafNode = tree.leaves.get(leaf);
+            if (!tree.structureDirty && leafNode != null) tree.taffy.markDirty(leafNode);
+            else tree.structureDirty = true;
+        }
         root.requestLayout();
     }
 
     private void markStructureDirty() {
         var root = layoutRoot();
-        root.tree().structureDirty = true;
+        if (root.layoutTree != null) root.layoutTree.structureDirty = true;
         root.requestLayout();
     }
 
@@ -293,11 +337,35 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
 
     /** 本元素是树根：算到不再变脏为止（写回尺寸可能引发新的样式变化，如滚动条显隐）。 */
     private void requestLayout() {
-        var tree = tree();
-        if (tree.running) {
-            tree.pending = true;
+        if (layoutTree != null && layoutTree.running) {
+            layoutTree.pending = true;
             return;
         }
+        if (getParent() == null) {
+            layoutDeferred = true;
+            return;
+        }
+        layoutDeferred = false;
+        layoutNow();
+    }
+
+    private void flushDeferredLayout() {
+        for (int pass = 0; layoutDeferred; pass++) {
+            if (layoutTree != null && layoutTree.running) {
+                layoutTree.pending = true;
+                return;
+            }
+            if (pass >= MAX_LAYOUT_PASSES) {
+                LOGGER.warn("UI layout still deferred after {} passes, root {}", MAX_LAYOUT_PASSES, getClass().getName());
+                return;
+            }
+            layoutDeferred = false;
+            layoutNow();
+        }
+    }
+
+    private void layoutNow() {
+        var tree = tree();
         tree.running = true;
         boolean applied;
         try {
@@ -347,7 +415,10 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     }
 
     private NodeId buildNode(LayoutTree tree) {
-        if (tree != layoutTree) layoutTree = null;
+        if (tree != layoutTree) {
+            layoutTree = null;
+            layoutDeferred = false;
+        }
         var measure = widgets.isEmpty() ? getMeasure() : null;
         var id = measure == null ? tree.taffy.newLeaf(style.style) : tree.taffy.newLeafWithMeasure(style.style, measure);
         node = id;
@@ -414,11 +485,56 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     @Override
     protected void onChildSizeUpdate(Widget child) {
         if (child instanceof UIElement) return;
-        var root = layoutRoot();
-        var tree = root.tree();
-        if (tree.applying == child) return;
+        var tree = layoutRoot().layoutTree;
+        if (tree != null && tree.applying == child) return;
         if (child instanceof ILayoutItem) markLeafDirty(child);
         else markStructureDirty();
+    }
+
+    @Override
+    public Size getSize() {
+        if (gui == null) layoutRoot().flushDeferredLayout();
+        return super.getSize();
+    }
+
+    @Override
+    public Position getPosition() {
+        if (gui == null && addingChild == 0 && updatingPosition == 0) layoutRoot().flushDeferredLayout();
+        return super.getPosition();
+    }
+
+    @Override
+    protected void onPositionUpdate() {
+        updatingPosition++;
+        try {
+            super.onPositionUpdate();
+        } finally {
+            updatingPosition--;
+        }
+    }
+
+    @Override
+    public WidgetGroup addWidget(int index, Widget widget) {
+        addingChild++;
+        try {
+            var result = super.addWidget(index, widget);
+            channel.onChildAdded(widget);
+            return result;
+        } finally {
+            addingChild--;
+        }
+    }
+
+    @Override
+    public void initWidget() {
+        super.initWidget();
+        channel.prime();
+    }
+
+    @Override
+    protected void setParent(WidgetGroup parent) {
+        if (parent != null && !(parent instanceof UIElement)) flushDeferredLayout();
+        super.setParent(parent);
     }
 
     /** 树根（父控件不是 UIElement）尺寸变了，通知最近的 {@link ILayoutHost}；树内元素的尺寸由布局统一写回。 */
@@ -453,24 +569,24 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
         return clipChildren;
     }
 
-    public int clipX() {
+    public int getClipX() {
         return getPositionX();
     }
 
-    public int clipY() {
+    public int getClipY() {
         return getPositionY();
     }
 
-    public int clipWidth() {
+    public int getClipWidth() {
         return getSizeWidth();
     }
 
-    public int clipHeight() {
+    public int getClipHeight() {
         return getSizeHeight();
     }
 
     public boolean isInClip(double localX, double localY) {
-        return !clipChildren || isMouseOver(clipX(), clipY(), clipWidth(), clipHeight(), localX, localY);
+        return !clipChildren || isMouseOver(getClipX(), getClipY(), getClipWidth(), getClipHeight(), localX, localY);
     }
 
     public double toLocalX(double x) {
@@ -482,7 +598,7 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
     }
 
     private double localScale() {
-        return transform == null ? 1 : transform.scale();
+        return transform == null ? 1 : transform.getScale();
     }
 
     public boolean isPointerOver(double mouseX, double mouseY) {
@@ -603,7 +719,7 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
 
     @OnlyIn(Dist.CLIENT)
     private boolean intersectsClip(Rect2i area) {
-        double x0 = clipX(), y0 = clipY(), x1 = x0 + clipWidth(), y1 = y0 + clipHeight();
+        double x0 = getClipX(), y0 = getClipY(), x1 = x0 + getClipWidth(), y1 = y0 + getClipHeight();
         if (transform != null) {
             x0 = transform.toParentX(x0, getPositionX());
             y0 = transform.toParentY(y0, getPositionY());
@@ -687,10 +803,10 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
             super.drawWidgetsBackground(graphics, mouseX, mouseY, partialTicks);
             return;
         }
-        enableClip(graphics);
+        pushClip(graphics);
         boolean inside = isInClip(mouseX, mouseY);
         super.drawWidgetsBackground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
     }
 
     @Override
@@ -700,55 +816,58 @@ public class UIElement extends WidgetGroup implements ElementState.Host {
             super.drawWidgetsForeground(graphics, mouseX, mouseY, partialTicks);
             return;
         }
-        enableClip(graphics);
+        pushClip(graphics);
         boolean inside = isInClip(mouseX, mouseY);
         super.drawWidgetsForeground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void enableClip(GuiGraphics graphics) {
-        enableScissor(graphics, clipX(), clipY(), clipWidth(), clipHeight());
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static void enableScissor(GuiGraphics graphics, int x, int y, int width, int height) {
-        var matrix = graphics.pose().last().pose();
-        matrix.transform(SCISSOR_MIN.set(x, y, 0, 1));
-        matrix.transform(SCISSOR_MAX.set(x + width, y + height, 0, 1));
-        graphics.enableScissor(Math.round(SCISSOR_MIN.x), Math.round(SCISSOR_MIN.y), Math.round(SCISSOR_MAX.x), Math.round(SCISSOR_MAX.y));
+    public void pushClip(GuiGraphics graphics) {
+        UIClip.push(graphics, getClipX(), getClipY(), getClipWidth(), getClipHeight());
     }
 
     // ==================== 同步 ====================
 
     @Override
     public void writeInitialData(FriendlyByteBuf buffer) {
-        super.writeInitialData(buffer);
-        syncValues.writeInitialData(buffer);
+        channel.writeHead(buffer);
+        for (var widget : widgets) {
+            if (widget.isInitialized() && !widget.isClientSideWidget()) UIFrames.write(buffer, widget::writeInitialData);
+        }
+        channel.writeTail(buffer);
     }
 
     @Override
     public void readInitialData(FriendlyByteBuf buffer) {
-        super.readInitialData(buffer);
-        syncValues.readInitialData(buffer);
+        channel.readHead(buffer);
+        for (var widget : widgets) {
+            if (widget.isInitialized() && !widget.isClientSideWidget()) UIFrames.read(buffer, widget::readInitialData, widget);
+        }
+        channel.readTail(buffer);
     }
 
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        syncValues.detectAndSendChanges(this::writeUpdateInfo);
+        channel.detectAndSendChanges();
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-        if (!syncValues.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+        if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    @Override
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
+        if (!channel.handleClientAction(id, buffer)) super.handleClientAction(id, buffer);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void updateScreen() {
         super.updateScreen();
-        syncValues.pollClient();
+        channel.pollClient();
     }
 }

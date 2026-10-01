@@ -24,15 +24,19 @@ public class ItemTitle extends UIElement {
 
     public static final int HEIGHT = UISizes.CONTROL_HEIGHT;
 
-    public ItemTitle(int width, Supplier<ItemStack> stack, Supplier<Component> name) {
+    protected ItemTitle(int width, Supplier<ItemStack> stack, Supplier<Component> name) {
         layout(l -> l.row().width(width).height(HEIGHT).gapAll(UISizes.GAP).alignCenter());
-        var text = TextLine.of(0, () -> Component.literal(ChatFormatting.stripFormatting(name.get().getString()))).setColor(UITheme::text);
+        var text = TextLine.of(0, () -> Component.literal(ChatFormatting.stripFormatting(name.get().getString()))).bindClientColor(UITheme::text);
         text.layout(l -> l.flex(1));
         addChildren(new Icon(stack), text);
     }
 
     public static ItemTitle of(Supplier<ItemStack> stack, Supplier<Component> name) {
         return new ItemTitle(LayoutStyle.AUTO, stack, name);
+    }
+
+    public static ItemTitle of(int width, Supplier<ItemStack> stack, Supplier<Component> name) {
+        return new ItemTitle(width, stack, name);
     }
 
     private static final class Icon extends UIElement {
@@ -44,7 +48,7 @@ public class ItemTitle extends UIElement {
 
         private Icon(Supplier<ItemStack> stack) {
             layout(l -> l.size(ItemView.SIZE, ItemView.SIZE));
-            item = addSyncValue(SyncValue.of(() -> SyncItem.of(stack.get()), SyncItem.CODEC, SyncItem.EMPTY));
+            item = addSyncValue(SyncValue.ofItem(stack));
         }
 
         @Override

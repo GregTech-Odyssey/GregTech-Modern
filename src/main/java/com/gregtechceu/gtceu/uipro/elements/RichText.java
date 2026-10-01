@@ -23,6 +23,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.geometry.FloatSize;
+import dev.vfyjxf.taffy.style.TaffyDisplay;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +54,7 @@ public class RichText extends CustomComponentPanelWidget implements ILayoutItem 
     @Nullable
     private String justifyMark;
     private boolean darkBackground;
+    private boolean collapseEmpty;
 
     public RichText() {
         super(0, 0);
@@ -61,6 +63,12 @@ public class RichText extends CustomComponentPanelWidget implements ILayoutItem 
 
     public RichText darkBackground() {
         this.darkBackground = true;
+        return this;
+    }
+
+    public RichText collapseEmpty() {
+        this.collapseEmpty = true;
+        layoutStyle.display(TaffyDisplay.NONE);
         return this;
     }
 
@@ -109,6 +117,7 @@ public class RichText extends CustomComponentPanelWidget implements ILayoutItem 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void updateComponentTextSize() {
+        if (collapseEmpty) layoutStyle.display(lastText.isEmpty() ? TaffyDisplay.NONE : TaffyDisplay.FLEX);
         UIElement.markLayoutDirty(this);
     }
 

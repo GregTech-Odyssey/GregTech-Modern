@@ -21,21 +21,25 @@ public class ItemView extends UIElement {
 
     private final IGuiTexture icon;
 
-    public ItemView(IGuiTexture icon, int size) {
+    protected ItemView(int size, IGuiTexture icon) {
         this.icon = icon;
         layout(l -> l.size(size, size));
     }
 
     public static ItemView of(IGuiTexture icon) {
-        return new ItemView(icon, SIZE);
+        return new ItemView(SIZE, icon);
+    }
+
+    public static ItemView of(int size, IGuiTexture icon) {
+        return new ItemView(size, icon);
     }
 
     public static ItemView of(ItemStack stack) {
-        return new ItemView(new ItemStackTexture(stack), SIZE);
+        return new ItemView(SIZE, new ItemStackTexture(stack));
     }
 
-    public static ItemView of(ItemStack stack, int size) {
-        return new ItemView(new ItemStackTexture(stack), size);
+    public static ItemView of(int size, ItemStack stack) {
+        return new ItemView(size, new ItemStackTexture(stack));
     }
 
     @Override

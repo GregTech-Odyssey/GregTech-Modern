@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.item.component.IItemLifeCycle;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.SwitchedContent;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
@@ -114,7 +115,7 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
                 var filter = Filter.get(key);
                 return remote ? ItemFilter.loadFilter(new ItemStack(filter.item)).createConfigUI() : filter(filter).createConfigUI();
             });
-            return CoverUIs.page().addChildren(type, UIElement.section().addChild(config));
+            return Form.page().addChildren(type, UIElement.section().addChild(config));
         }
 
         private void save() {

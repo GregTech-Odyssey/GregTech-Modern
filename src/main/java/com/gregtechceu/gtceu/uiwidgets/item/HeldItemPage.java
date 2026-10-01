@@ -24,8 +24,6 @@ import java.util.function.Function;
 
 public final class HeldItemPage implements IFancyUIProvider {
 
-    private static final int SERVER_HEIGHT_LIMIT = Integer.MAX_VALUE / 4;
-
     private final HeldItemUIFactory.HeldItemHolder holder;
     private final Function<MachineWindow, Widget> content;
     private boolean inventory = true;
@@ -57,7 +55,7 @@ public final class HeldItemPage implements IFancyUIProvider {
     }
 
     public ModularUI createUI(Player player) {
-        return new ModularUI(UISizes.WINDOW_WIDTH, UISizes.WINDOW_WIDTH, holder, player).widget(new MachineWindow(this));
+        return MachineWindow.createUI(this, holder, player);
     }
 
     public ItemStack held() {
@@ -70,9 +68,7 @@ public final class HeldItemPage implements IFancyUIProvider {
         window.setTitleItem(this::held, () -> held().getHoverName());
         var page = content.apply(window);
         if (!scroll) return page;
-        var scroller = new ScrollerView("held_item.page", UISizes.CONTENT_WIDTH, UISizes.SLOT).adaptiveWidth().setResizable(false);
-        scroller.addScrollViewChild(page);
-        scroller.adaptiveHeight(widget.isRemote() ? MachineWindow.clientPageHeightLimit(inventory) : SERVER_HEIGHT_LIMIT);
+        var scroller = ScrollerView.page("held_item.page", UISizes.CONTENT_WIDTH).adaptiveWidth().addScrollViewChild(page);
         return UIElement.column(LayoutStyle.AUTO).addChild(scroller);
     }
 

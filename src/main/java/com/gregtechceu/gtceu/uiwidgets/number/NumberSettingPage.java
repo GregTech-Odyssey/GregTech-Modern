@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uiwidgets.number;
 
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Adjuster;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -36,13 +37,18 @@ public final class NumberSettingPage {
 
     /** 只有输入行、没有标题的窄版：展开项的标题栏已经写明设置的是什么。 */
     public static UIElement compact(LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, long... steps) {
-        return UIElement.column(COMPACT_WIDTH).addChild(new NumberField(COMPACT_WIDTH, getter, setter, min, max, steps));
+        return UIElement.column(COMPACT_WIDTH).addChild(field(COMPACT_WIDTH, getter, setter, min, max, steps));
     }
 
     private static UIElement section(int width, Component title, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, long... steps) {
         var section = UIElement.section(width);
-        section.addChildren(TextLine.constant(LayoutStyle.AUTO, title).setColor(UITheme::panelText),
-                new NumberField(width - 2 * UITheme.PANEL_PADDING, getter, setter, min, max, steps));
+        section.addChildren(TextLine.constant(LayoutStyle.AUTO, title).bindClientColor(UITheme::panelText),
+                field(width - 2 * UISizes.PANEL_PADDING, getter, setter, min, max, steps));
         return section;
+    }
+
+    private static Adjuster field(int width, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, long[] steps) {
+        var field = NumberField.ofLong(width, getter, setter, min, max);
+        return steps.length == 0 ? field : field.setSteps(steps);
     }
 }

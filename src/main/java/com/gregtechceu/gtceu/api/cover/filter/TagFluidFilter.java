@@ -1,10 +1,7 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
-import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
+import com.gregtechceu.gtceu.uiwidgets.filter.TagLookupView;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
-
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -15,6 +12,7 @@ import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implements FluidFilter {
 
@@ -49,12 +47,8 @@ public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implement
     }
 
     @Override
-    Widget createQuerySlot(TagQuery query) {
-        var tank = new CustomFluidTank(1);
-        query.bind(() -> tank.getFluid().getFluid(), () -> tank.getFluid().getFluid().defaultFluidState().getTags().map(t -> t));
-        var slot = new PhantomFluidSlot(tank, 0, tank::getFluid, tank::setFluid).xeiPhantom();
-        slot.setHoverTooltips("cover.tag_filter.lookup_fluid", "cover.tag_filter.lookup_only");
-        return slot;
+    TagLookupView createLookup(Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick) {
+        return TagLookupView.fluids("cover.tag_filter.tags", getter, setter, onServerPick, "cover.tag_filter.lookup_fluid", "cover.tag_filter.lookup_only");
     }
 
     @Override

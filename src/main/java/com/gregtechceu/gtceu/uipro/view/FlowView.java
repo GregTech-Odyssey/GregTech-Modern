@@ -2,8 +2,9 @@ package com.gregtechceu.gtceu.uipro.view;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.ViewTransform;
-import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasRect;
+import com.gregtechceu.gtceu.uipro.render.UIClip;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 
@@ -26,7 +27,7 @@ public class FlowView extends PlanarView {
     public static final float MIN_ZOOM = 0.25f;
     public static final float MAX_ZOOM = 2f;
     public static final String SHARED_ZOOM_KEY = "flow";
-    private static final int MIN_SIZE = 2 * UISizes.SLOT;
+    private static final int MIN_SIZE = 2 * UISizes.SLOT_SIZE;
     private static final int EDGE = 4;
     private static final int EDGE_ALPHA = 0x30;
 
@@ -126,7 +127,13 @@ public class FlowView extends PlanarView {
     }
 
     private void updateTransform() {
-        transform.set(PixelSnap.snap(-offsetX * scale), PixelSnap.snap(-offsetY * scale), scale);
+        if (isRemote()) clientUpdateTransform();
+        else transform.set(-offsetX * scale, -offsetY * scale, scale);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void clientUpdateTransform() {
+        transform.set(UIPixels.snap(-offsetX * scale), UIPixels.snap(-offsetY * scale), scale);
     }
 
     @Override
@@ -176,14 +183,14 @@ public class FlowView extends PlanarView {
         if (viewportWidth() <= 0 || viewportHeight() <= 0) return;
         prepareView();
         updateTransform();
-        enableClip(graphics);
+        pushClip(graphics);
         drawGrid(graphics);
         if (painter != null) painter.flush();
-        graphics.disableScissor();
+        UIClip.pop(graphics);
         drawChildren(graphics, mouseX, mouseY, partialTicks);
-        enableClip(graphics);
+        pushClip(graphics);
         drawEdges(graphics);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
     }
 
     @OnlyIn(Dist.CLIENT)

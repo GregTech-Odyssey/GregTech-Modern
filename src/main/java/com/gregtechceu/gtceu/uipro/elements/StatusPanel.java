@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.network.chat.Component;
@@ -17,8 +18,8 @@ import java.util.function.Supplier;
  * var status = new StatusPanel(width);
  * status.addLine(KEY_OWNER, () -&gt; ownerName);                                   // 纯信息：无灯
  * status.addLine(KEY_STATE, () -&gt; shortState)                                   // 表示好坏：灯 + 上色
- *         .level(() -&gt; online ? StatusLine.Level.GOOD : StatusLine.Level.ERROR)
- *         .detail(() -&gt; fullReason);                                          // 悬停看完整原因
+ *         .bindLevel(() -&gt; online ? Level.GOOD : Level.ERROR)
+ *         .bindDetail(() -&gt; fullReason);                                        // 悬停看完整原因
  * </pre>
  */
 public class StatusPanel extends UIElement {
@@ -30,7 +31,7 @@ public class StatusPanel extends UIElement {
 
     /** {@code width} 为 {@link LayoutStyle#AUTO} 时宽度由内容 / 父元素决定；各行都被拉伸到面板内宽。 */
     public StatusPanel(int width) {
-        layout(l -> l.column().width(width).paddingAll(UITheme.PANEL_PADDING).paddingBottom(UITheme.PANEL_PADDING_BOTTOM));
+        layout(l -> l.column().width(width).paddingAll(UISizes.PANEL_PADDING).paddingBottom(UISizes.PANEL_PADDING_BOTTOM));
         setBackground(UITheme.STATUS_PANEL);
     }
 
@@ -51,6 +52,6 @@ public class StatusPanel extends UIElement {
 
     /** {@code lines} 行时面板的总高度（建页时预留空间用）。 */
     public static int heightFor(int lines) {
-        return UITheme.PANEL_PADDING + UITheme.PANEL_PADDING_BOTTOM + lines * StatusLine.HEIGHT;
+        return UISizes.PANEL_PADDING + UISizes.PANEL_PADDING_BOTTOM + lines * StatusLine.HEIGHT;
     }
 }

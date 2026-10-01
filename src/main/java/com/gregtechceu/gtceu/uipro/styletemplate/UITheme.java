@@ -1,19 +1,18 @@
 package com.gregtechceu.gtceu.uipro.styletemplate;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.canvas.WireStyle;
+import com.gregtechceu.gtceu.uipro.render.StateTexture;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -66,6 +65,22 @@ public final class UITheme {
         return PANEL_TEXT;
     }
 
+    public static int barProgress() {
+        return FLOW_GREEN_LIGHT;
+    }
+
+    public static int barSteam() {
+        return FLOW_CYAN_LIGHT;
+    }
+
+    public static int barEnergy() {
+        return FLOW_AMBER_LIGHT;
+    }
+
+    public static int barHeat() {
+        return BAR_HEAT;
+    }
+
     /** 物品槽底图。 */
     private static IGuiTexture itemSlot = OreSprites.SLOT_BRIGHT;
     public static final IGuiTexture ITEM_SLOT = dynamic(() -> itemSlot);
@@ -80,6 +95,11 @@ public final class UITheme {
      * 区块面板是平的细边框，二者并排时一眼能分出"状态"和"设置"。
      */
     private static IGuiTexture statusPanel = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFB5B5B5);
+    private static IGuiTexture deck = new OreSprites.Plate(0xFF373737, 0xFFFFFFFF, 0xFF7A7A7A, 0xFFBDBDBD);
+    private static IGuiTexture etch = new OreSprites.Etch(0xFF7A7A7A, 0xFFFFFFFF);
+    public static final IGuiTexture DECK = dynamic(() -> deck);
+    public static final IGuiTexture ETCH = dynamic(() -> etch);
+    public static int SLOT_GHOST_VEIL = 0x808B8B8B;
     public static final IGuiTexture STATUS_PANEL = dynamic(() -> statusPanel);
     /** 进度条（{@code ProgressBar}）的轨道：与状态显示窗同样的下凹斜面，底色再深一档，填充色压在上面看得清。 */
     private static IGuiTexture progressTrack = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFA4A4A4);
@@ -87,8 +107,31 @@ public final class UITheme {
     private static IGuiTexture displayScreen = new OreSprites.Bevel(0xFF373737, 0xFFFFFFFF, 0xFF21262A);
     public static final IGuiTexture DISPLAY_SCREEN = dynamic(() -> displayScreen);
     public static int SCREEN_TEXT = 0xFFE2E6E8;
+    public static int SCREEN_LABEL = 0xFF9DAAB0;
+    public static int SCREEN_HEADER = 0xFFFFAA00;
+    public static int SCREEN_GOOD = 0xFF55FF55;
+    public static int SCREEN_WARNING = 0xFFFFFF55;
+    public static int SCREEN_ERROR = 0xFFFF5555;
+    public static int SCREEN_TRACK = 0xFF0A0D0E;
+    public static final int SCREEN_TRACK_EDGE = 0xFF4B565C;
+    public static int SCREEN_DIVIDER = 0xFF3A4449;
+    public static final IGuiTexture SCREEN_GAUGE_FRAME = new OreSprites.Bevel(0xFF0C0E10, 0xFF3A4046, 0x00000000);
+    public static int BAR_HEAT = 0xFFE3A45A;
     /** 输入框、数值框的深色框。 */
-    public static final IGuiTexture INSET = OreSprites.RECT;
+    public static final StateTexture INSET = StateTexture.builder()
+            .add(UIStates.FOCUSED, StateTexture.layers(OreSprites.RECT, OreSprites.WHITE_BORDER))
+            .build(OreSprites.RECT);
+    private static final OreSprites.Sprite SWITCH_ON_HOVER = OreSprites.SWITCH_ON.tinted(OreSprites.PRESSED_TINT);
+    private static final OreSprites.Sprite SWITCH_OFF_HOVER = OreSprites.SWITCH_OFF.tinted(OreSprites.PRESSED_TINT);
+    public static final StateTexture SWITCH = StateTexture.builder()
+            .add(UIStates.CHECKED | UIStates.HOVERED, SWITCH_ON_HOVER)
+            .add(UIStates.CHECKED, OreSprites.SWITCH_ON)
+            .add(UIStates.HOVERED, SWITCH_OFF_HOVER)
+            .build(OreSprites.SWITCH_OFF);
+    public static final StateTexture SEGMENT_SELECTED = StateTexture.builder()
+            .add(UIStates.PRESSED, OreSprites.BTN_PRESSED_SMALL_GREEN)
+            .add(UIStates.HOVERED, OreSprites.BTN_HOVER_SMALL_GREEN)
+            .build(OreSprites.BTN_DEFAULT_SMALL_GREEN);
     /** 滚动条轨道、滑块。 */
     private static IGuiTexture scrollTrack = OreSprites.SLOT_BRIGHT;
     public static final IGuiTexture SCROLL_TRACK = dynamic(() -> scrollTrack);
@@ -145,6 +188,14 @@ public final class UITheme {
         FIELD_TEXT = color(colors, "field_text");
         PLACEHOLDER_TEXT = color(colors, "placeholder_text");
         SCREEN_TEXT = color(colors, "screen_text");
+        SCREEN_LABEL = color(colors, "screen_label");
+        SCREEN_HEADER = color(colors, "screen_header");
+        SCREEN_GOOD = color(colors, "screen_good");
+        SCREEN_WARNING = color(colors, "screen_warning");
+        SCREEN_ERROR = color(colors, "screen_error");
+        SCREEN_TRACK = color(colors, "screen_track");
+        SCREEN_DIVIDER = color(colors, "screen_divider");
+        BAR_HEAT = color(colors, "bar_heat");
         BUTTON_TEXT = color(colors, "button_text");
         BUTTON_TEXT_DISABLED = color(colors, "button_text_disabled");
         WINDOW_FILL = color(colors, "window_fill");
@@ -225,6 +276,9 @@ public final class UITheme {
         fluidSlot = new OreSprites.Bevel(slotBevelDark, slotBevelLight, color(colors, "fluid_slot_fill"));
         panel = new OreSprites.Bevel(color(colors, "panel_outline"), color(colors, "panel_outline"), color(colors, "panel_fill"));
         statusPanel = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "status_panel_fill"));
+        deck = new OreSprites.Plate(slotBevelDark, bevelLight, bevelDark, color(colors, "panel_fill"));
+        etch = new OreSprites.Etch(bevelDark, bevelLight);
+        SLOT_GHOST_VEIL = (color(colors, "slot_fill") & 0xFFFFFF) | 0x80000000;
         progressTrack = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "progress_track_fill"));
         displayScreen = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "display_screen_fill"));
         scrollTrack = itemSlot;
@@ -237,9 +291,11 @@ public final class UITheme {
         configuratorTab = new OreSprites.Shifted(window, 0, 1);
         configuratorTabHover = new OreSprites.Shifted(pageTabHover, 0, 1);
         configuratorTabPressed = new OreSprites.Shifted(
-                new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_PRESSED_FILL, 2, 2, 2, 4), CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
+                new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_PRESSED_FILL, 2, 2, 2, 4), UISizes.CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
         configuratorTabLatched = new OreSprites.Shifted(new OreSprites.Refilled(OreSprites.LATCHED, color(colors, "latched_fill"), 2, 2, 2, 2), 0, 1);
         canvas = new OreSprites.Bevel(bevelDark, bevelLight, CANVAS_FILL);
+        pageTabStates = pageTabStates();
+        configuratorTabStates = configuratorTabStates();
     }
 
     private static int color(Map<String, Integer> colors, String key) {
@@ -278,22 +334,14 @@ public final class UITheme {
      * 未选中的底色暗一档、坐在窗口顶边上，悬停时介于两者之间。
      */
     private static IGuiTexture pageTabSelected = new OreSprites.Refilled(OreSprites.TAB_SELECTED, OreSprites.WINDOW_FILL, 2, 2, 2, 0);
-    public static final IGuiTexture PAGE_TAB_SELECTED = dynamic(() -> pageTabSelected);
     /// 标签悬停底色（页面标签、配置按钮共用）
     private static int TAB_HOVER_FILL = 0xFFB9B9B9;
     private static int TAB_FILL = 0xFFA8A8A8;
     private static int TAB_PRESSED_FILL = 0xFFADADAD;
     private static IGuiTexture pageTabHover = new OreSprites.Refilled(OreSprites.BORDER_7, TAB_HOVER_FILL, 2, 2, 2, 4);
-    public static final IGuiTexture PAGE_TAB_HOVER = dynamic(() -> pageTabHover);
     private static IGuiTexture pageTab = new OreSprites.Refilled(OreSprites.BORDER_7, TAB_FILL, 2, 2, 2, 4);
-    public static final IGuiTexture PAGE_TAB = dynamic(() -> pageTab);
     /** 窗口左侧配置按钮（GTM 配置面板）的底图，下移 1 像素，让居中摆放的图标落在面板中央。 */
     private static IGuiTexture configuratorTab = new OreSprites.Shifted(OreSprites.BORDER_7_BRIGHT, 0, 1);
-    public static final IGuiTexture CONFIGURATOR_TAB = dynamic(() -> configuratorTab);
-    /// 浮层（弹出面板、展开的配置项、滚动区缩放角）的绘制高度：盖过物品模型（约 150）和数量文字
-    public static final int OVERLAY_Z = 200;
-    /// 页内浮层（如 AE 配置格的数量面板）的绘制高度：盖过格子里的物品（约 150）与数量文字（200）
-    public static final int PAGE_OVERLAY_Z = 250;
     /// 窗口外框（{@link #WINDOW}，即 BORDER_7）最外圈的描边色
     public static int WINDOW_OUTLINE = 0xFF181A1B;
 
@@ -305,29 +353,35 @@ public final class UITheme {
         graphics.fill(x, y, x + width, y + 1, CARD_SHADOW);
     }
 
-    /// 弹出面板指向所属对象的小尖角高度
-    public static final int POPUP_NOTCH = 4;
     /// 分段选择（{@code ButtonGroup.compact}）里未选中项悬停时叠的暗色
     public static int SEGMENT_HOVER = 0x20000000;
 
     /** 配置按钮悬停：底色暗一档（不比窗口底色亮）。 */
     private static IGuiTexture configuratorTabHover = new OreSprites.Shifted(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_HOVER_FILL, 2, 2, 2, 4), 0, 1);
-    public static final IGuiTexture CONFIGURATOR_TAB_HOVER = dynamic(() -> configuratorTabHover);
-    /** 配置按钮按下：顶边下移 {@link #CONFIGURATOR_TAB_PRESS_DEPTH} 像素（整块变矮、底边不动）、再暗一档，图标跟着下移同样距离。 */
-    public static final int CONFIGURATOR_TAB_PRESS_DEPTH = 2;
+    /** 配置按钮按下：顶边下移 {@link UISizes#CONFIGURATOR_TAB_PRESS_DEPTH} 像素（整块变矮、底边不动）、再暗一档，图标跟着下移同样距离。 */
     private static IGuiTexture configuratorTabPressed = new OreSprites.Shifted(
-            new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_PRESSED_FILL, 2, 2, 2, 4), CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
-    public static final IGuiTexture CONFIGURATOR_TAB_PRESSED = dynamic(() -> configuratorTabPressed);
-    public static final int CONFIGURATOR_TAB_LATCH_DEPTH = 1;
+            new OreSprites.Sunk(new OreSprites.Refilled(OreSprites.BORDER_7, TAB_PRESSED_FILL, 2, 2, 2, 4), UISizes.CONFIGURATOR_TAB_PRESS_DEPTH), 0, 1);
     private static IGuiTexture configuratorTabLatched = new OreSprites.Shifted(
             new OreSprites.Refilled(OreSprites.LATCHED, 0xFF969696, 2, 2, 2, 2), 0, 1);
-    public static final IGuiTexture CONFIGURATOR_TAB_LATCHED = dynamic(() -> configuratorTabLatched);
-    /** 区块内边距：让开 1 像素细边后留 2 像素空白。 */
-    public static final int PANEL_PADDING = 3;
-    public static final int PANEL_PADDING_BOTTOM = 3;
+    private static StateTexture pageTabStates = pageTabStates();
+    public static final StateTexture PAGE_TAB = StateTexture.dynamic(() -> pageTabStates);
+    private static StateTexture configuratorTabStates = configuratorTabStates();
+    public static final StateTexture CONFIGURATOR_TAB = StateTexture.dynamic(() -> configuratorTabStates);
 
-    /** 按钮的底部台阶高度：文字/图标要画在台阶以上的区域。 */
-    public static final int BUTTON_LIP = 2;
+    private static StateTexture pageTabStates() {
+        return StateTexture.builder()
+                .add(UIStates.SELECTED, pageTabSelected)
+                .add(UIStates.HOVERED, pageTabHover)
+                .build(pageTab);
+    }
+
+    private static StateTexture configuratorTabStates() {
+        return StateTexture.builder()
+                .add(UIStates.LATCHED, configuratorTabLatched)
+                .add(UIStates.PRESSED, configuratorTabPressed)
+                .add(UIStates.HOVERED, configuratorTabHover)
+                .build(configuratorTab);
+    }
 
     /** 状态指示色（指示灯等）：在线、正常。 */
     public static int STATUS_ONLINE = 0xFF55DD55;
@@ -342,13 +396,9 @@ public final class UITheme {
     /** 状态行小灯的描边。 */
     public static int STATUS_LAMP_OUTLINE = 0xFF373737;
 
-    /** 选中框（{@link #drawSelection}）：金色亮边、深色描边、内部呼吸光的透明度范围与周期。 */
     public static int SELECTION_COLOR = 0xFFFFC83D;
     /** 描边与原版物品槽的深色边同色：网格里它与邻格的深色线一致，任何一边看起来都一样。 */
     public static int SELECTION_OUTLINE = 0xFF373737;
-    private static final int SELECTION_FILL_ALPHA_MIN = 0x08;
-    private static final int SELECTION_FILL_ALPHA_MAX = 0x28;
-    private static final long SELECTION_PULSE_MS = 1600;
 
     /** 按钮配色。 */
     public enum ButtonVariant {
@@ -360,32 +410,24 @@ public final class UITheme {
         /** 清除、删除等危险操作。 */
         DANGER;
 
+        public static ButtonVariant of(Level level) {
+            return switch (level) {
+                case GOOD -> CONFIRM;
+                case ERROR -> DANGER;
+                default -> DEFAULT;
+            };
+        }
+
         public int textColor(boolean enabled) {
             if (!enabled) return BUTTON_TEXT_DISABLED;
             return this == DEFAULT ? BUTTON_TEXT : OreSprites.TEXT_LIGHT;
         }
 
-        private OreSprites.Sprite base() {
+        public StateTexture texture() {
             return switch (this) {
-                case DEFAULT -> buttonDefault;
-                case CONFIRM -> OreSprites.BTN_DEFAULT_GREEN;
-                case DANGER -> OreSprites.BTN_DEFAULT_RED;
-            };
-        }
-
-        private OreSprites.Sprite hover() {
-            return switch (this) {
-                case DEFAULT -> buttonDefaultHover;
-                case CONFIRM -> OreSprites.BTN_PRESSED_GREEN;
-                case DANGER -> OreSprites.BTN_PRESSED_RED;
-            };
-        }
-
-        private OreSprites.Sprite pressed() {
-            return switch (this) {
-                case DEFAULT -> buttonDefaultPressed;
-                case CONFIRM -> BUTTON_CONFIRM_PRESSED;
-                case DANGER -> BUTTON_DANGER_PRESSED;
+                case DEFAULT -> BUTTON;
+                case CONFIRM -> BUTTON_CONFIRM;
+                case DANGER -> BUTTON_DANGER;
             };
         }
     }
@@ -396,197 +438,38 @@ public final class UITheme {
     private static final OreSprites.Sprite BUTTON_CONFIRM_PRESSED = OreSprites.BTN_PRESSED_GREEN.tinted(multiply(OreSprites.BTN_PRESSED_GREEN.tint(), OreSprites.PRESSED_TINT));
     private static final OreSprites.Sprite BUTTON_DANGER_PRESSED = OreSprites.BTN_PRESSED_RED.tinted(multiply(OreSprites.BTN_PRESSED_RED.tint(), OreSprites.PRESSED_TINT));
 
+    private static StateTexture buttonStates = buttonStates(buttonDefault, buttonDefaultHover, buttonDefaultPressed);
+    public static final StateTexture BUTTON = StateTexture.dynamic(() -> buttonStates);
+    public static final StateTexture BUTTON_CONFIRM = buttonStates(OreSprites.BTN_DEFAULT_GREEN, OreSprites.BTN_PRESSED_GREEN, BUTTON_CONFIRM_PRESSED);
+    public static final StateTexture BUTTON_DANGER = buttonStates(OreSprites.BTN_DEFAULT_RED, OreSprites.BTN_PRESSED_RED, BUTTON_DANGER_PRESSED);
+
+    private static StateTexture buttonStates(IGuiTexture base, IGuiTexture hover, IGuiTexture pressed) {
+        return StateTexture.builder()
+                .add(UIStates.PRESSED, pressed)
+                .add(UIStates.HOVERED, hover)
+                .build(base);
+    }
+
     private static void updateButtonSprites(int tint) {
         buttonDefault = OreSprites.BTN_DEFAULT.tinted(tint);
         buttonDefaultHover = OreSprites.BTN_PRESSED.tinted(tint);
         buttonDefaultPressed = buttonDefaultHover.tinted(multiply(buttonDefaultHover.tint(), OreSprites.PRESSED_TINT));
-    }
-
-    /** 按钮底图：悬停换深一档，按下再叠一层灰，禁用统一灰色。 */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawButton(GuiGraphics graphics, int x, int y, int width, int height, ButtonVariant variant,
-                                  boolean hovered, boolean pressed, boolean enabled) {
-        OreSprites.Sprite sprite;
-        if (!enabled) sprite = OreSprites.BTN_DISABLED;
-        else if (pressed) sprite = variant.pressed();
-        else sprite = hovered ? variant.hover() : variant.base();
-        sprite.draw(graphics, x, y, width, height);
-    }
-
-    /** 选项标记（单选圆点 / 多选勾选框）的边长。 */
-    public static final int OPTION_MARK_SIZE = 7;
-    private static final int OPTION_MARK_OFF = 0xFFA0A0A0;
-    private static final int OPTION_MARK_ON = 0xFFFFFFFF;
-    private static final int[][] OPTION_MARK_CHECK_PIXELS = { { 0, 2 }, { 1, 3 }, { 2, 4 }, { 3, 3 }, { 3, 2 }, { 4, 1 }, { 4, 0 } };
-
-    /**
-     * 按钮组选项左侧的标记，{@link #OPTION_MARK_SIZE} 见方、深色描边（四角缺一像素，看起来是圆的）：
-     * 单选是"灯"——没选中暗灰、选中点亮成白色；多选是勾选框——白底，选中时画深绿色对勾。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawOptionMark(GuiGraphics graphics, int x, int y, boolean multiple, boolean on) {
-        int s = OPTION_MARK_SIZE, r = x + s, b = y + s;
-        int outline = STATUS_LAMP_OUTLINE;
-        graphics.fill(x + 1, y, r - 1, y + 1, outline);
-        graphics.fill(x + 1, b - 1, r - 1, b, outline);
-        graphics.fill(x, y + 1, x + 1, b - 1, outline);
-        graphics.fill(r - 1, y + 1, r, b - 1, outline);
-        if (!multiple) {
-            graphics.fill(x + 1, y + 1, r - 1, b - 1, on ? OPTION_MARK_ON : OPTION_MARK_OFF);
-            return;
-        }
-        graphics.fill(x + 1, y + 1, r - 1, b - 1, OPTION_MARK_ON);
-        if (!on) return;
-        // 5×5 内格里的对勾：左短臂向下，右长臂向上
-        int ix = x + 1, iy = y + 1, c = STATUS_TEXT_GOOD;
-        for (var pixel : OPTION_MARK_CHECK_PIXELS) {
-            graphics.fill(ix + pixel[0], iy + pixel[1], ix + pixel[0] + 1, iy + pixel[1] + 1, c);
-        }
-    }
-
-    /** 深色框；{@code focused} 时叠白框。 */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawInset(GuiGraphics graphics, int x, int y, int width, int height, boolean focused) {
-        OreSprites.RECT.draw(graphics, x, y, width, height);
-        if (focused) OreSprites.WHITE_BORDER.draw(graphics, x, y, width, height);
-    }
-
-    /**
-     * 统一的选中框，画在物品之上、悬浮提示之下（z = 300）：深色圆角描边 + 金色亮边，内部一层缓慢呼吸的淡金色。
-     * 在前景层调用（见 {@code UIElement#drawInForeground}），否则之后才绘制的相邻元素会盖住外扩的描边。
-     * <p>
-     * 框比元素向外扩 1 像素：原版斜面槽排成网格时，格与格之间是"白色高光 + 深色阴影"两条线，
-     * 贴着槽边画框会让上、左两边多出邻格的白线而显得更粗；外扩 1 像素后四边正好各盖住这两条线，上下左右对称。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawSelection(GuiGraphics graphics, int x, int y, int width, int height) {
-        int l = x - 1, t = y - 1, r = x + width + 1, b = y + height + 1;
-        double phase = (System.currentTimeMillis() % SELECTION_PULSE_MS) / (double) SELECTION_PULSE_MS;
-        int alpha = (int) (SELECTION_FILL_ALPHA_MIN + (SELECTION_FILL_ALPHA_MAX - SELECTION_FILL_ALPHA_MIN) * (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
-        var pose = graphics.pose();
-        pose.pushPose();
-        pose.translate(0, 0, 300);
-        graphics.fill(l + 2, t + 2, r - 2, b - 2, alpha << 24 | (SELECTION_COLOR & 0xFFFFFF));
-        ring(graphics, l, t, r, b, SELECTION_OUTLINE, true);
-        ring(graphics, l + 1, t + 1, r - 1, b - 1, SELECTION_COLOR, false);
-        pose.popPose();
+        buttonStates = buttonStates(buttonDefault, buttonDefaultHover, buttonDefaultPressed);
     }
 
     /// 只读斜纹：16×16 平铺块，每 4 像素一组"30% 深灰线（原版槽阴影色）+ 紧挨的 22% 白色高光线"，像刻出的凹槽；
     /// 双色是为了浅底（槽、按钮）和深底（输入框）上都看得清
     private static ResourceLocation disabledHatch = GTCEu.id("textures/gui/uipro/slot_readonly.png");
-    private static final int DISABLED_HATCH_SIZE = 16;
-    /// 斜纹的高度层：盖在物品模型（约 150）之上、数量文字（200）之下，有物品时也看得出，数量仍然清楚
-    private static final int DISABLED_HATCH_Z = 170;
 
-    /**
-     * "只读"标识：在槽的内部（让开 1 像素斜面边）平铺淡斜纹，盖在内容之上、数量文字之下。
-     * 用来代替压暗——槽保持明亮的原色，一眼能看出"这格只读、不能点"，里面的物品也看得清。
-     * 可与选中框（{@link #drawSelection}）同时出现。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawDisabled(GuiGraphics graphics, int x, int y, int width, int height) {
-        int left = x + 1, top = y + 1, right = x + width - 1, bottom = y + height - 1;
-        if (right <= left || bottom <= top) return;
-        RenderSystem.enableBlend();
-        var pose = graphics.pose();
-        pose.pushPose();
-        pose.translate(0, 0, DISABLED_HATCH_Z);
-        for (int ty = top; ty < bottom; ty += DISABLED_HATCH_SIZE) {
-            int h = Math.min(DISABLED_HATCH_SIZE, bottom - ty);
-            for (int tx = left; tx < right; tx += DISABLED_HATCH_SIZE) {
-                int w = Math.min(DISABLED_HATCH_SIZE, right - tx);
-                graphics.blit(disabledHatch, tx, ty, 0, 0, w, h, DISABLED_HATCH_SIZE, DISABLED_HATCH_SIZE);
-            }
-        }
-        pose.popPose();
-    }
-
-    /**
-     * "可从 EMI 拖入"标记（LDLib2 {@code xeiPhantom}）：槽底部的下箭头（与 GTM 配置槽同一图标），画在槽底图之上、内容之下。
-     * {@code darkSlot} 为深色槽（流体槽）时用浅色箭头，否则用深色箭头。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawXeiPhantom(GuiGraphics graphics, int x, int y, int width, int height, boolean darkSlot) {
-        (darkSlot ? GuiTextures.CONFIG_ARROW : GuiTextures.CONFIG_ARROW_DARK).draw(graphics, 0, 0, x, y, width, height);
-    }
-
-    /** 拖拽缩放角的边长（滚动区右下角，见 {@code ScrollerView}）。 */
-    public static final int RESIZE_GRIP_SIZE = 6;
-    /// 拖拽角的点阵：每个点左上一个深色像素、右下一个白色高光像素（与原版槽的明暗方向一致），排成右下角的三角
-    private static final int[][] RESIZE_GRIP_DOTS = { { 4, 0 }, { 2, 2 }, { 4, 2 }, { 0, 4 }, { 2, 4 }, { 4, 4 } };
-
-    /**
-     * 拖拽缩放角，右下角对齐 ({@code right}, {@code bottom})；悬停或拖拽中时深色部分变成选中金色。
-     * 锁定时换成同样大小的直角（沿右、下两边的折角，内侧白色高光），一眼能区分又不抢眼。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawResizeGrip(GuiGraphics graphics, int right, int bottom, boolean active, boolean locked) {
-        int x = right - RESIZE_GRIP_SIZE, y = bottom - RESIZE_GRIP_SIZE;
-        int dark = active ? SELECTION_COLOR : SELECTION_OUTLINE;
-        if (locked) {
-            graphics.fill(right - 2, y, right, bottom, dark);
-            graphics.fill(x, bottom - 2, right, bottom, dark);
-            graphics.fill(right - 3, y + 1, right - 2, bottom - 2, 0xFFFFFFFF);
-            graphics.fill(x + 1, bottom - 3, right - 2, bottom - 2, 0xFFFFFFFF);
-            return;
-        }
-        for (var dot : RESIZE_GRIP_DOTS) {
-            graphics.fill(x + dot[0], y + dot[1], x + dot[0] + 1, y + dot[1] + 1, dark);
-            graphics.fill(x + dot[0] + 1, y + dot[1] + 1, x + dot[0] + 2, y + dot[1] + 2, 0xFFFFFFFF);
-        }
-    }
-
-    /** 1 像素直角矩形边框（缩略图、画布里的框线等）。 */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawOutline(GuiGraphics graphics, int x, int y, int width, int height, int color) {
-        if (width <= 0 || height <= 0) return;
-        ring(graphics, x, y, x + width, y + height, color, false);
-    }
-
-    /** 1 像素矩形边框；{@code roundCorners} 时空出四个角，呈圆角。 */
-    @OnlyIn(Dist.CLIENT)
-    private static void ring(GuiGraphics graphics, int l, int t, int r, int b, int color, boolean roundCorners) {
-        int c = roundCorners ? 1 : 0;
-        graphics.fill(l + c, t, r - c, t + 1, color);
-        graphics.fill(l + c, b - 1, r - c, b, color);
-        graphics.fill(l, t + 1, l + 1, b - 1, color);
-        graphics.fill(r - 1, t + 1, r, b - 1, color);
+    public static ResourceLocation disabledHatch() {
+        return disabledHatch;
     }
 
     /// 悬浮栏：底色（与窗口同色）、外框、内侧高光（不画投影）
-    public static final int DOCK_PADDING = 3;
-    private static int DOCK_OUTLINE = 0xFF373737;
-    private static int DOCK_HIGHLIGHT = 0xFFFFFFFF;
+    public static int DOCK_OUTLINE = 0xFF373737;
+    public static int DOCK_HIGHLIGHT = 0xFFFFFFFF;
     /** 悬浮栏里组与组之间的分隔线颜色。 */
     public static int DOCK_SEPARATOR = 0xFF8A8A8A;
-
-    /**
-     * 悬浮栏（dock）底板：与窗口同色的圆角浮起面板——深色圆角外框、内侧一圈白色高光；不画投影。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawDock(GuiGraphics graphics, int x, int y, int width, int height) {
-        drawDock(graphics, x, y, width, height, 0);
-    }
-
-    /**
-     * 带强调色的悬浮栏底板：{@code accent} 非 0 时外框换成 1 像素宽的强调色圆角边（不画白色高光），
-     * 用来把栏和它作用的对象在视觉上连起来（例如三视图里选中的面，见 {@code Dock#setAccentColor}）；为 0 时同
-     * {@link #drawDock(GuiGraphics, int, int, int, int)}。
-     */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawDock(GuiGraphics graphics, int x, int y, int width, int height, int accent) {
-        int r = x + width, b = y + height;
-        graphics.fill(x + 1, y + 1, r - 1, b - 1, WINDOW_FILL);
-        if (accent != 0) {
-            // 1 像素强调色圆角边，不画白色高光（用户要求 1px，2px 显得粗）
-            ring(graphics, x, y, r, b, accent, true);
-            return;
-        }
-        ring(graphics, x, y, r, b, DOCK_OUTLINE, true);
-        graphics.fill(x + 1, y + 1, r - 1, y + 2, DOCK_HIGHLIGHT);
-        graphics.fill(x + 1, y + 2, x + 2, b - 1, DOCK_HIGHLIGHT);
-    }
 
     // ==================== 画布（CanvasView） ====================
 
@@ -606,18 +489,14 @@ public final class UITheme {
     public static int CANVAS_MINIMAP_VIEWPORT = SELECTION_COLOR;
 
     /**
-     * 视图按钮图标（{@code uipro/view_icons.png}，{@value #VIEW_ICON_SIZE} 见方横排）：缩小、放大、适应全部、缩略图、定位。
+     * 视图按钮图标（{@code uipro/view_icons.png}，{@link UISizes#VIEW_ICON_SIZE} 见方横排）：缩小、放大、适应全部、缩略图、定位。
      * 按机器小组件图标的画法（1 像素深色方角描边、细线、降饱和、按外框自动居中），放在画布悬浮栏
-     * {@link UISizes#DOCK_BUTTON} 见方的按钮里原尺寸显示。
+     * {@link UISizes#DOCK_BUTTON_SIZE} 见方的按钮里原尺寸显示。
      */
-    public static final int LOGO_WIDTH = 33;
-    public static final int LOGO_HEIGHT = 8;
-    public static final int LOGO_GAP = 2;
     public static final IGuiTexture SCREEN_LOGO = new DynamicResourceTexture(() -> GTCEu.id("textures/gui/uipro/gto_logo_screen.png"), 0, 0, 1, 1);
 
     private static ResourceLocation viewIcons = GTCEu.id("textures/gui/uipro/view_icons.png");
     private static final int VIEW_ICON_COUNT = 5;
-    public static final int VIEW_ICON_SIZE = 16;
     public static final IGuiTexture CANVAS_ZOOM_OUT = viewIcon(0);
     public static final IGuiTexture CANVAS_ZOOM_IN = viewIcon(1);
     public static final IGuiTexture CANVAS_FIT = viewIcon(2);
@@ -653,24 +532,6 @@ public final class UITheme {
     public static WireStyle FLOW_WIRE_WARNING = WireStyle.solid(FLOW_AMBER_MID);
     public static WireStyle FLOW_WIRE_MISSING = WireStyle.patterned(FLOW_RED_MID, WireStyle.Pattern.DASHED);
 
-    @OnlyIn(Dist.CLIENT)
-    public static void drawFlowPlate(GuiGraphics graphics, int x, int y, int width, int height, int outline, int stripLight, int stripMid) {
-        int r = x + width, b = y + height;
-        graphics.fill(x + 1, y + 1, r - 1, b - 1, FLOW_NODE_FILL);
-        ring(graphics, x, y, r, b, outline, true);
-        graphics.fill(r - 2, y + 1, r - 1, b - 1, FLOW_NODE_SHADE);
-        graphics.fill(x + 1, b - 2, r - 2, b - 1, FLOW_NODE_SHADE);
-        graphics.fill(x + 1, y + 4, x + 2, b - 2, FLOW_NODE_HIGHLIGHT);
-        if (stripMid == 0) {
-            graphics.fill(x + 1, y + 1, r - 2, y + 2, FLOW_NODE_HIGHLIGHT);
-            graphics.fill(x + 1, y + 2, x + 2, y + 4, FLOW_NODE_HIGHLIGHT);
-            return;
-        }
-        graphics.fill(x + 1, y + 1, r - 1, y + 2, stripLight);
-        graphics.fill(x + 1, y + 2, r - 1, y + 3, stripMid);
-        graphics.fill(x + 1, y + 3, r - 1, y + 4, FLOW_STRIP_EDGE);
-    }
-
     public static int TAB_HINT_GLOW = SELECTION_COLOR;
     public static int TAB_HINT_SPARK = 0xFFFFF4CF;
     public static int TAB_HINT_DIM = 0xFF8C6A1E;
@@ -680,20 +541,6 @@ public final class UITheme {
     public static int CANVAS_ITEM_BLOCK = 0xFF8B8B8B;
     /** 槽位类格子的悬停蒙层（与原版物品槽一致，画在物品之上、只写颜色不写透明度）。 */
     public static int SLOT_HOVER_OVERLAY = 0x80FFFFFF;
-
-    /** 居中绘制单行文字，超出 {@code maxWidth} 时截断并加省略号。 */
-    @OnlyIn(Dist.CLIENT)
-    public static void drawCenteredText(GuiGraphics graphics, String text, int centerX, int y, int maxWidth, int color, boolean shadow) {
-        var font = Minecraft.getInstance().font;
-        var clipped = clip(font, text, maxWidth);
-        graphics.drawString(font, clipped, centerX - font.width(clipped) / 2, y, color, shadow);
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public static String clip(Font font, String text, int maxWidth) {
-        if (font.width(text) <= maxWidth) return text;
-        return font.plainSubstrByWidth(text, Math.max(0, maxWidth - font.width("…"))) + "…";
-    }
 
     /**
      * 为暗底写的文字颜色（原版聊天色、GTM 显示屏里的彩色文字）换成在亮底（窗口、状态显示窗）上看得清的颜色，RGB，不含透明度。

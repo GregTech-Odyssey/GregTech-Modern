@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
@@ -97,14 +98,14 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
     //////////////////////////////////////
     @Override
     protected void buildAdditionalUI(UIElement section) {
-        var amount = new NumberField(LayoutStyle.AUTO, () -> globalVoidingLimit, value -> setGlobalVoidingLimit((int) value),
+        var amount = NumberField.ofInt(LayoutStyle.AUTO, () -> globalVoidingLimit, this::setGlobalVoidingLimit,
                 () -> 1, () -> voidingMode.maxStackSize);
         amount.disabled(() -> voidingMode != VoidingMode.VOID_ANY && isAmountFromFilter(), "cover.conveyor.ui.amount_from_filter");
         section.addChildren(
                 CoverUIs.enumRow("cover.item_voiding.ui.mode", List.of(VoidingMode.values()), () -> voidingMode, this::setVoidingMode,
                         "cover.voiding.voiding_mode.description.0",
                         "cover.voiding.voiding_mode.description.1"),
-                CoverUIs.numberRow("cover.item_voiding.ui.keep_amount", amount, "cover.item_voiding.ui.keep_amount.tooltip")
+                Form.numberRow("cover.item_voiding.ui.keep_amount", amount, "cover.item_voiding.ui.keep_amount.tooltip")
                         .disabled(() -> voidingMode == VoidingMode.VOID_ANY, "cover.item_voiding.ui.amount_unused"));
     }
 

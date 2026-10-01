@@ -187,13 +187,13 @@ public class ConfigHolder {
             @Configurable
             @Configurable.Comment({ "Forge Energy to GTEU ratio for converting FE to EU.", "Only affects converters.",
                     "Default: 4 FE == 1 EU" })
-            @Configurable.Range(min = 1, max = 16)
+            @Configurable.Range(min = 1, max = 64)
             public int feToEuRatio = 4;
 
             @Configurable
             @Configurable.Comment({ "GTEU to Forge Energy ratio for converting EU to FE.",
                     "Affects native conversion and Converters.", "Default: 4 FE == 1 EU" })
-            @Configurable.Range(min = 1, max = 16)
+            @Configurable.Range(min = 1, max = 64)
             public int euToFeRatio = 4;
         }
 
@@ -207,7 +207,7 @@ public class ConfigHolder {
 
             @Configurable
             @Configurable.Comment({ "The energy consumption of ME Hatch/Bus.", "Default: 1.0AE/t" })
-            @Configurable.DecimalRange(min = 0.0, max = 10.0)
+            @Configurable.DecimalRange(min = 0.0, max = 100000.0)
             public double meHatchEnergyUsage = 1.0;
         }
 
@@ -495,7 +495,7 @@ public class ConfigHolder {
         @Configurable.Comment({ "What Kind of material should the bedrock ore miner output?", "Default: \"raw\"" })
         public String bedrockOreDropTagPrefix = "raw";
         @Configurable
-        @Configurable.Range(min = 120, max = 800)
+        @Configurable.Range(min = 1, max = 800)
         @Configurable.Comment({ "The base amount of ticks per block for electric singleblock ore miners",
                 "Default: 320" })
         public int minerSpeed = 320;

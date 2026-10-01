@@ -3,7 +3,10 @@ package com.gregtechceu.gtceu.api.gui.widget;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.data.RPC;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.data.UIEvent;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uipro.window.Popup;
 import com.gregtechceu.gtceu.uipro.window.PopupHost;
@@ -21,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,14 +48,8 @@ import java.util.List;
  * 槽被移出控件树时两端各自关掉面板（两端的移除本来就对称，不发包）。</li>
  * </ul>
  */
-public class GhostCircuitSlotWidget extends SlotWidget {
+public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host {
 
-    private static final int SET_TO_ZERO = 1;
-    private static final int SET_TO_EMPTY = 2;
-    private static final int SET_TO_N = 3;
-    /// 退路面板：客户端请求打开 / 关闭（C2S）；服务端照做前用同一 ID 通知客户端（S2C）。在 MachineWindow 里不用
-    private static final int OPEN_FALLBACK = 4;
-    private static final int CLOSE_FALLBACK = 5;
     private static final int NO_CONFIG = -1;
     /// 弹出面板的键；这种面板只有一个，参数恒为 0
     private static final String POPUP_KEY = "gtceu.circuit_configurator";
@@ -65,11 +63,22 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     /// 客户端：退路面板打开时被隐藏 / 停用的其他控件，关闭时按原样恢复
     private final List<Widget> fallbackHidden = new ArrayList<>();
     private final List<Widget> fallbackDeactivated = new ArrayList<>();
-    /// 服务端：上次处理退路面板开关的游戏刻，同一刻内只处理一次（防刷）
-    private long lastFallbackToggleTick = Long.MIN_VALUE;
+    private final UIChannel channel = new UIChannel(this);
+    private final RPC<Integer> circuitRequest;
+    private final RPC<Boolean> fallbackRequest;
+    private final UIEvent<Boolean> fallbackChanged;
 
     public GhostCircuitSlotWidget() {
         super();
+        circuitRequest = addRPC(ByteStreamCodec.INT_CODEC, (player, value) -> serverSetCircuit(value))
+                .validate(value -> value == NO_CONFIG || value >= 0 && value <= IntCircuitBehaviour.CIRCUIT_MAX);
+        fallbackRequest = addRPC(ByteStreamCodec.BOOLEAN_CODEC, (player, open) -> serverSetFallbackOpen(open)).limit(1);
+        fallbackChanged = addEvent(ByteStreamCodec.BOOLEAN_CODEC, this::setFallbackOpen);
+    }
+
+    @Override
+    public UIChannel getChannel() {
+        return channel;
     }
 
     public void setCircuitInventory(ICustomItemStackHandler circuitInventory) {
@@ -81,6 +90,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     @Override
     public void initWidget() {
         super.initWidget();
+        channel.prime();
         var window = MachineWindow.of(this);
         if (window != null) {
             window.registerPopup(POPUP_KEY, argument -> argument == 0 && circuitInventory != null ? createPopup() : null);
@@ -104,8 +114,7 @@ public class GhostCircuitSlotWidget extends SlotWidget {
                 setCircuitValue(newValue);
             } else if (button == 1 && Screen.hasShiftDown()) {
                 // clear on shift-right-click
-                this.circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
-                writeClientAction(SET_TO_EMPTY, buf -> {});
+                setCircuitValue(NO_CONFIG);
             } else if (button == 1) {
                 // decrement on right-click
                 int newValue = getNextValue(false);
@@ -164,50 +173,51 @@ public class GhostCircuitSlotWidget extends SlotWidget {
     }
 
     public void setCircuitValue(int newValue) {
-        if (newValue == NO_CONFIG) {
-            this.circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
-            writeClientAction(SET_TO_EMPTY, buf -> {});
-        } else {
-            this.circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(newValue));
-            writeClientAction(SET_TO_N, buf -> buf.writeVarInt(newValue));
-        }
+        this.circuitInventory.setStackInSlot(0, newValue == NO_CONFIG ? ItemStack.EMPTY : IntCircuitBehaviour.stack(newValue));
+        circuitRequest.send(newValue);
+    }
+
+    private void serverSetCircuit(int value) {
+        if (circuitInventory == null) return;
+        this.circuitInventory.setStackInSlot(0, value == NO_CONFIG ? ItemStack.EMPTY : IntCircuitBehaviour.stack(value));
     }
 
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        if (circuitInventory == null) return;
-        switch (id) {
-            case SET_TO_ZERO -> this.circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(0));
-            case SET_TO_EMPTY -> this.circuitInventory.setStackInSlot(0, ItemStack.EMPTY);
-            case SET_TO_N -> {
-                // 编号来自客户端，可被伪造：只接受 0..CIRCUIT_MAX，越界直接忽略
-                int value = buffer.readVarInt();
-                if (value >= 0 && value <= IntCircuitBehaviour.CIRCUIT_MAX) {
-                    this.circuitInventory.setStackInSlot(0, IntCircuitBehaviour.stack(value));
-                }
-            }
-            case OPEN_FALLBACK -> serverSetFallbackOpen(true);
-            case CLOSE_FALLBACK -> serverSetFallbackOpen(false);
-        }
+        channel.handleClientAction(id, buffer);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-        switch (id) {
-            case OPEN_FALLBACK -> setFallbackOpen(true);
-            case CLOSE_FALLBACK -> setFallbackOpen(false);
-            default -> super.readUpdateInfo(id, buffer);
-        }
+        if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
     }
 
-    /** 面板打开期间，槽画统一选中框（前景层，见 {@link UITheme#drawSelection}）。 */
+    @Override
+    public void writeInitialData(FriendlyByteBuf buffer) {
+        super.writeInitialData(buffer);
+        channel.writeInitialData(buffer);
+    }
+
+    @Override
+    public void readInitialData(FriendlyByteBuf buffer) {
+        super.readInitialData(buffer);
+        channel.readInitialData(buffer);
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        channel.detectAndSendChanges();
+    }
+
+    /** 面板打开期间，槽画统一选中框（前景层，见 {@link UIDraw#selectionFrame}）。 */
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var window = MachineWindow.of(this);
         if (window != null && window.isPopupOpen(POPUP_KEY)) {
-            UITheme.drawSelection(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
+            UIDraw.selectionFrame(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight());
         }
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
     }
@@ -229,16 +239,13 @@ public class GhostCircuitSlotWidget extends SlotWidget {
 
     /** 客户端：请求打开 / 关闭退路面板。 */
     private void requestFallback(boolean open) {
-        writeClientAction(open ? OPEN_FALLBACK : CLOSE_FALLBACK, buf -> {});
+        fallbackRequest.send(open);
     }
 
-    /** 服务端：状态确实要变、且本刻还没处理过时，先通知客户端照做，再改自己那份。 */
+    /** 服务端：状态确实要变时，先通知客户端照做，再改自己那份。 */
     private void serverSetFallbackOpen(boolean open) {
         if (gui == null || MachineWindow.of(this) != null || open == (fallbackPanel != null)) return;
-        long tick = gui.entityPlayer.level().getGameTime();
-        if (tick == lastFallbackToggleTick) return;
-        lastFallbackToggleTick = tick;
-        writeUpdateInfo(open ? OPEN_FALLBACK : CLOSE_FALLBACK, buf -> {});
+        fallbackChanged.send(open);
         setFallbackOpen(open);
     }
 

@@ -4,12 +4,14 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -18,13 +20,11 @@ import java.util.function.Supplier;
  * <p>
  * 服务端：打开界面时随初始数据下发一次；之后每次 {@code detectAndSendChanges} 比较 getter，变了才下发。
  * 客户端：收到新值（含初始值）后回调 {@link #onChanged}。
- * 开启 {@link #pollOnClient()} 后，客户端每帧还会用本端 getter 取一次值（不回调），
- * 适合 getter 只依赖已同步到客户端的机器字段、希望本地即时跟随的场景。
  * <p>
  * 没有服务端的界面（根实现 {@link com.gregtechceu.gtceu.uipro.ILocalUI}，如 EMI 里的配方页）：getter 就是数据源，
  * 每帧直接用本端 getter 取值，变了照常回调 {@link #onChanged}。
  * <p>
- * 由 {@link SyncValueHost} 统一编号和收发，挂到 {@link UIElement} 上使用。
+ * 由 {@link UIChannel} 统一编号和收发，挂到 {@link UIElement} 上使用。
  */
 public final class SyncValue<T> {
 
@@ -33,7 +33,6 @@ public final class SyncValue<T> {
     private T value;
     @Nullable
     private Consumer<T> onChanged;
-    private boolean pollOnClient;
 
     private SyncValue(Supplier<T> getter, ByteStreamCodec<T> codec, T initialValue) {
         this.getter = getter;
@@ -53,8 +52,28 @@ public final class SyncValue<T> {
         return of(getter, ByteStreamCodec.LONG_CODEC, initialValue);
     }
 
+    public static SyncValue<Boolean> ofBool(BooleanSupplier getter, boolean initialValue) {
+        return of(getter::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, initialValue);
+    }
+
+    public static SyncValue<Boolean> ofBool(BooleanSupplier getter) {
+        return ofBool(getter, false);
+    }
+
     public static SyncValue<Component> ofComponent(Supplier<Component> getter) {
         return of(getter, StreamCodecs.COMPONENT_CODEC, getter.get());
+    }
+
+    public static SyncValue<Component> ofComponent(Supplier<Component> getter, Component initialValue) {
+        return of(getter, StreamCodecs.COMPONENT_CODEC, initialValue);
+    }
+
+    public static SyncValue<SyncItem> ofItem(Supplier<ItemStack> getter) {
+        return ofItem(getter, ItemStack.EMPTY);
+    }
+
+    public static SyncValue<SyncItem> ofItem(Supplier<ItemStack> getter, ItemStack initialValue) {
+        return of(() -> SyncItem.of(getter.get()), SyncItem.CODEC, SyncItem.of(initialValue));
     }
 
     /** 客户端收到不同的新值时回调（服务端比较出变化时也会回调）。 */
@@ -63,15 +82,13 @@ public final class SyncValue<T> {
         return this;
     }
 
-    /** 客户端每帧也用本端 getter 刷新值；getter 依赖服务端独有状态时不要开。 */
-    public SyncValue<T> pollOnClient() {
-        this.pollOnClient = true;
-        return this;
-    }
-
     /** 最近一次同步到的值；客户端渲染一律读它。 */
     public T getValue() {
         return value;
+    }
+
+    void prime() {
+        accept(getter.get());
     }
 
     void writeInitial(FriendlyByteBuf buf) {
@@ -98,15 +115,8 @@ public final class SyncValue<T> {
         accept(codec.decode(buf));
     }
 
-    /** @param local 控件在没有服务端的界面里：getter 就是数据源，取到新值要照常回调 */
-    void pollClient(boolean local) {
-        if (local) {
-            accept(getter.get());
-            return;
-        }
-        if (!pollOnClient) return;
-        var latest = getter.get();
-        if (!Objects.equals(latest, value)) value = latest;
+    void pollLocal() {
+        accept(getter.get());
     }
 
     private void accept(T newValue) {

@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.issue.MachineDiagnosisTab;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
@@ -31,7 +32,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
 
     @Override
     default ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(176, 166, this, entityPlayer).widget(new MachineWindow(this));
+        return MachineWindow.createUI(this, this, entityPlayer);
     }
 
     @Override
@@ -84,10 +85,16 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
             sideTabs.attachSubTab(new MachineModeFancyConfigurator(rLMachine));
         }
         CoverTab.attach(sideTabs, self());
+        MachineDiagnosisTab.attachIfEnabled(sideTabs, this);
     }
 
     @Override
     default void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        attachPowerConfigurator(configuratorPanel);
+        attachCoverConfigurators(configuratorPanel);
+    }
+
+    default void attachPowerConfigurator(ConfiguratorPanel configuratorPanel) {
         if (this instanceof IControllable controllable) {
             configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(
                     WidgetIcons.POWER_OFF,
@@ -97,6 +104,9 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
                             Component.translatable(
                                     pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
         }
+    }
+
+    default void attachCoverConfigurators(ConfiguratorPanel configuratorPanel) {
         if (this instanceof MetaMachine machine) {
             for (var direction : Direction.values()) {
                 if (machine.getCoverContainer().hasCover(direction)) {
@@ -110,6 +120,10 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
 
     @Override
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
+        attachTraitTooltips(tooltipsPanel);
+    }
+
+    default void attachTraitTooltips(TooltipsPanel tooltipsPanel) {
         tooltipsPanel.attachTooltips(self());
         self().getTraits().stream().filter(IFancyTooltip.class::isInstance).map(IFancyTooltip.class::cast)
                 .forEach(tooltipsPanel::attachTooltips);

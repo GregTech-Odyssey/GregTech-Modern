@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.data.ClientActions;
+import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UICodecs;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.utils.NumberExpressions;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -13,7 +13,6 @@ import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -21,7 +20,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 
@@ -57,9 +55,6 @@ public abstract class Adjuster extends UIElement {
     private static final String RANGE_TOOLTIP = "gtceu.uipro.adjuster.range";
     private static final String STEP_LINE = "gtceu.uipro.adjuster.step";
     private static final String UNBOUNDED = "gtceu.uipro.adjuster.unbounded";
-    /// 滚轮加减的客户端请求。SyncValueHost 段以下的 ID 登记：-1 列表行、-2 步进器、-3/-4 弹出面板、-5 AE 网格、
-    /// -6 数值框滚轮（本类）、-7/-8/-9 卡片位（CardHost）、-10 可点击的状态行（StatusLine）
-    private static final int WHEEL_ID = SyncValueHost.ID_BASE - 6;
 
     /**
      * 刻度与文字的换算。构造时传入而不做成抽象方法：父类构造里就要用它算按钮宽度，那时子类字段还没赋值。
@@ -88,16 +83,20 @@ public abstract class Adjuster extends UIElement {
     private final LongConsumer setter;
     private final LongSupplier serverMin;
     private final LongSupplier serverMax;
-    private final long[] steps;
+    private long[] steps;
+    private final RPC<UICodecs.Wheel> wheel;
     private final SyncValue<Long> min;
     private final SyncValue<Long> max;
     private final TextField field;
+    private final Button minus;
+    private final Button plus;
     /// 调用方给的输入框说明（范围、步进两行由本类自动加在后面）
     private Component[] tooltips = new Component[0];
     /// 输入框文字缓存：服务端每刻取一次值比较，数值不变就复用同一个字符串，不每刻新建
     private long shownTicks;
     @Nullable
     private String shownText;
+    private int stepButtonMinWidth;
 
     /**
      * @param width  总宽
@@ -116,31 +115,54 @@ public abstract class Adjuster extends UIElement {
         this.serverMin = min;
         this.serverMax = max;
         this.steps = normalizeSteps(steps);
+        this.wheel = addRPC(UICodecs.WHEEL, (player, wheel) -> {
+            long step = this.steps[(wheel.ctrl() ? 2 : 0) + (wheel.shift() ? 1 : 0)];
+            change(wheel.up() ? step : -step);
+        });
         this.min = addSyncValue(SyncValue.ofLong(min::getAsLong, min.getAsLong()).onChanged(value -> updateRange()));
         this.max = addSyncValue(SyncValue.ofLong(max::getAsLong, max.getAsLong()).onChanged(value -> updateRange()));
         layout(l -> l.row().width(width).height(HEIGHT).gapAll(UISizes.GAP).alignCenter());
 
         // 增减按钮宽度按最大一档步长的文字定：按住 Shift / Ctrl 时文字变长（如 "+512"），也要完整显示
         int buttonWidth = stepButtonWidth(scale, this.steps);
-        var minus = Button.text(buttonWidth, () -> "-" + scale.formatStep(clientStep()))
+        minus = Button.of(buttonWidth).bindClientText(() -> "-" + scale.formatStep(clientStep()))
                 .setOnServerClick(click -> change(-step(click)))
-                .disabled(() -> getter.getAsLong() <= serverMin.getAsLong(), AT_MIN);
-        minus.setHoverTooltips(STEP_TOOLTIP);
+                .disabled(() -> getter.getAsLong() <= serverMin.getAsLong(), AT_MIN)
+                .tooltips(STEP_TOOLTIP);
         field = new TextField(0, this::valueText, this::input).commitOnSubmit(scale::acceptsDraft);
         field.layout(l -> l.flexGrow(1));
         // 输入框自带的滚轮要先获得焦点才生效、也不认修饰键；由本元素统一处理
         field.getInput().setWheelDur(0);
-        var plus = Button.text(buttonWidth, () -> "+" + scale.formatStep(clientStep()))
+        plus = Button.of(buttonWidth).bindClientText(() -> "+" + scale.formatStep(clientStep()))
                 .setOnServerClick(click -> change(step(click)))
-                .disabled(() -> getter.getAsLong() >= serverMax.getAsLong(), AT_MAX);
-        plus.setHoverTooltips(STEP_TOOLTIP);
+                .disabled(() -> getter.getAsLong() >= serverMax.getAsLong(), AT_MAX)
+                .tooltips(STEP_TOOLTIP);
         addChildren(minus, field, plus);
         setHoverTooltips(new Component[0]);
         updateRange();
     }
 
+    public Adjuster setStepButtonMinWidth(int width) {
+        this.stepButtonMinWidth = width;
+        applyStepButtonWidth();
+        return this;
+    }
+
     public TextField getField() {
         return field;
+    }
+
+    public Adjuster setSteps(long... steps) {
+        this.steps = normalizeSteps(steps);
+        applyStepButtonWidth();
+        refreshTooltips();
+        return this;
+    }
+
+    private void applyStepButtonWidth() {
+        int buttonWidth = Math.max(stepButtonMinWidth, stepButtonWidth(scale, steps));
+        minus.layout(l -> l.width(buttonWidth));
+        plus.layout(l -> l.width(buttonWidth));
     }
 
     /** 提示挂在输入框上（LDLib1 只显示鼠标下最内层控件的提示），末尾总带两行灰字：数值范围、步进。 */
@@ -159,7 +181,7 @@ public abstract class Adjuster extends UIElement {
                 .withStyle(ChatFormatting.GRAY);
         lines[tooltips.length + 1] = Component.translatable(STEP_LINE, scale.formatStep(steps[0]), scale.formatStep(steps[1]),
                 scale.formatStep(steps[2]), scale.formatStep(steps[3])).withStyle(ChatFormatting.GRAY);
-        field.setHoverTooltips(lines);
+        field.tooltips(lines);
     }
 
     /// 上下限是 long 的边界时写"不限"，不写 19 位数字
@@ -167,17 +189,16 @@ public abstract class Adjuster extends UIElement {
         return ticks == unbounded ? Component.translatable(UNBOUNDED) : Component.literal(scale.formatStep(ticks));
     }
 
-    /** 放得下 "±最大一步" 的按钮宽度：每个字 {@link #GLYPH_WIDTH}，两侧各留 {@link UISizes#TEXT_PADDING}。 */
-    public int inlineWidth() {
+    /** 放得下 "±最长一档步长" 的按钮宽度：每个字 {@link #GLYPH_WIDTH}，两侧各留 {@link UISizes#TEXT_PADDING}。 */
+    public int getInlineWidth() {
         int digits = Math.max(scale.format(max.getValue()).length(), scale.format(min.getValue()).length());
         return 2 * stepButtonWidth(scale, steps) + 2 * UISizes.GAP + Math.max(UISizes.VALUE_WIDTH, digits * GLYPH_WIDTH + 2 * UISizes.TEXT_PADDING);
     }
 
     private static int stepButtonWidth(Scale scale, long[] steps) {
-        long max = 1;
-        for (long step : steps) max = Math.max(max, step);
-        int chars = 1 + scale.formatStep(max).length();
-        return Math.max(UISizes.ICON_BUTTON, chars * GLYPH_WIDTH + 2 * UISizes.TEXT_PADDING);
+        int chars = 1;
+        for (long step : steps) chars = Math.max(chars, 1 + scale.formatStep(step).length());
+        return Math.max(UISizes.ICON_BUTTON_SIZE, chars * GLYPH_WIDTH + 2 * UISizes.TEXT_PADDING);
     }
 
     private static long[] normalizeSteps(long[] steps) {
@@ -209,28 +230,9 @@ public abstract class Adjuster extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
         if (!isMouseOverElement(mouseX, mouseY) || wheelDelta == 0 || isDisabled()) return super.mouseWheelMove(mouseX, mouseY, wheelDelta);
-        boolean up = wheelDelta > 0, shift = GTUtil.isShiftDown(), ctrl = GTUtil.isCtrlDown();
         commitDraft();
-        Consumer<FriendlyByteBuf> writer = buf -> {
-            buf.writeBoolean(up);
-            buf.writeBoolean(shift);
-            buf.writeBoolean(ctrl);
-        };
-        if (!ClientActions.handleLocally(this, WHEEL_ID, writer)) writeClientAction(WHEEL_ID, writer);
+        wheel.send(new UICodecs.Wheel(wheelDelta > 0, GTUtil.isShiftDown(), GTUtil.isCtrlDown()));
         return true;
-    }
-
-    @Override
-    public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        if (id != WHEEL_ID) {
-            super.handleClientAction(id, buffer);
-            return;
-        }
-        boolean up = buffer.readBoolean(), shift = buffer.readBoolean(), ctrl = buffer.readBoolean();
-        // 服务端再判一次禁用（客户端可以伪造请求）
-        if (isDisabled()) return;
-        long step = steps[(ctrl ? 2 : 0) + (shift ? 1 : 0)];
-        change(up ? step : -step);
     }
 
     /**

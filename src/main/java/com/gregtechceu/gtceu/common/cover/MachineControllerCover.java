@@ -9,11 +9,10 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.common.cover.data.ControllerMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
-import com.gregtechceu.gtceu.uipro.elements.StatusLine;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -164,27 +163,27 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
         var status = new StatusPanel();
         var targetIcon = new ItemStack[] { ItemStack.EMPTY };
         status.addLine("cover.machine_controller.status.target", this::targetName)
-                .level(this::targetLevel)
-                .icon(() -> {
+                .bindLevel(this::targetLevel)
+                .bindIcon(() -> {
                     var stack = targetItem();
                     if (!ItemStack.isSameItemSameTags(stack, targetIcon[0])) targetIcon[0] = stack;
                     return targetIcon[0];
                 });
         status.addLine("cover.machine_controller.status.signal", () -> Component.literal(Integer.toString(getInputSignal())));
-        status.addLine("cover.machine_controller.status.working", this::workingState).level(this::workingLevel);
+        status.addLine("cover.machine_controller.status.working", this::workingState).bindLevel(this::workingLevel);
         var modes = Arrays.stream(ControllerMode.values()).filter(mode -> mode.side != this.attachedSide).toList();
         var modeGroup = ButtonGroup.single(modes.size(), i -> Component.translatable(targetKey(modes.get(i))),
                 () -> modes.indexOf(controllerMode), i -> {
                     var mode = modes.get(i);
                     if (getControllable(mode.side) != null) setControllerMode(mode);
                 }).optionDisabled(i -> getControllable(modes.get(i).side) == null, "cover.machine_controller.target_unavailable");
-        var target = CoverUIs.section("cover.machine_controller.section.target").addChildren(status, modeGroup);
-        var signal = CoverUIs.section("cover.machine_controller.section.signal").addChildren(
-                CoverUIs.numberRow("cover.machine_controller.min_strength", NumberField.of(LayoutStyle.AUTO,
-                        this::getMinRedstoneStrength, value -> setMinRedstoneStrength((int) value), 1, 15)),
-                CoverUIs.controlRow("cover.machine_controller.inverted", Switch.of(this::isInverted, this::setInverted),
+        var target = Form.section("cover.machine_controller.section.target").addChildren(status, modeGroup);
+        var signal = Form.section("cover.machine_controller.section.signal").addChildren(
+                Form.numberRow("cover.machine_controller.min_strength", NumberField.ofInt(LayoutStyle.AUTO,
+                        this::getMinRedstoneStrength, this::setMinRedstoneStrength, 1, 15)),
+                Form.controlRow("cover.machine_controller.inverted", Switch.of(this::isInverted, this::setInverted),
                         "cover.machine_controller.inverted.tooltip"));
-        return CoverUIs.page().addChildren(target, signal);
+        return Form.page().addChildren(target, signal);
     }
 
     private static String targetKey(ControllerMode mode) {
@@ -215,9 +214,9 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
         return stack.isEmpty() ? Component.translatable(targetKey(controllerMode)) : stack.getHoverName();
     }
 
-    private StatusLine.Level targetLevel() {
-        if (controllerMode == null) return StatusLine.Level.WARNING;
-        return getControllable(controllerMode.side) == null ? StatusLine.Level.ERROR : StatusLine.Level.GOOD;
+    private com.gregtechceu.gtceu.uipro.Level targetLevel() {
+        if (controllerMode == null) return com.gregtechceu.gtceu.uipro.Level.WARNING;
+        return getControllable(controllerMode.side) == null ? com.gregtechceu.gtceu.uipro.Level.ERROR : com.gregtechceu.gtceu.uipro.Level.GOOD;
     }
 
     @Nullable
@@ -231,10 +230,10 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
         return Component.translatable(controllable.isWorkingEnabled() ? "cover.machine_controller.status.enabled" : "cover.machine_controller.status.paused");
     }
 
-    private StatusLine.Level workingLevel() {
+    private com.gregtechceu.gtceu.uipro.Level workingLevel() {
         var controllable = currentControllable();
-        if (controllable == null) return StatusLine.Level.NORMAL;
-        return controllable.isWorkingEnabled() ? StatusLine.Level.GOOD : StatusLine.Level.WARNING;
+        if (controllable == null) return com.gregtechceu.gtceu.uipro.Level.NORMAL;
+        return controllable.isWorkingEnabled() ? com.gregtechceu.gtceu.uipro.Level.GOOD : com.gregtechceu.gtceu.uipro.Level.WARNING;
     }
 
     @Nullable

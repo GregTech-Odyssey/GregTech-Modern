@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -8,8 +9,6 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
-import com.mojang.blaze3d.systems.RenderSystem;
 
 /**
  * 槽位外观的点选格：物品槽底图（{@link UITheme#ITEM_SLOT}，18 见方）里画一个图标，悬停时与物品槽一样蒙白，点击执行动作。
@@ -20,7 +19,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
  */
 public class SlotButton extends Button {
 
-    public static final int SIZE = UISizes.SLOT;
+    public static final int SIZE = UISizes.SLOT_SIZE;
 
     private final IGuiTexture slotIcon;
 
@@ -40,11 +39,7 @@ public class SlotButton extends Button {
         boolean disabled = isDisabled();
         UITheme.ITEM_SLOT.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
         slotIcon.draw(graphics, mouseX, mouseY, x + 1, y + 1, SIZE - 2, SIZE - 2);
-        if (!disabled && isMouseOverElement(mouseX, mouseY)) {
-            RenderSystem.colorMask(true, true, true, false);
-            graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 200, UITheme.SLOT_HOVER_OVERLAY);
-            RenderSystem.colorMask(true, true, true, true);
-        }
-        if (disabled) UITheme.drawDisabled(graphics, x, y, SIZE, SIZE);
+        if (!disabled && isMouseOverElement(mouseX, mouseY)) UIDraw.hoverOverlay(graphics, x, y, SIZE, SIZE);
+        if (disabled) UIDraw.disabledHatch(graphics, x, y, SIZE, SIZE);
     }
 }

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -16,30 +17,55 @@ import java.util.function.Supplier;
  * <p>
  * 面板外观固定：Ore 窗口外框，第一行标题与 {@code [×]}，下面是纵向内容，
  * 高度随内容增长，超过主窗口高度时滚动。{@code content} 往传入的纵向元素里加子元素即可（通常是若干
- * {@link UIElement#section} 区块）。
- *
- * @param title   标题，服务端取值后下发
- * @param content 内容构建器
+ * {@link UIElement#section} 区块）。标题由服务端取值后下发。
  */
-public record Popup(Supplier<Component> title, Consumer<UIElement> content, @Nullable Supplier<ItemStack> icon, int contentWidth) {
+public final class Popup {
 
-    public Popup(Supplier<Component> title, Consumer<UIElement> content, @Nullable Supplier<ItemStack> icon) {
-        this(title, content, icon, UISizes.POPUP_CONTENT_WIDTH);
-    }
+    @Nullable
+    private final Supplier<ItemStack> icon;
+    private final Supplier<Component> title;
+    private final Consumer<UIElement> content;
+    private int contentWidth = UISizes.POPUP_CONTENT_WIDTH;
 
-    public Popup(Supplier<Component> title, Consumer<UIElement> content) {
-        this(title, content, null);
+    private Popup(@Nullable Supplier<ItemStack> icon, Supplier<Component> title, Consumer<UIElement> content) {
+        this.icon = icon;
+        this.title = title;
+        this.content = content;
     }
 
     public static Popup of(Supplier<Component> title, Consumer<UIElement> content) {
-        return new Popup(title, content);
+        return new Popup(null, title, content);
     }
 
     public static Popup of(Supplier<ItemStack> icon, Supplier<Component> title, Consumer<UIElement> content) {
-        return new Popup(title, content, icon);
+        return new Popup(icon, title, content);
     }
 
+    public Popup setContentWidth(int contentWidth) {
+        this.contentWidth = contentWidth;
+        return this;
+    }
+
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
     public Popup withContentWidth(int contentWidth) {
-        return new Popup(title, content, icon, contentWidth);
+        return setContentWidth(contentWidth);
+    }
+
+    @Nullable
+    public Supplier<ItemStack> getIcon() {
+        return icon;
+    }
+
+    public Supplier<Component> getTitle() {
+        return title;
+    }
+
+    public Consumer<UIElement> getContent() {
+        return content;
+    }
+
+    public int getContentWidth() {
+        return contentWidth;
     }
 }

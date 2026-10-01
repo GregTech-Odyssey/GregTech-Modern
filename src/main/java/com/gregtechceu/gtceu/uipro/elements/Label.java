@@ -13,6 +13,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.geometry.FloatSize;
 import dev.vfyjxf.taffy.util.MeasureFunc;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -43,27 +44,32 @@ public class Label extends UIElement {
     @Nullable
     private Component blockText;
 
-    public Label(Supplier<Component> text, int maxWidth) {
+    protected Label(int maxWidth, Supplier<Component> text) {
         this.maxWidth = maxWidth;
         this.text = addSyncValue(SyncValue.ofComponent(text).onChanged(value -> markLayoutDirty()));
         markLayoutDirty();
     }
 
-    public static Label of(Supplier<Component> text, int maxWidth) {
-        return new Label(text, maxWidth);
+    public static Label of(int maxWidth, Supplier<Component> text) {
+        return new Label(maxWidth, text);
     }
 
-    public static Label translatable(String key, int maxWidth) {
+    public static Label translatable(int maxWidth, String key) {
         var component = Component.translatable(key);
-        return new Label(() -> component, maxWidth);
+        return new Label(maxWidth, () -> component);
+    }
+
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
+    public static Label translatable(String key, int maxWidth) {
+        return translatable(maxWidth, key);
     }
 
     public Label setColor(int color) {
-        return setColor(() -> color);
+        return bindClientColor(() -> color);
     }
 
-    /** 动态文字颜色，主题切换后会在下一帧生效。 */
-    public Label setColor(IntSupplier color) {
+    public Label bindClientColor(IntSupplier color) {
         this.color = Objects.requireNonNull(color);
         return this;
     }

@@ -3,8 +3,12 @@ package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
+import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyContainer;
@@ -17,6 +21,12 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
+import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
@@ -24,6 +34,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IDisplayUIMachine, IDummyEnergyMachine {
+public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine implements IMultiblockFancyUIMachine, IDummyEnergyMachine {
 
     // if in millibuckets, this is 2.0, Meaning 2mb of steam -> 1 EU
     public static final double CONVERSION_RATE = 2.0;
@@ -110,6 +121,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof SteamParallelMultiblockMachine steamMachine)) {
+            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         // Duration = 1.5x base duration
@@ -126,25 +138,21 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
 
     @Override
     public void addDisplayText(List<Component> textList) {
-        IDisplayUIMachine.super.addDisplayText(textList);
+        IMultiblockFancyUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
             if (energyContainer instanceof SteamEnergyContainer container) {
                 textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", container.steamTank.getFluidInTank(0).getAmount(), container.steamTank.getTankCapacity(0)));
             }
-            if (!isWorkingEnabled()) {
-                textList.add(Component.translatable("gtceu.multiblock.work_paused"));
-            } else if (isActive()) {
-                textList.add(Component.translatable("gtceu.multiblock.running"));
+            MultiblockDisplayText.builder(textList, true, false).addIssueLines(recipeLogic);
+            if (recipeLogic.isWaiting() && recipeLogic.getIssueSnapshot().primary() == null) {
+                textList.add(Component.translatable("gtceu.multiblock.steam.low_steam").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+            }
+            if (isWorkingEnabled() && isActive()) {
                 if (maxParallels > 1) textList.add(Component.translatable("gtceu.multiblock.parallel", maxParallels));
                 int currentProgress = (int) (recipeLogic.getProgressPercent() * 100);
                 double maxInSec = (float) recipeLogic.getDuration() / 20.0F;
                 double currentInSec = (float) recipeLogic.getProgress() / 20.0F;
                 textList.add(Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec), String.format("%.2f", (float) maxInSec), currentProgress));
-            } else {
-                textList.add(Component.translatable("gtceu.multiblock.idling"));
-            }
-            if (recipeLogic.isWaiting()) {
-                textList.add(Component.translatable("gtceu.multiblock.steam.low_steam").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
         }
     }
@@ -154,5 +162,68 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         return GuiTextures.DISPLAY_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks);
     }
 
-    // 界面：沿用 IDisplayUIMachine 的默认（新式机器窗口 + 状态显示窗）
+    public static final String LANG_STEAM = "gtceu.gui.multiblock.steam";
+    public static final String LANG_STEAM_USAGE = "gtceu.gui.multiblock.steam_usage";
+
+    protected MachineEra getEra() {
+        return MachineEra.steam(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks);
+    }
+
+    @Override
+    public ResourceLocation getWindowSkin() {
+        return getEra().getSkin();
+    }
+
+    @Override
+    public UIElement createUIWidget() {
+        var page = MultiblockPage.of(this).setScreen(getEra().getScreen());
+        addPageContent(page);
+        return page.build();
+    }
+
+    protected void addPageContent(MultiblockPage page) {
+        page.addLine(MultiblockPage.PARALLEL, MultiblockPage.fractionText(() -> {
+            var recipe = recipeLogic.isIdle() ? null : recipeLogic.getLastRecipe();
+            return recipe == null ? 0 : recipe.parallels;
+        }, () -> maxParallels, ""));
+        page.addLine(LANG_STEAM_USAGE, MultiblockPage.cached(this::steamUsage,
+                usage -> Component.literal(FormattingUtil.formatNumbers(usage * 20) + " mB/s")));
+        page.addBar(LANG_STEAM, UITheme::barSteam, this::steamStored).percent()
+                .bindDetail(MultiblockPage.fractionText(this::steamAmount, this::steamCapacity, "mB"));
+        addScreenReadouts(page);
+        addControls(page.getControls());
+    }
+
+    private ProgressBar.Progress steamStored() {
+        return new ProgressBar.Progress(steamAmount(), steamCapacity(), 0);
+    }
+
+    private int steamAmount() {
+        return energyContainer instanceof SteamEnergyContainer container ? container.steamTank.getFluidInTank(0).getAmount() : 0;
+    }
+
+    private int steamCapacity() {
+        return energyContainer instanceof SteamEnergyContainer container ? container.steamTank.getTankCapacity(0) : 0;
+    }
+
+    private long steamUsage() {
+        var recipe = recipeLogic.isWorking() ? recipeLogic.getLastRecipe() : null;
+        return recipe == null ? 0 : (long) Math.ceil(recipe.getInputEUt() * getConversionRate());
+    }
+
+    @Override
+    public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
+        attachPowerConfigurator(configuratorPanel);
+        attachRecipeConfigurators(configuratorPanel);
+        attachExtraConfigurators(configuratorPanel);
+        attachCoverConfigurators(configuratorPanel);
+    }
+
+    protected void attachExtraConfigurators(ConfiguratorPanel configuratorPanel) {}
+
+    @Override
+    public void attachTooltips(TooltipsPanel tooltipsPanel) {
+        attachTraitTooltips(tooltipsPanel);
+        attachPartTooltips(tooltipsPanel);
+    }
 }

@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -37,8 +37,8 @@ public class FancySelectorConfigurator<T extends Enum<T> & EnumSelectorWidget.Se
     }
 
     @Override
-    public void bindSync(SyncValueHost host) {
-        host.add(selected);
+    public void bindSync(UIChannel.Host host) {
+        host.addSyncValue(selected);
     }
 
     private T current() {

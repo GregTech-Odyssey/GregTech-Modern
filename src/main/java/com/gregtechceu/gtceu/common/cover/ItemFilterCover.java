@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -114,7 +115,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
                         "cover.universal.manual_import_export.mode.description.0",
                         "cover.universal.manual_import_export.mode.description.1",
                         "cover.universal.manual_import_export.mode.description.2"));
-        return CoverUIs.page().addChildren(modes, UIElement.section().addChild(getItemFilter().createConfigUI()));
+        return Form.page().addChildren(modes, UIElement.section().addChild(getItemFilter().createConfigUI()));
     }
 
     private class FilteredItemHandlerWrapper extends ItemHandlerDelegate {

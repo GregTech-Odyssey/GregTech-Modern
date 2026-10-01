@@ -11,6 +11,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
+import org.jetbrains.annotations.Nullable;
+
 public class BiomeCondition extends RecipeCondition {
 
     public final ResourceKey<Biome> biome;
@@ -27,7 +29,18 @@ public class BiomeCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return Component.translatable("recipe.condition.biome.tooltip", Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString()));
+        var name = Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString());
+        return Component.translatable(isReverse ? "recipe.condition.biome.reverse.tooltip" : "recipe.condition.biome.tooltip", name);
+    }
+
+    @Override
+    public @Nullable Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        Level level = holder.self().getLevel();
+        if (level == null) return null;
+        var key = level.getBiome(holder.self().getPos()).unwrapKey().orElse(null);
+        if (key == null) return null;
+        var id = key.location();
+        return Component.translatable("gtceu.issue.current.biome", Component.translatableWithFallback(id.toLanguageKey("biome"), id.toString()));
     }
 
     @Override

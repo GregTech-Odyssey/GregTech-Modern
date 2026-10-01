@@ -1,10 +1,7 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.uipro.elements.PhantomItemSlot;
+import com.gregtechceu.gtceu.uiwidgets.filter.TagLookupView;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
-
-import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -14,6 +11,7 @@ import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements ItemFilter {
 
@@ -48,13 +46,8 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
     }
 
     @Override
-    Widget createQuerySlot(TagQuery query) {
-        var handler = new ItemStackTransfer(1);
-        query.bind(() -> handler.getStackInSlot(0).getItem(), () -> handler.getStackInSlot(0).getTags().map(t -> t));
-        var slot = new PhantomItemSlot(handler, 0).xeiPhantom();
-        slot.setMaxStackSize(1);
-        slot.setHoverTooltips("cover.tag_filter.lookup_item", "cover.tag_filter.lookup_only");
-        return slot;
+    TagLookupView createLookup(Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick) {
+        return TagLookupView.items("cover.tag_filter.tags", getter, setter, onServerPick, "cover.tag_filter.lookup_item", "cover.tag_filter.lookup_only");
     }
 
     @Override

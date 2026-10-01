@@ -143,11 +143,11 @@ public class InfiniteSprayCanBehaviour implements IItemUIFactory, IDurabilityBar
             for (int slot = 0; slot < SLOT_COUNT; slot++) stacks[slot] = slotStack(slot);
             var status = new StatusPanel(LayoutStyle.AUTO);
             status.addLine(CURRENT_COLOR, () -> colorName(getColorSlot(holder.getHeld())))
-                    .icon(() -> stacks[getColorSlot(holder.getHeld())]);
+                    .bindIcon(() -> stacks[getColorSlot(holder.getHeld())]);
             var palette = UIElement.column(UISizes.SLOT_ROW_WIDTH);
             var current = palette.addSyncValue(SyncValue.ofInt(() -> getColorSlot(holder.getHeld()), 0));
             for (int rowStart = 0; rowStart < SLOT_COUNT; rowStart += UISizes.SLOTS_PER_ROW) {
-                var row = UIElement.row(UISizes.SLOT);
+                var row = UIElement.row(UISizes.SLOT_SIZE);
                 for (int slot = rowStart; slot < Math.min(SLOT_COUNT, rowStart + UISizes.SLOTS_PER_ROW); slot++) {
                     int color = slot;
                     var cell = SlotButton.of(new ItemStackTexture(stacks[color]))
@@ -158,9 +158,9 @@ public class InfiniteSprayCanBehaviour implements IItemUIFactory, IDurabilityBar
                                 GTSoundEntries.SPRAY_CAN_SHAKE.play(entityPlayer.level(), null, entityPlayer.position(), 1.0f, 1.0f);
                             });
                     if (color == SOLVENT_SLOT) {
-                        cell.setHoverTooltips(colorName(color), Component.translatable("behaviour.infinite_spray_can.solvent_hint"));
+                        cell.tooltips(colorName(color), Component.translatable("behaviour.infinite_spray_can.solvent_hint"));
                     } else {
-                        cell.setHoverTooltips(colorName(color));
+                        cell.tooltips(colorName(color));
                     }
                     row.addChild(cell);
                 }

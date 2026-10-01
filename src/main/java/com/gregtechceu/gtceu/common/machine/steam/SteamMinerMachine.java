@@ -3,13 +3,13 @@ package com.gregtechceu.gtceu.common.machine.steam;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.steam.SteamWorkableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
@@ -21,12 +21,17 @@ import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.SteamMinerLogic;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.ChatFormatting;
@@ -34,6 +39,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
@@ -54,7 +60,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IExhaustVentMachine, IUIMachine, IDataInfoProvider {
+public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IExhaustVentMachine, IFancyUIMachine, IDataInfoProvider {
 
     @Getter
     @Setter
@@ -172,25 +178,33 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     //////////////////////////////////////
     @Override
     public ModularUI createUI(Player entityPlayer) {
+        return MachineWindow.createUI(this, this, entityPlayer);
+    }
+
+    @Override
+    public ResourceLocation getWindowSkin() {
+        return MachineEra.steam(isHighPressure()).getSkin();
+    }
+
+    @Override
+    public Widget createUIWidget() {
         int rowSize = (int) Math.sqrt(inventorySize);
-        ModularUI builder = new ModularUI(175, 194, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure()));
-        builder.widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure()), 7, 112, true));
+        var group = new WidgetGroup(0, 0, UISizes.CONTENT_WIDTH, 96);
+        group.addWidget(new ImageWidget(0, 0, 105, 75, MachineEra.steam(isHighPressure()).getScreen()));
+        group.addWidget(new ComponentPanelWidget(10, 9, this::addDisplayText).setMaxWidthLimit(84));
+        group.addWidget(new ComponentPanelWidget(60, 9, this::addDisplayText2).setMaxWidthLimit(84));
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
-                builder.widget(new SlotWidget(exportItems, index, 142 - rowSize * 9 + x * 18, 18 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure())));
+                group.addWidget(new SlotWidget(exportItems, index, 135 - rowSize * 9 + x * 18, 2 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure())));
             }
         }
         // 附魔槽：放附魔书，提供时运 / 效率（精准与时运互斥）
-        builder.widget(new SlotWidget(enchantmentSlot.getStorage(), 0, 7, 94, true, true)
+        group.addWidget(new SlotWidget(enchantmentSlot.getStorage(), 0, 0, 78, true, true)
                 .setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure()))
                 .setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.enchantment_slot.tooltip").toArray(Component[]::new)));
-        builder.widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()));
-        builder.widget(new PredicatedImageWidget(79, 42, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure())).setPredicate(() -> !drainInput(true)));
-        builder.widget(new ImageWidget(7, 16, 105, 75, GuiTextures.DISPLAY_STEAM.get(isHighPressure())));
-        builder.widget(new ComponentPanelWidget(10, 19, this::addDisplayText).setMaxWidthLimit(84));
-        builder.widget(new ComponentPanelWidget(70, 19, this::addDisplayText2).setMaxWidthLimit(84));
-        return builder;
+        group.addWidget(new PredicatedImageWidget(43, 28, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure())).setPredicate(() -> !drainInput(true)));
+        return RecipeMachinePage.page(group);
     }
 
     void addDisplayText(List<Component> textList) {
@@ -213,6 +227,12 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         textList.add(Component.translatable("gtceu.machine.miner.minez", this.getRecipeLogic().getMineZ()));
     }
 
+    @Override
+    public void reportDrainIssue() {
+        reportIssue(isVentingBlocked() ? GTIssues.VENT_BLOCKED : GTIssues.STEAM_SHORT);
+    }
+
+    @Override
     public boolean drainInput(boolean simulate) {
         long stored = steamTank.getFluidInTank(0).getAmount();
         // 附魔会抬高耗汽；蒸汽不够时按比例削弱效果，而不是直接停机

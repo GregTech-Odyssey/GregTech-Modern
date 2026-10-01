@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -234,7 +235,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var page = CoverUIs.page().addChildren(createTransferSection(), createModeSection());
+        var page = Form.page().addChildren(createTransferSection(), createModeSection());
         buildAdditionalUI(page);
         return hasFilterUI() ? page.addChild(CoverUIs.filterSection(filterHandler)) : page;
     }
@@ -245,15 +246,15 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     private UIElement createTransferSection() {
         var modes = Arrays.stream(BucketMode.values()).filter(m -> m.multiplier <= maxFluidTransferRate).toList();
-        var field = new NumberField(LayoutStyle.AUTO, this::getCurrentBucketModeTransferRate, value -> setCurrentBucketModeTransferRate((int) value),
+        var field = NumberField.ofInt(LayoutStyle.AUTO, this::getCurrentBucketModeTransferRate, this::setCurrentBucketModeTransferRate,
                 () -> 0, () -> maxFluidTransferRate / bucketMode.multiplier);
-        return CoverUIs.section("cover.ui.transfer").addChild(fluidAmountRow(
+        return Form.section("cover.ui.transfer").addChild(fluidAmountRow(
                 () -> Component.translatable("cover.pump.ui.transfer_rate", Component.translatable(bucketMode.getTooltip())),
                 modes, this::getBucketMode, this::setBucketMode, field));
     }
 
     private UIElement createModeSection() {
-        return CoverUIs.section("cover.ui.modes").addChildren(
+        return Form.section("cover.ui.modes").addChildren(
                 CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), this::getIo, this::setIo),
                 CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
                         "cover.universal.manual_import_export.mode.description.0",
@@ -263,11 +264,11 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     protected static UIElement fluidAmountRow(Supplier<Component> label, List<BucketMode> modes, Supplier<BucketMode> current,
                                               Consumer<BucketMode> set, NumberField field, String... tooltipKeys) {
-        var text = TextLine.of(0, label).setColor(UITheme::panelText);
+        var text = TextLine.of(0, label).bindClientColor(UITheme::panelText);
         text.layout(l -> l.flex(1));
-        if (tooltipKeys.length > 0) text.setHoverTooltips(tooltipKeys);
+        if (tooltipKeys.length > 0) text.tooltips(tooltipKeys);
         boolean selectable = modes.size() > 1;
-        var head = UIElement.row(selectable ? UISizes.SLOT : UISizes.TEXT_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChild(text);
+        var head = UIElement.row(selectable ? UISizes.SLOT_SIZE : UISizes.TEXT_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChild(text);
         if (selectable) head.addChild(CoverUIs.enumIcons(modes, current, set));
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(head, field);
     }

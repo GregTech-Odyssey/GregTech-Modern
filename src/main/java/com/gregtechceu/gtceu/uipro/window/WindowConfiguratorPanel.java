@@ -6,8 +6,11 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.uipro.animation.Animation;
 import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
-import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -76,7 +79,7 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
             if (child instanceof ImageWidget) view.removeWidget(child);
         }
         int width = Math.max(0, view.getSizeWidth() - 2 * border - getTabSize());
-        var title = TextLine.constant(width, configurator.getTitle()).setColor(UITheme::text);
+        var title = TextLine.constant(width, configurator.getTitle()).bindClientColor(UITheme::text);
         title.setSelfPosition(new Position(border, (getTabSize() - UISizes.TEXT_HEIGHT) / 2 + 1));
         view.addWidget(title);
     }
@@ -194,8 +197,8 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
         var motion = motions.get(tab);
         int width = tab.getSizeWidth(), height = tab.getSizeHeight();
         if (motion == null || width <= 0 || height <= 0) return false;
-        float left = PixelSnap.snap(motion.x), top = PixelSnap.snap(motion.y);
-        float right = PixelSnap.snap(motion.x + motion.width), bottom = PixelSnap.snap(motion.y + motion.height);
+        float left = UIPixels.snap(motion.x), top = UIPixels.snap(motion.y);
+        float right = UIPixels.snap(motion.x + motion.width), bottom = UIPixels.snap(motion.y + motion.height);
         int parentX = tab.getPositionX() - tab.getSelfPositionX(), parentY = tab.getPositionY() - tab.getSelfPositionY();
         var pose = graphics.pose();
         pose.pushPose();
@@ -216,7 +219,7 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
         animations.updateFrame();
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(0, 0, UITheme.OVERLAY_Z);
+        pose.translate(0, 0, UILayers.OVERLAY);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         pose.popPose();
     }
@@ -226,7 +229,7 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(0, 0, UITheme.OVERLAY_Z);
+        pose.translate(0, 0, UILayers.OVERLAY);
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
         pose.popPose();
     }
@@ -322,8 +325,8 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
             if (held || Util.getMillis() < pressedUntil || (persistent != null && persistent.isLatched())) state = TabState.PRESSED;
             else if (hovered) state = TabState.HOVERED;
             return switch (state) {
-                case PRESSED -> persistent != null ? UITheme.CONFIGURATOR_TAB_LATCHED : UITheme.CONFIGURATOR_TAB_PRESSED;
-                case HOVERED -> UITheme.CONFIGURATOR_TAB_HOVER;
+                case PRESSED -> UITheme.CONFIGURATOR_TAB.select(persistent != null ? UIStates.LATCHED : UIStates.PRESSED);
+                case HOVERED -> UITheme.CONFIGURATOR_TAB.select(UIStates.HOVERED);
                 case DEFAULT -> null;
             };
         }
@@ -335,11 +338,11 @@ public final class WindowConfiguratorPanel extends ConfiguratorPanel {
         int iconOffsetY() {
             if (busy()) return busyOrbit()[1];
             if (state != TabState.PRESSED) return 0;
-            return persistent != null ? UITheme.CONFIGURATOR_TAB_LATCH_DEPTH : UITheme.CONFIGURATOR_TAB_PRESS_DEPTH;
+            return persistent != null ? UISizes.CONFIGURATOR_TAB_LATCH_DEPTH : UISizes.CONFIGURATOR_TAB_PRESS_DEPTH;
         }
 
         private static int[] busyOrbit() {
-            return BUSY_ORBIT[(int) (Util.getMillis() / BUSY_STEP_MS % BUSY_ORBIT.length)];
+            return BUSY_ORBIT[(int) (UIClock.millis() / BUSY_STEP_MS % BUSY_ORBIT.length)];
         }
     }
 

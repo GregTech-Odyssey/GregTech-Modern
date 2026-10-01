@@ -16,7 +16,7 @@ import java.util.List;
  * <p>
  * 与界面控件不同，项不是 LDLib 控件，不进控件树、不参与同步：画布只有一个控件，项只是它在客户端画出来的内容。
  * 这样几百个节点也只有一次命中测试和一批绘制，两端控件树也不会因为内容多少而变化。
- * 需要改服务端数据的交互（点击解锁等）由使用方在 {@link CanvasView#setOnItemClick} 里走自己的请求通道。
+ * 需要改服务端数据的交互（点击解锁等）由使用方在 {@link CanvasView#setOnClientItemClick} 里走自己的请求通道。
  * <p>
  * 绘制分三遍（见 {@link ItemLayer}）：先所有项的 {@link #drawShape}（色块、边框，攒成一批），再所有项的 {@link #drawContent}
  * （图标、文字），最后所有项的 {@link #drawOverlay}（盖在图标上面的蒙层，抬高后攒成一批）；

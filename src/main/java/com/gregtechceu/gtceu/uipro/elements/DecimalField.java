@@ -36,8 +36,8 @@ public class DecimalField extends Adjuster {
      * @param step       步进，必须大于 0
      * @param stepCounts 四档步数，不传用 {@link #DEFAULT_STEP_COUNTS}
      */
-    public DecimalField(int width, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max,
-                        double step, long... stepCounts) {
+    protected DecimalField(int width, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max,
+                           double step, long... stepCounts) {
         this(width, getter, setter, min, max, step, 1, "", stepCounts);
     }
 
@@ -57,6 +57,11 @@ public class DecimalField extends Adjuster {
     public static DecimalField of(int width, DoubleSupplier getter, DoubleConsumer setter, double min, double max,
                                   double step, long... stepCounts) {
         return new DecimalField(width, getter, setter, () -> min, () -> max, step, stepCounts);
+    }
+
+    public static DecimalField of(int width, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max,
+                                  double step, long... stepCounts) {
+        return new DecimalField(width, getter, setter, min, max, step, stepCounts);
     }
 
     private static long toTicks(double value, double step) {

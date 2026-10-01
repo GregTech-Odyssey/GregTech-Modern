@@ -9,6 +9,8 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
@@ -23,6 +25,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.IMultiblockPageMachine;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
@@ -50,7 +53,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class WorkableMultiblockMachine extends MultiblockControllerMachine implements IWorkableMultiController, IMufflableMachine {
+public abstract class WorkableMultiblockMachine extends MultiblockControllerMachine implements IWorkableMultiController, IMufflableMachine, IMultiblockPageMachine {
 
     @Nullable
     protected ICleanroomProvider cleanroom;
@@ -156,6 +159,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void setVoidingMode(VoidingMode mode) {
         voidingMode = mode;
+    }
+
+    public void attachRecipeConfigurators(ConfiguratorPanel configuratorPanel) {
+        IVoidable.attachConfigurators(configuratorPanel, this);
+        attachBatchConfigurator(configuratorPanel);
+        IRecipeLogicMachine.attachRecipeLockConfigurator(configuratorPanel, this);
     }
 
     public void attachBatchConfigurator(ConfiguratorPanel configuratorPanel) {

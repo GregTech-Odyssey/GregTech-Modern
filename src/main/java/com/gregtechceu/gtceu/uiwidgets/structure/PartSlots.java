@@ -3,12 +3,11 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.util.DrawerHelper;
-import com.lowdragmc.lowdraglib.gui.util.TextFormattingUtil;
 import com.lowdragmc.lowdraglib.jei.IngredientIO;
 
 import net.minecraft.network.chat.Component;
@@ -26,6 +25,8 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public final class PartSlots {
 
+    private static final int COUNT_MAX_WIDTH = 17;
+
     private PartSlots() {}
 
     public static List<SlotWidget> create(List<ItemStack> stacks) {
@@ -37,7 +38,7 @@ public final class PartSlots {
     }
 
     public static UIElement grid(List<ItemStack> stacks, List<Component> tips, int columns) {
-        var grid = new UIElement().layout(l -> l.row().flexWrap(FlexWrap.WRAP).width(columns * UISizes.SLOT));
+        var grid = new UIElement().layout(l -> l.row().flexWrap(FlexWrap.WRAP).width(columns * UISizes.SLOT_SIZE));
         for (var slot : slots(stacks, tips)) grid.addChild(slot);
         return grid;
     }
@@ -53,7 +54,7 @@ public final class PartSlots {
             slot.setIngredientIO(IngredientIO.INPUT);
             int count = stacks.get(i).getCount();
             var exact = count > 1 ? Component.literal(String.format("×%,d", count)) : null;
-            if (count > 1) slot.setOverlay(countTexture(TextFormattingUtil.formatLongToCompactString(count, 4)));
+            if (count > 1) slot.setOverlay(countTexture(UIText.formatCompact(count, COUNT_MAX_WIDTH)));
             if (exact != null || !tips.isEmpty()) {
                 slot.setOnAddedTooltips((widget, list) -> {
                     if (exact != null) list.add(exact);
@@ -66,11 +67,6 @@ public final class PartSlots {
     }
 
     private static IGuiTexture countTexture(String text) {
-        return (graphics, mouseX, mouseY, x, y, width, height) -> {
-            graphics.pose().pushPose();
-            graphics.pose().translate(0, 0, 200);
-            DrawerHelper.drawStringFixedCorner(graphics, text, x + 17, y + 17, 0xFFFFFF, true, 0.5f);
-            graphics.pose().popPose();
-        };
+        return (graphics, mouseX, mouseY, x, y, width, height) -> UIText.drawItemCount(graphics, text, (int) x + 1, (int) y + 1);
     }
 }

@@ -4,13 +4,13 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -21,24 +21,29 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
+import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -71,7 +76,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine {
+public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IFancyUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine {
 
     @SaveToDisk
     public final NotifiableFluidTank waterTank;
@@ -92,6 +97,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     protected ISubscription steamTankSubs;
+    public static final int BOILER_CONTENT_HEIGHT = 62;
 
     public int fillAmount;
 
@@ -248,6 +254,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(holder instanceof SteamBoilerMachine boilerMachine)) {
+            holder.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         if (boilerMachine.isHighPressure) recipe.durationMultiplier(0.5);
@@ -278,8 +285,26 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     //////////////////////////////////////
     @Override
     public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure)).widget(new LabelWidget(6, 6, getBlockState().getBlock().getDescriptionId())).widget(new ProgressWidget(this::getTemperaturePercent, 96, 26, 10, 54).setProgressTexture(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure), GuiTextures.PROGRESS_BAR_BOILER_HEAT).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setDynamicHoverTips(pct -> I18n.get("gtceu.multiblock.large_boiler.temperature", currentTemperature + 274, getMaxTemperature() + 274))).widget(new TankWidget(waterTank.getStorages()[0], 83, 26, 10, 54, false, true).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure))).widget(new TankWidget(steamTank.getStorages()[0], 70, 26, 10, 54, true, false).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure))).widget(new ImageWidget(43, 44, 18, 18, GuiTextures.CANISTER_OVERLAY_STEAM.get(isHighPressure))).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure), 7, 84, true));
+        return MachineWindow.createUI(this, this, entityPlayer);
     }
+
+    @Override
+    public ResourceLocation getWindowSkin() {
+        return MachineEra.steam(isHighPressure).getSkin();
+    }
+
+    @Override
+    public Widget createUIWidget() {
+        var group = new WidgetGroup(0, 0, UISizes.CONTENT_WIDTH, BOILER_CONTENT_HEIGHT);
+        group.addWidget(new ProgressWidget(this::getTemperaturePercent, 89, 4, 10, 54).setProgressTexture(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure), GuiTextures.PROGRESS_BAR_BOILER_HEAT).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setDynamicHoverTips(pct -> Component.translatable("gtceu.multiblock.large_boiler.temperature", currentTemperature + 274, getMaxTemperature() + 274).getString()));
+        group.addWidget(new TankWidget(waterTank.getStorages()[0], 76, 4, 10, 54, false, true).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
+        group.addWidget(new TankWidget(steamTank.getStorages()[0], 63, 4, 10, 54, true, false).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
+        group.addWidget(new ImageWidget(36, 22, 18, 18, GuiTextures.CANISTER_OVERLAY_STEAM.get(isHighPressure)));
+        addBoilerWidgets(group);
+        return RecipeMachinePage.page(group);
+    }
+
+    protected void addBoilerWidgets(WidgetGroup group) {}
 
     //////////////////////////////////////
     // ********* Client *********//

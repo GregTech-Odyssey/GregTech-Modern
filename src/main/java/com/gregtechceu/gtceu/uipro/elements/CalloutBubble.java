@@ -1,7 +1,9 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.styletemplate.DynamicResourceTexture;
 import com.gregtechceu.gtceu.uipro.styletemplate.OreSprites;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -37,6 +39,14 @@ public final class CalloutBubble {
             this.icon = iconIndex < 0 ? null : new DynamicResourceTexture(UITheme::calloutIcons, iconIndex / 3.0, 0, 1 / 3.0, 1);
         }
 
+        public static Tone of(Level level) {
+            return switch (level) {
+                case ERROR -> DANGER;
+                case WARNING -> WARNING;
+                default -> INFO;
+            };
+        }
+
         private IGuiTexture frame() {
             return themed ? UITheme.WINDOW : frame;
         }
@@ -55,7 +65,7 @@ public final class CalloutBubble {
         }
     }
 
-    public static final int NOTCH = UITheme.POPUP_NOTCH;
+    public static final int NOTCH = UISizes.POPUP_NOTCH_HEIGHT;
     public static final int ICON = 8;
     private static final int ICON_GAP = 2;
     private static final int LABEL_PADDING = 4;

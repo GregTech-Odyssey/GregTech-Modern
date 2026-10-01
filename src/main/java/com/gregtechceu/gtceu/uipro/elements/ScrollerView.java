@@ -4,6 +4,9 @@ import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.render.UIClip;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
 import com.gregtechceu.gtceu.uipro.styletemplate.OreSprites;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -29,7 +32,6 @@ import dev.vfyjxf.taffy.geometry.FloatSize;
 import dev.vfyjxf.taffy.util.MeasureFunc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +43,7 @@ import java.util.function.IntConsumer;
  * 内容放在一个纵向 {@link UIElement}（自成一棵布局树）里；视图本身是父布局里的 {@link ILayoutItem}，尺寸由测量函数给出。
  * <ul>
  * <li>宽度：父元素拉伸时取分配的宽度，否则取首选宽度（构造参数）；{@link #adaptiveWidth()} 时跟随内容。</li>
- * <li>高度：默认取首选高度；{@link #adaptiveHeight(int)} 时跟随内容、最高到上限，超出才滚动（对应 LDLib2 同名样式）。</li>
+ * <li>高度：默认取首选高度；{@link #setAdaptiveHeight(int)} 时跟随内容、最高到上限，超出才滚动（对应 LDLib2 同名样式）。</li>
  * <li>滚动条按 {@link ScrollDisplay} 显示（默认内容放不下才显示），不显示时不占位置，内容铺满整个宽度。</li>
  * <li>右下角有拖拽缩放角，只沿滚动方向缩放（纵向滚动区只改高度；adaptive 时改高度上限），
  * 整个界面不超过屏幕的 2/3（{@link ILayoutHost#resizeAllowance}）。拖拽中窗口位置钉住，松手后动画回到居中；
@@ -50,7 +52,7 @@ import java.util.function.IntConsumer;
  * 重开界面时沿用；超出屏幕上限等无法应用时回到默认。锁定后不能拖，再右键解锁。</li>
  * </ul>
  * 内容列按 flexbox 默认拉伸子元素，行内再用 {@code flex(1)} 分宽度，就能随滚动条显隐自动铺满；
- * 不要在建界面时按 {@link #getContentWidth()} 算好宽度写死。视口外要与内容对齐的元素用 {@link #setOnContentWidthChanged}。
+ * 不要在建界面时按 {@link #getContentWidth()} 算好宽度写死。视口外要与内容对齐的元素用 {@link #onContentWidthChanged}。
  */
 public class ScrollerView extends DraggableScrollableWidgetGroup implements ILayoutItem {
 
@@ -63,7 +65,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     /** 滚动条连同与内容的间距所占宽度。 */
     public static final int SCROLL_BAR_SPACE = SCROLL_BAR_WIDTH + SCROLL_BAR_MARGIN;
     /// 拖拽缩放时视口的最小高度
-    private static final int MIN_RESIZE_HEIGHT = UISizes.SLOT;
+    private static final int MIN_RESIZE_HEIGHT = UISizes.SLOT_SIZE;
     private static final int MIN_THUMB_LENGTH = SCROLL_BAR_WIDTH;
 
     /** 滚动条显示方式，对应 LDLib2 {@code ScrollDisplay}。 */
@@ -73,6 +75,8 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         ALWAYS,
         NEVER
     }
+
+    private static final int PAGE_HEIGHT_LIMIT = Integer.MAX_VALUE / 4;
 
     public static final String GRIP_RESIZE = "gtceu.uipro.scroller.resize";
     public static final String GRIP_LOCK = "gtceu.uipro.scroller.lock";
@@ -110,6 +114,14 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private boolean draggingThumb;
     private int thumbGrabOffset;
 
+    public static int heightFor(int rows, int rowHeight, int gap) {
+        return rows <= 0 ? 0 : rows * rowHeight + (rows - 1) * gap;
+    }
+
+    public static ScrollerView page(String id, int width) {
+        return new ScrollerView(id, width, UISizes.SLOT_SIZE).setResizable(false).setAdaptiveHeight(PAGE_HEIGHT_LIMIT).fitPage();
+    }
+
     public ScrollerView(String id, int width, int height) {
         this(id, width, height, 0);
     }
@@ -117,7 +129,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     /**
      * @param id     固定的 id（按界面里的位置取），锁定的尺寸按它保存
      * @param width  首选宽度
-     * @param height 首选高度（{@link #adaptiveHeight} 时为初始值）
+     * @param height 首选高度（{@link #setAdaptiveHeight} 时为初始值）
      */
     public ScrollerView(String id, int width, int height, int gap) {
         super(0, 0, width, height);
@@ -166,7 +178,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     @Override
     public ScrollerView setBackground(IGuiTexture background) {
         super.setBackground(background);
-        if (root != null) viewportInset(background instanceof OreSprites.Bevel ? 1 : 0);
+        if (root != null) setViewportInset(background instanceof OreSprites.Bevel ? 1 : 0);
         return this;
     }
 
@@ -176,14 +188,14 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return this;
     }
 
-    public ScrollerView watermark(IGuiTexture texture, int width, int height) {
+    public ScrollerView setWatermark(IGuiTexture texture, int width, int height) {
         this.watermark = texture;
         this.watermarkWidth = width;
         this.watermarkHeight = height;
         return this;
     }
 
-    public ScrollerView viewportInset(int inset) {
+    public ScrollerView setViewportInset(int inset) {
         inset = Math.max(0, inset);
         if (this.inset == inset) return this;
         this.inset = inset;
@@ -193,7 +205,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return this;
     }
 
-    public ScrollerView verticalScrollDisplay(ScrollDisplay display) {
+    public ScrollerView setVerticalScrollDisplay(ScrollDisplay display) {
         this.verticalScrollDisplay = display;
         relayout();
         return this;
@@ -203,20 +215,20 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
      * 高度跟随内容，最高 {@code maxHeight}，超出才滚动。内容高度只在客户端准确（文字尺寸在客户端测量），
      * 因此两端尺寸可能不同，但控件树一致，不影响同步。
      */
-    public ScrollerView adaptiveHeight(int maxHeight) {
+    public ScrollerView setAdaptiveHeight(int maxHeight) {
         this.adaptiveMaxHeight = Math.max(1, maxHeight);
         relayout();
         return this;
     }
 
-    public int adaptiveOverflow() {
+    public int getAdaptiveOverflow() {
         if (adaptiveMaxHeight <= 0) return 0;
         return Math.max(0, contentHeightAt(adaptiveWidth ? 0 : preferredWidth - SCROLL_BAR_SPACE) - heightLimit());
     }
 
     public int growAdaptiveHeight(int extra) {
-        int grow = Math.min(Math.max(0, extra), adaptiveOverflow());
-        if (grow > 0) adaptiveHeight(adaptiveMaxHeight + grow);
+        int grow = Math.min(Math.max(0, extra), getAdaptiveOverflow());
+        if (grow > 0) setAdaptiveHeight(adaptiveMaxHeight + grow);
         return grow;
     }
 
@@ -239,12 +251,12 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     }
 
     /** 内容列宽度随滚动条显隐、拖拽变化后回调（参数为新宽度），供视口外需要与内容对齐的元素跟随。 */
-    public ScrollerView setOnContentWidthChanged(@Nullable IntConsumer listener) {
+    public ScrollerView onContentWidthChanged(@Nullable IntConsumer listener) {
         this.onContentWidthChanged = listener;
         return this;
     }
 
-    public ScrollerView layoutContent(Consumer<LayoutStyle> layout) {
+    public ScrollerView contentLayout(Consumer<LayoutStyle> layout) {
         content.layout(layout);
         return this;
     }
@@ -255,7 +267,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     }
 
     /** 清空内容（不要对滚动区本身调 {@code clearAllWidgets}，那会把内容列一起删掉）。 */
-    public ScrollerView clearScrollViewChildren() {
+    public ScrollerView clearAllScrollViewChildren() {
         content.clearAllWidgets();
         return this;
     }
@@ -284,7 +296,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         else limit = adaptiveMaxHeight > 0 ? adaptiveMaxHeight + 2 * inset : preferredHeight;
         if (!fitPage) return limit;
         var host = ILayoutHost.of(this);
-        return host == null ? limit : Math.min(limit, host.pageHeightLimit());
+        return host == null ? limit : Math.min(limit, host.getPageHeightLimit());
     }
 
     /** 客户端：读取锁定的高度，超出屏幕上限（界面不超过屏幕 2/3）或过小时不应用，回到默认。 */
@@ -420,11 +432,8 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void enableViewportScissor(GuiGraphics graphics) {
-        var pose = graphics.pose().last().pose();
-        var from = pose.transform(new Vector4f(viewportLeft(), viewportTop(), 0, 1));
-        var to = pose.transform(new Vector4f(viewportRight(), viewportBottom(), 0, 1));
-        graphics.enableScissor((int) from.x, (int) from.y, (int) to.x, (int) to.y);
+    private void pushViewportClip(GuiGraphics graphics) {
+        UIClip.push(graphics, viewportLeft(), viewportTop(), viewportRight() - viewportLeft(), viewportBottom() - viewportTop());
     }
 
     private double viewportX(double mouseX, double mouseY) {
@@ -492,7 +501,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     private int trackBottom() {
         int bottom = viewportBottom();
-        if (resizable) bottom -= UITheme.RESIZE_GRIP_SIZE + 1;
+        if (resizable) bottom -= UISizes.RESIZE_GRIP_SIZE + 1;
         return Math.max(viewportTop(), bottom);
     }
 
@@ -536,7 +545,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private boolean isOverGrip(double mouseX, double mouseY) {
         if (!resizable) return false;
         int right = viewportRight(), bottom = viewportBottom();
-        return mouseX >= right - UITheme.RESIZE_GRIP_SIZE && mouseX < right && mouseY >= bottom - UITheme.RESIZE_GRIP_SIZE && mouseY < bottom;
+        return mouseX >= right - UISizes.RESIZE_GRIP_SIZE && mouseX < right && mouseY >= bottom - UISizes.RESIZE_GRIP_SIZE && mouseY < bottom;
     }
 
     /** 纵向滚动区只能纵向缩放：adaptive 时改高度上限，否则改首选高度；夹在最小高度与屏幕上限之间。 */
@@ -632,30 +641,30 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         boolean inside = isInViewport(mouseX, mouseY);
         drawBackgroundTexture(graphics, mouseX, mouseY);
         if (watermark != null) {
-            int right = viewportRight() - (barShown ? SCROLL_BAR_SPACE : 0) - UITheme.LOGO_GAP;
-            int bottom = viewportBottom() - (resizable ? UITheme.RESIZE_GRIP_SIZE - UITheme.LOGO_GAP : UITheme.LOGO_GAP);
+            int right = viewportRight() - (barShown ? SCROLL_BAR_SPACE : 0) - UISizes.LOGO_GAP;
+            int bottom = viewportBottom() - (resizable ? UISizes.RESIZE_GRIP_SIZE - UISizes.LOGO_GAP : UISizes.LOGO_GAP);
             RenderSystem.enableBlend();
             watermark.draw(graphics, mouseX, mouseY, right - watermarkWidth, bottom - watermarkHeight, watermarkWidth, watermarkHeight);
         }
-        enableViewportScissor(graphics);
+        pushViewportClip(graphics);
         drawWidgetsBackground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
         if (barShown) drawScrollBar(graphics, mouseX, mouseY);
         if (!resizable) return;
         var pose = graphics.pose();
         pose.pushPose();
         // 画在内容之上（物品图标 z 约 150）
-        pose.translate(0, 0, UITheme.OVERLAY_Z);
-        UITheme.drawResizeGrip(graphics, viewportRight(), viewportBottom(), resizing || isOverGrip(mouseX, mouseY), isLocked());
+        pose.translate(0, 0, UILayers.OVERLAY);
+        UIDraw.resizeGrip(graphics, viewportRight(), viewportBottom(), resizing || isOverGrip(mouseX, mouseY), isLocked());
         pose.popPose();
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawOverlay(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        enableViewportScissor(graphics);
+        pushViewportClip(graphics);
         super.drawOverlay(graphics, mouseX, mouseY, partialTicks);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
     }
 
     /** 悬停在缩放角上时说明操作：没锁定时"拖动调整 / 右键锁定"，锁定时"已锁定 / 右键解锁"。 */
@@ -663,9 +672,9 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         boolean inside = isInViewport(mouseX, mouseY);
-        enableViewportScissor(graphics);
+        pushViewportClip(graphics);
         drawWidgetsForeground(graphics, inside ? mouseX : OUTSIDE, inside ? mouseY : OUTSIDE, partialTicks);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
         if (resizing || !isOverGrip(mouseX, mouseY) || gui == null || gui.getModularUIGui() == null) return;
         var lines = isLocked() ?
                 List.<Component>of(Component.translatable(GRIP_LOCKED), Component.translatable(GRIP_UNLOCK).withStyle(ChatFormatting.GRAY)) :

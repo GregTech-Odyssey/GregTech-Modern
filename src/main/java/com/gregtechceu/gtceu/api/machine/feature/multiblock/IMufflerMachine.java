@@ -3,12 +3,12 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
 import com.gregtechceu.gtceu.common.data.GTParticleTypes;
-import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.icon.IssueIcons;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -50,7 +50,7 @@ public interface IMufflerMachine extends IWorkableMultiPart {
     @Override
     default GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!isFrontFaceFree()) {
-            controller.setIdleReason(ActionResult.FAIL_MUFFLER_OBSTRUCTED);
+            controller.reportIssue(GTIssues.MUFFLER_OBSTRUCTED);
             return null;
         }
         return recipe;
@@ -75,12 +75,12 @@ public interface IMufflerMachine extends IWorkableMultiPart {
 
     @Override
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
-        tooltipsPanel.attachTooltips(new IFancyTooltip.Basic(
-                () -> WidgetIcons.STATUS_OBSTRUCTED,
+        tooltipsPanel.attachTooltips(IFancyTooltip.covering(GTIssues.MUFFLER_OBSTRUCTED, new IFancyTooltip.Basic(
+                () -> IssueIcons.iconFor(GTIssues.MUFFLER_OBSTRUCTED),
                 () -> List.of(Component.translatable("gtceu.multiblock.universal.muffler_obstructed")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.RED))),
                 () -> !isFrontFaceFree(),
-                () -> null));
+                () -> null)));
     }
 
     @Override

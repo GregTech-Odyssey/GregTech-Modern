@@ -1,7 +1,11 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
+import com.gregtechceu.gtceu.uipro.Horizontal;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.FittedText;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -12,7 +16,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +33,7 @@ import java.util.function.Supplier;
  * 与文字内容无关（不按文字测量），适合显示名称、状态这类由服务端下发、长度不定的单行文字。
  * <p>
  * 高度取 {@link UISizes#TEXT_HEIGHT}（字体行高 9，与单行 {@code Label} 同高），这样它能和 {@code Label} 在区块里混排、行距一致；
- * 放进 {@link UISizes#CONTROL_HEIGHT} 高的控件行时用 {@code alignCenter()} 居中。
+ * 放进 {@link UISizes#CONTROL_HEIGHT} 高的控件行时用布局的 {@code alignCenter()} 居中。
  * <p>
  * 文字由服务端取值下发（{@link SyncValue}）；构造时<strong>不会</strong>调用 getter，客户端显示下发前为空，
  * 所以 getter 可以放心依赖服务端独有的数据。两端文字相同的静态文字用 {@link #constant}。
@@ -42,15 +45,16 @@ public class TextLine extends UIElement {
 
     private final SyncValue<Component> text;
     private IntSupplier color = UITheme::text;
-    private float scale = 1;
     @Nullable
     private SyncValue<Integer> level;
-    private float align;
+    private Horizontal align = Horizontal.LEFT;
     private boolean styled;
+    @Nullable
+    private FittedText fitted;
 
-    public TextLine(int width, Supplier<Component> text, Component initial) {
+    protected TextLine(int width, Supplier<Component> text, Component initial) {
         layout(l -> l.size(width, HEIGHT));
-        this.text = addSyncValue(SyncValue.of(text, StreamCodecs.COMPONENT_CODEC, initial));
+        this.text = addSyncValue(SyncValue.ofComponent(text, initial));
     }
 
     /** 服务端取值下发的文字。 */
@@ -67,26 +71,17 @@ public class TextLine extends UIElement {
         return constant(width, Component.translatable(key));
     }
 
-    /** 小字（{@link UISizes#SMALL_TEXT_SCALE} 倍，高 {@link UISizes#SMALL_TEXT_HEIGHT}），用于列表里的次要信息。 */
-    public TextLine setSmall() {
-        this.scale = UISizes.SMALL_TEXT_SCALE;
-        layout(l -> l.height(UISizes.SMALL_TEXT_HEIGHT));
-        return this;
-    }
-
-    /** 文字颜色，取 {@link UITheme} 里的颜色。 */
     public TextLine setColor(int color) {
-        return setColor(() -> color);
+        return bindClientColor(() -> color);
     }
 
-    /** 动态文字颜色，主题切换后会在下一帧生效。 */
-    public TextLine setColor(IntSupplier color) {
+    public TextLine bindClientColor(IntSupplier color) {
         this.color = Objects.requireNonNull(color);
         return this;
     }
 
-    public TextLine alignRight() {
-        this.align = 1;
+    public TextLine setTextAlign(Horizontal align) {
+        this.align = align;
         return this;
     }
 
@@ -95,13 +90,8 @@ public class TextLine extends UIElement {
         return this;
     }
 
-    public TextLine alignCenter() {
-        this.align = 0.5f;
-        return this;
-    }
-
-    public TextLine level(Supplier<StatusLine.Level> level) {
-        this.level = addSyncValue(SyncValue.ofInt(() -> level.get().ordinal(), StatusLine.Level.NORMAL.ordinal()));
+    public TextLine bindLevel(Supplier<Level> level) {
+        this.level = addSyncValue(SyncValue.ofInt(() -> level.get().ordinal(), Level.NORMAL.ordinal()));
         return this;
     }
 
@@ -114,28 +104,27 @@ public class TextLine extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
-        var font = Minecraft.getInstance().font;
         var value = text.getValue();
-        int available = (int) (getSizeWidth() / scale);
-        boolean keepStyle = styled && font.width(value) <= available;
-        var clipped = keepStyle ? null : UITheme.clip(font, value.getString(), available);
-        int textWidth = keepStyle ? font.width(value) : font.width(clipped);
-        var pose = graphics.pose();
-        pose.pushPose();
-        // 整数偏移，避免文字落在半像素上发虚
-        int x = getPositionX();
-        if (align > 0) x += Math.round(Math.max(0, getSizeWidth() - textWidth * scale) * align);
-        pose.translate(x, getPositionY() + (float) (getSizeHeight() - Math.round(8 * scale)) / 2, 0);
-        pose.scale(scale, scale, 1);
-        if (keepStyle) graphics.drawString(font, value, 0, 0, currentColor(), false);
-        else graphics.drawString(font, clipped, 0, 0, currentColor(), false);
-        pose.popPose();
+        int available = getSizeWidth();
+        int y = UIText.centerY(getPositionY(), getSizeHeight());
+        int valueWidth = styled ? UIText.width(value) : 0;
+        if (styled && valueWidth <= available) {
+            UIText.drawLeft(graphics, value, getPositionX() + alignOffset(available, valueWidth), y, currentColor());
+            return;
+        }
+        if (fitted == null) fitted = new FittedText();
+        var shown = fitted.fit(value, available);
+        UIText.drawLeft(graphics, shown, getPositionX() + alignOffset(available, fitted.width()), y, currentColor());
+    }
+
+    private int alignOffset(int available, int textWidth) {
+        return align.offsetIn(available, textWidth);
     }
 
     private int currentColor() {
         if (level == null) return color.getAsInt();
-        var current = StatusLine.level(level.getValue());
-        return current == StatusLine.Level.NORMAL ? color.getAsInt() : current.textColor();
+        var current = Level.of(level.getValue());
+        return current == Level.NORMAL ? color.getAsInt() : current.getTextColor();
     }
 
     @Override
@@ -146,7 +135,7 @@ public class TextLine extends UIElement {
         if (!tooltipTexts.isEmpty() || gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
         var font = Minecraft.getInstance().font;
         var full = text.getValue();
-        if (font.width(full.getString()) * scale > getSizeWidth()) {
+        if (font.width(full.getString()) > getSizeWidth()) {
             gui.getModularUIGui().setHoverTooltip(List.of(full), ItemStack.EMPTY, null, null);
         }
     }

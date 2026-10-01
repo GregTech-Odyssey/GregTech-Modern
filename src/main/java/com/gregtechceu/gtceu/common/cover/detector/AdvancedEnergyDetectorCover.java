@@ -7,12 +7,12 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -134,21 +134,21 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var output = CoverUIs.section("cover.advanced_detector.output").addChildren(
-                CoverUIs.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
+        var output = Form.section("cover.advanced_detector.output").addChildren(
+                Form.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
                         "cover.advanced_energy_detector.inverted.tooltip"),
                 modeRow());
-        var thresholds = CoverUIs.section("cover.advanced_detector.thresholds").addChildren(
+        var thresholds = Form.section("cover.advanced_detector.thresholds").addChildren(
                 thresholdRow(() -> Component.translatable(usePercent ? "cover.advanced_energy_detector.min.percent" : "cover.advanced_energy_detector.min.eu"),
-                        new NumberField(LayoutStyle.AUTO, this::getMinValue, this::setMinValue, () -> 0, this::maxThreshold)),
+                        NumberField.ofLong(LayoutStyle.AUTO, this::getMinValue, this::setMinValue, () -> 0, this::maxThreshold)),
                 thresholdRow(() -> Component.translatable(usePercent ? "cover.advanced_energy_detector.max.percent" : "cover.advanced_energy_detector.max.eu"),
-                        new NumberField(LayoutStyle.AUTO, this::getMaxValue, this::setMaxValue, () -> 0, this::maxThreshold)));
-        return CoverUIs.page().addChildren(output, thresholds);
+                        NumberField.ofLong(LayoutStyle.AUTO, this::getMaxValue, this::setMaxValue, () -> 0, this::maxThreshold)));
+        return Form.page().addChildren(output, thresholds);
     }
 
     private UIElement modeRow() {
-        var label = TextLine.translatable(LayoutStyle.AUTO, "cover.advanced_energy_detector.mode").setColor(UITheme::panelText);
-        label.setHoverTooltips("cover.advanced_energy_detector.mode.tooltip");
+        var label = TextLine.translatable(LayoutStyle.AUTO, "cover.advanced_energy_detector.mode").bindClientColor(UITheme::panelText);
+        label.tooltips("cover.advanced_energy_detector.mode.tooltip");
         var modes = ButtonGroup.single(2,
                 i -> Component.translatable(i == 1 ? "cover.advanced_energy_detector.mode.percent" : "cover.advanced_energy_detector.mode.eu"),
                 () -> usePercent ? 1 : 0, i -> setUsePercent(i == 1)).horizontal();
@@ -157,6 +157,6 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
 
     private static UIElement thresholdRow(Supplier<Component> label, NumberField field) {
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP))
-                .addChildren(TextLine.of(LayoutStyle.AUTO, label).setColor(UITheme::panelText), field);
+                .addChildren(TextLine.of(LayoutStyle.AUTO, label).bindClientColor(UITheme::panelText), field);
     }
 }

@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
@@ -134,17 +135,33 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
+            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         var eu = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
-        if (eu > fusionReactorMachine.energyContainer.getEnergyCapacity()) return null;
+        long capacity = fusionReactorMachine.energyContainer.getEnergyCapacity();
+        if (eu > capacity) {
+            machine.reportIssue(GTIssues.START_ENERGY_CAPACITY, eu, capacity);
+            return null;
+        }
         long heatDiff = eu - fusionReactorMachine.heat;
         if (heatDiff > 0) {
-            if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) return null;
+            long stored = fusionReactorMachine.energyContainer.getEnergyStored();
+            if (stored < heatDiff) {
+                machine.reportIssue(GTIssues.START_ENERGY_SHORT, heatDiff, preheatProgress(stored, heatDiff));
+                return null;
+            }
             fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
             fusionReactorMachine.heat += heatDiff;
         }
         return RecipeModifier.perfectOverclocking(machine, unit, recipe);
+    }
+
+    private static long preheatProgress(long stored, long need) {
+        if (need <= 0) return -1;
+        if (stored >= need) return need;
+        long percent = stored <= 0 ? 0 : stored < Long.MAX_VALUE / 100 ? stored * 100 / need : stored / (need / 100);
+        return need / 100 * percent + need % 100 * percent / 100;
     }
 
     @Override
@@ -156,7 +173,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             long heatDiff = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) - this.heat;
             // if the remaining energy needed is more than stored, do not run
             if (heatDiff > 0) {
-                recipeLogic.setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_fuel"));
+                recipeLogic.setWaiting(GTIssues.START_ENERGY_SHORT, heatDiff, preheatProgress(this.energyContainer.getEnergyStored(), heatDiff));
                 // if the remaining energy needed is more than stored, do not run
                 if (this.energyContainer.getEnergyStored() < heatDiff) {
                     return;

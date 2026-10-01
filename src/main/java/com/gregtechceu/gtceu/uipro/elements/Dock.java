@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -11,7 +12,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 /**
- * 悬浮栏（dock）：浮在某块内容（如三视图）之上的一条工具栏，与窗口同色的圆角面板（{@link UITheme#drawDock}，不画投影），
+ * 悬浮栏（dock）：浮在某块内容（如三视图）之上的一条工具栏，与窗口同色的圆角面板（{@link UIDraw#dockPlate}，不画投影），
  * 里面一组组控件横排，组与组之间一条细分隔线。宽高随内容，由使用方摆到内容的底部居中（离底边 {@link UISizes#DOCK_MARGIN}）。
  * <p>
  * 栏本身挡住下面的内容：点在栏上（包括控件之间的空隙）不会落到下面（例如三视图的选面）。
@@ -32,7 +33,7 @@ public class Dock extends UIElement {
 
     private Dock(boolean vertical) {
         this.vertical = vertical;
-        layout(l -> (vertical ? l.column() : l.row()).gapAll(UISizes.SECTION_GAP).paddingAll(UITheme.DOCK_PADDING).alignCenter());
+        layout(l -> (vertical ? l.column() : l.row()).gapAll(UISizes.SECTION_GAP).paddingAll(UISizes.DOCK_PADDING).alignCenter());
     }
 
     /** 竖向悬浮栏（组从上往下排，分隔线横着）。 */
@@ -65,7 +66,7 @@ public class Dock extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (empty) return;
-        UITheme.drawDock(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), accentColor);
+        UIDraw.dockPlate(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), accentColor);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 
@@ -79,7 +80,7 @@ public class Dock extends UIElement {
     private static final class Separator extends Widget {
 
         private Separator(boolean horizontalLine) {
-            super(0, 0, horizontalLine ? UISizes.SLOT : 1, horizontalLine ? 1 : UISizes.SLOT);
+            super(0, 0, horizontalLine ? UISizes.SLOT_SIZE : 1, horizontalLine ? 1 : UISizes.SLOT_SIZE);
         }
 
         @Override

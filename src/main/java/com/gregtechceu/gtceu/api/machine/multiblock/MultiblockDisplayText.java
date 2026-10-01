@@ -2,6 +2,12 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueLines;
+import com.gregtechceu.gtceu.api.machine.issue.IssueSnapshot;
+import com.gregtechceu.gtceu.api.machine.issue.IssueType;
+import com.gregtechceu.gtceu.api.machine.issue.MachineIssue;
+import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
@@ -14,12 +20,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public class MultiblockDisplayText {
 
     private static final Component EMPTY_COMPONENT = Component.empty();
+    private static final Map<RecipeLogic, IssueDisplay> ISSUE_DISPLAYS = new WeakHashMap<>();
 
     /**
      * Construct a new Multiblock Display Text builder.
@@ -46,6 +57,11 @@ public class MultiblockDisplayText {
         private String idlingKey = "gtceu.multiblock.idling";
         private String pausedKey = "gtceu.multiblock.work_paused";
         private String runningKey = "gtceu.multiblock.running";
+
+        private boolean statusLineAdded;
+        @Nullable
+        private IssueType issueShown;
+        private boolean lowPowerAdded, lowComputationAdded, maintenanceAdded, mufflerAdded;
 
         private Builder(List<Component> textList, boolean isStructureFormed,
                         boolean showIncompleteStructureWarning) {
@@ -226,8 +242,9 @@ public class MultiblockDisplayText {
          * Added if the structure is formed.
          */
         public Builder addWorkingStatusLine() {
-            if (!isStructureFormed)
+            if (!isStructureFormed || statusLineAdded)
                 return this;
+            statusLineAdded = true;
 
             if (!isWorkingEnabled) {
                 return addWorkPausedLine(false);
@@ -236,6 +253,50 @@ public class MultiblockDisplayText {
             } else {
                 return addIdlingLine(false);
             }
+        }
+
+        public Builder addIssueLines(RecipeLogic logic) {
+            if (!isStructureFormed)
+                return this;
+            var snapshot = logic.getIssueSnapshot();
+            IssueDisplay display;
+            synchronized (ISSUE_DISPLAYS) {
+                display = ISSUE_DISPLAYS.get(logic);
+                if (display == null || !display.matches(snapshot, idlingKey, pausedKey, runningKey)) {
+                    display = IssueDisplay.of(snapshot, idlingKey, pausedKey, runningKey);
+                    ISSUE_DISPLAYS.put(logic, display);
+                }
+            }
+            return addIssueLines(display);
+        }
+
+        public Builder addIssueLines(IssueSnapshot snapshot) {
+            if (!isStructureFormed)
+                return this;
+            return addIssueLines(IssueDisplay.of(snapshot, idlingKey, pausedKey, runningKey));
+        }
+
+        private Builder addIssueLines(IssueDisplay display) {
+            if (!statusLineAdded) {
+                statusLineAdded = true;
+                textList.add(display.status);
+            }
+            var type = display.type;
+            if (type == null || display.title == null || coveredByLine(type))
+                return this;
+            issueShown = type;
+            textList.add(display.title);
+            if (display.detail != null)
+                textList.add(display.detail);
+            return this;
+        }
+
+        private boolean coveredByLine(IssueType type) {
+            if (type == GTIssues.LOW_POWER || type == GTIssues.EU_SHORT) return lowPowerAdded;
+            if (type == GTIssues.NO_CWU) return lowComputationAdded;
+            if (type == GTIssues.MAINTENANCE) return maintenanceAdded;
+            if (type == GTIssues.MUFFLER_OBSTRUCTED) return mufflerAdded;
+            return false;
         }
 
         /**
@@ -420,7 +481,8 @@ public class MultiblockDisplayText {
         public Builder addLowPowerLine(boolean isLowPower) {
             if (!isStructureFormed)
                 return this;
-            if (isLowPower) {
+            if (isLowPower && issueShown != GTIssues.LOW_POWER && issueShown != GTIssues.EU_SHORT) {
+                lowPowerAdded = true;
                 textList.add(
                         Component.translatable("gtceu.multiblock.not_enough_energy").withStyle(ChatFormatting.YELLOW));
             }
@@ -435,7 +497,8 @@ public class MultiblockDisplayText {
         public Builder addLowComputationLine(boolean isLowComputation) {
             if (!isStructureFormed)
                 return this;
-            if (isLowComputation) {
+            if (isLowComputation && issueShown != GTIssues.NO_CWU) {
+                lowComputationAdded = true;
                 textList.add(Component.translatable("gtceu.multiblock.computation.not_enough_computation")
                         .withStyle(ChatFormatting.YELLOW));
             }
@@ -467,7 +530,10 @@ public class MultiblockDisplayText {
             if (!isStructureFormed || !ConfigHolder.INSTANCE.machines.enableMaintenance)
                 return this;
             if (maintenanceProblems <= 0b111111 && maintenanceProblems > 0) {
-                addMaintenanceProblemHeader();
+                if (issueShown != GTIssues.MAINTENANCE) {
+                    maintenanceAdded = true;
+                    addMaintenanceProblemHeader();
+                }
 
                 // Wrench
                 if ((maintenanceProblems & 1) == 0) {
@@ -521,7 +587,8 @@ public class MultiblockDisplayText {
         public Builder addMufflerObstructedLine(boolean isObstructed) {
             if (!isStructureFormed)
                 return this;
-            if (isObstructed) {
+            if (isObstructed && issueShown != GTIssues.MUFFLER_OBSTRUCTED) {
+                mufflerAdded = true;
                 textList.add(Component.translatable("gtceu.multiblock.universal.muffler_obstructed")
                         .withStyle(ChatFormatting.RED));
                 textList.add(Component.translatable("gtceu.multiblock.universal.muffler_obstructed.tooltip")
@@ -570,6 +637,35 @@ public class MultiblockDisplayText {
             textList.add(Component.translatable("gtceu.multiblock.turbine.energy_per_tick_maxed",
                     FormattingUtil.formatNumbers(euOutput)).withStyle(ChatFormatting.GRAY));
             return this;
+        }
+    }
+
+    private record IssueDisplay(int version, String idlingKey, String pausedKey, String runningKey, Component status,
+                                @Nullable IssueType type, @Nullable Component title, @Nullable Component detail) {
+
+        private static IssueDisplay of(IssueSnapshot snapshot, String idlingKey, String pausedKey, String runningKey) {
+            Component status = switch (snapshot.status()) {
+                case RecipeLogic.WORKING -> Component.translatable(runningKey).withStyle(ChatFormatting.GREEN);
+                case RecipeLogic.WAITING -> Component.translatable("gtceu.issue.ui.state.waiting").withStyle(ChatFormatting.GOLD);
+                case RecipeLogic.SUSPEND -> Component.translatable(pausedKey).withStyle(ChatFormatting.GOLD);
+                default -> Component.translatable(idlingKey).withStyle(ChatFormatting.GRAY);
+            };
+            MachineIssue issue = IssueLines.shown(snapshot);
+            if (issue == null || issue.type() == GTIssues.PAUSED) {
+                return new IssueDisplay(snapshot.version(), idlingKey, pausedKey, runningKey, status, null, null, null);
+            }
+            var title = IssueLines.title(issue);
+            var detail = IssueLines.detail(issue);
+            if (detail != null && !IssueLines.showsDetail(issue)) {
+                var hover = detail;
+                title = title.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+                detail = null;
+            }
+            return new IssueDisplay(snapshot.version(), idlingKey, pausedKey, runningKey, status, issue.type(), title, detail);
+        }
+
+        private boolean matches(IssueSnapshot snapshot, String idlingKey, String pausedKey, String runningKey) {
+            return version == snapshot.version() && this.idlingKey.equals(idlingKey) && this.pausedKey.equals(pausedKey) && this.runningKey.equals(runningKey);
         }
     }
 }

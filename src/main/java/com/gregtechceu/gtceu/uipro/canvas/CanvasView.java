@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
-import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
+import com.gregtechceu.gtceu.uipro.render.UIClip;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.view.PlanarView;
@@ -97,12 +100,12 @@ public class CanvasView extends PlanarView {
         contentBoundsValid = false;
     }
 
-    public CanvasView setOnItemClick(@Nullable ItemClickListener onItemClick) {
+    public CanvasView setOnClientItemClick(@Nullable ItemClickListener onItemClick) {
         this.onItemClick = onItemClick;
         return this;
     }
 
-    public CanvasView setOnBackgroundClick(@Nullable BackgroundClickListener onBackgroundClick) {
+    public CanvasView setOnClientBackgroundClick(@Nullable BackgroundClickListener onBackgroundClick) {
         this.onBackgroundClick = onBackgroundClick;
         return this;
     }
@@ -162,9 +165,7 @@ public class CanvasView extends PlanarView {
         drawFrame(graphics, mouseX, mouseY);
         int vx = viewportX(), vy = viewportY(), vw = viewportWidth(), vh = viewportHeight();
         if (vw <= 0 || vh <= 0) return;
-        if (!sceneBuilt) rebuildScene();
         prepareView();
-        if (floatingCard != null) floatingCard.setMaxHeight(floatingCardMaxHeight());
         updateMinimapRect();
 
         boolean overOverlay = isOverChild(mouseX, mouseY);
@@ -173,14 +174,14 @@ public class CanvasView extends PlanarView {
         hovered = inside && !isInteracting() ? pick(toWorldX(mouseX), toWorldY(mouseY)) : null;
 
         var pose = graphics.pose();
-        enableClip(graphics);
+        pushClip(graphics);
         drawGrid(graphics);
         if (painter == null) painter = new CanvasPainter();
-        float margin = UISizes.SLOT / scale;
+        float margin = UISizes.SLOT_SIZE / scale;
         var visible = CanvasRect.of(offsetX - margin, offsetY - margin, vw / scale + 2 * margin, vh / scale + 2 * margin);
         float worldMouseX = inside ? toWorldX(mouseX) : Float.NaN, worldMouseY = inside ? toWorldY(mouseY) : Float.NaN;
         pose.pushPose();
-        pose.translate(PixelSnap.snap(vx - offsetX * scale), PixelSnap.snap(vy - offsetY * scale), 0);
+        pose.translate(UIPixels.snap(vx - offsetX * scale), UIPixels.snap(vy - offsetY * scale), 0);
         pose.scale(scale, scale, 1);
         painter.begin(graphics, scale, lod(), visible, worldMouseX, worldMouseY, hovered);
         selectedRects.clear();
@@ -195,17 +196,25 @@ public class CanvasView extends PlanarView {
             int sx = Math.round(fx), sy = Math.round(fy);
             int sw = Math.round(rect.width() * scale), sh = Math.round(rect.height() * scale);
             pose.pushPose();
-            pose.translate(PixelSnap.residual(fx), PixelSnap.residual(fy), 0);
-            UITheme.drawSelection(graphics, sx, sy, sw, sh);
+            pose.translate(UIPixels.residual(fx), UIPixels.residual(fy), 0);
+            UIDraw.selectionFrame(graphics, sx, sy, sw, sh);
             pose.popPose();
         }
         pose.pushPose();
-        pose.translate(0, 0, OVERLAY_Z);
+        pose.translate(0, 0, UILayers.VIEWPORT_OVERLAY);
         if (minimap[2] > 0) drawMinimap(graphics);
-        graphics.disableScissor();
+        UIClip.pop(graphics);
         drawChildren(graphics, overOverlay ? mouseX : OUTSIDE, overOverlay ? mouseY : OUTSIDE, partialTicks);
         pose.popPose();
         drawGrip(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void updateScreen() {
+        super.updateScreen();
+        if (!sceneBuilt) rebuildScene();
+        if (floatingCard != null) floatingCard.setMaxHeight(floatingCardMaxHeight());
     }
 
     private int floatingCardMaxHeight() {
@@ -215,7 +224,7 @@ public class CanvasView extends PlanarView {
                 bottom = Math.min(bottom, widget.getPositionY() - UISizes.DOCK_MARGIN);
             }
         }
-        return Math.max(UISizes.SLOT, bottom - top);
+        return Math.max(UISizes.SLOT_SIZE, bottom - top);
     }
 
     // ==================== 缩略图 ====================
@@ -252,7 +261,7 @@ public class CanvasView extends PlanarView {
         if (bounds == null || painter == null) return;
         int mx = minimap[0], my = minimap[1], mw = minimap[2], mh = minimap[3];
         graphics.fill(mx, my, mx + mw, my + mh, UITheme.CANVAS_MINIMAP_FILL);
-        UITheme.drawOutline(graphics, mx, my, mw, mh, UITheme.CANVAS_MINIMAP_BORDER);
+        UIDraw.strokeRect(graphics, mx, my, mw, mh, UITheme.CANVAS_MINIMAP_BORDER);
         float s = minimapScale(bounds);
         float ox = mx + 1 + ((mw - 2) - bounds.width() * s) / 2, oy = my + 1 + ((mh - 2) - bounds.height() * s) / 2;
         var pose = graphics.pose();
@@ -268,7 +277,7 @@ public class CanvasView extends PlanarView {
         int y0 = Mth.clamp(Math.round(oy + (offsetY - bounds.y()) * s), my, my + mh - 2);
         int x1 = Mth.clamp(Math.round(ox + (right - bounds.x()) * s), x0 + 2, mx + mw);
         int y1 = Mth.clamp(Math.round(oy + (bottom - bounds.y()) * s), y0 + 2, my + mh);
-        UITheme.drawOutline(graphics, x0, y0, x1 - x0, y1 - y0, UITheme.CANVAS_MINIMAP_VIEWPORT);
+        UIDraw.strokeRect(graphics, x0, y0, x1 - x0, y1 - y0, UITheme.CANVAS_MINIMAP_VIEWPORT);
     }
 
     private void navigateMinimap(double mouseX, double mouseY) {

@@ -1,26 +1,19 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
-import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.uipro.elements.Adjuster;
+import com.gregtechceu.gtceu.uipro.elements.DecimalField;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
-import com.lowdragmc.lowdraglib.gui.widget.ButtonWidget;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.Mth;
 
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -59,9 +52,8 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     /////////////////////////////////////////////////
     // *********** IMPLEMENTATION ***********//
     /////////////////////////////////////////////////
+    private static final double DECIMAL_STEP = 0.01;
     private final ChangeValues<T> CHANGE_VALUES = getChangeValues();
-    private final T ONE_POSITIVE = getOne(true);
-    private final T ONE_NEGATIVE = getOne(false);
     @Getter
     private final Supplier<T> valueSupplier;
     @Getter
@@ -108,57 +100,14 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
         textField.setCurrentString(buffer.readUtf());
     }
 
-    /**
-     * 整数类型（Int / Long）用新式统一数值输入 {@link NumberField}（按钮、输入框、滚轮、修饰键步长都与新界面一致），
-     * 竖直居中放在本控件里；小数类型仍用原来的按钮 + 输入框。
-     */
     private void buildUI() {
-        if (isIntegral()) {
-            var field = new NumberField(getSize().width, this::getLongValue, this::setLongValue, this::getLongMin, this::getLongMax, getLongSteps());
-            field.setSelfPosition(new Position(0, (getSize().height - NumberField.HEIGHT) / 2));
-            this.textField = field.getField().getInput();
-            this.updateTextFieldRange();
-            this.addWidget(field);
-            return;
-        }
-        int buttonWidth = Mth.clamp(this.getSize().width / 5, 15, 40);
-        int textFieldWidth = this.getSize().width - (2 * buttonWidth) - 4;
-        this.addWidget(new ButtonWidget(0, 0, buttonWidth, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("-", buttonWidth)), this::decrease).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
-        this.textField = new TextFieldWidget(buttonWidth + 2, 0, textFieldWidth, 20, () -> toText(valueSupplier.get()), stringValue -> this.setValue(clamp(fromText(stringValue), min, max)));
+        Adjuster field = isIntegral() ?
+                NumberField.ofLong(getSize().width, this::getLongValue, this::setLongValue, this::getLongMin, this::getLongMax).setSteps(getLongSteps()) :
+                DecimalField.of(getSize().width, this::getDoubleValue, this::setDoubleValue, this::getDoubleMin, this::getDoubleMax, DECIMAL_STEP, getDecimalStepCounts());
+        field.setSelfPosition(new Position(0, (getSize().height - Adjuster.HEIGHT) / 2));
+        this.textField = field.getField().getInput();
         this.updateTextFieldRange();
-        this.addWidget(this.textField);
-        this.addWidget(new ButtonWidget(buttonWidth + textFieldWidth + 4, 0, buttonWidth, 20, new GuiTextureGroup(GuiTextures.VANILLA_BUTTON, getButtonTexture("+", buttonWidth)), this::increase).setHoverTooltips("gui.widget.incrementButton.default_tooltip"));
-    }
-
-    private IGuiTexture getButtonTexture(String prefix, int buttonWidth) {
-        var texture = new TextTexture(prefix + "1");
-        if (!GTCEu.isClientThread()) {
-            return texture;
-        }
-        // Dynamic text is only necessary on the remote side:
-        int maxTextWidth = buttonWidth - 4;
-        texture.setSupplier(() -> {
-            T amount = GTUtil.isCtrlDown() ? GTUtil.isShiftDown() ? CHANGE_VALUES.ctrlShift : CHANGE_VALUES.ctrl : GTUtil.isShiftDown() ? CHANGE_VALUES.shift : CHANGE_VALUES.regular;
-            String text = prefix + toText(amount);
-            texture.scale(maxTextWidth / (float) Math.max(Minecraft.getInstance().font.width(text), maxTextWidth));
-            return text;
-        });
-        return texture;
-    }
-
-    private void increase(ClickData cd) {
-        this.changeValue(cd, ONE_POSITIVE);
-    }
-
-    private void decrease(ClickData cd) {
-        this.changeValue(cd, ONE_NEGATIVE);
-    }
-
-    private void changeValue(ClickData cd, T multiplier) {
-        if (!cd.isRemote) {
-            T amount = cd.isCtrlClick ? cd.isShiftClick ? CHANGE_VALUES.ctrlShift : CHANGE_VALUES.ctrl : cd.isShiftClick ? CHANGE_VALUES.shift : CHANGE_VALUES.regular;
-            this.setValue(clamp(add(valueSupplier.get(), multiply(amount, multiplier)), min, max));
-        }
+        this.addWidget(field);
     }
 
     public NumberInputWidget<T> setMin(T min) {
@@ -179,7 +128,6 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
         return this;
     }
 
-    /** 值是否为整数：整数类型桥接到新式数值输入（见 {@link #buildUI}）。 */
     protected boolean isIntegral() {
         return true;
     }
@@ -211,8 +159,28 @@ public abstract class NumberInputWidget<T extends Number> extends WidgetGroup {
     }
 
     protected void updateTextFieldRange() {
-        // 整数类型桥接到 NumberField：输入框的校验、上下限由它自己管（直通校验 + 服务端夹取），不能再套 LDLib 的范围校验
-        if (!isIntegral()) setTextFieldRange(textField, min, max);
         this.setValue(clamp(valueSupplier.get(), min, max));
+    }
+
+    public double getDoubleValue() {
+        return valueSupplier.get().doubleValue();
+    }
+
+    public void setDoubleValue(double value) {
+        double clamped = Math.max(min.doubleValue(), Math.min(max.doubleValue(), value));
+        setValue(fromText(BigDecimal.valueOf(clamped).toPlainString()));
+    }
+
+    public double getDoubleMin() {
+        return min.doubleValue();
+    }
+
+    public double getDoubleMax() {
+        return max.doubleValue();
+    }
+
+    public long[] getDecimalStepCounts() {
+        return new long[] { Math.round(CHANGE_VALUES.regular().doubleValue() / DECIMAL_STEP), Math.round(CHANGE_VALUES.shift().doubleValue() / DECIMAL_STEP),
+                Math.round(CHANGE_VALUES.ctrl().doubleValue() / DECIMAL_STEP), Math.round(CHANGE_VALUES.ctrlShift().doubleValue() / DECIMAL_STEP) };
     }
 }

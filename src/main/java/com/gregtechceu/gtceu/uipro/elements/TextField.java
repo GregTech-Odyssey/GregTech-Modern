@@ -4,7 +4,11 @@ import com.gregtechceu.gtceu.uipro.ElementState;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.data.ClientActions;
+import com.gregtechceu.gtceu.uipro.data.RPC;
+import com.gregtechceu.gtceu.uipro.data.UICodecs;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -12,7 +16,6 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -22,7 +25,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -38,13 +40,23 @@ import java.util.function.Supplier;
 public class TextField extends UIElement {
 
     public static final int HEIGHT = UISizes.CONTROL_HEIGHT;
+    private static final int MAX_SUBMIT_LENGTH = Short.MAX_VALUE;
 
     private final Input input;
 
-    public TextField(int width, Supplier<String> getter, Consumer<String> setter) {
+    protected TextField(int width, Supplier<String> getter, Consumer<String> setter) {
         this.input = new Input(width, HEIGHT, getter, setter);
+        input.submit = addRPC(UICodecs.utf(MAX_SUBMIT_LENGTH), (player, text) -> input.serverSubmit(text))
+                .allowWhenHidden()
+                .onRejected(() -> {
+                    if (input.isRemote()) input.clientRejected();
+                });
         addChild(input);
         layout(l -> l.column().size(width, HEIGHT));
+    }
+
+    public static TextField of(int width, Supplier<String> getter, Consumer<String> setter) {
+        return new TextField(width, getter, setter);
     }
 
     /** 右键清空输入框（清空后同样上行给 setter）；确认后提交模式下不生效（空串会被当作放弃）。 */
@@ -53,19 +65,13 @@ public class TextField extends UIElement {
         return this;
     }
 
-    /** 输入为空且未获得焦点时显示的灰色提示文字（客户端取值）。 */
-    public TextField setPlaceholder(Supplier<Component> placeholder) {
-        input.placeholder = placeholder;
+    public TextField setPlaceholder(Component placeholder) {
+        input.placeholder = () -> placeholder;
         return this;
     }
 
-    /**
-     * 按服务端条件禁用（LDLib2 {@code disabled()}）：禁用时叠统一斜纹，点击、键盘输入无效，服务端也不接受上行的文字；
-     * 悬停提示先"禁止操作"再原因。上级元素禁用时输入框也禁用。
-     */
-    @Override
-    public TextField disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        super.disabled(serverCondition, reasonKey);
+    public TextField bindClientPlaceholder(Supplier<Component> placeholder) {
+        input.placeholder = placeholder;
         return this;
     }
 
@@ -139,6 +145,8 @@ public class TextField extends UIElement {
         private String appliedText = "";
         @Nullable
         private Predicate<String> draftFilter;
+        @Nullable
+        private RPC<String> submit;
 
         private Input(int width, int height, Supplier<String> getter, Consumer<String> setter) {
             super(0, 0, width, height, getter, setter);
@@ -233,10 +241,23 @@ public class TextField extends UIElement {
             }
             // 已提交：不再算"改过"，服务端回显到达时照常写入
             appliedText = draft;
-            if (!draft.equals(getCurrentString())) {
-                Consumer<FriendlyByteBuf> writer = buffer -> buffer.writeUtf(draft);
-                if (!ClientActions.handleLocally(this, 1, writer)) writeClientAction(1, writer);
+            if (!draft.equals(getCurrentString()) && submit != null) submit.send(draft);
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void clientRejected() {
+            apply(getCurrentString());
+        }
+
+        private void serverSubmit(String text) {
+            String lastText = getCurrentString();
+            String newText = textValidator.apply(text);
+            newText = newText.substring(0, Math.min(newText.length(), maxStringLength));
+            if (lastText == null || !lastText.equals(newText)) {
+                setCurrentString(newText);
+                if (textResponder != null) textResponder.accept(newText);
             }
+            echo();
         }
 
         /// setFocus(false) 不管原来有没有焦点都会回调这里，所以提交只看"改过没有"（commit 里判断）
@@ -303,9 +324,8 @@ public class TextField extends UIElement {
         /// 服务端再判一次：禁用时不接受客户端上行的文字（客户端可以伪造请求）
         @Override
         public void handleClientAction(int id, FriendlyByteBuf buffer) {
+            if (commitOnSubmit && id == 1) return;
             if (isEnabled()) super.handleClientAction(id, buffer);
-            // 确认后提交：处理完（包括禁用时拒收）总回显一次，草稿被夹到边界、数值没变或被拒时客户端也要被纠正
-            if (commitOnSubmit && id == 1) echo();
         }
 
         /** 服务端：把当前值回显给客户端。 */
@@ -320,7 +340,7 @@ public class TextField extends UIElement {
         @Override
         @OnlyIn(Dist.CLIENT)
         public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-            if (ElementState.drawDisabledTooltip(this, mouseX, mouseY, tooltipTexts)) return;
+            if (ElementState.showDisabledTooltip(this, mouseX, mouseY, tooltipTexts)) return;
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
         }
 
@@ -331,15 +351,14 @@ public class TextField extends UIElement {
             // 编辑中被禁用（如转子开始转动）：草稿作废，恢复服务端的值
             if (commitOnSubmit && !active && (isEditing() || isFocus())) cancel();
             int x = getPositionX(), y = getPositionY(), w = getSizeWidth(), h = getSizeHeight();
-            UITheme.drawInset(graphics, x, y, w, h, active && isFocus());
+            UITheme.INSET.draw(graphics, active && isFocus() ? UIStates.FOCUSED : UIStates.NONE, x, y, w, h);
             setTextColor(UITheme.FIELD_TEXT);
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
             if (placeholder != null && !isFocus() && getCurrentString().isEmpty()) {
-                var font = Minecraft.getInstance().font;
-                var text = UITheme.clip(font, placeholder.get().getString(), getSizeWidth() - 4);
-                graphics.drawString(font, text, getPositionX() + 2, getPositionY() + (getSizeHeight() - 8) / 2, UITheme.PLACEHOLDER_TEXT, false);
+                var text = UIText.fit(placeholder.get().getString(), getSizeWidth() - 4);
+                UIText.drawLeft(graphics, text, getPositionX() + 2, UIText.centerY(getPositionY(), getSizeHeight()), UITheme.PLACEHOLDER_TEXT);
             }
-            if (!active) UITheme.drawDisabled(graphics, x, y, w, h);
+            if (!active) UIDraw.disabledHatch(graphics, x, y, w, h);
         }
     }
 }

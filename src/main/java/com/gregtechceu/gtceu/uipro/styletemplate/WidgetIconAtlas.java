@@ -2,7 +2,10 @@ package com.gregtechceu.gtceu.uipro.styletemplate;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.function.Supplier;
 
@@ -52,7 +55,8 @@ public final class WidgetIconAtlas {
     public record PixelExact(IGuiTexture base) implements IGuiTexture {
 
         @Override
-        public void draw(net.minecraft.client.gui.GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
             base.draw(graphics, mouseX, mouseY, x + (width - CELL) / 2, y + (height - CELL) / 2, CELL, CELL);
         }
     }

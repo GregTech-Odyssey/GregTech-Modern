@@ -150,9 +150,9 @@ public class RobotArmCover extends ConveyorCover {
     @Override
     protected void buildAdditionalUI(UIElement section) {
         var amountLabel = TextLine.of(LayoutStyle.AUTO, () -> transferMode == TransferMode.KEEP_EXACT ? KEEP_AMOUNT : SUPPLY_AMOUNT)
-                .setColor(UITheme::panelText);
-        amountLabel.setHoverTooltips("cover.robotic_arm.ui.amount.tooltip");
-        var amount = new NumberField(LayoutStyle.AUTO, () -> globalTransferLimit, value -> setGlobalTransferLimit((int) value),
+                .bindClientColor(UITheme::panelText);
+        amountLabel.tooltips("cover.robotic_arm.ui.amount.tooltip");
+        var amount = NumberField.ofInt(LayoutStyle.AUTO, () -> globalTransferLimit, this::setGlobalTransferLimit,
                 () -> 1, () -> transferMode.maxStackSize);
         amount.disabled(() -> transferMode != TransferMode.TRANSFER_ANY && isAmountFromFilter(), "cover.conveyor.ui.amount_from_filter");
         var amountRow = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(amountLabel, amount)

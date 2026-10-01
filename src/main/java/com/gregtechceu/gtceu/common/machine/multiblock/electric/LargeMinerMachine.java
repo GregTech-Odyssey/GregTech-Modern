@@ -5,20 +5,20 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
-import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
-import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
 import com.gregtechceu.gtceu.utils.GTUtil;
-
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
-import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -28,6 +28,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -47,6 +48,12 @@ import static com.gregtechceu.gtceu.common.data.GTMaterials.DrillingFluid;
 public class LargeMinerMachine extends WorkableElectricMultiblockMachine implements IMiner, IDataInfoProvider {
 
     public static final int CHUNK_LENGTH = 16;
+    private static final String CHUNK_MODE = "gtceu.multiblock.large_miner.chunk_mode";
+    private static final String CHUNK_MODE_LOCKED = "gtceu.multiblock.large_miner.chunk_mode.locked";
+    private static final String WORKING_AREA = "gtceu.multiblock.large_miner.working_area";
+    private static final String ENCHANTMENT = "gtceu.multiblock.large_miner.enchantment";
+    private static final String ENCHANTMENT_TOOLTIP = "gtceu.multiblock.large_miner.enchantment.tooltip";
+    private static final String WORKING_AREA_CHUNKS = "gtceu.multiblock.large_miner.working_area_chunks";
     @Getter
     private final int tier;
     @Getter
@@ -129,6 +136,17 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     @Override
+    public void reportDrainIssue() {
+        long energy = GTValues.VA[getEnergyTier()];
+        long stored = energyContainer.getEnergyStored();
+        if (stored < energy) {
+            reportIssue(GTIssues.EU_SHORT, null, IO.IN, EURecipeInfo.INSTANCE, -1, energy, stored, null);
+        } else {
+            reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, FluidRecipeInfo.INSTANCE, -1, (long) this.drillingFluidConsumePerTick * getRecipeLogic().getOverclockAmount(), -1, null);
+        }
+    }
+
+    @Override
     public boolean drainInput(boolean simulate) {
         // drain energy
         long stored = energyContainer.getEnergyStored();
@@ -164,7 +182,6 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
             textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX() == Integer.MAX_VALUE ? 0 : getRecipeLogic().getX()));
             textList.add(Component.translatable("gtceu.machine.miner.starty", getRecipeLogic().getY() == Integer.MAX_VALUE ? 0 : getRecipeLogic().getY()));
             textList.add(Component.translatable("gtceu.machine.miner.startz", getRecipeLogic().getZ() == Integer.MAX_VALUE ? 0 : getRecipeLogic().getZ()));
-            textList.add(Component.translatable("gtceu.universal.tooltip.chunk_mode").append(ComponentPanelWidget.withButton(Component.literal("[").append(getRecipeLogic().isChunkMode() ? Component.translatable("gtceu.creative.activity.on") : Component.translatable("gtceu.creative.activity.off")).append(Component.literal("]")), "chunk_mode")));
             if (getRecipeLogic().isChunkMode()) {
                 textList.add(Component.translatable("gtceu.universal.tooltip.working_area_chunks", workingAreaChunks, workingAreaChunks));
             } else {
@@ -176,23 +193,13 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
         }
     }
 
-    /**
-     * 主显示页下方单独一行居中放附魔槽（放附魔书，提供时运 / 效率；精准与时运互斥）。
-     */
     @Override
-    public UIElement createUIWidget() {
-        var page = super.createUIWidget();
-        page.addChild(UIElement.row(UISizes.SLOT).addChildren(UIElement.flexSpacer(), ItemSlot.of(enchantmentSlot.getStorage(), 0)));
-        return page;
-    }
-
-    @Override
-    public void handleDisplayClick(String componentData, ClickData clickData) {
-        if (!clickData.isRemote) {
-            if (componentData.equals("chunk_mode")) {
-                getRecipeLogic().setChunkMode(!getRecipeLogic().isChunkMode());
-            }
-        }
+    public void addControls(ControlPanel controls) {
+        super.addControls(controls);
+        controls.addSlot(ItemSlot.of(enchantmentSlot.getStorage(), 0).setGhosts(Items.ENCHANTED_BOOK.getDefaultInstance()), ENCHANTMENT,
+                ControlPanel.contentName(enchantmentSlot.getStorage(), 0), ENCHANTMENT_TOOLTIP);
+        controls.addToggle(CHUNK_MODE, () -> getRecipeLogic().isChunkMode(), value -> getRecipeLogic().setChunkMode(value))
+                .disabled(() -> getRecipeLogic().isWorking(), CHUNK_MODE_LOCKED);
     }
 
     //////////////////////////////////////

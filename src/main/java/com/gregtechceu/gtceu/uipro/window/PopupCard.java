@@ -37,29 +37,29 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
         setBackground(UITheme.WINDOW);
 
         var closeButton = Button.glyph("×").setOnClientClick(close);
-        closeButton.setHoverTooltips(MachineWindow.POPUP_CLOSE);
-        var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChild(popupTitle(popup));
-        if (popup.icon() == null) titleRow.addChild(UIElement.flexSpacer());
+        closeButton.tooltips(MachineWindow.POPUP_CLOSE);
+        var titleRow = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChild(popupTitle(popup));
+        if (popup.getIcon() == null) titleRow.addChild(UIElement.flexSpacer());
         titleRow.addChild(closeButton);
 
         // 内容至少一个 9 槽区块宽（按 getContentWidth 定宽的页面照旧），里面的滚动区被拖宽时跟着变宽
-        var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(popup.contentWidth()).gapAll(UISizes.SECTION_GAP));
-        popup.content().accept(content);
+        var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(popup.getContentWidth()).gapAll(UISizes.SECTION_GAP));
+        popup.getContent().accept(content);
         // 初始尺寸取最小，宽高都跟随内容（见 ScrollerView 对滚动范围的处理）
-        scroller = new ScrollerView(scrollerId, popup.contentWidth(), UISizes.SLOT).adaptiveWidth();
+        scroller = new ScrollerView(scrollerId, popup.getContentWidth(), UISizes.SLOT_SIZE).adaptiveWidth();
         scroller.addScrollViewChild(content);
         this.maxHeight = maxHeight;
-        scroller.adaptiveHeight(contentLimit(maxHeight));
+        scroller.setAdaptiveHeight(contentLimit(maxHeight));
         addChildren(titleRow, scroller);
     }
 
     private static Widget popupTitle(Popup popup) {
-        if (popup.icon() == null) return Label.of(popup.title(), popup.contentWidth() - UISizes.ICON_BUTTON - UISizes.GAP);
-        return ItemTitle.of(popup.icon(), popup.title()).layout(l -> l.flex(1));
+        if (popup.getIcon() == null) return Label.of(popup.getContentWidth() - UISizes.ICON_BUTTON_SIZE - UISizes.GAP, popup.getTitle());
+        return ItemTitle.of(popup.getIcon(), popup.getTitle()).layout(l -> l.flex(1));
     }
 
     private static int contentLimit(int maxHeight) {
-        return Math.max(UISizes.SLOT, maxHeight - CHROME);
+        return Math.max(UISizes.SLOT_SIZE, maxHeight - CHROME);
     }
 
     /** 卡片是玩家正在操作的窗口：Shift+点击时卡片里的槽优先接收。 */
@@ -74,13 +74,13 @@ public class PopupCard extends UIElement implements IShiftClickPriority {
         return this;
     }
 
-    public int contentLimit() {
+    public int getContentLimit() {
         return contentLimit(maxHeight);
     }
 
     /** 高度上限变了（屏幕尺寸、所在区域尺寸变化）：更新滚动区高度上限（内容放得下就不滚动）。 */
     public void setMaxHeight(int maxHeight) {
         this.maxHeight = maxHeight;
-        scroller.adaptiveHeight(contentLimit(maxHeight));
+        scroller.setAdaptiveHeight(contentLimit(maxHeight));
     }
 }

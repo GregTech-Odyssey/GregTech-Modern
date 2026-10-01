@@ -15,7 +15,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.Reader;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -31,8 +33,10 @@ import java.util.Optional;
 public final class UIStyleManager {
 
     public static final ResourceLocation DEFAULT_ID = GTCEu.id("default");
+    public static final ResourceLocation STARFIELD_ID = GTCEu.id("starfield");
     public static final String COLOR_SCHEME_DIRECTORY = "uipro/color_schemes";
     public static final String TEXTURE_PACK_DIRECTORY = "uipro/texture_packs";
+    public static final String WINDOW_SKIN_DIRECTORY = "uipro/window_skins";
     public static final String COLOR_SCHEME_PREFERENCE = "uipro.color_scheme";
     public static final String TEXTURE_PACK_PREFERENCE = "uipro.texture_pack";
 
@@ -45,6 +49,14 @@ public final class UIStyleManager {
             Map.entry("field_text", 0xFFFFFFFF),
             Map.entry("placeholder_text", 0xFF8A8A8A),
             Map.entry("screen_text", 0xFFE2E6E8),
+            Map.entry("screen_label", 0xFF9DAAB0),
+            Map.entry("screen_header", 0xFFFFAA00),
+            Map.entry("screen_good", 0xFF55FF55),
+            Map.entry("screen_warning", 0xFFFFFF55),
+            Map.entry("screen_error", 0xFFFF5555),
+            Map.entry("screen_track", 0xFF0A0D0E),
+            Map.entry("screen_divider", 0xFF3A4449),
+            Map.entry("bar_heat", 0xFFE3A45A),
             Map.entry("window_fill", 0xFFC6C6C6),
             Map.entry("window_outline", 0xFF181A1B),
             Map.entry("tab_fill", 0xFFA8A8A8),
@@ -128,8 +140,10 @@ public final class UIStyleManager {
 
     private static Map<ResourceLocation, ColorScheme> colorSchemes = Map.of(DEFAULT_ID, new ColorScheme("Default", Collections.emptyMap()));
     private static Map<ResourceLocation, TexturePack> texturePacks = Map.of(DEFAULT_ID, DEFAULT_TEXTURE_PACK);
+    private static Map<ResourceLocation, ColorScheme> windowSkins = Map.of();
     private static ResourceLocation activeColorScheme = DEFAULT_ID;
     private static ResourceLocation activeTexturePack = DEFAULT_ID;
+    private static final Deque<StyleOverride> OVERRIDES = new ArrayDeque<>();
 
     private UIStyleManager() {}
 
@@ -143,6 +157,10 @@ public final class UIStyleManager {
 
     public static Map<ResourceLocation, TexturePack> texturePacks() {
         return texturePacks;
+    }
+
+    public static Map<ResourceLocation, ColorScheme> windowSkins() {
+        return windowSkins;
     }
 
     public static ResourceLocation activeColorScheme() {
@@ -168,8 +186,12 @@ public final class UIStyleManager {
     private static void reload(ResourceManager manager) {
         var loadedColors = new LinkedHashMap<ResourceLocation, ColorScheme>();
         loadedColors.put(DEFAULT_ID, new ColorScheme("Default", Collections.emptyMap()));
-        loadColorSchemes(manager, loadedColors);
+        loadColorSchemes(manager, COLOR_SCHEME_DIRECTORY, loadedColors);
         colorSchemes = Map.copyOf(loadedColors);
+
+        var loadedSkins = new LinkedHashMap<ResourceLocation, ColorScheme>();
+        loadColorSchemes(manager, WINDOW_SKIN_DIRECTORY, loadedSkins);
+        windowSkins = Map.copyOf(loadedSkins);
 
         var loadedTextures = new LinkedHashMap<ResourceLocation, TexturePack>();
         loadedTextures.put(DEFAULT_ID, DEFAULT_TEXTURE_PACK);
@@ -178,8 +200,8 @@ public final class UIStyleManager {
         applySelected();
     }
 
-    private static void loadColorSchemes(ResourceManager manager, Map<ResourceLocation, ColorScheme> destination) {
-        manager.listResources(COLOR_SCHEME_DIRECTORY, location -> location.getPath().endsWith(".json")).entrySet().stream()
+    private static void loadColorSchemes(ResourceManager manager, String directory, Map<ResourceLocation, ColorScheme> destination) {
+        manager.listResources(directory, location -> location.getPath().endsWith(".json")).entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> read(entry.getKey(), entry.getValue(), root -> {
                     var colors = new LinkedHashMap<String, Integer>();
@@ -194,7 +216,7 @@ public final class UIStyleManager {
                                     () -> GTCEu.LOGGER.warn("Ignoring invalid UI colour '{}' in {}", color.getKey(), entry.getKey()));
                         }
                     }
-                    destination.put(styleId(entry.getKey(), COLOR_SCHEME_DIRECTORY),
+                    destination.put(styleId(entry.getKey(), directory),
                             new ColorScheme(readName(root, entry.getKey()), Map.copyOf(colors)));
                 }));
     }
@@ -262,8 +284,25 @@ public final class UIStyleManager {
         var selectedTextures = selected(TEXTURE_PACK_PREFERENCE, configuredTexturePack(), texturePacks, true);
         activeColorScheme = selectedColors;
         activeTexturePack = selectedTextures;
+        var override = OVERRIDES.peek();
+        if (override != null) {
+            if (colorSchemes.containsKey(override.colorScheme())) selectedColors = override.colorScheme();
+            if (texturePacks.containsKey(override.texturePack())) selectedTextures = override.texturePack();
+        }
+        ThemeSkin.invalidate();
         UITheme.applyStyle(colorSchemes.get(selectedColors).colors(), texturePacks.get(selectedTextures));
     }
+
+    public static void pushOverride(ResourceLocation colorScheme, ResourceLocation texturePack) {
+        OVERRIDES.push(new StyleOverride(colorScheme, texturePack));
+        applySelected();
+    }
+
+    public static void popOverride() {
+        if (OVERRIDES.poll() != null) applySelected();
+    }
+
+    private record StyleOverride(ResourceLocation colorScheme, ResourceLocation texturePack) {}
 
     private static <T> ResourceLocation selected(String preference, String configured, Map<ResourceLocation, T> available, boolean logMissing) {
         var requested = ResourceLocation.tryParse(UIPreferences.get(preference, configured));

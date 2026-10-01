@@ -11,14 +11,24 @@ import com.gregtechceu.gtceu.api.machine.fancyconfigurator.OutputSideConfigurato
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.animation.ColorMath;
 import com.gregtechceu.gtceu.uipro.animation.UIClock;
+import com.gregtechceu.gtceu.uipro.data.RPC;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.data.UICodecs;
+import com.gregtechceu.gtceu.uipro.data.UIStructure;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.CalloutBubble;
 import com.gregtechceu.gtceu.uipro.elements.ItemTitle;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
+import com.gregtechceu.gtceu.uipro.render.UIText;
+import com.gregtechceu.gtceu.uipro.styletemplate.ThemeSkin;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
 
+import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.SlotWidget;
@@ -35,10 +45,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Unit;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.config.EmiConfig;
 import org.jetbrains.annotations.Nullable;
@@ -116,15 +129,48 @@ public class MachineWindow extends FancyMachineUIWidget {
     private int anchorScreenWidth, anchorScreenHeight;
     @Nullable
     private IFancyUIProvider transientPage;
+    private final List<IFancyUIProvider> transientPages = new ArrayList<>(0);
+    private NavState nav = NavState.MAIN;
+    private final Navigator navigator = new Navigator();
+    private final UIStructure<NavState> navigation;
+    private final RPC<Unit> backToMachineRequest;
+
+    private record NavEntry(int home, int tab) {}
+
+    private record NavState(int home, int tab, List<NavEntry> back, int transientPage) {
+
+        private static final NavState MAIN = new NavState(0, 0, List.of(), -1);
+    }
+
+    private static final int SWITCHER = -1;
+    private static final int MAX_HISTORY = 32;
+    private static final int MAX_TAB = 255;
+    private static final ByteStreamCodec<NavEntry> NAV_ENTRY = ByteStreamCodec.composite(
+            ByteStreamCodec.INT_CODEC, NavEntry::home,
+            ByteStreamCodec.INT_CODEC, NavEntry::tab,
+            NavEntry::new);
+    private static final ByteStreamCodec<NavState> NAV_STATE = ByteStreamCodec.composite(
+            ByteStreamCodec.INT_CODEC, NavState::home,
+            ByteStreamCodec.INT_CODEC, NavState::tab,
+            UICodecs.list(NAV_ENTRY, MAX_HISTORY), NavState::back,
+            ByteStreamCodec.INT_CODEC, NavState::transientPage,
+            NavState::new);
+    @Nullable
+    private final ResourceLocation skin;
 
     public MachineWindow(IFancyUIProvider mainPage) {
         this(mainPage, () -> {});
+    }
+
+    public static ModularUI createUI(IFancyUIProvider mainPage, IUIHolder holder, Player player) {
+        return new ModularUI(UISizes.WINDOW_WIDTH, UISizes.WINDOW_WIDTH, holder, player).widget(new MachineWindow(mainPage));
     }
 
     public MachineWindow(IFancyUIProvider mainPage, Runnable init) {
         super(mainPage, UISizes.WINDOW_WIDTH, UISizes.WINDOW_WIDTH, init);
         this.centered = mainPage.windowAnchor() == WindowAnchor.CENTER;
         this.windowLogo = mainPage.showsWindowLogo();
+        this.skin = mainPage.getWindowSkin();
         setBackground(UITheme.WINDOW);
         // 标题栏、悬浮说明、页面标签由本类自绘；GTM 的三个控件留作数据容器（标签列表、选中项、导航回调），不进控件树
         removeWidget(titleBar);
@@ -133,6 +179,12 @@ public class MachineWindow extends FancyMachineUIWidget {
         // 左侧机器小组件换成本框架的面板（移动用本框架的动画）；GTM 的面板摘出控件树，只剩字段
         removeWidget(configuratorPanel);
         configurators.setTexture(UITheme.CONFIGURATOR_TAB);
+        addWidget(0, navigator);
+        navigation = navigator.addStructure(NAV_STATE, () -> nav).validate(this::isValidNavigation)
+                .apply(this::applyNavigation).onRejected(this::restoreTabHighlight);
+        backToMachineRequest = navigator.addRPC(player -> {
+            if (backToMachine != null && player instanceof ServerPlayer serverPlayer) MachineSubWindowFactory.openMachine(serverPlayer, backToMachine);
+        });
         if (playerInventory != null) layoutPlayerInventory(playerInventory);
         addWidget(title = new WindowTitleBar());
         addWidget(tabs = new WindowTabBar());
@@ -226,10 +278,40 @@ public class MachineWindow extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private void drawLogo(GuiGraphics graphics) {
         if (!windowLogo || playerInventory == null || !playerInventory.isVisible()) return;
-        int x = playerInventory.getPositionX() + UISizes.SLOT_ROW_WIDTH - UITheme.LOGO_WIDTH;
-        int y = playerInventory.getPositionY() - UITheme.LOGO_HEIGHT - UITheme.LOGO_GAP;
+        int x = playerInventory.getPositionX() + UISizes.SLOT_ROW_WIDTH - UISizes.LOGO_WIDTH;
+        int y = playerInventory.getPositionY() - UISizes.LOGO_HEIGHT - UISizes.LOGO_GAP;
         RenderSystem.enableBlend();
-        graphics.blit(LOGO, x, y, 0, 0, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT);
+        graphics.blit(LOGO, x, y, 0, 0, UISizes.LOGO_WIDTH, UISizes.LOGO_HEIGHT, UISizes.LOGO_WIDTH, UISizes.LOGO_HEIGHT);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (skin == null) {
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+            return;
+        }
+        ThemeSkin.of(skin).apply();
+        try {
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+        } finally {
+            ThemeSkin.getGlobal().apply();
+        }
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        if (skin == null) {
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+            return;
+        }
+        ThemeSkin.of(skin).apply();
+        try {
+            super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+        } finally {
+            ThemeSkin.getGlobal().apply();
+        }
     }
 
     @Override
@@ -433,22 +515,24 @@ public class MachineWindow extends FancyMachineUIWidget {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (super.keyPressed(keyCode, scanCode, modifiers)) return true;
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && isOnTransientPage()) {
-            title.requestLeaveTransientPage();
+            requestLeaveTransientPage();
             return true;
         }
         if (backToMachine != null && (keyCode == GLFW.GLFW_KEY_ESCAPE || Minecraft.getInstance().options.keyInventory.matches(keyCode, scanCode))) {
-            title.requestBackToMachine();
+            backToMachineRequest.send(Unit.INSTANCE);
             return true;
         }
         return false;
     }
 
-    /**
-     * 切换到某个页面标签（客户端调用，与点击顶部标签相同：先发请求再切换，服务端收到后同样切换）。
-     * 页面自己要跳到另一个标签页时用（如科技树从一棵树的节点跳到另一棵树）；标签不在当前标签栏里时忽略。
-     */
     public void selectTab(IFancyUIProvider tab) {
-        tabs.request(tab);
+        var list = getTabs();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i) == tab) {
+                requestTab(i);
+                return;
+            }
+        }
     }
 
     /** 标签栏里当前的页面（主页在前，子页面依次在后）。 */
@@ -459,35 +543,147 @@ public class MachineWindow extends FancyMachineUIWidget {
         return list;
     }
 
-    public void openTransientPage(IFancyUIProvider page) {
-        if (isOnTransientPage()) return;
-        transientPage = page;
-        navigate(page);
+    public int registerTransientPage(IFancyUIProvider page) {
+        transientPages.add(page);
+        return transientPages.size() - 1;
+    }
+
+    public void openTransientPage(int key) {
+        var target = navigation.getTarget();
+        if (target.transientPage() >= 0 || target.home() == SWITCHER || key < 0 || key >= transientPages.size()) return;
+        navigation.request(new NavState(target.home(), target.tab(), target.back(), key));
     }
 
     public boolean isOnTransientPage() {
-        return transientPage != null && currentPage == transientPage && !previousPages.isEmpty();
+        return nav.transientPage() >= 0;
     }
 
-    private void leaveTransientPage() {
-        if (!isOnTransientPage()) return;
-        var entry = previousPages.pop();
-        performNavigation(entry.page(), entry.homePage());
-        entry.onNavigation().run();
+    public void requestLeaveTransientPage() {
+        var target = navigation.getTarget();
+        if (target.transientPage() < 0) return;
+        navigation.request(new NavState(target.home(), target.tab(), target.back(), -1));
+    }
+
+    public void requestBack() {
+        var target = navigation.getTarget();
+        if (!target.back().isEmpty()) {
+            var back = new ArrayList<>(target.back());
+            var entry = back.remove(back.size() - 1);
+            navigation.request(new NavState(entry.home(), entry.tab(), List.copyOf(back), -1));
+        } else if (backToMachine != null) {
+            backToMachineRequest.send(Unit.INSTANCE);
+        }
+    }
+
+    public void requestPageSwitcher() {
+        var target = navigation.getTarget();
+        if (target.home() == SWITCHER) return;
+        var back = new ArrayList<>(target.back());
+        if (target.tab() != 0 && !back.isEmpty()) back.remove(back.size() - 1);
+        back.add(new NavEntry(target.home(), 0));
+        navigation.request(new NavState(SWITCHER, 0, trimHistory(back), -1));
+    }
+
+    private void requestTab(int index) {
+        var target = navigation.getTarget();
+        if (target.home() != nav.home() || target.home() == SWITCHER) return;
+        if (index == target.tab() && target.transientPage() < 0) return;
+        var back = new ArrayList<>(target.back());
+        if (target.home() == 0 && index == 0) {
+            back.clear();
+        } else if (!back.isEmpty() && back.get(back.size() - 1).equals(new NavEntry(target.home(), index))) {
+            back.remove(back.size() - 1);
+        } else if (index != target.tab()) {
+            back.add(new NavEntry(target.home(), target.tab()));
+        }
+        navigation.request(new NavState(target.home(), index, trimHistory(back), -1));
+    }
+
+    private void requestHome(int home) {
+        navigation.request(new NavState(home, 0, home == 0 ? List.of() : List.of(new NavEntry(0, 0)), -1));
+    }
+
+    private static List<NavEntry> trimHistory(List<NavEntry> back) {
+        return List.copyOf(back.size() > MAX_HISTORY ? back.subList(back.size() - MAX_HISTORY, back.size()) : back);
+    }
+
+    @Override
+    protected void navigate(IFancyUIProvider newPage) {
+        selectTab(newPage);
     }
 
     @Override
     protected void navigate(IFancyUIProvider nextPage, IFancyUIProvider nextHomePage) {
-        if (isOnTransientPage() && nextPage != transientPage) {
-            var entry = previousPages.pop();
-            this.currentPage = entry.page();
-            this.currentHomePage = entry.homePage();
-            if (nextPage == currentPage) {
-                performNavigation(nextPage, nextHomePage);
-                return;
-            }
+        if (nextHomePage == currentHomePage) selectTab(nextPage);
+    }
+
+    @Override
+    protected void navigateBack(ClickData clickData) {
+        requestBack();
+    }
+
+    @Override
+    protected void openPageSwitcher(ClickData clickData) {
+        requestPageSwitcher();
+    }
+
+    @Override
+    protected void switchPage(IFancyUIProvider nextHomePage) {
+        int home = allPages == null ? -1 : allPages.indexOf(nextHomePage);
+        if (home >= 0) requestHome(home);
+    }
+
+    private boolean isValidNavigation(NavState state) {
+        int homes = allPages == null ? 1 : allPages.size();
+        if (state.home() < SWITCHER || state.home() >= homes) return false;
+        if (state.home() == SWITCHER ? state.tab() != 0 : state.tab() < 0 || state.tab() > MAX_TAB) return false;
+        if (state.home() == nav.home() && state.home() != SWITCHER && state.tab() > sideTabsWidget.getSubTabs().size()) return false;
+        for (var entry : state.back()) {
+            if (entry.home() < 0 || entry.home() >= homes || entry.tab() < 0 || entry.tab() > MAX_TAB) return false;
         }
-        super.navigate(nextPage, nextHomePage);
+        return state.transientPage() < 0 || state.home() != SWITCHER && state.transientPage() < transientPages.size();
+    }
+
+    private void applyNavigation(NavState state) {
+        var transientTarget = state.transientPage() >= 0 && state.transientPage() < transientPages.size() ? transientPages.get(state.transientPage()) : null;
+        var previousTab = sideTabsWidget.getSelectedTab();
+        var previousHome = currentHomePage;
+        nav = state;
+        boolean switcher = state.home() == SWITCHER || allPages == null;
+        sideTabsWidget.setVisible(!switcher);
+        sideTabsWidget.setActive(!switcher);
+        IFancyUIProvider home;
+        IFancyUIProvider page;
+        if (switcher) {
+            pageSwitcher.setPageList(allPages == null ? List.of(mainPage) : allPages, previousHome == null ? mainPage : previousHome);
+            home = pageSwitcher;
+            page = pageSwitcher;
+        } else {
+            home = allPages.get(state.home());
+            if (previousHome != home) setupSideTabs(home);
+            page = tabAt(home, state.tab());
+            var onSwitch = sideTabsWidget.getOnTabSwitch();
+            if (onSwitch != null && previousHome == home && previousTab != null && previousTab != page) onSwitch.accept(previousTab, page);
+        }
+        currentHomePage = home;
+        transientPage = transientTarget;
+        currentPage = transientTarget != null ? transientTarget : page;
+        setupFancyUI(currentPage, currentPage.hasPlayerInventory());
+    }
+
+    private IFancyUIProvider tabAt(IFancyUIProvider home, int index) {
+        var subTabs = sideTabsWidget.getSubTabs();
+        if (index > 0 && index <= subTabs.size()) return subTabs.get(index - 1);
+        var main = sideTabsWidget.getMainTab();
+        return main == null ? home : main;
+    }
+
+    private IFancyUIProvider underlyingPage() {
+        return nav.home() == SWITCHER || allPages == null ? pageSwitcher : tabAt(currentHomePage, nav.tab());
+    }
+
+    private void restoreTabHighlight() {
+        if (nav.home() != SWITCHER) sideTabsWidget.selectTab(underlyingPage());
     }
 
     // ==================== 标题栏内容 ====================
@@ -508,13 +704,13 @@ public class MachineWindow extends FancyMachineUIWidget {
         int usable = screen - clientVerticalReserve();
         int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM;
         if (inventory) chrome += UISizes.SECTION_GAP + UISizes.PLAYER_INVENTORY_HEIGHT;
-        return Math.max(2 * UISizes.SLOT, usable - chrome);
+        return Math.max(2 * UISizes.SLOT_SIZE, usable - chrome);
     }
 
     @OnlyIn(Dist.CLIENT)
     public int clientPageWidthLimit() {
         var area = ScreenArea.current(minWindowGroupWidth());
-        int side = UISizes.SIDE_TAB + UISizes.GAP;
+        int side = UISizes.SIDE_TAB_WIDTH + UISizes.GAP;
         int chrome = 2 * UISizes.WINDOW_PADDING_X + (centered ? side : 2 * side);
         return Math.max(UISizes.CONTENT_WIDTH, area.width() - chrome);
     }
@@ -522,15 +718,15 @@ public class MachineWindow extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     public int clientPageHeightLimitFor(boolean inventory) {
         int logoExtra = inventory ? inventoryGap() - UISizes.SECTION_GAP : 0;
-        if (!centered) return Math.max(2 * UISizes.SLOT, clientPageHeightLimit(inventory) - tabs.reservedHeight() - logoExtra);
+        if (!centered) return Math.max(2 * UISizes.SLOT_SIZE, clientPageHeightLimit(inventory) - tabs.reservedHeight() - logoExtra);
         var area = ScreenArea.current(minWindowGroupWidth());
         int chrome = UISizes.WINDOW_PADDING_TOP + UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP + UISizes.WINDOW_PADDING_BOTTOM + tabs.reservedHeight();
         if (inventory) chrome += inventoryGap() + UISizes.PLAYER_INVENTORY_HEIGHT;
-        return Math.max(2 * UISizes.SLOT, area.height() - chrome);
+        return Math.max(2 * UISizes.SLOT_SIZE, area.height() - chrome);
     }
 
     @Override
-    public int pageHeightLimit() {
+    public int getPageHeightLimit() {
         return isRemote() ? clientPageHeightLimitFor(pageShowsInventory) : Integer.MAX_VALUE;
     }
 
@@ -540,7 +736,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     private static int minWindowGroupWidth() {
-        return UISizes.WINDOW_WIDTH + UISizes.SIDE_TAB + UISizes.GAP;
+        return UISizes.WINDOW_WIDTH + UISizes.SIDE_TAB_WIDTH + UISizes.GAP;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -569,7 +765,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     public void setTitleItem(Supplier<ItemStack> stack, Supplier<Component> name) {
-        this.titleContent = width -> new ItemTitle(width, stack, name);
+        this.titleContent = width -> ItemTitle.of(width, stack, name);
         this.titleContentHasIcon = true;
     }
 
@@ -596,11 +792,7 @@ public class MachineWindow extends FancyMachineUIWidget {
      */
     @Override
     protected void performNavigation(IFancyUIProvider nextPage, IFancyUIProvider nextHomePage) {
-        if (nextPage != transientPage) transientPage = null;
-        if (currentHomePage != nextHomePage) setupSideTabs(nextHomePage);
-        this.currentPage = nextPage;
-        this.currentHomePage = nextHomePage;
-        setupFancyUI(nextPage, nextPage.hasPlayerInventory());
+        applyNavigation(nav);
     }
 
     private void setupPage(IFancyUIProvider fancyUI, boolean showInventory) {
@@ -610,10 +802,11 @@ public class MachineWindow extends FancyMachineUIWidget {
         titleContent = null;
         titleContentHasIcon = false;
         titleTools.clear();
-        inventoryGutter = 0;
+        inventoryGutter = Math.max(0, fancyUI.getInventoryGutter());
+        transientPages.clear();
         pageShowsInventory = showInventory;
         boolean onTransient = isOnTransientPage();
-        sideTabsWidget.selectTab(onTransient ? previousPages.peek().page() : fancyUI);
+        sideTabsWidget.selectTab(onTransient ? underlyingPage() : fancyUI);
         var page = fancyUI.createMainPage(this);
         placePage(page, showInventory);
         pageContainer.addWidget(page);
@@ -625,7 +818,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         OutputSideConfigurator.attach(configurators, fancyUI);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
-        title.setup(titleFollowsTab || onTransient ? fancyUI : currentHomePage, contentWidth, !onTransient && (!previousPages.isEmpty() || backToMachine != null),
+        title.setup(titleFollowsTab || onTransient ? fancyUI : currentHomePage, contentWidth, !onTransient && (!nav.back().isEmpty() || backToMachine != null),
                 !onTransient && allPages.size() > 1 && currentPage != pageSwitcher, onTransient, titleContent, titleContentHasIcon);
 
         updatePlacement();
@@ -682,7 +875,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     private int inventoryGap() {
-        return windowLogo ? Math.max(UISizes.SECTION_GAP, UITheme.LOGO_HEIGHT + 2 * UITheme.LOGO_GAP) : UISizes.SECTION_GAP;
+        return windowLogo ? Math.max(UISizes.SECTION_GAP, UISizes.LOGO_HEIGHT + 2 * UISizes.LOGO_GAP) : UISizes.SECTION_GAP;
     }
 
     private void placeConfigurators() {
@@ -775,7 +968,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     @OnlyIn(Dist.CLIENT)
     private int[] clientPlacement(int screenWidth, int screenHeight, int width, int top) {
         int margin = UISizes.SCREEN_MARGIN;
-        popups.setMaxHeight(Math.max(UISizes.SLOT, screenHeight - 2 * margin));
+        popups.setMaxHeight(Math.max(UISizes.SLOT_SIZE, screenHeight - 2 * margin));
         int popupWidth = popups.getSizeWidth(), popupHeight = popups.getSizeHeight();
         if (popupWidth == 0) return new int[] { 0, 0 };
         // 窗口左边缘固定在按基准宽度居中的位置（见 applyClientPlacement）
@@ -796,7 +989,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         int reserved = configurators.getTabs().isEmpty() ? 0 : configurators.getSizeWidth() + UISizes.GAP;
         int left = area.left() + reserved + Math.max(0, (area.width() - reserved - width) / 2);
         int top = area.top() + tabsHeight + Math.max(0, (area.height() - tabsHeight - height) / 2);
-        popups.setMaxHeight(Math.max(UISizes.SLOT, area.height()));
+        popups.setMaxHeight(Math.max(UISizes.SLOT_SIZE, area.height()));
         int popupWidth = popups.getSizeWidth(), popupHeight = popups.getSizeHeight();
         int popupY = 0;
         if (popupWidth > 0) {
@@ -846,10 +1039,10 @@ public class MachineWindow extends FancyMachineUIWidget {
             if (!(widget instanceof SlotWidget)) continue;
             // 前 9 个是快捷栏，之后按行排背包
             if (index < UISizes.SLOTS_PER_ROW) {
-                widget.setSelfPosition(new Position(index * UISizes.SLOT, 3 * UISizes.SLOT + UISizes.SECTION_GAP));
+                widget.setSelfPosition(new Position(index * UISizes.SLOT_SIZE, 3 * UISizes.SLOT_SIZE + UISizes.SECTION_GAP));
             } else {
                 int slot = index - UISizes.SLOTS_PER_ROW;
-                widget.setSelfPosition(new Position(slot % UISizes.SLOTS_PER_ROW * UISizes.SLOT, slot / UISizes.SLOTS_PER_ROW * UISizes.SLOT));
+                widget.setSelfPosition(new Position(slot % UISizes.SLOTS_PER_ROW * UISizes.SLOT_SIZE, slot / UISizes.SLOTS_PER_ROW * UISizes.SLOT_SIZE));
             }
             index++;
         }
@@ -863,7 +1056,6 @@ public class MachineWindow extends FancyMachineUIWidget {
      * 窗口顶上横排的页面标签，替代 GTM 左侧竖排的标签列（GTM 的 {@code sideTabsWidget} 只留作数据：标签列表、选中项、导航回调）。
      * 主页在最左，子页面依次往右；未选中的标签坐在窗口顶边上，选中的标签高出一截、向下伸进窗口顶边并抹掉接缝，与窗口连成一体。
      * 只有主页、或 GTM 隐藏了标签（打开"切换部件页"、单页界面）时不显示——这两种状态在切页过程中才变，所以绘制和点击时实时读取。
-     * 点击：客户端先发包再切换，服务端收到后同样切换（与 GTM 标签页的做法一致），两端各自重建页面，控件树保持一致。
      */
     private final class WindowTabBar extends Widget {
 
@@ -984,14 +1176,14 @@ public class MachineWindow extends FancyMachineUIWidget {
                     continue;
                 }
                 int x = tabX(i), top = base - UISizes.PAGE_TAB_HEIGHT;
-                (i == hovered ? UITheme.PAGE_TAB_HOVER : UITheme.PAGE_TAB).draw(graphics, mouseX, mouseY, x, top, tabWidth, UISizes.PAGE_TAB_HEIGHT);
-                tab.getTabIcon().draw(graphics, mouseX, mouseY, x + (tabWidth - ICON) / 2f, top + TAB_BORDER, ICON, ICON);
+                UITheme.PAGE_TAB.draw(graphics, i == hovered ? UIStates.HOVERED : UIStates.NONE, x, top, tabWidth, UISizes.PAGE_TAB_HEIGHT);
+                tab.getTabIcon().draw(graphics, mouseX, mouseY, UIPixels.center(x, tabWidth, ICON), top + TAB_BORDER, ICON, ICON);
             }
             if (selectedIndex < 0) return;
             int x = tabX(selectedIndex), top = base - UISizes.PAGE_TAB_HEIGHT - UISizes.PAGE_TAB_RAISE;
             int bottom = base + UISizes.PAGE_TAB_OVERLAP;
-            UITheme.PAGE_TAB_SELECTED.draw(graphics, mouseX, mouseY, x, top, tabWidth, bottom - top);
-            tab(selectedIndex).getTabIcon().draw(graphics, mouseX, mouseY, x + (tabWidth - ICON) / 2f, top + TAB_BORDER + 1, ICON, ICON);
+            UITheme.PAGE_TAB.draw(graphics, UIStates.SELECTED, x, top, tabWidth, bottom - top);
+            tab(selectedIndex).getTabIcon().draw(graphics, mouseX, mouseY, UIPixels.center(x, tabWidth, ICON), top + TAB_BORDER + 1, ICON, ICON);
             drawHints(graphics, base, selectedIndex);
         }
 
@@ -1010,7 +1202,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             int ring = ColorMath.lerp(UITheme.TAB_HINT_DIM, UITheme.TAB_HINT_GLOW, phase);
             int halo = (int) (UITheme.TAB_HINT_HALO_ALPHA_MIN + (UITheme.TAB_HINT_HALO_ALPHA_MAX - UITheme.TAB_HINT_HALO_ALPHA_MIN) * phase) << 24 | rgb;
             int length = hintLoopX.length;
-            int head = (int) ((System.currentTimeMillis() % HINT_PERIOD_MS) / (float) HINT_PERIOD_MS * length);
+            int head = (int) (UIClock.phase(HINT_PERIOD_MS) * length);
             graphics.drawManaged(() -> {
                 for (int i = 0; i < hintInnerX.length; i++) {
                     graphics.fill(x + hintInnerX[i], y + hintInnerY[i], x + hintInnerX[i] + 1, y + hintInnerY[i] + 1, halo);
@@ -1107,7 +1299,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             int top = windowTop() + UISizes.PAGE_TAB_OVERLAP + CalloutBubble.NOTCH;
             var pose = graphics.pose();
             pose.pushPose();
-            pose.translate(0, 0, 400);
+            pose.translate(0, 0, UILayers.TOP);
             CalloutBubble.drawGlyph(graphics, centerX - CalloutBubble.GLYPH_WIDTH / 2, top, centerX, CalloutBubble.Tone.NEUTRAL, callout);
             pose.popPose();
         }
@@ -1120,39 +1312,11 @@ public class MachineWindow extends FancyMachineUIWidget {
             if (index < 0) return false;
             var tab = tab(index);
             if (tab != sideTabsWidget.getSelectedTab() || isOnTransientPage()) {
-                writeClientAction(0, buf -> buf.writeVarInt(index));
-                select(tab);
+                requestTab(index);
+                sideTabsWidget.selectTab(tab);
                 playButtonClickSound();
             }
             return true;
-        }
-
-        @Override
-        public void handleClientAction(int id, FriendlyByteBuf buffer) {
-            if (id != 0) {
-                super.handleClientAction(id, buffer);
-                return;
-            }
-            int index = buffer.readVarInt();
-            if (index >= 0 && index < count() && shown()) select(tab(index));
-        }
-
-        private void select(IFancyUIProvider tab) {
-            markVisited(tab);
-            sideTabsWidget.selectTab(tab);
-            sideTabsWidget.getOnTabClick().accept(tab);
-        }
-
-        /** 客户端：请求切到 {@code tab}（同点击标签）。 */
-        private void request(IFancyUIProvider tab) {
-            if (!shown() || tab == sideTabsWidget.getSelectedTab()) return;
-            for (int i = 0, count = count(); i < count; i++) {
-                if (tab(i) != tab) continue;
-                int index = i;
-                writeClientAction(0, buf -> buf.writeVarInt(index));
-                select(tab);
-                return;
-            }
         }
     }
 
@@ -1186,43 +1350,6 @@ public class MachineWindow extends FancyMachineUIWidget {
             super(0, 0, UISizes.CONTENT_WIDTH, UISizes.CONTROL_HEIGHT);
         }
 
-        /// 客户端请求回到机器主界面（Esc）：避开 WidgetGroup 的 1、2
-        private static final int BACK_TO_MACHINE_ID = 3;
-        private static final int LEAVE_TRANSIENT_ID = 4;
-
-        @OnlyIn(Dist.CLIENT)
-        private void requestLeaveTransientPage() {
-            writeClientAction(LEAVE_TRANSIENT_ID, buf -> {});
-            leaveTransientPage();
-        }
-
-        /** 客户端：请求服务端回到机器主界面（独立窗口按 Esc 时）。 */
-        private void requestBackToMachine() {
-            writeClientAction(BACK_TO_MACHINE_ID, buf -> {});
-        }
-
-        @Override
-        public void handleClientAction(int id, FriendlyByteBuf buffer) {
-            if (id == BACK_TO_MACHINE_ID) {
-                if (backToMachine != null && getGui() != null && getGui().entityPlayer instanceof ServerPlayer player) {
-                    MachineSubWindowFactory.openMachine(player, backToMachine);
-                }
-            } else if (id == LEAVE_TRANSIENT_ID) {
-                leaveTransientPage();
-            } else {
-                super.handleClientAction(id, buffer);
-            }
-        }
-
-        /** 返回：有退回的页面时两端各退一页；否则是独立窗口，服务端回到机器主界面。 */
-        private void back(ClickData clickData) {
-            if (!previousPages.isEmpty()) {
-                navigateBack(clickData);
-            } else if (!clickData.isRemote && backToMachine != null && getGui() != null && getGui().entityPlayer instanceof ServerPlayer player) {
-                MachineSubWindowFactory.openMachine(player, backToMachine);
-            }
-        }
-
         private void setup(IFancyUIProvider page, int width, boolean showBack, boolean showMenu, boolean showClose, @Nullable IntFunction<Widget> content, boolean contentHasIcon) {
             this.page = page;
             clearAllWidgets();
@@ -1233,24 +1360,24 @@ public class MachineWindow extends FancyMachineUIWidget {
             int left = 0;
             int right = width;
             if (showBack) {
-                var back = Button.icon(UITheme.ARROW_LEFT).setOnClick(this::back);
-                back.setHoverTooltips("gtceu.gui.title_bar.back");
+                var back = Button.icon(UITheme.ARROW_LEFT).setOnClientClick(MachineWindow.this::requestBack);
+                back.tooltips("gtceu.gui.title_bar.back");
                 addWidget(back);
-                left += UISizes.ICON_BUTTON + UISizes.GAP;
+                left += UISizes.ICON_BUTTON_SIZE + UISizes.GAP;
             }
             if (showMenu) {
-                right -= UISizes.ICON_BUTTON;
-                var menu = Button.icon(UITheme.PAGES).setOnClick(MachineWindow.this::openPageSwitcher);
-                menu.setHoverTooltips("gtceu.gui.title_bar.page_switcher");
+                right -= UISizes.ICON_BUTTON_SIZE;
+                var menu = Button.icon(UITheme.PAGES).setOnClientClick(MachineWindow.this::requestPageSwitcher);
+                menu.tooltips("gtceu.gui.title_bar.page_switcher");
                 menu.setSelfPosition(new Position(right, 0));
                 addWidget(menu);
                 rightButton = menu;
                 right -= UISizes.GAP;
             }
             if (showClose) {
-                right -= UISizes.ICON_BUTTON;
-                var close = Button.glyph("×").setOnClick(clickData -> leaveTransientPage());
-                close.setHoverTooltips(POPUP_CLOSE);
+                right -= UISizes.ICON_BUTTON_SIZE;
+                var close = Button.glyph("×").setOnClientClick(MachineWindow.this::requestLeaveTransientPage);
+                close.tooltips(POPUP_CLOSE);
                 close.setSelfPosition(new Position(right, 0));
                 addWidget(close);
                 rightButton = close;
@@ -1269,7 +1396,7 @@ public class MachineWindow extends FancyMachineUIWidget {
                 textLeft = left;
             } else {
                 var icon = ItemView.of(page.getTabIcon());
-                icon.setHoverTooltips(page.getTitle());
+                icon.tooltips(page.getTitle());
                 icon.setSelfPosition(new Position(left, 0));
                 addWidget(icon);
                 textLeft = left + ICON + UISizes.GAP;
@@ -1277,7 +1404,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             tooltipsRight = right;
             // 自定义中段按建页时实际显示的说明图标预留（默认标题在绘制时按实时显示的个数让位）
             int shown = 0;
-            for (var tooltip : tooltipsPanel.getTooltips()) if (tooltip.showFancyTooltip()) shown++;
+            for (int i = 0, n = tooltipsPanel.getTooltips().size(); i < n; i++) if (tooltipsPanel.isShown(i)) shown++;
             textRight = right - shown * (ICON + UISizes.GAP);
             customContent = content != null;
             if (content != null) {
@@ -1310,19 +1437,20 @@ public class MachineWindow extends FancyMachineUIWidget {
             if (page == null) return;
             int x = getPositionX(), y = getPositionY(), h = getSizeHeight();
             int right = tooltipsRight;
-            for (var tooltip : tooltipsPanel.getTooltips()) {
-                if (!tooltip.showFancyTooltip()) continue;
+            var tooltips = tooltipsPanel.getTooltips();
+            for (int i = 0; i < tooltips.size(); i++) {
+                if (!tooltipsPanel.isShown(i)) continue;
+                var tooltip = tooltips.get(i);
                 right -= ICON;
-                tooltip.getFancyTooltipIcon().draw(graphics, mouseX, mouseY, x + right, y + (h - ICON) / 2f, ICON, ICON);
+                tooltip.getFancyTooltipIcon().draw(graphics, mouseX, mouseY, x + right, UIPixels.center(y, h, ICON), ICON, ICON);
                 right -= UISizes.GAP;
             }
             if (customContent) return;
-            var font = Minecraft.getInstance().font;
             // 标题只让开实际显示的说明图标（部件挂上的说明很多，大多不显示，按总数预留会把标题挤成省略号）；
             // 去掉名称里的颜色代码，标题统一用正文色
             var title = ChatFormatting.stripFormatting(page.getTitle().getString());
-            var text = UITheme.clip(font, title == null ? "" : title, right - textLeft);
-            graphics.drawString(font, text, x + textLeft, y + (h - 8) / 2, UITheme.TEXT, false);
+            var text = UIText.fit(title == null ? "" : title, right - textLeft);
+            UIText.drawLeft(graphics, text, x + textLeft, UIText.centerY(y, h), UITheme.TEXT);
         }
 
         @Override
@@ -1340,13 +1468,63 @@ public class MachineWindow extends FancyMachineUIWidget {
         private IFancyTooltip hoveredTooltip(int mouseX, int mouseY) {
             int x = getPositionX(), y = getPositionY() + (getSizeHeight() - ICON) / 2;
             int right = tooltipsRight;
-            for (var tooltip : tooltipsPanel.getTooltips()) {
-                if (!tooltip.showFancyTooltip()) continue;
+            var tooltips = tooltipsPanel.getTooltips();
+            for (int i = 0; i < tooltips.size(); i++) {
+                if (!tooltipsPanel.isShown(i)) continue;
                 right -= ICON;
-                if (isMouseOver(x + right, y, ICON, ICON, mouseX, mouseY)) return tooltip;
+                if (isMouseOver(x + right, y, ICON, ICON, mouseX, mouseY)) return tooltips.get(i);
                 right -= UISizes.GAP;
             }
             return null;
+        }
+    }
+
+    private final class Navigator extends Widget implements UIChannel.Host {
+
+        private final UIChannel channel = new UIChannel(this);
+
+        private Navigator() {
+            super(0, 0, 0, 0);
+        }
+
+        @Override
+        public UIChannel getChannel() {
+            return channel;
+        }
+
+        @Override
+        public void initWidget() {
+            super.initWidget();
+            channel.prime();
+        }
+
+        @Override
+        public void writeInitialData(FriendlyByteBuf buffer) {
+            super.writeInitialData(buffer);
+            channel.writeInitialData(buffer);
+        }
+
+        @Override
+        public void readInitialData(FriendlyByteBuf buffer) {
+            super.readInitialData(buffer);
+            channel.readInitialData(buffer);
+        }
+
+        @Override
+        public void detectAndSendChanges() {
+            super.detectAndSendChanges();
+            channel.detectAndSendChanges();
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+            if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+        }
+
+        @Override
+        public void handleClientAction(int id, FriendlyByteBuf buffer) {
+            if (!channel.handleClientAction(id, buffer)) super.handleClientAction(id, buffer);
         }
     }
 }

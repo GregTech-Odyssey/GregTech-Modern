@@ -9,10 +9,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.IconToggle;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.side.MachineSide;
 
@@ -23,11 +23,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 
 import dev.vfyjxf.taffy.style.AlignItems;
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 public final class OutputSideConfigurator implements IFancyConfigurator {
 
@@ -45,8 +45,8 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
     private static final String AUTO_TOOLTIP = "gtceu.gui.output_side.auto.tooltip";
     private static final String ALLOW_INPUT = "gtceu.gui.output_side.allow_input";
     private static final String ALLOW_INPUT_TOOLTIP = "gtceu.gui.output_side.allow_input.tooltip";
-    private static final int FACE_BUTTON = UISizes.SLOT + 2;
-    private static final int CONTENT_WIDTH = 6 * UISizes.SLOT;
+    private static final int FACE_BUTTON = UISizes.SLOT_SIZE + 2;
+    private static final int CONTENT_WIDTH = 6 * UISizes.SLOT_SIZE;
 
     private final MetaMachine machine;
     @Nullable
@@ -97,9 +97,9 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
                     () -> channel.fluid ? 1 : 0, i -> channel.fluid = i == 1).horizontal());
         }
         page.addChild(faceGrid(channel));
-        page.addChild(CoverUIs.controlRow(AUTO, Switch.of(() -> isAuto(channel), on -> setAuto(channel, on))
+        page.addChild(Form.controlRow(AUTO, Switch.of(() -> isAuto(channel), on -> setAuto(channel, on))
                 .disabled(() -> facing(channel) == null, NO_FACE), AUTO_TOOLTIP));
-        page.addChild(CoverUIs.controlRow(ALLOW_INPUT, Switch.of(() -> isAllowInput(channel), on -> setAllowInput(channel, on))
+        page.addChild(Form.controlRow(ALLOW_INPUT, Switch.of(() -> isAllowInput(channel), on -> setAllowInput(channel, on))
                 .disabled(() -> facing(channel) == null, NO_FACE), ALLOW_INPUT_TOOLTIP));
         return page;
     }
@@ -200,8 +200,8 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
 
     private static final class FaceButton extends IconToggle {
 
-        private FaceButton(IGuiTexture icon, BooleanSupplier getter, Consumer<Boolean> setter) {
-            super(icon, FACE_BUTTON, getter, setter);
+        private FaceButton(IGuiTexture icon, BooleanSupplier getter, BooleanConsumer setter) {
+            super(FACE_BUTTON, icon, getter, setter);
         }
     }
 }

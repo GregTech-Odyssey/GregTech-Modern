@@ -1,14 +1,15 @@
 package com.gregtechceu.gtceu.uiwidgets.patternbuilder;
 
+import com.gregtechceu.gtceu.uipro.Horizontal;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemCell;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
-import com.gregtechceu.gtceu.uipro.elements.StatusLine;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.elements.VirtualList;
@@ -68,7 +69,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     private static final int COUNT_FIELD_WIDTH = 2 * UISizes.VALUE_WIDTH + 3 * UISizes.GAP + UISizes.SECTION_GAP;
     private static final int TALLY_WIDTH = 2 * UISizes.VALUE_WIDTH;
     private static final long[] COUNT_STEPS = { 1, 8 };
-    private static final int ROLE_POPUP_WIDTH = UISizes.POPUP_CONTENT_WIDTH + UISizes.ICON_BUTTON + UISizes.GAP;
+    private static final int ROLE_POPUP_WIDTH = UISizes.POPUP_CONTENT_WIDTH + UISizes.ICON_BUTTON_SIZE + UISizes.GAP;
     private static final int FILL_POPUP_WIDTH = ROLE_POPUP_WIDTH + UISizes.BUTTON_WIDTH + UISizes.GAP;
 
     public interface PopupSlot {
@@ -118,8 +119,8 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         setBackground(UITheme.WINDOW);
 
         var close = Button.glyph("×").setOnClientClick(onClose);
-        close.setHoverTooltips(MachineWindow.POPUP_CLOSE);
-        var titleRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+        close.tooltips(MachineWindow.POPUP_CLOSE);
+        var titleRow = UIElement.centeredRow(UISizes.CONTROL_HEIGHT);
         if (!icon.isEmpty()) titleRow.addChild(ItemView.of(icon));
         titleRow.addChildren(TextLine.constant(LayoutStyle.AUTO, Component.translatable(footer.titleKey(), title)).layout(l -> l.flex(1)), close);
 
@@ -134,7 +135,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         }
 
         var back = footer.back();
-        var actions = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(
+        var actions = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
                 back == null ? Button.translatable(UISizes.BUTTON_WIDTH, CANCEL).setOnClientClick(onClose) :
                         Button.translatable(UISizes.BUTTON_WIDTH, BACK).setOnClientClick(back),
                 UIElement.flexSpacer(),
@@ -143,14 +144,14 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
                         .setOnServerClick(onWrite));
         var counter = footer.showInputs() ?
                 TextLine.of(LayoutStyle.AUTO, () -> Component.translatable(INPUTS).append(" " + model.getInputs().size() + " / " + inputLimit))
-                        .alignRight().level(() -> model.getInputs().size() <= inputLimit ? StatusLine.Level.NORMAL : StatusLine.Level.ERROR) :
+                        .setTextAlign(Horizontal.RIGHT).bindLevel(() -> model.getInputs().size() <= inputLimit ? Level.NORMAL : Level.ERROR) :
                 null;
 
         int chrome = UISizes.POPUP_PADDING + 2 * UISizes.CONTROL_HEIGHT + 2 * UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM +
                 (counter == null ? 0 : UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP);
-        var scroller = new ScrollerView("pattern_builder", UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT).adaptiveWidth();
+        var scroller = new ScrollerView("pattern_builder", UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT_SIZE).adaptiveWidth();
         scroller.addScrollViewChild(content);
-        scroller.adaptiveHeight(Math.max(UISizes.SLOT, maxHeight - chrome));
+        scroller.setAdaptiveHeight(Math.max(UISizes.SLOT_SIZE, maxHeight - chrome));
         addChildren(titleRow, scroller);
         if (counter != null) addChild(counter);
         addChild(actions);
@@ -191,7 +192,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     private Button selectButton(String key, Supplier<Popup> factory) {
         var button = Button.icon(UITheme.ARROW_RIGHT).setOnClientClick(() -> popups.toggle(key, factory));
         button.setSelected(() -> popups.isOpen(key));
-        button.setHoverTooltips(SELECT);
+        button.tooltips(SELECT);
         return button;
     }
 
@@ -201,11 +202,11 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         boolean choices = !model.getGroups().isEmpty();
         var fixed = model.getFixed();
         if (!fixed.isEmpty()) {
-            section.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, fixed::size, index -> {
+            section.addChild(new VirtualList(1, UISizes.SLOT_SIZE, UISizes.GAP, fixed::size, index -> {
                 var entry = fixed.get(index);
                 var row = itemRow(Switch.of(entry::isIncluded, entry::setIncluded), ItemCell.constant(entry.getStack()), entry::getStack,
                         entry::getCount, countText(entry::getCount));
-                if (choices) row.addChild(UIElement.spacer(UISizes.ICON_BUTTON, UISizes.ICON_BUTTON));
+                if (choices) row.addChild(UIElement.spacer(UISizes.ICON_BUTTON_SIZE, UISizes.ICON_BUTTON_SIZE));
                 return row;
             }));
         }
@@ -222,9 +223,9 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
     private UIElement roleCard(int index, PatternBuilderModel.Role role) {
         var section = UIElement.section();
-        section.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(
+        section.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
                 TextLine.constant(LayoutStyle.AUTO, role.getName()).layout(l -> l.flex(1)),
-                TextLine.of(TALLY_WIDTH, () -> tallyText(role)).alignRight().level(() -> roleLevel(role)),
+                TextLine.of(TALLY_WIDTH, () -> tallyText(role)).setTextAlign(Horizontal.RIGHT).bindLevel(() -> roleLevel(role)),
                 selectButton("role." + index, () -> rolePopup(role))));
         return section;
     }
@@ -236,9 +237,9 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         for (int i = 0; i < roles.size(); i++) {
             var role = roles.get(i);
             if (role.getCandidates(section).isEmpty()) continue;
-            var tally = TextLine.of(TALLY_WIDTH, () -> tallyText(role, section)).alignRight().level(() -> roleLevel(role));
-            tally.setHoverTooltips(Component.translatable(TOTAL, tallyText(role)));
-            card.addChild(UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(
+            var tally = TextLine.of(TALLY_WIDTH, () -> tallyText(role, section)).setTextAlign(Horizontal.RIGHT).bindLevel(() -> roleLevel(role));
+            tally.tooltips(Component.translatable(TOTAL, tallyText(role)));
+            card.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
                     TextLine.constant(LayoutStyle.AUTO, role.getName()).layout(l -> l.flex(1)), tally,
                     selectButton("role." + i + "." + section, () -> rolePopup(role, section))));
         }
@@ -254,11 +255,10 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         return Popup.of(() -> Component.empty().append(role.getName()).append("  ").append(part < 0 ? tallyText(role) : tallyText(role, part)), column -> {
             var section = UIElement.section();
             section.layout(l -> l.minWidth(ROLE_POPUP_WIDTH));
-            section.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, () -> list.get().size(), index -> {
+            section.addChild(new VirtualList(1, UISizes.SLOT_SIZE, UISizes.GAP, () -> list.get().size(), index -> {
                 var candidate = list.get().get(index);
-                var field = new NumberField(COUNT_FIELD_WIDTH, candidate::getSelected, value -> candidate.setSelected((int) value),
-                        () -> 0, candidate::getMax, COUNT_STEPS);
-                var trailing = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(favorite(candidate.getStack()), field);
+                var field = NumberField.ofInt(COUNT_FIELD_WIDTH, candidate::getSelected, candidate::setSelected, () -> 0, candidate::getMax).setSteps(COUNT_STEPS);
+                var trailing = UIElement.centeredRow(UISizes.SLOT_SIZE).addChildren(favorite(candidate.getStack()), field);
                 return itemRow(null, ItemCell.constant(candidate.getStack()), candidate::getStack,
                         () -> Math.max(candidate.getSelected(), 1), trailing);
             }));
@@ -270,7 +270,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         var item = stack.getItem();
         var star = Button.icon(UITheme.switching(() -> PatternFavorites.isFavorite(item), WidgetIcons.FAVORITE_OFF, WidgetIcons.FAVORITE_ON))
                 .setOnClientClick(() -> PatternFavorites.toggle(item));
-        star.setHoverTooltips(FAVORITE);
+        star.tooltips(FAVORITE);
         return star;
     }
 
@@ -279,22 +279,21 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
             var section = UIElement.section();
             section.layout(l -> l.minWidth(FILL_POPUP_WIDTH));
             var fills = group.getSortedFills();
-            section.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, fills::size, index -> {
+            section.addChild(new VirtualList(1, UISizes.SLOT_SIZE, UISizes.GAP, fills::size, index -> {
                 var stack = fills.get(index);
                 var candidate = group.getFillCandidate(stack);
-                var choose = Button.text(UISizes.BUTTON_WIDTH, () -> I18n.get(group.getFillStack() == stack ? SELECTED : SELECT))
-                        .setVariant(() -> group.getFillStack() == stack ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
+                var choose = Button.of(UISizes.BUTTON_WIDTH).bindClientText(() -> I18n.get(group.getFillStack() == stack ? SELECTED : SELECT))
+                        .bindClientVariant(() -> group.getFillStack() == stack ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
                         .setOnServerClick(() -> {
                             group.setFill(stack);
                             popups.rebuild();
                         });
-                var trailing = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+                var trailing = UIElement.centeredRow(UISizes.SLOT_SIZE);
                 trailing.addChild(favorite(stack));
                 if (group.getFillStack() == stack || candidate == null) {
-                    trailing.addChild(TextLine.of(COUNT_FIELD_WIDTH, () -> Component.literal("×" + group.getFillCount())).alignRight());
+                    trailing.addChild(TextLine.of(COUNT_FIELD_WIDTH, () -> Component.literal("×" + group.getFillCount())).setTextAlign(Horizontal.RIGHT));
                 } else {
-                    trailing.addChild(new NumberField(COUNT_FIELD_WIDTH, candidate::getSelected, value -> candidate.setSelected((int) value),
-                            () -> 0, candidate::getMax, COUNT_STEPS));
+                    trailing.addChild(NumberField.ofInt(COUNT_FIELD_WIDTH, candidate::getSelected, candidate::setSelected, () -> 0, candidate::getMax).setSteps(COUNT_STEPS));
                 }
                 trailing.addChild(choose);
                 IntSupplier need = group.getFillStack() == stack || candidate == null ? group::getFillCount : () -> Math.max(candidate.getSelected(), 1);
@@ -305,10 +304,9 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
             if (extras.isEmpty()) return;
             var extraSection = UIElement.section();
             extraSection.addChild(TextLine.translatable(LayoutStyle.AUTO, EXTRAS));
-            extraSection.addChild(new VirtualList(1, UISizes.SLOT, UISizes.GAP, extras::size, index -> {
+            extraSection.addChild(new VirtualList(1, UISizes.SLOT_SIZE, UISizes.GAP, extras::size, index -> {
                 var candidate = extras.get(index);
-                var field = new NumberField(COUNT_FIELD_WIDTH, candidate::getSelected, value -> candidate.setSelected((int) value),
-                        () -> 0, candidate::getMax, COUNT_STEPS);
+                var field = NumberField.ofInt(COUNT_FIELD_WIDTH, candidate::getSelected, candidate::setSelected, () -> 0, candidate::getMax).setSteps(COUNT_STEPS);
                 return itemRow(null, ItemCell.constant(candidate.getStack()), candidate::getStack,
                         () -> Math.max(candidate.getSelected(), 1), field);
             }));
@@ -319,18 +317,18 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     private UIElement itemRow(Switch include, ItemCell cell, Supplier<ItemStack> stack, IntSupplier need, Widget trailing) {
         var names = new UIElement().layout(l -> l.column().flex(1).minWidth(0).justifyContent(AlignContent.CENTER))
                 .addChildren(TextLine.of(LayoutStyle.AUTO, () -> plainName(stack.get())),
-                        TextLine.of(LayoutStyle.AUTO, () -> stockText(stack.get())).setSmall().styled()
-                                .level(() -> stockLevel(stack.get(), need.getAsInt())));
-        var row = UIElement.row(UISizes.SLOT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+                        TextLine.of(LayoutStyle.AUTO, () -> stockText(stack.get())).styled()
+                                .bindLevel(() -> stockLevel(stack.get(), need.getAsInt())));
+        var row = UIElement.centeredRow(UISizes.SLOT_SIZE);
         if (include != null) {
-            include.setHoverTooltips(footer.includeKey());
+            include.tooltips(footer.includeKey());
             row.addChild(include);
         }
         return row.addChildren(cell, names, trailing);
     }
 
     private static TextLine countText(IntSupplier count) {
-        return TextLine.of(UISizes.VALUE_WIDTH, () -> Component.literal("×" + count.getAsInt())).alignRight();
+        return TextLine.of(UISizes.VALUE_WIDTH, () -> Component.literal("×" + count.getAsInt())).setTextAlign(Horizontal.RIGHT);
     }
 
     private static Component plainName(ItemStack stack) {
@@ -352,10 +350,10 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         return text;
     }
 
-    private StatusLine.Level stockLevel(ItemStack stack, int need) {
+    private Level stockLevel(ItemStack stack, int need) {
         var stock = model.getStock(stack);
-        if (stock == null) return StatusLine.Level.NORMAL;
-        return stock.total() >= need ? StatusLine.Level.GOOD : StatusLine.Level.ERROR;
+        if (stock == null) return Level.NORMAL;
+        return stock.total() >= need ? Level.GOOD : Level.ERROR;
     }
 
     private static Component tallyText(PatternBuilderModel.Role role) {
@@ -368,9 +366,9 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         return Component.literal(role.getTally(section) + " / ").append(requirement.isEmpty() ? Component.translatable(OPTIONAL) : Component.literal(requirement));
     }
 
-    private static StatusLine.Level roleLevel(PatternBuilderModel.Role role) {
-        if (role.isRequired()) return role.isSatisfied() ? StatusLine.Level.GOOD : StatusLine.Level.ERROR;
-        return role.isSatisfied() ? StatusLine.Level.NORMAL : StatusLine.Level.ERROR;
+    private static Level roleLevel(PatternBuilderModel.Role role) {
+        if (role.isRequired()) return role.isSatisfied() ? Level.GOOD : Level.ERROR;
+        return role.isSatisfied() ? Level.NORMAL : Level.ERROR;
     }
 
     private static String requirement(PatternBuilderModel.Role role) {

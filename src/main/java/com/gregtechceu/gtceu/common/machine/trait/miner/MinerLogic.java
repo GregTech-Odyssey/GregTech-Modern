@@ -4,7 +4,10 @@ import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -12,7 +15,6 @@ import com.gregtechceu.gtceu.utils.BlockDropCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -269,6 +271,15 @@ public class MinerLogic extends RecipeLogic {
      */
     @Override
     public void serverTick() {
+        beginIssueRound(IssueStage.WORKING);
+        try {
+            mineTick();
+        } finally {
+            endIssueRound();
+        }
+    }
+
+    private void mineTick() {
         if (!isSuspend() && getMachine().getLevel() instanceof ServerLevel serverLevel && checkCanMine()) {
             // if the inventory is not full, drain energy etc. from the miner
             // the storages have already been checked earlier
@@ -280,7 +291,7 @@ public class MinerLogic extends RecipeLogic {
             } else {
                 // the miner cannot drain, therefore it is inactive
                 if (this.isWorking()) {
-                    setWaiting(Component.translatable("gtceu.recipe_logic.insufficient_out").append(": ").append(ItemRecipeInfo.INSTANCE.getName()));
+                    setWaiting(GTIssues.OUTPUT_FULL, IO.OUT, ItemRecipeInfo.INSTANCE, -1, 0, 0);
                 }
             }
             // drill a hole beneath the miner and extend the pipe downwards by one
@@ -289,6 +300,7 @@ public class MinerLogic extends RecipeLogic {
                 var pipePos = new BlockPos(miningPos.getX(), pipeY, miningPos.getZ());
                 if (serverLevel.getBlockState(pipePos).getDestroySpeed(serverLevel, pipePos) < 0) {
                     isDone = true;
+                    report(GTIssues.MINER_DONE);
                     setStatus(IDLE);
                     return;
                 }
@@ -340,6 +352,7 @@ public class MinerLogic extends RecipeLogic {
                 blocksToMine.addAll(getBlocksToMine());
                 if (blocksToMine.isEmpty()) {
                     this.isDone = true;
+                    report(GTIssues.MINER_DONE);
                     this.setStatus(IDLE);
                 }
             }
@@ -359,7 +372,15 @@ public class MinerLogic extends RecipeLogic {
         if (!isDone && checkCoordinatesInvalid()) {
             initPos(getMiningPos(), currentRadius);
         }
-        return !isDone && miner.drainInput(true);
+        if (isDone) {
+            report(GTIssues.MINER_DONE);
+            return false;
+        }
+        if (!miner.drainInput(true)) {
+            miner.reportDrainIssue();
+            return false;
+        }
+        return true;
     }
 
     /**

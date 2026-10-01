@@ -28,8 +28,8 @@ public class PercentField extends DecimalField {
      * @param step       步进（倍率，0.01 = 1%），必须大于 0
      * @param stepCounts 四档步数，不传用 {@link DecimalField#DEFAULT_STEP_COUNTS}
      */
-    public PercentField(int width, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max,
-                        double step, long... stepCounts) {
+    protected PercentField(int width, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max,
+                           double step, long... stepCounts) {
         super(width, getter, setter, min, max, step, 100, "%", stepCounts);
         setHoverTooltips(Component.translatable(TOOLTIP));
     }

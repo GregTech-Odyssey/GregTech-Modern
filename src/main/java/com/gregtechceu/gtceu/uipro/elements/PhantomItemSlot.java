@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.uipro.ElementState;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -19,10 +20,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.BooleanSupplier;
 
 /**
  * 标准虚拟物品槽（设置用：只记录"是哪种物品"，不存放真实物品，如黑名单、过滤、标记），18 见方，底图 {@link UITheme#ITEM_SLOT}。
@@ -30,16 +29,20 @@ import java.util.function.BooleanSupplier;
  * <p>
  * 交互状态（见 {@link ElementState}）：<b>选中</b>（{@link #setSelected}）、<b>禁用</b>（{@link #disabled}，或上级禁用；
  * 点击、EMI 拖入都无效，服务端也拦），以及 LDLib2 同名的 {@link #xeiPhantom()}：开启后可从 EMI 拖入，槽里画下箭头标记
- * （{@link UITheme#drawXeiPhantom}），玩家不拖也知道这格能拖；禁用时不接受拖入、也不画标记。
+ * （{@link UIDraw#xeiPhantomMark}），玩家不拖也知道这格能拖；禁用时不接受拖入、也不画标记。
  */
-public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.Host {
+public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.Host<PhantomItemSlot>, UIChannel.Host {
 
-    public static final int SIZE = UISizes.SLOT;
+    public static final int SIZE = UISizes.SLOT_SIZE;
 
     private final SlotState slotState = new SlotState(this);
     private boolean xeiPhantom;
 
-    public PhantomItemSlot(IItemTransfer handler, int index) {
+    public static PhantomItemSlot of(IItemTransfer handler, int index) {
+        return new PhantomItemSlot(handler, index);
+    }
+
+    protected PhantomItemSlot(IItemTransfer handler, int index) {
         super(handler, index, 0, 0);
         if (GTCEu.isClientThread()) setBackgroundTexture(slotState.background(UITheme.ITEM_SLOT, false, this::isXeiPhantom));
     }
@@ -49,16 +52,15 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
         return slotState.state;
     }
 
-    /** 选中（LDLib2 {@code setSelected}），客户端每帧判定；传 null 取消。 */
-    public PhantomItemSlot setSelected(@Nullable BooleanSupplier selected) {
-        slotState.state.setSelected(selected);
-        return this;
+    @Override
+    public UIChannel getChannel() {
+        return slotState.channel;
     }
 
-    /** 按服务端条件禁用（LDLib2 {@code disabled()}）；{@code reasonKey} 为原因翻译键（可为 null）。建界面时两端都要调用。 */
-    public PhantomItemSlot disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        slotState.state.setDisabled(serverCondition, reasonKey);
-        return this;
+    @Override
+    public void initWidget() {
+        super.initWidget();
+        slotState.prime();
     }
 
     /** 可从 EMI 拖入（LDLib2 {@code ItemSlot.xeiPhantom()}）。 */
@@ -88,6 +90,7 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
 
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
+        if (slotState.handleClientAction(id, buffer)) return;
         if (isDisabled()) return;
         super.handleClientAction(id, buffer);
     }
@@ -116,7 +119,7 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         slotState.drawSelection(graphics);
-        if (slotReference != null && slotReference.getItem().isEmpty() && ElementState.drawDisabledTooltip(this, mouseX, mouseY, tooltipTexts)) return;
+        if (slotReference != null && slotReference.getItem().isEmpty() && ElementState.showDisabledTooltip(this, mouseX, mouseY, tooltipTexts)) return;
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
     }
 
@@ -135,7 +138,7 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        slotState.detectAndSendChanges(this::writeUpdateInfo);
+        slotState.detectAndSendChanges();
     }
 
     @Override

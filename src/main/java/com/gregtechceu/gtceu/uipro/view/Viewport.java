@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.uipro.view;
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.UIInput;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.LockedScrollerSizes;
@@ -31,7 +33,6 @@ public abstract class Viewport extends UIElement implements ViewController {
     public static final String GRIP_LOCK = "gtceu.uipro.canvas.lock";
     public static final String GRIP_LOCKED = "gtceu.uipro.canvas.locked";
     public static final String GRIP_UNLOCK = "gtceu.uipro.canvas.unlock";
-    protected static final int OVERLAY_Z = 310;
     private static final int MIN_SIZE = UISizes.CANVAS_MIN_SIZE;
 
     protected final String id;
@@ -121,22 +122,22 @@ public abstract class Viewport extends UIElement implements ViewController {
     }
 
     @Override
-    public int clipX() {
+    public int getClipX() {
         return viewportX();
     }
 
     @Override
-    public int clipY() {
+    public int getClipY() {
         return viewportY();
     }
 
     @Override
-    public int clipWidth() {
+    public int getClipWidth() {
         return viewportWidth();
     }
 
     @Override
-    public int clipHeight() {
+    public int getClipHeight() {
         return viewportHeight();
     }
 
@@ -261,8 +262,8 @@ public abstract class Viewport extends UIElement implements ViewController {
         if (!resizable) return;
         var pose = graphics.pose();
         pose.pushPose();
-        pose.translate(0, 0, OVERLAY_Z + 10);
-        UITheme.drawResizeGrip(graphics, getPositionX() + getSizeWidth(), getPositionY() + getSizeHeight(),
+        pose.translate(0, 0, UILayers.VIEWPORT_OVERLAY + 10);
+        UIDraw.resizeGrip(graphics, getPositionX() + getSizeWidth(), getPositionY() + getSizeHeight(),
                 resizing || isOverGrip(mouseX, mouseY), isLocked());
         pose.popPose();
     }
@@ -311,7 +312,7 @@ public abstract class Viewport extends UIElement implements ViewController {
     public boolean isOverGrip(double mouseX, double mouseY) {
         if (!resizable) return false;
         int right = getPositionX() + getSizeWidth(), bottom = getPositionY() + getSizeHeight();
-        return mouseX >= right - UITheme.RESIZE_GRIP_SIZE && mouseX < right && mouseY >= bottom - UITheme.RESIZE_GRIP_SIZE && mouseY < bottom;
+        return mouseX >= right - UISizes.RESIZE_GRIP_SIZE && mouseX < right && mouseY >= bottom - UISizes.RESIZE_GRIP_SIZE && mouseY < bottom;
     }
 
     @OnlyIn(Dist.CLIENT)

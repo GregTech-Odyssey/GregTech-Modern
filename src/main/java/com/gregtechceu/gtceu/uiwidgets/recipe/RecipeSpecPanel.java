@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uiwidgets.recipe;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -17,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.util.StreamCodecs;
 import dev.vfyjxf.taffy.style.AlignItems;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,13 +59,13 @@ public class RecipeSpecPanel extends UIElement {
     private int rows;
 
     public RecipeSpecPanel() {
-        layout(l -> l.column().paddingAll(UITheme.PANEL_PADDING).paddingBottom(UITheme.PANEL_PADDING_BOTTOM));
+        layout(l -> l.column().paddingAll(UISizes.PANEL_PADDING).paddingBottom(UISizes.PANEL_PADDING_BOTTOM));
         setBackground(UITheme.STATUS_PANEL);
     }
 
     /** 面板高度：有无标题行、数值行数、说明行数（两组都有时中间一条分隔线）。 */
     public static int heightFor(boolean header, int values, int sentences) {
-        int height = UITheme.PANEL_PADDING + UITheme.PANEL_PADDING_BOTTOM + (values + sentences) * ROW_HEIGHT;
+        int height = UISizes.PANEL_PADDING + UISizes.PANEL_PADDING_BOTTOM + (values + sentences) * ROW_HEIGHT;
         if (header) height += HEADER_HEIGHT + DIVIDER_HEIGHT;
         if (values > 0 && sentences > 0) height += DIVIDER_HEIGHT;
         return height;
@@ -130,7 +130,7 @@ public class RecipeSpecPanel extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public static boolean fitsPair(Component first, Component second, int panelWidth) {
         var font = Minecraft.getInstance().font;
-        int half = (panelWidth - 2 * UITheme.PANEL_PADDING - PAIR_GAP) / 2 - 2 * ROW_INSET - BULLET_SPACE;
+        int half = (panelWidth - 2 * UISizes.PANEL_PADDING - PAIR_GAP) / 2 - 2 * ROW_INSET - BULLET_SPACE;
         return font.width(first) <= half && font.width(second) <= half;
     }
 
@@ -164,7 +164,7 @@ public class RecipeSpecPanel extends UIElement {
         private String clip(Font font, int maxWidth) {
             if (maxWidth != clipWidth) {
                 clipWidth = maxWidth;
-                clipped = UITheme.clip(font, text, maxWidth);
+                clipped = UIText.fit(text, maxWidth);
             }
             return clipped;
         }
@@ -234,7 +234,7 @@ public class RecipeSpecPanel extends UIElement {
             this.striped = striped;
             this.onClick = onClick;
             layout(l -> l.height(ROW_HEIGHT).alignSelf(AlignItems.STRETCH));
-            this.value = addSyncValue(SyncValue.of(value, StreamCodecs.COMPONENT_CODEC, Component.empty()));
+            this.value = addSyncValue(SyncValue.ofComponent(value, Component.empty()));
         }
 
         @Override

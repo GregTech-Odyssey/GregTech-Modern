@@ -3,10 +3,10 @@ package com.gregtechceu.gtceu.api.cover.filter;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.PhantomItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.misc.ItemStackTransfer;
@@ -105,15 +105,15 @@ public class SimpleItemFilter implements ItemFilter {
         var grid = UIElement.column(LayoutStyle.AUTO);
         var maxStack = grid.addSyncValue(SyncValue.ofInt(() -> maxStackSize, 1));
         for (int row = 0; row < 3; row++) {
-            var line = UIElement.row(UISizes.SLOT);
+            var line = UIElement.row(UISizes.SLOT_SIZE);
             for (int col = 0; col < 3; col++) {
                 line.addChild(matchSlot(col * 3 + row, maxStack));
             }
             grid.addChild(line);
         }
         var options = UIElement.column(LayoutStyle.AUTO).layout(l -> l.flex(1).gapAll(UISizes.GAP)).addChildren(
-                CoverUIs.controlRow("cover.filter.blacklist.enabled", Switch.of(this::isBlackList, this::setBlackList)),
-                CoverUIs.controlRow("cover.item_filter.ignore_nbt.enabled", Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
+                Form.controlRow("cover.filter.blacklist.enabled", Switch.of(this::isBlackList, this::setBlackList)),
+                Form.controlRow("cover.item_filter.ignore_nbt.enabled", Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
         return UIElement.row(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP)).addChildren(grid, options);
     }
 

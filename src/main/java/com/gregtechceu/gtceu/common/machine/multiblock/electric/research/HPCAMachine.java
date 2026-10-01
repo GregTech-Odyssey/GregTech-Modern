@@ -8,33 +8,32 @@ import com.gregtechceu.gtceu.api.capability.IHPCACoolantProvider;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
-import com.gregtechceu.gtceu.api.gui.widget.ExtendedProgressWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -43,6 +42,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
@@ -58,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -176,7 +176,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
                 getRecipeLogic().setStatus(RecipeLogic.WORKING);
             } else {
-                getRecipeLogic().setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
+                getRecipeLogic().setWaiting(GTIssues.EU_SHORT, IO.IN, EURecipeInfo.INSTANCE, -1, energyToConsume, -1);
             }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
             double temperatureChange = hpcaHandler.calculateTemperatureChange(this, overheated || temperature >= SAFE_TEMPERATURE);
@@ -226,25 +226,12 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         displayedTemperature = temperature;
         // 状态显示窗下方单独一行居中放 3×3 组件格（原来按绝对坐标叠在显示屏上）
         var page = (UIElement) super.createUIWidget();
-        var builder = new WidgetGroup(0, 0, 47, 47);
-        page.addChild(UIElement.row(47).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(builder));
-        // Create the hover grid
-        builder.addWidget(new ExtendedProgressWidget(() -> hpcaHandler.cachedCWUt > 0 ? progressSupplier.getAsDouble() : 0, 0, 0, 47, 47, GuiTextures.HPCA_COMPONENT_OUTLINE).setServerTooltipSupplier(this::addHPCAInfo).setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT));
-        int startX = 2;
-        int startY = 2;
-        // we need to know what components we have on the client
+        page.addChild(UIElement.row(HpcaGrid.SIZE).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(new HpcaGrid()));
         if (getLevel().isClientSide) {
             if (isFormed) {
                 hpcaHandler.tryGatherClientComponents(this.getLevel(), this.getPos(), this.getFrontFacing(), this.getUpwardsFacing(), this.isFlipped);
             } else {
                 hpcaHandler.clearClientComponents();
-            }
-        }
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                final int index = i * 3 + j;
-                Supplier<IGuiTexture> textureSupplier = () -> hpcaHandler.getComponentTexture(index);
-                builder.addWidget(new ImageWidget(startX + (15 * j), startY + (15 * i), 13, 13, textureSupplier));
             }
         }
         return page;
@@ -267,6 +254,41 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
                 tl.add(Component.translatable("gtceu.multiblock.hpca.temperature", temperatureInfo).withStyle(ChatFormatting.GRAY));
             }
         }).addWorkingStatusLine();
+    }
+
+    private final class HpcaGrid extends UIElement {
+
+        private static final int SIZE = 47;
+        private static final int CELL = 13;
+        private static final int CELL_PITCH = 15;
+        private static final int CELL_OFFSET = 2;
+
+        private final SyncValue<Integer> progress;
+        private final ProgressTexture outline = new ProgressTexture(GuiTextures.HPCA_COMPONENT_OUTLINE.getSubTexture(0.0, 0.0, 1.0, 0.5),
+                GuiTextures.HPCA_COMPONENT_OUTLINE.getSubTexture(0.0, 0.5, 1.0, 0.5)).setFillDirection(ProgressTexture.FillDirection.LEFT_TO_RIGHT);
+
+        private HpcaGrid() {
+            layout(l -> l.size(SIZE, SIZE));
+            progress = addSyncValue(SyncValue.ofInt(() -> hpcaHandler.cachedCWUt > 0 ? (int) Math.round(progressSupplier.getAsDouble() * 1000) : 0, 0));
+            bindTooltips(() -> {
+                var lines = new ArrayList<Component>();
+                addHPCAInfo(lines);
+                return lines;
+            });
+        }
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            int x = getPositionX(), y = getPositionY();
+            outline.setProgress(progress.getValue() / 1000.0);
+            outline.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
+            for (int i = 0; i < 9; i++) {
+                hpcaHandler.getComponentTexture(i).draw(graphics, mouseX, mouseY, x + CELL_OFFSET + CELL_PITCH * (i % 3),
+                        y + CELL_OFFSET + CELL_PITCH * (i / 3), CELL, CELL);
+            }
+            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+        }
     }
 
     private void addHPCAInfo(List<Component> textList) {
@@ -574,5 +596,10 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         public void clearClientComponents() {
             components.clear();
         }
+    }
+
+    @Override
+    public boolean hasDiagnosisTab() {
+        return false;
     }
 }

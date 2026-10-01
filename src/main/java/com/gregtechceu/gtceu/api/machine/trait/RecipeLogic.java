@@ -4,14 +4,28 @@ import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.issue.DiagnosisResult;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IIssueProvider;
+import com.gregtechceu.gtceu.api.machine.issue.IssueDraft;
+import com.gregtechceu.gtceu.api.machine.issue.IssueLines;
+import com.gregtechceu.gtceu.api.machine.issue.IssueSink;
+import com.gregtechceu.gtceu.api.machine.issue.IssueSnapshot;
+import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
+import com.gregtechceu.gtceu.api.machine.issue.IssueText;
+import com.gregtechceu.gtceu.api.machine.issue.IssueType;
+import com.gregtechceu.gtceu.api.machine.issue.MachineIssue;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
-import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonIcons;
+import com.gregtechceu.gtceu.uiwidgets.icon.IssueIcons;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -33,7 +47,7 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
-public class RecipeLogic extends MachineTrait implements IWorkable, IFancyTooltip, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> {
+public class RecipeLogic extends MachineTrait implements IWorkable, IFancyTooltip, IIssueProvider, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> {
 
     // status
     public static final int IDLE = 0;
@@ -42,6 +56,9 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public static final int SUSPEND = 3;
 
     public static int SEARCH_MAX_INTERVAL = 80;
+
+    private static final byte SEARCH_STAGE = (byte) IssueStage.SEARCH.ordinal();
+    private static final int LAZY_WORKING_ROUND = 1 << 30;
 
     public final IRecipeLogicMachine machine;
 
@@ -53,12 +70,25 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @SyncToClient(scheduleUpdate = true)
     protected boolean isActive;
 
+    private final IssueDraft issueDraft = new IssueDraft();
+    private boolean issueDraftUsed;
+    private boolean issueSettled;
+    private volatile IssueSnapshot issueSnapshot = IssueSnapshot.EMPTY;
+    private int publishedStatus = IssueSnapshot.EMPTY.status();
     @Nullable
-    @SyncToClient
-    protected Component idleReason = null;
-
-    @Setter
-    protected Supplier<Component> idleReasonSupplier = null;
+    private MachineIssue publishedPrimary = IssueSnapshot.EMPTY.primary();
+    private int issueVersion;
+    private int issueRoundDepth;
+    private boolean issueRoundWorking;
+    private byte issueStage = SEARCH_STAGE;
+    @Nullable
+    private GTRecipeDefinition issueRecipe;
+    private boolean issueRecipeCleared = true;
+    private boolean outsideIssuePublished;
+    private boolean outsideClearPending;
+    @Nullable
+    private DiagnosisResult diagnosisCache;
+    private boolean outputLost;
 
     @Getter
     @Nullable
@@ -71,6 +101,9 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @Getter
     @Nullable
     protected RecipeHandlerUnit lastOriginUnit;
+    @Getter
+    @Nullable
+    private GTRecipeDefinition lastRunRecipe;
     @Getter
     @Setter
     @SaveToDisk(defaultValue = "0")
@@ -148,6 +181,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void onMachineLoad() {
         super.onMachineLoad();
         markLastRecipeDirty();
+        if (issueRoundDepth == 0) publishStatusIssue();
         updateTickSubscription();
     }
 
@@ -173,6 +207,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             }
         } else {
             unsubscribe();
+            if (status != SUSPEND && issueRoundDepth == 0) publishIssue(status == WORKING ? WAITING : status, machine.getUnavailableIssue());
         }
     }
 
@@ -207,13 +242,27 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     public boolean findAndHandleRecipe() {
         lastRecipe = null;
+        beginSearchRound();
+        try {
+            return searchRecipe();
+        } finally {
+            endIssueRound();
+        }
+    }
+
+    private boolean searchRecipe() {
         markLastRecipeDirty();
         return machine.findRecipe(machine.getRecipeType(), this, lockedRecipe);
     }
 
     @Override
     public boolean test(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
-        if (machine.checkTier(definition) && machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition)) {
+        enterIssueStep();
+        setIssueRecipe(definition);
+        moveIssueStage(IssueStage.TIER);
+        if (!machine.checkTier(definition)) return false;
+        moveIssueStage(IssueStage.CONDITION);
+        if (machine.checkConditions(unit, definition) && checkMatchedRecipeAvailable(unit, definition)) {
             setLockedRecipe(definition);
             return true;
         }
@@ -221,8 +270,17 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public boolean checkMatchedRecipeAvailable(RecipeHandlerUnit unit, GTRecipeDefinition match) {
+        enterIssueStep();
+        setIssueRecipe(match);
+        moveIssueStage(IssueStage.MODIFIER);
         var modified = machine.fullModifyRecipe(unit, match);
-        if (modified != null && machine.matchTickRecipe(modified) && machine.matchRecipe(unit, modified) && setupRecipe(unit, modified)) {
+        if (modified == null) return false;
+        moveIssueStage(IssueStage.ENERGY);
+        if (!machine.matchTickRecipe(modified)) return false;
+        moveIssueStage(IssueStage.INPUT);
+        if (!machine.matchRecipe(unit, modified)) return false;
+        moveIssueStage(IssueStage.SETUP);
+        if (setupRecipe(unit, modified)) {
             lastOriginRecipe = match;
             lastOriginUnit = unit;
             return true;
@@ -250,6 +308,28 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     }
 
     public void handleRecipeWorking() {
+        if (issueRoundDepth != 0) {
+            handleRecipeWorkingInRound();
+            return;
+        }
+        issueRoundDepth = LAZY_WORKING_ROUND;
+        try {
+            tickRecipe();
+        } finally {
+            endWorkingRound();
+        }
+    }
+
+    private void handleRecipeWorkingInRound() {
+        beginIssueRound(IssueStage.WORKING);
+        try {
+            tickRecipe();
+        } finally {
+            endIssueRound();
+        }
+    }
+
+    private void tickRecipe() {
         if (lastRecipe != null && machine.handleTickRecipe(lastRecipe)) {
             setStatus(WORKING);
             progress++;
@@ -261,21 +341,68 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
         }
     }
 
+    private void endWorkingRound() {
+        if (issueSettled) {
+            issueRoundDepth = 0;
+            return;
+        }
+        if (issueRoundDepth != LAZY_WORKING_ROUND) {
+            endIssueRound();
+            return;
+        }
+        issueRoundDepth = 0;
+        settleWorkingRound();
+    }
+
+    private void settleWorkingRound() {
+        resetIssueDraft();
+        if (outsideIssuePublished) {
+            outsideIssuePublished = false;
+            outsideClearPending = false;
+        }
+        issueStage = SEARCH_STAGE;
+        issueRecipeCleared = true;
+        int s = status;
+        if (s == WORKING) publishWorkingIssue();
+        else publishIssue(s, s == SUSPEND ? restingIssue(s) : retainedIssue());
+    }
+
+    private void materializeWorkingRound() {
+        issueSettled = false;
+        issueRoundDepth = 0;
+        beginIssueRound(IssueStage.WORKING);
+    }
+
+    private void enterIssueStep() {
+        int depth = issueRoundDepth;
+        if (depth == LAZY_WORKING_ROUND) materializeWorkingRound();
+        else if (depth == 0) issueSettled = false;
+    }
+
     public boolean onRecipeFinish() {
         machine.afterWorking();
-        if (lastRecipe != null) machine.handleRecipeOutput(lastRecipe);
+        produceOutputs();
         if (suspendAfterFinish) {
             setStatus(SUSPEND);
             suspendAfterFinish = false;
         } else {
-            if (!machine.alwaysSearchRecipe()) {
-                lastRecipe = null;
-                var originRecipe = lastOriginRecipe;
-                var originUnit = lastOriginUnit;
-                if (originRecipe != null && originUnit != null && machine.checkConditions(originUnit, originRecipe) && checkMatchedRecipeAvailable(originUnit, originRecipe)) return true;
+            beginIssueRound(IssueStage.SEARCH);
+            try {
+                if (!machine.alwaysSearchRecipe()) {
+                    lastRecipe = null;
+                    var originRecipe = lastOriginRecipe;
+                    var originUnit = lastOriginUnit;
+                    if (originRecipe != null && originUnit != null) {
+                        setIssueRecipe(originRecipe);
+                        moveIssueStage(IssueStage.CONDITION);
+                        if (machine.checkConditions(originUnit, originRecipe) && checkMatchedRecipeAvailable(originUnit, originRecipe)) return true;
+                    }
+                }
+                if (findAndHandleRecipe()) return true;
+                setStatus(IDLE);
+            } finally {
+                endIssueRound();
             }
-            if (findAndHandleRecipe()) return true;
-            setStatus(IDLE);
         }
         return false;
     }
@@ -287,29 +414,63 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             }
             machine.self().requestSync();
             this.status = status;
+            issueSettled = false;
             updateTickSubscription();
+            if (issueRoundDepth == 0) publishStatusIssue();
         }
     }
 
+    @Deprecated
     public void setWaiting(@Nullable Component reason) {
-        if (this.status != WAITING) {
-            setStatus(WAITING);
-            if (reason != null) idleReason = reason;
-            machine.onWaiting();
-        }
+        if (reason == null) enterWaiting(null, IssueStage.SEARCH, IO.NONE, null, -1, 0, 0, null);
+        else enterWaiting(GTIssues.CUSTOM, getIssueStage(), IO.NONE, null, -1, 0, 0, () -> reason);
+    }
+
+    public void setWaiting(IssueType type, long a, long b) {
+        setWaiting(type, IO.NONE, null, -1, a, b);
+    }
+
+    public void setWaiting(IssueType type, IO io, @Nullable RecipeInfo capability, int index, long a, long b) {
+        enterWaiting(type, type.stage, io, capability, index, a, b, null);
+    }
+
+    private void enterWaiting(@Nullable IssueType type, IssueStage stage, IO io, @Nullable RecipeInfo capability, int index, long a, long b, @Nullable Supplier<Component> custom) {
+        boolean entering = status != WAITING;
+        if (entering) setStatus(WAITING);
+        if (type != null) forceIssue(type, stage, io, capability, index, a, b, custom);
+        if (entering) machine.onWaiting();
     }
 
     /**
      * Interrupt current recipe without io.
      */
     public void interruptRecipe() {
-        setWaiting(null);
+        enterWaiting(null, IssueStage.SEARCH, IO.NONE, null, -1, 0, 0, null);
         unsubscribe();
     }
 
+    @Deprecated
     public void interruptRecipe(@Nullable Component reason) {
         setWaiting(reason);
         unsubscribe();
+    }
+
+    public void interruptRecipe(IssueType type, long a, long b) {
+        setWaiting(type, a, b);
+        unsubscribe();
+    }
+
+    protected void produceOutputs() {
+        var recipe = lastRecipe;
+        if (recipe == null) return;
+        if (lastRunRecipe != recipe.definition) lastRunRecipe = recipe.definition;
+        boolean produced = machine.handleRecipeOutput(recipe);
+        outputLost = !produced && !(machine.canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE) || machine.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE));
+    }
+
+    @Override
+    public void collectIssues(IssueSink sink) {
+        if (outputLost) sink.accept(GTIssues.OUTPUT_LOST);
     }
 
     /**
@@ -319,8 +480,213 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     public void markLastRecipeDirty() {
         this.lastOriginRecipe = null;
         this.lastOriginUnit = null;
-        this.idleReasonSupplier = null;
-        this.idleReason = null;
+        if (issueRoundDepth > 0) return;
+        resetIssueDraft();
+        if (outsideIssuePublished) {
+            if (outsideClearPending) {
+                outsideClearPending = false;
+                outsideIssuePublished = false;
+                publishIssue(status, restingIssue(status));
+            } else {
+                outsideClearPending = true;
+            }
+        }
+    }
+
+    public IssueSnapshot getIssueSnapshot() {
+        return issueSnapshot;
+    }
+
+    @Nullable
+    public DiagnosisResult getDiagnosisCache() {
+        return diagnosisCache;
+    }
+
+    public void setDiagnosisCache(@Nullable DiagnosisResult result) {
+        this.diagnosisCache = result;
+    }
+
+    public IssueStage getIssueStage() {
+        if (issueRoundDepth == LAZY_WORKING_ROUND) return IssueStage.WORKING;
+        return IssueStage.of(issueStage);
+    }
+
+    public void setIssueStage(IssueStage stage) {
+        enterIssueStep();
+        moveIssueStage(stage);
+    }
+
+    private void moveIssueStage(IssueStage stage) {
+        this.issueStage = (byte) stage.ordinal();
+    }
+
+    private void setIssueRecipe(@Nullable GTRecipeDefinition recipe) {
+        if (recipe == null) {
+            issueRecipeCleared = true;
+        } else {
+            if (issueRecipe != recipe) issueRecipe = recipe;
+            issueRecipeCleared = false;
+        }
+    }
+
+    @Nullable
+    private GTRecipeDefinition currentIssueRecipe() {
+        return issueRecipeCleared ? null : issueRecipe;
+    }
+
+    public void report(IssueType type) {
+        report(type, null, IO.NONE, null, -1, 0, 0, null);
+    }
+
+    public void report(IssueType type, long a, long b) {
+        report(type, null, IO.NONE, null, -1, a, b, null);
+    }
+
+    public void report(IssueType type, @Nullable IssueStage stage, IO io, @Nullable RecipeInfo capability, int index, long a, long b, @Nullable GTRecipeDefinition recipe) {
+        offerIssue(type, stage == null ? type.stage : stage, io, capability, index, a, b, recipe, null);
+    }
+
+    @Deprecated
+    public void reportCustom(Supplier<Component> text) {
+        offerIssue(GTIssues.CUSTOM, getIssueStage(), IO.NONE, null, -1, 0, 0, null, text);
+    }
+
+    public void beginIssueRound(IssueStage stage) {
+        if (issueRoundDepth == LAZY_WORKING_ROUND) materializeWorkingRound();
+        if (issueRoundDepth++ == 0) {
+            issueRoundWorking = stage == IssueStage.WORKING;
+            resetIssueDraft();
+        }
+        issueStage = (byte) stage.ordinal();
+        var recipe = lastRecipe;
+        if (stage == IssueStage.WORKING && recipe != null) setIssueRecipe(recipe.definition);
+        else issueRecipeCleared = true;
+    }
+
+    private void beginSearchRound() {
+        if (issueRoundDepth != 0) {
+            beginIssueRound(IssueStage.SEARCH);
+            return;
+        }
+        issueRoundDepth = 1;
+        issueRoundWorking = false;
+        if (issueDraftUsed) resetIssueDraft();
+        issueStage = SEARCH_STAGE;
+        issueRecipeCleared = true;
+    }
+
+    private void resetIssueDraft() {
+        if (issueDraftUsed) {
+            issueDraftUsed = false;
+            issueDraft.reset();
+        }
+    }
+
+    public void endIssueRound() {
+        int depth = issueRoundDepth;
+        if (depth == 0) return;
+        if (depth == LAZY_WORKING_ROUND) {
+            materializeWorkingRound();
+            depth = 1;
+        }
+        issueRoundDepth = --depth;
+        if (depth == 0) finishIssueRound();
+    }
+
+    private void finishIssueRound() {
+        if (outsideIssuePublished) {
+            outsideIssuePublished = false;
+            outsideClearPending = false;
+        }
+        issueStage = SEARCH_STAGE;
+        issueRecipeCleared = true;
+        int s = status;
+        if (s == WORKING) {
+            resetIssueDraft();
+            publishWorkingIssue();
+        } else {
+            publishRoundIssue(s);
+        }
+    }
+
+    private void publishWorkingIssue() {
+        publishIssue(WORKING, null);
+        issueSettled = publishedStatus == WORKING && publishedPrimary == null;
+    }
+
+    private void publishRoundIssue(int s) {
+        if (s == SUSPEND) publishIssue(s, restingIssue(s));
+        else if (issueDraftUsed && !issueDraft.isEmpty()) publishDraft(s);
+        else publishIssue(s, issueRoundWorking ? retainedIssue() : GTIssues.NO_RECIPE.bare());
+    }
+
+    private void offerIssue(IssueType type, IssueStage stage, IO io, @Nullable RecipeInfo capability, int index, long a, long b,
+                            @Nullable GTRecipeDefinition recipe, @Nullable Supplier<Component> custom) {
+        if (issueRoundDepth == LAZY_WORKING_ROUND) materializeWorkingRound();
+        if (recipe == null) recipe = currentIssueRecipe();
+        boolean focused = recipe != null && recipe == lockedRecipe;
+        issueDraftUsed = true;
+        if (issueRoundDepth > 0) {
+            issueDraft.offer(type, stage, io, capability, index, a, b, recipe, custom, focused);
+            return;
+        }
+        issueSettled = false;
+        if (issueDraft.type() == type || !issueDraft.matches(issueSnapshot.primary())) issueDraft.reset();
+        if (!issueDraft.offer(type, stage, io, capability, index, a, b, recipe, custom, focused) || status == SUSPEND) return;
+        outsideIssuePublished = true;
+        outsideClearPending = false;
+        publishDraft(status);
+    }
+
+    private void forceIssue(IssueType type, IssueStage stage, IO io, @Nullable RecipeInfo capability, int index, long a, long b, @Nullable Supplier<Component> custom) {
+        if (issueRoundDepth == LAZY_WORKING_ROUND) materializeWorkingRound();
+        issueDraftUsed = true;
+        issueDraft.set(type, stage, io, capability, index, a, b, currentIssueRecipe(), custom, true);
+        if (issueRoundDepth == 0) {
+            issueSettled = false;
+            publishDraft(status);
+        }
+    }
+
+    private void publishStatusIssue() {
+        int s = status;
+        publishIssue(s, s == WORKING || s == SUSPEND ? restingIssue(s) : retainedIssue());
+    }
+
+    @Nullable
+    private static MachineIssue restingIssue(int status) {
+        if (status == IDLE) return GTIssues.NO_RECIPE.bare();
+        if (status == SUSPEND) return GTIssues.PAUSED.bare();
+        return null;
+    }
+
+    @Nullable
+    private MachineIssue retainedIssue() {
+        var primary = issueSnapshot.primary();
+        return primary != null && primary.type() == GTIssues.PAUSED ? null : primary;
+    }
+
+    private void publishDraft(int status) {
+        if (publishedStatus == status && issueDraft.matches(publishedPrimary)) return;
+        if (super.machine.isRemote()) return;
+        publishSnapshot(status, issueDraft.toIssue());
+    }
+
+    private void publishIssue(int status, @Nullable MachineIssue primary) {
+        if (publishedStatus != status || publishedPrimary != primary) publishChangedIssue(status, primary);
+    }
+
+    private void publishChangedIssue(int status, @Nullable MachineIssue primary) {
+        if (publishedStatus == status && primary != null && primary.equals(publishedPrimary)) return;
+        if (super.machine.isRemote()) return;
+        publishSnapshot(status, primary);
+    }
+
+    private void publishSnapshot(int status, @Nullable MachineIssue primary) {
+        publishedStatus = status;
+        publishedPrimary = primary;
+        issueSettled = false;
+        issueSnapshot = new IssueSnapshot(status, primary, ++issueVersion);
     }
 
     public boolean isWorking() {
@@ -391,31 +757,25 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     @Override
     public IGuiTexture getFancyTooltipIcon() {
-        if (showFancyTooltip()) {
-            return IdleReasonIcons.iconFor(getIdleReason());
-        }
-        return IGuiTexture.EMPTY;
+        return showFancyTooltip() ? IssueIcons.iconFor(fancyTooltipSnapshot()) : IGuiTexture.EMPTY;
     }
 
     @Override
     public List<Component> getFancyTooltip() {
-        if (showFancyTooltip()) {
-            return List.of(getIdleReason());
-        }
-        return Collections.emptyList();
+        return showFancyTooltip() ? IssueLines.tooltip(fancyTooltipSnapshot()) : Collections.emptyList();
     }
 
     @Override
     public boolean showFancyTooltip() {
-        return status != WORKING && (status == IDLE || (idleReason != null || idleReasonSupplier != null));
+        return IssueLines.visible(fancyTooltipSnapshot());
     }
 
+    private IssueSnapshot fancyTooltipSnapshot() {
+        return super.machine.isRemote() ? IssueLines.statusOnly(status) : issueSnapshot;
+    }
+
+    @Deprecated
     public Component getIdleReason() {
-        if (idleReasonSupplier != null) {
-            idleReason = idleReasonSupplier.get();
-            idleReasonSupplier = null;
-        }
-        if (idleReason == null) return ActionResult.FAIL_NO_RECIPE_FOUND.reason();
-        return idleReason;
+        return IssueText.summary(issueSnapshot);
     }
 }

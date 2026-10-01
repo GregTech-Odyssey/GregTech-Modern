@@ -40,6 +40,11 @@ public class FTBQuestCondition extends RecipeCondition {
     }
 
     @Override
+    public boolean isDiagnosable() {
+        return false;
+    }
+
+    @Override
     public boolean testCondition(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
         MachineOwner owner = holder.self().getOwner();
         if (!(owner instanceof FTBOwner ftbOwner)) return false;

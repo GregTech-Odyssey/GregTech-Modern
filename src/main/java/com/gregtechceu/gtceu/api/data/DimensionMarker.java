@@ -24,18 +24,29 @@ public class DimensionMarker {
     public final int tier; // not only used to represent dimension tier, but also for sorting
     @Nullable
     private final String overrideName; // there may be other uses, so we store it
+    private final String tierLabel;
     private final MemoizedSupplier<ItemStack> iconSupplier;
 
     public DimensionMarker(int tier, ResourceLocation itemKey, @Nullable String overrideName) {
         this.tier = tier;
+        this.tierLabel = labelOf(tier);
         this.overrideName = overrideName;
         this.iconSupplier = GTMemoizer.memoize(() -> ForgeRegistries.ITEMS.getDelegate(itemKey).map(Holder::get).map(this::getStack).orElse(ItemStack.EMPTY));
     }
 
     public DimensionMarker(int tier, Supplier<? extends ItemLike> supplier, @Nullable String overrideName) {
         this.tier = tier;
+        this.tierLabel = labelOf(tier);
         this.overrideName = overrideName;
         this.iconSupplier = GTMemoizer.memoize(() -> getStack(supplier.get().asItem()));
+    }
+
+    private static String labelOf(int tier) {
+        return "T" + (tier >= MAX_TIER ? "?" : tier);
+    }
+
+    public String getTierLabel() {
+        return tierLabel;
     }
 
     public ItemStack getIcon() {

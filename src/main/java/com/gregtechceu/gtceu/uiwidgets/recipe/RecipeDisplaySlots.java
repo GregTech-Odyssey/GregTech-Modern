@@ -28,7 +28,7 @@ public final class RecipeDisplaySlots {
 
     /** 轮流显示 {@code stacks} 的物品槽。 */
     public static ItemSlot item(List<ItemStack> stacks, IngredientIO io) {
-        var slot = new ItemSlot(new CycleItemStackHandler(List.of(stacks)), 0, false, false);
+        var slot = ItemSlot.of(new CycleItemStackHandler(List.of(stacks)), 0, false, false);
         slot.setIngredientIO(io);
         return slot;
     }
@@ -40,7 +40,7 @@ public final class RecipeDisplaySlots {
 
     /** 显示一种流体的槽（不显示数量）。 */
     public static FluidSlot fluid(FluidStack stack, IngredientIO io) {
-        var slot = new FluidSlot(new CustomFluidTank(stack), 0, false, false);
+        var slot = FluidSlot.of(new CustomFluidTank(stack), 0, false, false);
         slot.setShowAmount(false);
         slot.setIngredientIO(io);
         return slot;

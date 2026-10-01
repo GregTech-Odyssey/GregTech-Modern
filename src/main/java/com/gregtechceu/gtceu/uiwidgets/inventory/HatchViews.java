@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.uipro.elements.IconToggle;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
@@ -67,7 +68,7 @@ public final class HatchViews {
     private static final String LOCK_NEED_EMPTY = "gtceu.gui.hatch.lock_need_empty";
 
     /** 槽位网格最多直接显示的行数，超出放进滚动区（与多方块状态显示窗同高）。 */
-    public static final int MAX_GRID_ROWS = UISizes.MACHINE_PAGE_HEIGHT / UISizes.SLOT;
+    public static final int MAX_GRID_ROWS = UISizes.MACHINE_PAGE_HEIGHT / UISizes.SLOT_SIZE;
     /** 操作区里不同组控件之间的间距（如储罐槽与锁定开关之间）。 */
     public static final int GROUP_GAP = 2 * UISizes.SECTION_GAP;
 
@@ -115,45 +116,45 @@ public final class HatchViews {
     // ==================== 槽位网格 ====================
 
     public static Widget items(CustomItemStackHandler storage, IO io) {
-        return scrollIfTall(itemGrid(storage, io, null), SlotGridView.rows(storage.getSlots()));
+        return scrollIfTall(itemGrid(storage, io, null), SlotGrid.squareRows(storage.getSlots()));
     }
 
     /** 换了槽底图的物品网格（蒸汽部件用铜/钢色槽，与蒸汽界面皮肤一致）。 */
     public static Widget items(CustomItemStackHandler storage, IO io, IGuiTexture slotTexture) {
-        return scrollIfTall(itemGrid(storage, io, slotTexture), SlotGridView.rows(storage.getSlots()));
+        return scrollIfTall(itemGrid(storage, io, slotTexture), SlotGrid.squareRows(storage.getSlots()));
     }
 
     public static Widget tanks(CustomFluidTank[] tanks, IO io) {
-        return scrollIfTall(SlotGridView.grid(tanks.length, tankSlot(tanks, io)), SlotGridView.rows(tanks.length));
+        return scrollIfTall(SlotGrid.square(tanks.length, tankSlot(tanks, io)), SlotGrid.squareRows(tanks.length));
     }
 
     /** 物品网格右边一列流体槽，两者顶端对齐；任一边超过 {@link #MAX_GRID_ROWS} 行时一起滚动。 */
     public static Widget dual(CustomItemStackHandler storage, CustomFluidTank[] tanks, IO io) {
-        var column = UIElement.column(UISizes.SLOT);
+        var column = UIElement.column(UISizes.SLOT_SIZE);
         var slot = tankSlot(tanks, io);
         for (int i = 0; i < tanks.length; i++) column.addChild(slot.apply(i));
         var content = new UIElement().layout(l -> l.row().gapAll(UISizes.SECTION_GAP).alignItems(AlignItems.START))
                 .addChildren(itemGrid(storage, io, null), column);
-        return scrollIfTall(content, Math.max(SlotGridView.rows(storage.getSlots()), tanks.length));
+        return scrollIfTall(content, Math.max(SlotGrid.squareRows(storage.getSlots()), tanks.length));
     }
 
     private static UIElement itemGrid(CustomItemStackHandler storage, IO io, @Nullable IGuiTexture slotTexture) {
-        return SlotGridView.grid(storage.getSlots(), i -> {
-            var slot = new ItemSlot(storage, i, true, io.support(IO.IN));
+        return SlotGrid.square(storage.getSlots(), i -> {
+            var slot = ItemSlot.of(storage, i, true, io.support(IO.IN));
             if (slotTexture != null) slot.setBackgroundTexture(slotTexture);
             return slot;
         });
     }
 
     private static IntFunction<Widget> tankSlot(CustomFluidTank[] tanks, IO io) {
-        return i -> new FluidSlot(tanks[i], 0, true, io.support(IO.IN));
+        return i -> FluidSlot.of(tanks[i], 0, true, io.support(IO.IN));
     }
 
     /** 超过 {@link #MAX_GRID_ROWS} 行的内容放进滚动区：宽度随内容（加滚动条），高度最多这么多行。 */
     private static Widget scrollIfTall(UIElement content, int rows) {
         if (rows <= MAX_GRID_ROWS) return content;
-        int height = MAX_GRID_ROWS * UISizes.SLOT;
-        var scroller = new ScrollerView("hatch.slots", UISizes.CONTENT_WIDTH, height).adaptiveWidth().adaptiveHeight(height);
+        int height = MAX_GRID_ROWS * UISizes.SLOT_SIZE;
+        var scroller = new ScrollerView("hatch.slots", UISizes.CONTENT_WIDTH, height).adaptiveWidth().setAdaptiveHeight(height);
         scroller.addScrollViewChild(content);
         return scroller;
     }
@@ -171,11 +172,11 @@ public final class HatchViews {
      */
     public static UIElement tankOperation(NotifiableFluidTank tank, IO io) {
         var storage = tank.getStorages()[0];
-        var slot = new FluidSlot(storage, 0, true, io.support(IO.IN));
+        var slot = FluidSlot.of(storage, 0, true, io.support(IO.IN));
         if (io != IO.OUT) return operations(slot);
         var locked = tank.getLockedFluid();
-        var lockToggle = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, tank::isLocked, tank::setLocked).tooltips(LOCK_ON, LOCK_OFF);
-        var lockSlot = new PhantomFluidSlot(locked, 0, locked::getFluid, fluid -> {
+        var lockToggle = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, tank::isLocked, tank::setLocked).onOffTooltips(LOCK_ON, LOCK_OFF);
+        var lockSlot = PhantomFluidSlot.of(locked, 0, locked::getFluid, fluid -> {
             // 服务端再判一次：储罐有流体时不能改
             if (!storage.getFluid().isEmpty()) return;
             if (fluid == null || fluid.isEmpty()) tank.setLocked(false);

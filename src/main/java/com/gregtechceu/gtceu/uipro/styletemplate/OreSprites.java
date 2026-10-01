@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uipro.styletemplate;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
@@ -168,13 +169,25 @@ public final class OreSprites {
         @Override
         @OnlyIn(Dist.CLIENT)
         public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
-            int l = (int) x, t = (int) y, r = l + width, b = t + height;
-            if (width <= 0 || height <= 0) return;
-            graphics.fill(l, t, r, b, fill);
-            graphics.fill(l, t, r - 1, t + 1, topLeft);
-            graphics.fill(l, t, l + 1, b - 1, topLeft);
-            graphics.fill(l + 1, b - 1, r, b, bottomRight);
-            graphics.fill(r - 1, t + 1, r, b, bottomRight);
+            UIDraw.bevel(graphics, (int) x, (int) y, width, height, topLeft, bottomRight, fill);
+        }
+    }
+
+    public record Plate(int outline, int light, int dark, int fill) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            UIDraw.deckPlate(graphics, (int) x, (int) y, width, height, outline, light, dark, fill);
+        }
+    }
+
+    public record Etch(int dark, int light) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            UIDraw.etchLine(graphics, (int) x, (int) y, width, height, dark, light);
         }
     }
 

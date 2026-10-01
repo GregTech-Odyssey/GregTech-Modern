@@ -2,6 +2,9 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -41,7 +44,7 @@ public class Indicator extends UIElement {
     private final State[] states;
     private final SyncValue<Integer> state;
 
-    public Indicator(IntSupplier state, State... states) {
+    protected Indicator(IntSupplier state, State... states) {
         this.states = states;
         layout(l -> l.size(SIZE, SIZE));
         this.state = addSyncValue(SyncValue.ofInt(state::getAsInt, 0).onChanged(this::applyTooltip));
@@ -61,13 +64,9 @@ public class Indicator extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         int x = getPositionX(), y = getPositionY();
-        UITheme.drawInset(graphics, x, y, SIZE, SIZE, false);
+        UITheme.INSET.draw(graphics, UIStates.NONE, x, y, SIZE, SIZE);
         int index = state.getValue();
         int color = index >= 0 && index < states.length ? states[index].color() : UNKNOWN_COLOR;
-        int lx = x + (SIZE - LAMP) / 2, ly = y + (SIZE - LAMP) / 2;
-        graphics.fill(lx, ly, lx + LAMP, ly + LAMP, color);
-        // 左上一道高光，让灯有一点立体感
-        graphics.fill(lx, ly, lx + LAMP - 1, ly + 1, 0x60FFFFFF);
-        graphics.fill(lx, ly + 1, lx + 1, ly + LAMP - 1, 0x60FFFFFF);
+        UIDraw.insetLamp(graphics, UIPixels.center(x, SIZE, LAMP), UIPixels.center(y, SIZE, LAMP), LAMP, color);
     }
 }

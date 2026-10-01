@@ -2,13 +2,15 @@ package com.gregtechceu.gtceu.uipro.window;
 
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UICodecs;
+import com.gregtechceu.gtceu.uipro.data.UIStructure;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.FlexWrap;
 import org.jetbrains.annotations.Nullable;
@@ -26,26 +28,24 @@ import java.util.function.IntFunction;
  * 不同种的面板可以同时打开，按打开顺序从上往下排，放不下主窗口高度时另起一列往右排。
  * 没有打开任何面板时容器尺寸为 0，不占位置。
  * <p>
- * 面板状态属于这一个打开的界面（每名玩家各自独立），以服务端为准：客户端只发"请求打开/关闭"，
- * 服务端先通知客户端按同样的键和参数构建，再构建自己的那份，新控件的初始数据随后经 {@code addWidget} 的初始化通道下发。
- * 子控件顺序即打开顺序，两端执行同样的增删，下标一致。切换页面时两端各自 {@link #reset()}，不发包。
+ * 打开的面板列表是服务端权威的结构状态（{@link UIStructure}）：客户端只发"想要的列表"，服务端逐项校验后先通知客户端、再构建自己的那份，
+ * 两端按同样的差异增删，子控件顺序即打开顺序；旧面板上的过期请求按纪元丢弃。切换页面时两端各自 {@link #reset()}，不发包。
  * <p>
  * 容器本身只由 {@link MachineWindow} 使用；对外只公开 {@link #standalonePanel}，供不在 MachineWindow 里的控件复用同一面板外观。
  */
 public final class PopupHost extends UIElement {
 
-    private static final int OPEN_ID = SyncValueHost.ID_BASE - 3;
-    private static final int CLOSE_ID = SyncValueHost.ID_BASE - 4;
     private static final int MAX_KEY_LENGTH = 64;
-    /// 上次处理打开请求的游戏刻（服务端）
-    private long lastOpenTick = Long.MIN_VALUE + 1;
-    // WidgetGroup 转发子控件消息、下发新子控件初始数据用的 ID，包体第一个值都是子控件下标
-    private static final int CHILD_UPDATE_ID = 1;
-    private static final int CHILD_INIT_ID = 2;
+    private static final int MAX_OPEN = 16;
+    private static final ByteStreamCodec<OpenPopup> ENTRY = ByteStreamCodec.composite(
+            ByteStreamCodec.STRING_CODEC, OpenPopup::key,
+            ByteStreamCodec.INT_CODEC, OpenPopup::argument,
+            OpenPopup::new);
 
     private final Map<String, IntFunction<Popup>> factories = new HashMap<>();
     /** 已打开的面板，与子控件一一对应、顺序相同。 */
     private final List<OpenPopup> opened = new ArrayList<>();
+    private final UIStructure<List<OpenPopup>> state;
     private int maxHeight = Integer.MAX_VALUE;
 
     private record OpenPopup(String key, int argument) {}
@@ -54,6 +54,9 @@ public final class PopupHost extends UIElement {
     PopupHost() {
         layout(l -> l.column().flexWrap(FlexWrap.WRAP).alignStart().alignContent(AlignContent.FLEX_START)
                 .rowGap(UISizes.SECTION_GAP).columnGap(UISizes.POPUP_GAP));
+        state = addStructure(UICodecs.list(ENTRY, MAX_OPEN), () -> List.copyOf(opened))
+                .prepare(this::prepare)
+                .apply(this::apply);
     }
 
     void register(String key, IntFunction<Popup> factory) {
@@ -76,6 +79,7 @@ public final class PopupHost extends UIElement {
         factories.clear();
         opened.clear();
         clearAllWidgets();
+        getChannel().advanceEpoch();
     }
 
     boolean isOpen(String key, int argument) {
@@ -93,69 +97,82 @@ public final class PopupHost extends UIElement {
     }
 
     void open(String key, int argument) {
-        if (isRemote()) {
-            writeClientAction(OPEN_ID, buf -> {
-                buf.writeUtf(key, MAX_KEY_LENGTH);
-                buf.writeVarInt(argument);
-            });
-        } else {
-            serverOpen(key, argument);
+        var target = new ArrayList<>(state.getTarget());
+        var entry = new OpenPopup(key, argument);
+        int index = -1;
+        for (int i = 0; i < target.size(); i++) {
+            if (target.get(i).key().equals(key)) index = i;
         }
+        if (index >= 0) target.set(index, entry);
+        else target.add(entry);
+        request(target);
     }
 
     void close(String key) {
-        if (isRemote()) writeClientAction(CLOSE_ID, buf -> buf.writeUtf(key, MAX_KEY_LENGTH));
-        else serverClose(key);
+        var target = new ArrayList<>(state.getTarget());
+        target.removeIf(popup -> popup.key().equals(key));
+        request(target);
     }
 
     void closeAll() {
-        for (var popup : List.copyOf(opened)) close(popup.key());
+        request(List.of());
     }
 
-    private void serverOpen(String key, int argument) {
-        // 同一种面板已按这个参数打开：状态不变，忽略。客户端重复发请求（连点、刷包）不会让服务端反复重建面板、整段重发初始数据
-        if (isOpen(key, argument)) return;
-        var popup = create(key, argument);
-        if (popup == null) return;
-        writeUpdateInfo(OPEN_ID, buf -> {
-            buf.writeUtf(key, MAX_KEY_LENGTH);
-            buf.writeVarInt(argument);
-        });
-        openLocal(key, argument, popup);
+    private void request(List<OpenPopup> target) {
+        state.request(List.copyOf(target));
     }
 
-    private void serverClose(String key) {
-        if (indexOf(key) < 0) return;
-        writeUpdateInfo(CLOSE_ID, buf -> buf.writeUtf(key, MAX_KEY_LENGTH));
-        closeLocal(key);
-    }
-
-    /** 未注册的键或工厂拒绝该参数（如槽号越界）时返回 null。 */
     @Nullable
-    private Popup create(String key, int argument) {
-        var factory = factories.get(key);
-        return factory == null ? null : factory.apply(argument);
+    private Map<OpenPopup, Popup> prepare(List<OpenPopup> target) {
+        var prepared = new HashMap<OpenPopup, Popup>();
+        for (int i = 0; i < target.size(); i++) {
+            var entry = target.get(i);
+            for (int j = 0; j < i; j++) {
+                if (target.get(j).key().equals(entry.key())) return null;
+            }
+            if (opened.contains(entry)) continue;
+            var popup = create(entry);
+            if (popup == null) return null;
+            prepared.put(entry, popup);
+        }
+        return prepared;
     }
 
-    /** 同一种面板已打开时原地替换（保持下标），否则追加到末尾。 */
-    private void openLocal(String key, int argument, Popup popup) {
-        var panel = new PopupCard("popup." + key, popup, maxHeight, () -> close(key));
-        int index = indexOf(key);
-        if (index >= 0) {
-            removeWidget(widgets.get(index));
-            opened.set(index, new OpenPopup(key, argument));
-            addWidget(index, panel);
-        } else {
-            opened.add(new OpenPopup(key, argument));
-            addWidget(panel);
+    private void apply(List<OpenPopup> target, @Nullable Map<OpenPopup, Popup> prepared) {
+        for (int i = opened.size() - 1; i >= 0; i--) {
+            var key = opened.get(i).key();
+            if (target.stream().noneMatch(entry -> entry.key().equals(key))) {
+                opened.remove(i);
+                removeWidget(widgets.get(i));
+            }
+        }
+        for (var entry : target) {
+            int index = indexOf(entry.key());
+            if (index >= 0 && opened.get(index).argument() == entry.argument()) continue;
+            var popup = prepared != null && prepared.containsKey(entry) ? prepared.get(entry) : create(entry);
+            if (popup == null) {
+                if (index >= 0) {
+                    opened.remove(index);
+                    removeWidget(widgets.get(index));
+                }
+                continue;
+            }
+            var key = entry.key();
+            var panel = new PopupCard("popup." + key, popup, maxHeight, () -> close(key));
+            if (index >= 0) {
+                removeWidget(widgets.get(index));
+                opened.set(index, entry);
+                addWidget(index, panel);
+            } else {
+                opened.add(entry);
+                addWidget(panel);
+            }
         }
     }
 
-    private void closeLocal(String key) {
-        int index = indexOf(key);
-        if (index < 0) return;
-        opened.remove(index);
-        removeWidget(widgets.get(index));
+    private Popup create(OpenPopup entry) {
+        var factory = factories.get(entry.key());
+        return factory == null ? null : factory.apply(entry.argument());
     }
 
     private int indexOf(String key) {
@@ -165,42 +182,13 @@ public final class PopupHost extends UIElement {
         return -1;
     }
 
-    // ==================== 同步 ====================
-
-    @Override
-    public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        if (id == OPEN_ID) {
-            // 每次打开都要在服务端建面板并下发初始数据，同一刻只处理一次，防止开关交替刷包
-            long tick = gui != null ? gui.entityPlayer.level().getGameTime() : Long.MIN_VALUE;
-            if (tick == lastOpenTick) return;
-            lastOpenTick = tick;
-            serverOpen(buffer.readUtf(MAX_KEY_LENGTH), buffer.readVarInt());
-        } else if (id == CLOSE_ID) {
-            serverClose(buffer.readUtf(MAX_KEY_LENGTH));
-        } else if (id != CHILD_UPDATE_ID || hasChild(buffer)) {
-            // 客户端操作的面板已被服务端关掉时丢弃
-            super.handleClientAction(id, buffer);
-        }
-    }
-
     @Override
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-        if (id == OPEN_ID) {
-            var key = buffer.readUtf(MAX_KEY_LENGTH);
-            int argument = buffer.readVarInt();
-            var popup = create(key, argument);
-            if (popup != null) openLocal(key, argument, popup);
-            else closeLocal(key);
-        } else if (id == CLOSE_ID) {
-            closeLocal(buffer.readUtf(MAX_KEY_LENGTH));
-        } else if ((id != CHILD_UPDATE_ID && id != CHILD_INIT_ID) || hasChild(buffer)) {
-            // 客户端已切换页面、面板已清空，服务端还在为旧面板发数据时丢弃
-            super.readUpdateInfo(id, buffer);
-        }
+        if ((id == 1 || id == 2) && !hasChild(buffer)) return;
+        super.readUpdateInfo(id, buffer);
     }
 
-    /** 看一眼包里的子控件下标是否存在（不消耗读指针）。 */
     private boolean hasChild(FriendlyByteBuf buffer) {
         buffer.markReaderIndex();
         int index = buffer.readVarInt();

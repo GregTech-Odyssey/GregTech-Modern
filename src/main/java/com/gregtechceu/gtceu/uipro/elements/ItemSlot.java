@@ -3,6 +3,10 @@ package com.gregtechceu.gtceu.uipro.elements;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
 import com.gregtechceu.gtceu.uipro.ElementState;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -20,10 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.BooleanSupplier;
 
 /**
- * 标准物品槽，18 见方（{@link UISizes#SLOT}），底图 {@link UITheme#ITEM_SLOT}，对应 LDLib2 {@code ItemSlot}。
+ * 标准物品槽，18 见方（{@link UISizes#SLOT_SIZE}），底图 {@link UITheme#ITEM_SLOT}，对应 LDLib2 {@code ItemSlot}。
  * 交互状态（见 {@link ElementState}）：
  * <ul>
  * <li><b>选中</b>（{@link #setSelected}）：统一选中框。客户端每帧判定，只应依赖本端界面状态（如弹出面板是否打开）。</li>
@@ -32,15 +35,17 @@ import java.util.function.BooleanSupplier;
  * </ul>
  * 只作展示的槽（如由步进器设置的电路槽）用 {@link #display}。设置用、可从 EMI 拖入的虚拟槽用 {@link PhantomItemSlot}。
  */
-public class ItemSlot extends SlotWidget implements ElementState.Host {
+public class ItemSlot extends SlotWidget implements ElementState.Host<ItemSlot>, UIChannel.Host {
 
-    public static final int SIZE = UISizes.SLOT;
+    public static final int SIZE = UISizes.SLOT_SIZE;
 
     private final SlotState slotState = new SlotState(this);
     /// 调用方要求的悬停高亮（如 EMI 配方页把槽交给 EMI 画高亮时关掉）；实际还要未禁用
     private boolean hoverOverlay = true;
+    private ItemStack[] ghosts = NO_GHOSTS;
+    private static final ItemStack[] NO_GHOSTS = new ItemStack[0];
 
-    public ItemSlot(ICustomItemStackHandler handler, int index, boolean canTakeItems, boolean canPutItems) {
+    protected ItemSlot(ICustomItemStackHandler handler, int index, boolean canTakeItems, boolean canPutItems) {
         super(handler, index, 0, 0, canTakeItems, canPutItems);
         setBackgroundTexture(UITheme.ITEM_SLOT);
     }
@@ -58,6 +63,10 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
         return new ItemSlot(handler, index, true, true);
     }
 
+    public static ItemSlot of(ICustomItemStackHandler handler, int index, boolean canTakeItems, boolean canPutItems) {
+        return new ItemSlot(handler, index, canTakeItems, canPutItems);
+    }
+
     /** 只作展示的槽：不可取放、始终禁用，EMI 里只作展示；{@code reasonKey} 说明原因（如"由步进器设置"），可为 null。 */
     public static ItemSlot display(ICustomItemStackHandler handler, int index, @Nullable String reasonKey) {
         var slot = new ItemSlot(handler, index, false, false);
@@ -71,15 +80,19 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
         return slotState.state;
     }
 
-    /** 选中（LDLib2 {@code setSelected}），客户端每帧判定；传 null 取消。 */
-    public ItemSlot setSelected(@Nullable BooleanSupplier selected) {
-        slotState.state.setSelected(selected);
-        return this;
+    @Override
+    public UIChannel getChannel() {
+        return slotState.channel;
     }
 
-    /** 按服务端条件禁用（LDLib2 {@code disabled()}）；{@code reasonKey} 为原因翻译键（可为 null）。建界面时两端都要调用。 */
-    public ItemSlot disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        slotState.state.setDisabled(serverCondition, reasonKey);
+    @Override
+    public void initWidget() {
+        super.initWidget();
+        slotState.prime();
+    }
+
+    public ItemSlot setGhosts(ItemStack... ghosts) {
+        this.ghosts = ghosts;
         return this;
     }
 
@@ -115,7 +128,20 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         drawHoverOverlay = hoverOverlay && !isDisabled();
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
+        if (ghosts.length > 0 && slotReference != null && slotReference.getItem().isEmpty()) drawGhost(graphics);
         slotState.drawDisabled(graphics);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void drawGhost(GuiGraphics graphics) {
+        var ghost = ghosts[(int) (UIClock.millis() / 1000 % ghosts.length)];
+        int x = getPositionX() + 1, y = getPositionY() + 1;
+        graphics.renderItem(ghost, x, y);
+        var pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(0, 0, UILayers.ITEM_OVERLAY);
+        UIDraw.fillRect(graphics, x, y, 16, 16, UITheme.SLOT_GHOST_VEIL);
+        pose.popPose();
     }
 
     /** 选中框在前景层画；空的禁用槽悬停时单独显示"禁止操作 + 原因"（有物品时附在物品提示末尾）。 */
@@ -123,8 +149,13 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         slotState.drawSelection(graphics);
-        if (slotReference != null && slotReference.getItem().isEmpty() && ElementState.drawDisabledTooltip(this, mouseX, mouseY, tooltipTexts)) return;
+        if (slotReference != null && slotReference.getItem().isEmpty() && ElementState.showDisabledTooltip(this, mouseX, mouseY, tooltipTexts)) return;
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    public void handleClientAction(int id, FriendlyByteBuf buffer) {
+        if (!slotState.handleClientAction(id, buffer)) super.handleClientAction(id, buffer);
     }
 
     @Override
@@ -142,7 +173,7 @@ public class ItemSlot extends SlotWidget implements ElementState.Host {
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        slotState.detectAndSendChanges(this::writeUpdateInfo);
+        slotState.detectAndSendChanges();
     }
 
     @Override

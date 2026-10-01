@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.cover.PumpCover;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTMath;
@@ -85,8 +86,8 @@ public class FluidVoidingCover extends PumpCover {
 
     @Override
     public Widget createUIWidget() {
-        var page = CoverUIs.page().addChild(CoverUIs.section("cover.ui.voiding").addChild(
-                CoverUIs.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
+        var page = Form.page().addChild(Form.section("cover.ui.voiding").addChild(
+                Form.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
                         "cover.voiding.tooltip")));
         buildAdditionalUI(page);
         return page.addChild(CoverUIs.filterSection(filterHandler));

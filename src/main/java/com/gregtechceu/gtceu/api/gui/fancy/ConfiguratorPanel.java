@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.gui.fancy;
 
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.animation.Animation;
@@ -208,10 +208,10 @@ public class ConfiguratorPanel extends WidgetGroup {
         return new FloatingTab(configurator);
     }
 
-    public class Tab extends WidgetGroup {
+    public class Tab extends WidgetGroup implements UIChannel.Host {
 
         protected final IFancyConfigurator configurator;
-        protected final SyncValueHost syncValues;
+        protected final UIChannel channel;
         protected final ButtonWidget button;
         @Nullable
         protected final WidgetGroup view;
@@ -225,8 +225,8 @@ public class ConfiguratorPanel extends WidgetGroup {
         public Tab(IFancyConfigurator configurator) {
             super(0, tabs.size() * (getTabSize() + TAB_GAP), getTabSize(), getTabSize());
             this.configurator = configurator;
-            this.syncValues = new SyncValueHost(this);
-            configurator.bindSync(syncValues);
+            this.channel = new UIChannel(this);
+            configurator.bindSync(this);
             this.button = new ButtonWidget(0, 0, getTabSize(), getTabSize(), null, this::onClick) {
 
                 @Override
@@ -276,43 +276,49 @@ public class ConfiguratorPanel extends WidgetGroup {
         }
 
         @Override
+        public UIChannel getChannel() {
+            return channel;
+        }
+
+        @Override
+        public void initWidget() {
+            super.initWidget();
+            channel.prime();
+        }
+
+        @Override
+        public void handleClientAction(int id, FriendlyByteBuf buffer) {
+            if (!channel.handleClientAction(id, buffer)) super.handleClientAction(id, buffer);
+        }
+
+        @Override
         public void writeInitialData(FriendlyByteBuf buffer) {
             super.writeInitialData(buffer);
-            configurator.writeInitialData(buffer);
-            syncValues.writeInitialData(buffer);
+            channel.writeInitialData(buffer);
         }
 
         @Override
         public void readInitialData(FriendlyByteBuf buffer) {
             super.readInitialData(buffer);
-            configurator.readInitialData(buffer);
-            syncValues.readInitialData(buffer);
+            channel.readInitialData(buffer);
         }
 
         @Override
         public void detectAndSendChanges() {
             super.detectAndSendChanges();
-            configurator.detectAndSendChange((id, sender) -> writeUpdateInfo(0, buf -> {
-                buf.writeVarInt(id);
-                sender.accept(buf);
-            }));
-            syncValues.detectAndSendChanges(this::writeUpdateInfo);
+            channel.detectAndSendChanges();
         }
 
         @Override
         public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-            if (id == 0) {
-                configurator.readUpdateInfo(buffer.readVarInt(), buffer);
-            } else if (!syncValues.readUpdateInfo(id, buffer)) {
-                super.readUpdateInfo(id, buffer);
-            }
+            if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
         }
 
         @Override
         @OnlyIn(Dist.CLIENT)
         public void updateScreen() {
             super.updateScreen();
-            syncValues.pollClient();
+            channel.pollClient();
         }
 
         @Override

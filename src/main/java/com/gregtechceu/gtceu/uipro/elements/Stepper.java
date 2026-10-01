@@ -1,20 +1,22 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.data.ClientActions;
+import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
+import com.gregtechceu.gtceu.uipro.render.UIStates;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import java.util.function.Consumer;
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -22,9 +24,9 @@ import java.util.function.IntSupplier;
 /**
  * 步进器 {@code [<] 值 [>]}：左右按钮或在数值上滚动鼠标滚轮来改变整数，适合电路编号、页码这类小范围选择。
  * <p>
- * 标准高 {@link #HEIGHT}，总宽 {@link #width(int)}（两个方形箭头 + 中间数值框 + 间距）。
- * 数值以服务端为准：点击/滚轮都在服务端计算新值后写入 {@code setter}，再经同步回显。
- * {@code wrap} 为真时越过边界回绕（32 的下一个是 0），否则停在边界，箭头禁用（统一斜纹，悬停说明已到边界）。
+ * 标准高 {@link #HEIGHT}，总宽 {@link #widthFor(int)}（两个方形箭头 + 中间数值框 + 间距）。
+ * 数值以服务端为准：点击/滚轮都在服务端计算新值后写入 {@code setter}，再经同步回显；上限可随服务端状态变化。
+ * {@link #wrap()} 后越过边界回绕（32 的下一个是 0），否则停在边界，箭头禁用（统一斜纹，悬停说明已到边界）。
  * 整个步进器禁用（{@link #disabled}，或上级禁用）时，两个箭头和滚轮都不起作用。
  */
 public class Stepper extends UIElement {
@@ -34,40 +36,55 @@ public class Stepper extends UIElement {
 
     public static final int HEIGHT = UISizes.CONTROL_HEIGHT;
 
-    private static final int WHEEL_ID = SyncValueHost.ID_BASE - 2;
-
     private final IntSupplier getter;
     private final IntConsumer setter;
     private final int min;
-    private final int max;
-    private final boolean wrap;
-    private final IntFunction<String> formatter;
+    private final IntSupplier max;
+    private boolean wrap;
+    private IntFunction<String> formatter = Integer::toString;
     private final SyncValue<Integer> value;
+    private final RPC<Boolean> wheel = addRPC(ByteStreamCodec.BOOLEAN_CODEC, (player, up) -> step(up ? 1 : -1));
 
-    public Stepper(int valueWidth, IntSupplier getter, IntConsumer setter, int min, int max, boolean wrap, IntFunction<String> formatter) {
+    protected Stepper(int valueWidth, IntSupplier getter, IntConsumer setter, int min, IntSupplier max) {
         this.getter = getter;
         this.setter = setter;
         this.min = min;
         this.max = max;
-        this.wrap = wrap;
-        this.formatter = formatter;
         this.value = addSyncValue(SyncValue.ofInt(getter::getAsInt, getter.getAsInt()));
         layout(l -> l.row().height(HEIGHT).gapAll(UISizes.GAP).alignCenter());
         addChildren(
                 Button.icon(UITheme.ARROW_LEFT).setOnServerClick(() -> step(-1)).disabled(() -> !wrap && getter.getAsInt() <= min, AT_MIN),
                 new ValueBox(valueWidth),
-                Button.icon(UITheme.ARROW_RIGHT).setOnServerClick(() -> step(1)).disabled(() -> !wrap && getter.getAsInt() >= max, AT_MAX));
+                Button.icon(UITheme.ARROW_RIGHT).setOnServerClick(() -> step(1)).disabled(() -> !wrap && getter.getAsInt() >= max.getAsInt(), AT_MAX));
     }
 
-    /** 中间数值框宽 {@code valueWidth} 时的总宽度。 */
-    public static int width(int valueWidth) {
-        return 2 * UISizes.ICON_BUTTON + 2 * UISizes.GAP + valueWidth;
+    public static Stepper of(int valueWidth, IntSupplier getter, IntConsumer setter, int min, int max) {
+        return new Stepper(valueWidth, getter, setter, min, () -> max);
+    }
+
+    public static Stepper of(int valueWidth, IntSupplier getter, IntConsumer setter, int min, IntSupplier max) {
+        return new Stepper(valueWidth, getter, setter, min, max);
+    }
+
+    public Stepper wrap() {
+        this.wrap = true;
+        return this;
+    }
+
+    public Stepper setFormatter(IntFunction<String> formatter) {
+        this.formatter = formatter;
+        return this;
+    }
+
+    public static int widthFor(int valueWidth) {
+        return 2 * UISizes.ICON_BUTTON_SIZE + 2 * UISizes.GAP + valueWidth;
     }
 
     private void step(int delta) {
+        int upper = Math.max(min, max.getAsInt());
         int next = getter.getAsInt() + delta;
-        if (wrap) next = Math.floorMod(next - min, max - min + 1) + min;
-        else next = Math.clamp(next, min, max);
+        if (wrap) next = Math.floorMod(next - min, upper - min + 1) + min;
+        else next = Math.clamp(next, min, upper);
         setter.accept(next);
     }
 
@@ -81,28 +98,17 @@ public class Stepper extends UIElement {
         @OnlyIn(Dist.CLIENT)
         public boolean mouseWheelMove(double mouseX, double mouseY, double wheelDelta) {
             if (!isMouseOverElement(mouseX, mouseY) || wheelDelta == 0 || isDisabled()) return false;
-            int delta = wheelDelta > 0 ? 1 : -1;
-            Consumer<FriendlyByteBuf> writer = buf -> buf.writeVarInt(delta);
-            if (!ClientActions.handleLocally(this, WHEEL_ID, writer)) writeClientAction(WHEEL_ID, writer);
+            wheel.send(wheelDelta > 0);
             return true;
-        }
-
-        @Override
-        public void handleClientAction(int id, FriendlyByteBuf buffer) {
-            // 服务端再判一次禁用（客户端可以伪造请求）
-            if (id == WHEEL_ID) {
-                int delta = buffer.readVarInt();
-                if (!isDisabled()) step(delta > 0 ? 1 : -1);
-            } else super.handleClientAction(id, buffer);
         }
 
         @Override
         @OnlyIn(Dist.CLIENT)
         public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             int x = getPositionX(), y = getPositionY(), w = getSizeWidth(), h = getSizeHeight();
-            UITheme.drawInset(graphics, x, y, w, h, false);
-            UITheme.drawCenteredText(graphics, formatter.apply(value.getValue()), x + w / 2, y + (h - 8) / 2, w - 4, UITheme.FIELD_TEXT, false);
-            if (isDisabled()) UITheme.drawDisabled(graphics, x, y, w, h);
+            UITheme.INSET.draw(graphics, UIStates.NONE, x, y, w, h);
+            UIText.drawCentered(graphics, formatter.apply(value.getValue()), x + w / 2, UIText.centerY(y, h), w - 4, UITheme.FIELD_TEXT);
+            if (isDisabled()) UIDraw.disabledHatch(graphics, x, y, w, h);
         }
     }
 }

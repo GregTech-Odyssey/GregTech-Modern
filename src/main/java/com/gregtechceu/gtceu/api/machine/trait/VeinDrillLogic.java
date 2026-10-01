@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
@@ -29,6 +31,12 @@ public abstract class VeinDrillLogic extends RecipeLogic {
         return true;
     }
 
+    protected final boolean checkEnergyTier(int energyTier, int tier) {
+        if (energyTier >= tier) return true;
+        report(GTIssues.LOW_VOLTAGE, tier, energyTier);
+        return false;
+    }
+
     /**
      * Resolve the cached vein if it is empty.
      *
@@ -49,24 +57,37 @@ public abstract class VeinDrillLogic extends RecipeLogic {
 
     @Override
     public boolean findAndHandleRecipe() {
-        if (!(getMachine().getLevel() instanceof ServerLevel serverLevel) || !canDrill()) return false;
-        lastRecipe = null;
-        if (!resolveVein(serverLevel)) return false;
-        var match = buildDrillRecipe();
-        return match != null && machine.matchTickRecipe(match) && machine.matchRecipeOutput(match) && setupRecipe(RecipeHandlerUnit.NO_DATA, match);
+        beginIssueRound(IssueStage.SEARCH);
+        try {
+            if (!(getMachine().getLevel() instanceof ServerLevel serverLevel) || !canDrill()) return false;
+            lastRecipe = null;
+            if (!resolveVein(serverLevel)) {
+                report(GTIssues.NO_VEIN);
+                return false;
+            }
+            var match = buildDrillRecipe();
+            return match != null && machine.matchTickRecipe(match) && machine.matchRecipeOutput(match) && setupRecipe(RecipeHandlerUnit.NO_DATA, match);
+        } finally {
+            endIssueRound();
+        }
     }
 
     @Override
     public boolean onRecipeFinish() {
         machine.afterWorking();
-        if (lastRecipe != null) machine.handleRecipeOutput(lastRecipe);
+        produceOutputs();
         onDrillFinish();
         if (suspendAfterFinish) {
             setStatus(SUSPEND);
             suspendAfterFinish = false;
         } else {
-            if (findAndHandleRecipe()) return true;
-            setStatus(IDLE);
+            beginIssueRound(IssueStage.SEARCH);
+            try {
+                if (findAndHandleRecipe()) return true;
+                setStatus(IDLE);
+            } finally {
+                endIssueRound();
+            }
         }
         return false;
     }

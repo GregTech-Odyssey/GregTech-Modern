@@ -67,12 +67,12 @@ public final class TextLayout {
     }
 
     private static void splitByWidth(String word, Font font, int maxWidth, List<String> out) {
-        var remaining = word;
-        while (!remaining.isEmpty()) {
-            int cut = 1;
-            while (cut < remaining.length() && font.width(remaining.substring(0, cut + 1)) <= maxWidth) cut++;
+        int start = 0;
+        while (start < word.length()) {
+            var remaining = word.substring(start);
+            int cut = Math.max(Character.charCount(remaining.codePointAt(0)), font.plainSubstrByWidth(remaining, maxWidth).length());
             out.add(remaining.substring(0, cut));
-            remaining = remaining.substring(cut);
+            start += cut;
         }
     }
 }

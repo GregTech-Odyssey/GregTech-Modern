@@ -28,7 +28,8 @@ import java.util.function.Consumer;
  */
 public abstract class PlanarView extends Viewport {
 
-    public static final float BUTTON_ZOOM_STEP = 0.1f;
+    public static final float ZOOM_FACTOR = 1.15f;
+    private static final float WHEEL_ZOOM_RATE = 18;
     private static final Animation VIEW_ANIMATION = Animation.of(0.25f, Eases.CUBIC_OUT);
     private static final double WHEEL_PAN = 13;
 
@@ -37,7 +38,7 @@ public abstract class PlanarView extends Viewport {
     private boolean allowPan = true, allowZoom = true;
     private boolean clampInside;
     private boolean minScaleFits;
-    private float fitPadding = UISizes.SLOT / 2f;
+    private float fitPadding = UISizes.SLOT_SIZE / 2f;
     private float maxFitScale = 1;
     @Nullable
     protected CanvasGrid grid = CanvasGrid.standard();
@@ -57,6 +58,9 @@ public abstract class PlanarView extends Viewport {
     @Nullable
     protected CanvasPainter painter;
     private float percentScale = -1;
+    private float wheelTarget = Float.NaN;
+    private float anchorLocalX, anchorLocalY, anchorWorldX, anchorWorldY;
+    private long wheelFrameNanos;
     private String percentText = "";
 
     protected PlanarView(String id, int width, int height) {
@@ -232,7 +236,7 @@ public abstract class PlanarView extends Viewport {
     }
 
     public void focus(CanvasRect rect, boolean animated) {
-        float target = Math.min(scale, fitScale(rect.inflate(UISizes.SLOT), 0));
+        float target = Math.min(scale, fitScale(rect.inflate(UISizes.SLOT_SIZE), 0));
         setView(rect.centerX() - unobstructedWidth() / (2 * target), rect.centerY() - viewportHeight() / (2 * target), target, animated);
     }
 
@@ -269,14 +273,6 @@ public abstract class PlanarView extends Viewport {
         setView(cx - width / (2 * target), cy - viewportHeight() / (2 * target), target, animated);
     }
 
-    protected void zoomAt(double screenX, double screenY, float target) {
-        target = Mth.clamp(target, minScale(), maxScale);
-        if (Math.abs(target - scale) < 1e-5f) return;
-        float wx = toWorldX(screenX), wy = toWorldY(screenY);
-        float localX = (float) (screenX - viewportX()), localY = (float) (screenY - viewportY());
-        setView(wx - localX / target, wy - localY / target, target, false);
-    }
-
     protected float fitScale(CanvasRect rect, float padding) {
         float w = Math.max(1, rect.width()), h = Math.max(1, rect.height());
         float s = Math.min((unobstructedWidth() - 2 * padding) / w, (viewportHeight() - 2 * padding) / h);
@@ -299,6 +295,7 @@ public abstract class PlanarView extends Viewport {
     protected void cancelViewAnimation() {
         if (viewAnimation != null) viewAnimation.cancel();
         viewAnimation = null;
+        wheelTarget = Float.NaN;
     }
 
     @Override
@@ -324,8 +321,46 @@ public abstract class PlanarView extends Viewport {
     }
 
     protected float steppedScale(int direction) {
-        float target = Math.round(scale / BUTTON_ZOOM_STEP + Integer.signum(direction)) * BUTTON_ZOOM_STEP;
+        return steppedScale(scale, direction);
+    }
+
+    private float steppedScale(float from, int direction) {
+        float target = direction > 0 ? from * ZOOM_FACTOR : from / ZOOM_FACTOR;
         return Mth.clamp(target, minScale(), maxScale);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void wheelZoom(double screenX, double screenY, int direction) {
+        float from = Float.isNaN(wheelTarget) ? scale : wheelTarget;
+        if (viewAnimation != null) viewAnimation.cancel();
+        viewAnimation = null;
+        float target = steppedScale(from, direction);
+        if (Math.abs(target - scale) < 1e-5f) {
+            wheelTarget = Float.NaN;
+            return;
+        }
+        anchorLocalX = (float) (screenX - viewportX());
+        anchorLocalY = (float) (screenY - viewportY());
+        anchorWorldX = toWorldX(screenX);
+        anchorWorldY = toWorldY(screenY);
+        if (Float.isNaN(wheelTarget)) wheelFrameNanos = System.nanoTime();
+        wheelTarget = target;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void stepWheelZoom() {
+        if (Float.isNaN(wheelTarget)) return;
+        long now = System.nanoTime();
+        float seconds = Math.min(0.1f, (now - wheelFrameNanos) / 1e9f);
+        wheelFrameNanos = now;
+        float from = (float) Math.log(scale), to = (float) Math.log(wheelTarget);
+        float next = Math.abs(to - from) < 0.002f ? to : Mth.lerp(1 - (float) Math.exp(-WHEEL_ZOOM_RATE * seconds), from, to);
+        scale = next == to ? wheelTarget : (float) Math.exp(next);
+        if (next == to) wheelTarget = Float.NaN;
+        offsetX = anchorWorldX - anchorLocalX / scale;
+        offsetY = anchorWorldY - anchorLocalY / scale;
+        clampView();
+        onViewChanged();
     }
 
     @Override
@@ -361,7 +396,7 @@ public abstract class PlanarView extends Viewport {
             lastViewportWidth = vw;
             lastViewportHeight = vh;
             if (initialView != null) initialView.accept(this);
-            else showStart(UISizes.SLOT / 2f, false);
+            else showStart(UISizes.SLOT_SIZE / 2f, false);
             for (var action : readyActions) action.accept(this);
             readyActions.clear();
             viewInitialized = true;
@@ -378,6 +413,7 @@ public abstract class PlanarView extends Viewport {
         lastViewportWidth = vw;
         lastViewportHeight = vh;
         animations.updateFrame();
+        stepWheelZoom();
         if (isRememberView() && allowZoom && scale != rememberedScale) {
             rememberedScale = scale;
             ViewPrefs.remember(zoomKey(), scale);
@@ -440,8 +476,7 @@ public abstract class PlanarView extends Viewport {
             onViewChanged();
             return true;
         }
-        cancelViewAnimation();
-        zoomAt(mouseX, mouseY, steppedScale(wheelDelta > 0 ? 1 : -1));
+        wheelZoom(mouseX, mouseY, wheelDelta > 0 ? 1 : -1);
         return true;
     }
 }

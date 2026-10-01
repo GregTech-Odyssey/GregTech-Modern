@@ -36,11 +36,11 @@ public final class GTRecipeLayouts {
         // 箭头先放：流体槽画在它上面
         place(canvas, slots.progress(GuiTextures.PROGRESS_BAR_ASSEMBLY_LINE, LEFT_TO_RIGHT, 53, 69), 76, 5);
         var items = slots.slots(IO.IN, ItemRecipeInfo.INSTANCE);
-        for (int i = 0; i < items.size(); i++) place(canvas, items.get(i), 4 + (i % 4) * UISizes.SLOT, 4 + (i / 4) * UISizes.SLOT);
+        for (int i = 0; i < items.size(); i++) place(canvas, items.get(i), 4 + (i % 4) * UISizes.SLOT_SIZE, 4 + (i / 4) * UISizes.SLOT_SIZE);
         var fluids = slots.slots(IO.IN, FluidRecipeInfo.INSTANCE);
-        for (int i = 0; i < fluids.size(); i++) place(canvas, fluids.get(i), 93, 4 + i * UISizes.SLOT);
+        for (int i = 0; i < fluids.size(); i++) place(canvas, fluids.get(i), 93, 4 + i * UISizes.SLOT_SIZE);
         var outputs = slots.slots(IO.OUT, ItemRecipeInfo.INSTANCE);
-        for (int i = 0; i < outputs.size(); i++) place(canvas, outputs.get(i), 130, 4 + i * UISizes.SLOT);
+        for (int i = 0; i < outputs.size(); i++) place(canvas, outputs.get(i), 130, 4 + i * UISizes.SLOT_SIZE);
         return canvas;
     };
 
@@ -59,7 +59,7 @@ public final class GTRecipeLayouts {
         int outputs = slots.count(IO.OUT, FluidRecipeInfo.INSTANCE);
         for (int i = 0; i < outputs; i++) {
             int column = i % 3, row = i / 3;
-            place(canvas, slots.slot(IO.OUT, FluidRecipeInfo.INSTANCE, i, beakers[column]), 78 + column * UISizes.SLOT, 57 - row * UISizes.SLOT);
+            place(canvas, slots.slot(IO.OUT, FluidRecipeInfo.INSTANCE, i, beakers[column]), 78 + column * UISizes.SLOT_SIZE, 57 - row * UISizes.SLOT_SIZE);
         }
         if (slots.count(IO.OUT, ItemRecipeInfo.INSTANCE) > 0) {
             place(canvas, slots.slot(IO.OUT, ItemRecipeInfo.INSTANCE, 0, GuiTextures.DUST_OVERLAY), 78, 75);
@@ -91,7 +91,7 @@ public final class GTRecipeLayouts {
         var inputs = slots.slots(IO.IN, ItemRecipeInfo.INSTANCE);
         if (!inputs.isEmpty()) place(canvas, inputs.get(0), 4, 4);
         var outputs = slots.slots(IO.OUT, ItemRecipeInfo.INSTANCE);
-        for (int i = 0; i < outputs.size(); i++) place(canvas, outputs.get(i), 70 + i * UISizes.SLOT, 4);
+        for (int i = 0; i < outputs.size(); i++) place(canvas, outputs.get(i), 70 + i * UISizes.SLOT_SIZE, 4);
         return canvas;
     }
 

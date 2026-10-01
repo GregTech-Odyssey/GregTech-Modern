@@ -8,6 +8,8 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
+import org.jetbrains.annotations.Nullable;
+
 public class DaytimeCondition extends RecipeCondition {
 
     public static final DaytimeCondition DAY = new DaytimeCondition(false);
@@ -24,6 +26,13 @@ public class DaytimeCondition extends RecipeCondition {
         } else {
             return Component.translatable("recipe.condition.daytime.day.tooltip");
         }
+    }
+
+    @Override
+    public @Nullable Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        Level level = holder.self().getLevel();
+        if (level == null) return null;
+        return Component.translatable(level.isNight() ? "gtceu.issue.current.night" : "gtceu.issue.current.day");
     }
 
     @Override

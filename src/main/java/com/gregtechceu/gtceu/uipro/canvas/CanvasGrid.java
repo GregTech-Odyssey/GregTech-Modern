@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
 import com.gregtechceu.gtceu.uipro.animation.ColorMath;
-import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -90,12 +90,12 @@ public final class CanvasGrid {
             int skip = level.skipEvery();
             for (long i = firstX; i <= lastX; i++) {
                 if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
-                float sx = PixelSnap.snap(vx + (i * cell - offsetX) * scale);
+                float sx = UIPixels.snap(vx + (i * cell - offsetX) * scale);
                 painter.fill(sx, vy, sx + 1, vy + vh, color);
             }
             for (long i = firstY; i <= lastY; i++) {
                 if (skip > 0 && Math.floorMod(i, skip) == 0) continue;
-                float sy = PixelSnap.snap(vy + (i * cell - offsetY) * scale);
+                float sy = UIPixels.snap(vy + (i * cell - offsetY) * scale);
                 painter.fill(vx, sy, vx + vw, sy + 1, color);
             }
         }

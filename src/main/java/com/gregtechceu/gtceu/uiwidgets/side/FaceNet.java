@@ -19,7 +19,7 @@ import java.util.function.IntSupplier;
 
 public class FaceNet extends UIElement {
 
-    public static final int SIZE = UISizes.SLOT;
+    public static final int SIZE = UISizes.SLOT_SIZE;
     public static final int PASS_THROUGH = 1 << 6;
     public static final Direction[][] LAYOUT = {
             { null, Direction.NORTH, null },

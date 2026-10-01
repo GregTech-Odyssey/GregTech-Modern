@@ -2,9 +2,11 @@ package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
+import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -14,17 +16,23 @@ import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.common.data.machines.GTMultiMachines;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
+import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib.gui.util.ClickData;
-import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluid;
@@ -40,9 +48,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class LargeBoilerMachine extends WorkableMultiblockMachine implements IExplosionMachine, IDisplayUIMachine {
+public class LargeBoilerMachine extends WorkableMultiblockMachine implements IExplosionMachine, IMultiblockFancyUIMachine {
 
     public static final int TICKS_PER_STEAM_GENERATION = 5;
+    private static final String THROTTLE_LABEL = "gtceu.multiblock.large_boiler.throttle.label";
+    private static final String TEMPERATURE_LABEL = "gtceu.multiblock.large_boiler.temperature.label";
+    private static final String STEAM_OUTPUT_LABEL = "gtceu.multiblock.large_boiler.steam_output.label";
 
     private static final Fluid STEAM = GTMaterials.Steam.getFluid();
 
@@ -181,30 +192,53 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
             recipe.duration = (int) duration;
             return recipe;
         }
+        machine.reportIssue(GTIssues.NOT_APPLICABLE);
         return null;
     }
 
     public void addDisplayText(List<Component> textList) {
-        IDisplayUIMachine.super.addDisplayText(textList);
+        IMultiblockFancyUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
             textList.add(Component.translatable("gtceu.multiblock.large_boiler.temperature", currentTemperature + 274, maxTemperature + 274));
             textList.add(Component.translatable("gtceu.multiblock.large_boiler.steam_output", steamGenerated / TICKS_PER_STEAM_GENERATION));
             var throttleText = Component.translatable("gtceu.multiblock.large_boiler.throttle", ChatFormatting.AQUA.toString() + getThrottle() + "%").withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.large_boiler.throttle.tooltip"))));
             textList.add(throttleText);
-            var buttonText = Component.translatable("gtceu.multiblock.large_boiler.throttle_modify");
-            buttonText.append(" ");
-            buttonText.append(ComponentPanelWidget.withButton(Component.literal("[-]"), "sub"));
-            buttonText.append(" ");
-            buttonText.append(ComponentPanelWidget.withButton(Component.literal("[+]"), "add"));
-            textList.add(buttonText);
         }
     }
 
-    public void handleDisplayClick(String componentData, ClickData clickData) {
-        if (!clickData.isRemote) {
-            int result = componentData.equals("add") ? 5 : -5;
-            this.throttle = Mth.clamp(throttle + result, 25, 100);
-        }
+    @Override
+    public void addControls(ControlPanel controls) {
+        super.addControls(controls);
+        controls.addInt(THROTTLE_LABEL, () -> throttle, value -> throttle = value, 25, 100, "gtceu.multiblock.large_boiler.throttle.tooltip")
+                .disabled(() -> !isFormed(), MultiblockPage.STATE_UNFORMED);
+    }
+
+    private MachineEra getEra() {
+        var definition = getDefinition();
+        if (definition == GTMultiMachines.LARGE_BOILER_BRONZE) return MachineEra.BRONZE;
+        return definition == GTMultiMachines.LARGE_BOILER_STEEL ? MachineEra.STEEL : MachineEra.CLASSIC;
+    }
+
+    @Override
+    public @Nullable ResourceLocation getWindowSkin() {
+        return getEra().getSkin();
+    }
+
+    @Override
+    public UIElement createUIWidget() {
+        var page = MultiblockPage.of(this).setScreen(getEra().getScreen());
+        page.addBar(TEMPERATURE_LABEL, UITheme::barHeat, () -> new ProgressBar.Progress(currentTemperature, maxTemperature, 0)).percent()
+                .bindDetail(MultiblockPage.cached(() -> currentTemperature, temperature -> Component.literal((temperature + 274) + " / " + (maxTemperature + 274) + " K")));
+        page.addNumber(STEAM_OUTPUT_LABEL, () -> steamGenerated / TICKS_PER_STEAM_GENERATION, "mB/t");
+        addScreenReadouts(page);
+        addControls(page.getControls());
+        return page.build();
+    }
+
+    @Override
+    public void attachTooltips(TooltipsPanel tooltipsPanel) {
+        attachTraitTooltips(tooltipsPanel);
+        attachPartTooltips(tooltipsPanel);
     }
 
     @Override

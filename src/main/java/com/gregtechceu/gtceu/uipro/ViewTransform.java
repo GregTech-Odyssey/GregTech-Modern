@@ -17,15 +17,15 @@ public final class ViewTransform {
         this.scale = scale;
     }
 
-    public float translateX() {
+    public float getTranslateX() {
         return translateX;
     }
 
-    public float translateY() {
+    public float getTranslateY() {
         return translateY;
     }
 
-    public float scale() {
+    public float getScale() {
         return scale;
     }
 

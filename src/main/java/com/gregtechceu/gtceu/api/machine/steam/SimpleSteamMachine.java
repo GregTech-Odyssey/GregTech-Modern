@@ -2,11 +2,15 @@ package com.gregtechceu.gtceu.api.machine.steam;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueLines;
+import com.gregtechceu.gtceu.api.machine.issue.IssueSeverity;
+import com.gregtechceu.gtceu.api.machine.issue.IssueSnapshot;
+import com.gregtechceu.gtceu.api.machine.issue.IssueText;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -16,23 +20,29 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.common.recipe.condition.VentCondition;
+import com.gregtechceu.gtceu.uipro.Level;
+import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.StatusLine;
+import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.window.MachineWindow;
+import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.utils.Position;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fluids.FluidType;
 
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.datastream.DataComponentMap;
+import dev.vfyjxf.taffy.style.TaffyPosition;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,12 +56,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IUIMachine, IDummyEnergyMachine {
-
-    /// 蒸汽机界面里玩家背包的纵坐标（原版 176×166 容器）
-    private static final int INVENTORY_Y = 84;
-    /// 蒸汽底板在背包右上方印着 GT 标志，蒸汽储量一行在它左边结束
-    private static final int STEAM_LOGO_SPACE = 24;
+public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IFancyUIMachine, IDummyEnergyMachine {
 
     @SaveToDisk
     public final NotifiableItemStackHandler importItems;
@@ -131,12 +136,13 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof SimpleSteamMachine steamMachine)) {
+            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
-        if (!steamMachine.checkVenting()) {
+        if (!steamMachine.checkVenting() || !VentCondition.INSTANCE.testCondition(machine, unit, recipe.definition)) {
+            machine.reportIssue(GTIssues.VENT_BLOCKED);
             return null;
         }
-        if (!VentCondition.INSTANCE.testCondition(machine, unit, recipe.definition)) return null;
         if (!steamMachine.isHighPressure) recipe.durationMultiplier(2);
         return recipe;
     }
@@ -144,28 +150,68 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
-    /**
-     * 蒸汽机保留自己的铜 / 钢皮肤：蒸汽版底板、槽位和玩家背包，不用新式外壳。
-     * 配方槽位区在上方居中；等待中（蒸汽不足或排气口被挡）时槽位区中央显示缺蒸汽图标；
-     * 蒸汽储量一行贴在玩家背包正上方。
-     */
     @Override
     public ModularUI createUI(Player entityPlayer) {
+        return MachineWindow.createUI(this, this, entityPlayer);
+    }
+
+    @Override
+    public ResourceLocation getWindowSkin() {
+        return MachineEra.steam(isHighPressure).getSkin();
+    }
+
+    @Override
+    public Widget createUIWidget() {
         var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
         storages.put(IO.IN, ItemRecipeInfo.INSTANCE, importItems.storage);
         storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, exportItems.storage);
         var group = getRecipeType().getRecipeUI().createUITemplate(recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), true, isHighPressure);
-        Position pos = new Position((Math.max(group.getSize().width + 4 + 8, 176) - 4 - group.getSize().width) / 2 + 4, 32);
-        group.setSelfPosition(pos);
-        var steam = new StatusLine(UISizes.CONTENT_WIDTH - STEAM_LOGO_SPACE, Component.translatable("gtceu.gui.steam_machine.steam"), new SteamText())
-                .level(() -> recipeLogic.isWaiting() ? StatusLine.Level.WARNING : StatusLine.Level.NORMAL)
-                .detail(() -> recipeLogic.isWaiting() ? Component.translatable("gtceu.gui.steam_machine.waiting") : Component.empty());
-        steam.setSelfPosition(new Position(UISizes.WINDOW_PADDING_X, INVENTORY_Y - UISizes.GAP - StatusLine.HEIGHT));
-        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND_STEAM.get(isHighPressure)).widget(group)
-                .widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()))
-                .widget(new PredicatedImageWidget(pos.x + group.getSize().width / 2 - 9, pos.y + group.getSize().height / 2 - 9, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting))
-                .widget(steam)
-                .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT_STEAM.get(isHighPressure), UISizes.WINDOW_PADDING_X, INVENTORY_Y, true));
+        int width = group.getSize().width, height = group.getSize().height;
+        var stage = new UIElement().layout(l -> l.size(width, height));
+        stage.addChild(group);
+        var indicator = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(width / 2 - 9).top(height / 2 - 9).size(18, 18));
+        indicator.addChild(new PredicatedImageWidget(0, 0, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting));
+        stage.addChild(indicator);
+        var steam = StatusLine.of(UISizes.CONTENT_WIDTH, Component.translatable("gtceu.gui.steam_machine.steam"), new SteamText())
+                .bindLevel(new IssueLevel())
+                .bindDetail(new IssueDetail());
+        return RecipeMachinePage.page(stage, steam);
+    }
+
+    private final class IssueLevel implements Supplier<Level> {
+
+        @Override
+        public Level get() {
+            var snapshot = recipeLogic.getIssueSnapshot();
+            if (!shows(snapshot)) return Level.NORMAL;
+            return IssueLines.level(snapshot);
+        }
+    }
+
+    private final class IssueDetail implements Supplier<Component> {
+
+        @Nullable
+        private IssueSnapshot snapshot;
+        private Component text = Component.empty();
+
+        @Override
+        public Component get() {
+            var current = recipeLogic.getIssueSnapshot();
+            if (current != snapshot) {
+                snapshot = current;
+                var primary = current.primary();
+                if (!shows(current)) text = Component.empty();
+                else if (primary == null) text = Component.translatable("gtceu.gui.steam_machine.waiting");
+                else text = IssueText.summary(primary);
+            }
+            return text;
+        }
+    }
+
+    private static boolean shows(IssueSnapshot snapshot) {
+        var primary = snapshot.primary();
+        if (primary == null) return snapshot.isWaiting();
+        return snapshot.isWaiting() || primary.severity() != IssueSeverity.INFO;
     }
 
     /** 蒸汽储量一行的数值：服务端每 tick 取值，储量不变时复用上次的文字，不重复拼字符串。 */

@@ -56,7 +56,7 @@ public class FlowChart extends UIElement {
             x += this.columnWidths[i] + UISizes.FLOW_COLUMN_GAP;
         }
         int inner = x - UISizes.FLOW_COLUMN_GAP;
-        layout(l -> l.column().width(inner + 2 * UISizes.FLOW_PADDING + gutter).rowGap(UISizes.FLOW_CHANNEL)
+        layout(l -> l.column().width(inner + 2 * UISizes.FLOW_PADDING + gutter).rowGap(UISizes.FLOW_CHANNEL_WIDTH)
                 .paddingAll(UISizes.FLOW_PADDING).paddingLeft(UISizes.FLOW_PADDING + gutter));
     }
 
@@ -78,11 +78,11 @@ public class FlowChart extends UIElement {
         return columnWidths[Math.max(0, Math.min(column, columnWidths.length - 1))];
     }
 
-    public int spanWidth(int span) {
-        return spanWidth(0, span);
+    public int widthFor(int span) {
+        return widthFor(0, span);
     }
 
-    public int spanWidth(int column, int span) {
+    public int widthFor(int column, int span) {
         int first = Math.max(0, Math.min(column, columnWidths.length - 1));
         int last = Math.max(first, Math.min(column + span - 1, columnWidths.length - 1));
         return columnStarts[last] + columnWidths[last] - columnStarts[first];
@@ -134,7 +134,7 @@ public class FlowChart extends UIElement {
             rows.add(line);
             addChild(line);
         }
-        var node = new FlowNode(row, column, Math.max(1, span), spanWidth(column, Math.max(1, span)));
+        var node = new FlowNode(row, column, Math.max(1, span), widthFor(column, Math.max(1, span)));
         var line = rows.get(row);
         int index = 0;
         while (index < line.widgets.size() && line.widgets.get(index) instanceof FlowNode other && other.column < column) index++;
@@ -146,7 +146,7 @@ public class FlowChart extends UIElement {
             int start = columnStarts[Math.max(0, Math.min(placed.column, columnStarts.length - 1))];
             int margin = start - previousEnd;
             placed.layout(l -> l.marginLeft(margin));
-            previousEnd = start + spanWidth(placed.column, placed.span);
+            previousEnd = start + widthFor(placed.column, placed.span);
         }
         wiresValid = false;
         return node;
@@ -269,7 +269,7 @@ public class FlowChart extends UIElement {
             sy = (fromTop + fromBottom) / 2;
             ty = (toTop + toBottom) / 2;
         }
-        float base = tx - dir * UISizes.FLOW_ARROW;
+        float base = tx - dir * UISizes.FLOW_ARROW_SIZE;
         var points = CanvasRoute.horizontal(sx, sy, base, ty, (sx + base) / 2f);
         wires.add(new Wire(points, new FlowLink[] { link }, 0, true, tx, ty, dir, 0));
     }
@@ -299,7 +299,7 @@ public class FlowChart extends UIElement {
         int lanes = merges.size() + fans.size() + detours.size();
         for (var link : remaining) if (centerX(link.from) != centerX(link.to)) lanes++;
         int top = rowBottom(channel), bottom = rowTop(channel + 1);
-        if (bottom <= top) bottom = top + UISizes.FLOW_CHANNEL;
+        if (bottom <= top) bottom = top + UISizes.FLOW_CHANNEL_WIDTH;
         int lane = 0;
         for (var group : merges) addMerge(group, laneY(top, bottom, lane++, lanes));
         for (var group : fans) addFan(group, laneY(top, bottom, lane++, lanes));
@@ -317,7 +317,7 @@ public class FlowChart extends UIElement {
         int gx = gutter > 0 ? UISizes.FLOW_PADDING + gutter / 2 : UISizes.FLOW_PADDING / 2;
         int tx = left(to) + Math.min(UISizes.FLOW_DETOUR_INSET, to.getSizeWidth() / 4);
         int ty = targetY(link), dir = direction(link);
-        float base = ty - dir * UISizes.FLOW_ARROW;
+        float base = ty - dir * UISizes.FLOW_ARROW_SIZE;
         float[] points = { sx, sy, gx, sy, gx, laneY, tx, laneY, tx, base };
         wires.add(new Wire(points, new FlowLink[] { link }, 0, true, tx, ty, 0, dir));
     }
@@ -349,7 +349,7 @@ public class FlowChart extends UIElement {
             float[] points = sx == tx ? new float[] { sx, sy, sx, laneY } : new float[] { sx, sy, sx, laneY, tx, laneY };
             wires.add(new Wire(points, new FlowLink[] { link }, -CanvasPainter.pathLength(points), false, 0, 0, 0, 0));
         }
-        wires.add(new Wire(new float[] { tx, laneY, tx, ty - dir * UISizes.FLOW_ARROW }, all, 0, true, tx, ty, 0, dir));
+        wires.add(new Wire(new float[] { tx, laneY, tx, ty - dir * UISizes.FLOW_ARROW_SIZE }, all, 0, true, tx, ty, 0, dir));
         junctions.add(new Junction(tx, laneY, all));
     }
 
@@ -361,7 +361,7 @@ public class FlowChart extends UIElement {
         wires.add(new Wire(stem, all, -CanvasPainter.pathLength(stem), false, 0, 0, 0, 0));
         for (var link : group) {
             int tx = centerX(link.to), ty = targetY(link), dir = direction(link);
-            float base = ty - dir * UISizes.FLOW_ARROW;
+            float base = ty - dir * UISizes.FLOW_ARROW_SIZE;
             float[] points = sx == tx ? new float[] { sx, laneY, sx, base } : new float[] { sx, laneY, tx, laneY, tx, base };
             wires.add(new Wire(points, new FlowLink[] { link }, 0, true, tx, ty, 0, dir));
         }
@@ -371,7 +371,7 @@ public class FlowChart extends UIElement {
     private void addSingle(FlowLink link, int laneY) {
         int sx = centerX(link.from), sy = sourceY(link);
         int tx = centerX(link.to), ty = targetY(link), dir = direction(link);
-        float base = ty - dir * UISizes.FLOW_ARROW;
+        float base = ty - dir * UISizes.FLOW_ARROW_SIZE;
         float[] points = sx == tx ? new float[] { sx, sy, sx, base } : CanvasRoute.vertical(sx, sy, tx, base, laneY);
         wires.add(new Wire(points, new FlowLink[] { link }, 0, true, tx, ty, 0, dir));
     }
@@ -394,19 +394,19 @@ public class FlowChart extends UIElement {
 
     @OnlyIn(Dist.CLIENT)
     private void drawWires(CanvasPainter painter) {
-        float width = UISizes.FLOW_WIRE;
-        for (var wire : wires) CanvasWire.glow(painter, wire.points, width, wire.state().wire());
+        float width = UISizes.FLOW_WIRE_WIDTH;
+        for (var wire : wires) CanvasWire.glow(painter, wire.points, width, wire.state().getWire());
         for (var level : STATES) {
             for (var wire : wires) {
-                if (wire.state() == level) CanvasWire.core(painter, wire.points, width, level.wire(), wire.origin);
+                if (wire.state() == level) CanvasWire.core(painter, wire.points, width, level.getWire(), wire.origin);
             }
         }
-        for (var wire : wires) CanvasWire.sparks(painter, wire.points, width, wire.state().wire(), wire.origin);
+        for (var wire : wires) CanvasWire.sparks(painter, wire.points, width, wire.state().getWire(), wire.origin);
         for (var junction : junctions) {
-            painter.junction(junction.x, junction.y, UISizes.FLOW_JUNCTION, worstOf(junction.members).wire().core());
+            painter.junction(junction.x, junction.y, UISizes.FLOW_JUNCTION_SIZE, worstOf(junction.members).getWire().core());
         }
         for (var wire : wires) {
-            if (wire.arrow) painter.arrow(wire.tipX, wire.tipY, wire.dirX, wire.dirY, width, UISizes.FLOW_ARROW, wire.state().wire().core());
+            if (wire.arrow) painter.arrow(wire.tipX, wire.tipY, wire.dirX, wire.dirY, width, UISizes.FLOW_ARROW_SIZE, wire.state().getWire().core());
         }
     }
 }

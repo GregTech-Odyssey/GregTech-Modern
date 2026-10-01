@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.gui.fancy;
 
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -10,7 +10,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,12 +67,12 @@ public interface IFancyConfiguratorButton extends IFancyConfigurator {
             this.pressed = pressed;
             this.booleanSupplier = booleanSupplier;
             this.onClick = onClick;
-            this.state = SyncValue.of(booleanSupplier::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false);
+            this.state = SyncValue.ofBool(booleanSupplier);
         }
 
         @Override
-        public void bindSync(SyncValueHost host) {
-            host.add(state);
+        public void bindSync(UIChannel.Host host) {
+            host.addSyncValue(state);
         }
 
         public boolean isPressed() {

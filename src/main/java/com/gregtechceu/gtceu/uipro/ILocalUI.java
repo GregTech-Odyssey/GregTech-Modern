@@ -6,7 +6,8 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
  * 没有服务端的界面的根（如 EMI 里的配方页）：整棵界面只在客户端存在，数据全部来自本端。
  * <p>
  * 这类界面里，框架把"服务端"的那一半也放在本端执行：{@link com.gregtechceu.gtceu.uipro.data.SyncValue} 直接取本端 getter，
- * {@code Button.setOnServerClick} 的回调在本端执行，客户端请求（{@link com.gregtechceu.gtceu.uipro.data.ClientActions}）交给本端的
+ * {@code Button.setOnServerClick} 的回调在本端执行，客户端请求（{@link com.gregtechceu.gtceu.uipro.data.RPC}）交给本端的处理器，老控件的请求经
+ * {@link com.gregtechceu.gtceu.uipro.data.UIChannel#sendRaw} 交给本端的
  * {@code handleClientAction}。
  * <p>
  * 判定看的是根是否实现本接口，而不是控件的 {@code isClientSideWidget}：有服务端的界面里也会有只在客户端的子树，

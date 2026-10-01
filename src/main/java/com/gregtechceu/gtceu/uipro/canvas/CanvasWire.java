@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
-import com.gregtechceu.gtceu.uipro.animation.PixelSnap;
 import com.gregtechceu.gtceu.uipro.animation.UIClock;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -35,11 +35,11 @@ public final class CanvasWire {
     public static void sparks(CanvasPainter painter, float[] points, float width, WireStyle style, float origin) {
         if (!style.flows()) return;
         float length = CanvasPainter.pathLength(points);
-        float shift = (System.currentTimeMillis() % SPARK_PERIOD_MS) / (float) SPARK_PERIOD_MS * SPARK_SPACING;
+        float shift = (float) UIClock.phase(SPARK_PERIOD_MS) * SPARK_SPACING;
         float first = shift - floorMod(origin, SPARK_SPACING);
         for (float head = first; head - SPARK_HEAD - SPARK_TAIL < length; head += SPARK_SPACING) {
             if (head <= 0) continue;
-            float snapped = PixelSnap.snap(head);
+            float snapped = UIPixels.snap(head);
             float neck = snapped - painter.px(SPARK_HEAD);
             painter.pathSpan(points, Math.max(0, neck - painter.px(SPARK_TAIL)), Math.min(length, neck), width, style.sparkTail());
             painter.pathSpan(points, Math.max(0, neck), Math.min(length, snapped), width, style.spark());

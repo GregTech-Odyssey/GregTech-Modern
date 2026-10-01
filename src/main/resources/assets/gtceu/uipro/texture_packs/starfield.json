@@ -1,0 +1,7 @@
+{
+  "name": "Starfield",
+  "textures": {
+    "atlas": "gtceu:textures/gui/uipro/starfield/ore_styles.png",
+    "view_icons": "gtceu:textures/gui/uipro/starfield/view_icons.png"
+  }
+}

@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.ICoilMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -78,6 +79,7 @@ public interface RecipeModifier extends IRecipeInfo {
         if (holder instanceof ICoilMachine coilMachine) {
             return overclocking(holder, unit, recipe, false, Math.max(0.2, 1.0 - (coilMachine.getCoilTier() * 0.1)), 1, 0.5);
         }
+        holder.reportIssue(GTIssues.NOT_APPLICABLE);
         return null;
     };
 
@@ -90,6 +92,7 @@ public interface RecipeModifier extends IRecipeInfo {
                 return overclocking(holder, unit, recipe, false, 1, 2.0 / (coilMachine.getCoilTier() + 1), 0.5);
             }
         }
+        holder.reportIssue(GTIssues.NOT_APPLICABLE);
         return null;
     };
 
@@ -102,6 +105,7 @@ public interface RecipeModifier extends IRecipeInfo {
             int temperature = coilMachine.getCoilType().getCoilTemperature() + (100 * Math.max(0, ((ITieredMachine) coilMachine).getTier() - GTValues.MV));
             int recipeTemp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
             if (recipeTemp > temperature) {
+                holder.reportIssue(GTIssues.INSUFFICIENT_TEMPERATURE, recipeTemp, temperature);
                 return null;
             }
             long recipeVoltage = (long) (recipe.getInputEUt() * getCoilEUtDiscount(recipeTemp, temperature));
@@ -164,6 +168,7 @@ public interface RecipeModifier extends IRecipeInfo {
             recipe.duration = (int) (128 * 2.0 * recipe.parallels / maxParallel);
             return overclocking(holder, unit, recipe);
         }
+        holder.reportIssue(GTIssues.NOT_APPLICABLE);
         return null;
     };
 

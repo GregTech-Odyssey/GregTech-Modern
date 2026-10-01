@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.utils.GTTransferUtils;
@@ -352,20 +353,20 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var transfer = CoverUIs.section("cover.ui.transfer").addChildren(
-                CoverUIs.numberRow("cover.conveyor.ui.transfer_rate",
-                        NumberField.of(LayoutStyle.AUTO, () -> transferRate, value -> setTransferRate((int) value), 1, maxItemTransferRate)),
+        var transfer = Form.section("cover.ui.transfer").addChildren(
+                Form.numberRow("cover.conveyor.ui.transfer_rate",
+                        NumberField.ofInt(LayoutStyle.AUTO, () -> transferRate, this::setTransferRate, 1, maxItemTransferRate)),
                 CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), this::getIo, this::setIo, "cover.conveyor.ui.io.tooltip"));
         buildAdditionalUI(transfer);
         var distribution = CoverUIs.enumRow("cover.conveyor.ui.distribution", List.of(DistributionMode.VALUES),
                 this::getDistributionMode, this::setDistributionMode)
                 .disabled(() -> !shouldDisplayDistributionMode(), "cover.conveyor.ui.distribution_no_pipe");
-        var modes = CoverUIs.section("cover.ui.modes").addChildren(distribution,
+        var modes = Form.section("cover.ui.modes").addChildren(distribution,
                 CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
                         "cover.universal.manual_import_export.mode.description.0",
                         "cover.universal.manual_import_export.mode.description.1",
                         "cover.universal.manual_import_export.mode.description.2"));
-        return CoverUIs.page().addChildren(transfer, modes, CoverUIs.filterSection(filterHandler));
+        return Form.page().addChildren(transfer, modes, CoverUIs.filterSection(filterHandler));
     }
 
     private boolean shouldDisplayDistributionMode() {

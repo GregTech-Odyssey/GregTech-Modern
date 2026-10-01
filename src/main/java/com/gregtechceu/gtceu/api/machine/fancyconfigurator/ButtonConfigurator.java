@@ -2,14 +2,13 @@ package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 
 import net.minecraft.network.chat.Component;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +38,8 @@ public class ButtonConfigurator implements IFancyConfiguratorButton {
     }
 
     @Override
-    public void bindSync(SyncValueHost host) {
-        if (busy != null) host.add(busy);
+    public void bindSync(UIChannel.Host host) {
+        if (busy != null) host.addSyncValue(busy);
     }
 
     @Override
@@ -65,7 +64,7 @@ public class ButtonConfigurator implements IFancyConfiguratorButton {
      * @return {@code this}.
      */
     public ButtonConfigurator setBusy(BooleanSupplier busy, List<Component> busyTooltips) {
-        this.busy = SyncValue.of(busy::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, false);
+        this.busy = SyncValue.ofBool(busy);
         this.busyTooltips = busyTooltips;
         return this;
     }

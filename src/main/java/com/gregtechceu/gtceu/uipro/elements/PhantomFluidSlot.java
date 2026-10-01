@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.uipro.ElementState;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -20,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -30,14 +30,18 @@ import java.util.function.Supplier;
  * <p>
  * 与 {@link PhantomItemSlot} 一样有<b>选中</b>、<b>禁用</b>（见 {@link ElementState}）和 {@link #xeiPhantom()}（可从 EMI 拖入，槽里画下箭头标记）。
  */
-public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState.Host {
+public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState.Host<PhantomFluidSlot>, UIChannel.Host {
 
-    public static final int SIZE = UISizes.SLOT;
+    public static final int SIZE = UISizes.SLOT_SIZE;
 
     private final SlotState slotState = new SlotState(this);
     private boolean xeiPhantom;
 
-    public PhantomFluidSlot(@Nullable IFluidHandler handler, int tank, Supplier<FluidStack> getter, Consumer<FluidStack> setter) {
+    public static PhantomFluidSlot of(@Nullable IFluidHandler handler, int tank, Supplier<FluidStack> getter, Consumer<FluidStack> setter) {
+        return new PhantomFluidSlot(handler, tank, getter, setter);
+    }
+
+    protected PhantomFluidSlot(@Nullable IFluidHandler handler, int tank, Supplier<FluidStack> getter, Consumer<FluidStack> setter) {
         super(handler, tank, 0, 0, SIZE, SIZE, getter, setter);
         if (GTCEu.isClientThread()) setBackground(slotState.background(UITheme.FLUID_SLOT, true, this::isXeiPhantom));
         setShowAmount(false);
@@ -48,16 +52,15 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
         return slotState.state;
     }
 
-    /** 选中（LDLib2 {@code setSelected}），客户端每帧判定；传 null 取消。 */
-    public PhantomFluidSlot setSelected(@Nullable BooleanSupplier selected) {
-        slotState.state.setSelected(selected);
-        return this;
+    @Override
+    public UIChannel getChannel() {
+        return slotState.channel;
     }
 
-    /** 按服务端条件禁用（LDLib2 {@code disabled()}）；{@code reasonKey} 为原因翻译键（可为 null）。建界面时两端都要调用。 */
-    public PhantomFluidSlot disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        slotState.state.setDisabled(serverCondition, reasonKey);
-        return this;
+    @Override
+    public void initWidget() {
+        super.initWidget();
+        slotState.prime();
     }
 
     /** 可从 EMI 拖入（LDLib2 {@code FluidSlot.xeiPhantom()}）。 */
@@ -81,6 +84,7 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
     /// 服务端再判一次禁用：客户端的点击、拖入请求可以伪造
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
+        if (slotState.handleClientAction(id, buffer)) return;
         if (isDisabled()) return;
         super.handleClientAction(id, buffer);
     }
@@ -126,7 +130,7 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        slotState.detectAndSendChanges(this::writeUpdateInfo);
+        slotState.detectAndSendChanges();
     }
 
     @Override

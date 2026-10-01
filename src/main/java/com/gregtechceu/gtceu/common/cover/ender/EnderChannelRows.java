@@ -1,8 +1,9 @@
 package com.gregtechceu.gtceu.common.cover.ender;
 
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -22,7 +23,7 @@ import java.util.function.Supplier;
 
 final class EnderChannelRows extends UIElement {
 
-    private static final int ROWS_ID = SyncValueHost.ID_BASE - 16;
+    private static final int ROWS_ID = UIChannel.BASE - 16;
     private static final int RESCAN_TICKS = 20;
 
     private final boolean remote;
@@ -83,7 +84,7 @@ final class EnderChannelRows extends UIElement {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         if (hasVisibleRow()) return;
         var font = Minecraft.getInstance().font;
-        graphics.drawString(font, UITheme.clip(font, emptyText.getString(), getSizeWidth()), getPositionX(), getPositionY(), UITheme.TEXT_SECONDARY, false);
+        graphics.drawString(font, UIText.fit(emptyText.getString(), getSizeWidth()), getPositionX(), getPositionY(), UITheme.TEXT_SECONDARY, false);
     }
 
     @Override

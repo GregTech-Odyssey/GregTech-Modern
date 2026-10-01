@@ -9,11 +9,10 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
-import com.gregtechceu.gtceu.uipro.LayoutStyle;
-import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import com.gregtechceu.gtceu.uiwidgets.inventory.SlotGridView;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -65,13 +64,7 @@ public class StorageCover extends CoverBehavior implements IUICover {
 
     @Override
     public Widget createUIWidget() {
-        var grid = UIElement.column(LayoutStyle.AUTO);
-        for (int start = 0; start < SIZE; start += UISizes.SLOTS_PER_ROW) {
-            var row = UIElement.row(UISizes.SLOT);
-            for (int i = start; i < Math.min(SIZE, start + UISizes.SLOTS_PER_ROW); i++) row.addChild(ItemSlot.of(inventory, i));
-            grid.addChild(row);
-        }
-        return CoverUIs.page().layout(l -> l.alignCenter()).addChild(grid);
+        return Form.page().layout(l -> l.alignCenter()).addChild(SlotGrid.of(UISizes.SLOTS_PER_ROW, SIZE, i -> ItemSlot.of(inventory, i)));
     }
 
     @Override

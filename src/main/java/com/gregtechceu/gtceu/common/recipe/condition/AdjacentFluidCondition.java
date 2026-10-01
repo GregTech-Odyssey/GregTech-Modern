@@ -17,6 +17,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 
+import org.jetbrains.annotations.Nullable;
+
 public class AdjacentFluidCondition extends RecipeCondition {
 
     public final Fluid A;
@@ -30,7 +32,25 @@ public class AdjacentFluidCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return Component.translatable("recipe.condition.rock_breaker.tooltip");
+        return Component.translatable(isReverse ? "recipe.condition.rock_breaker.reverse.tooltip" : "recipe.condition.rock_breaker.tooltip");
+    }
+
+    @Override
+    public @Nullable Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
+        boolean hasFluidA = false, hasFluidB = false;
+        if (holder instanceof IMultiController) {
+            var as = unit.getFluidAmount(false, A, B);
+            hasFluidA = as[0] > 0;
+            hasFluidB = as[1] > 0;
+        } else {
+            for (Direction side : GTUtil.DIRECTIONS) {
+                if (side.getAxis() == Direction.Axis.Y) continue;
+                var fluid = holder.self().getNeighborFluidState(side).getType();
+                if (fluid == A) hasFluidA = true;
+                else if (fluid == B) hasFluidB = true;
+            }
+        }
+        return AdjacentBlockCondition.adjacentText(isReverse, hasFluidA, hasFluidB, A.getFluidType().getDescription(), B.getFluidType().getDescription());
     }
 
     /** 配方页：一句说明，并把两侧需要的流体作为展示槽。 */

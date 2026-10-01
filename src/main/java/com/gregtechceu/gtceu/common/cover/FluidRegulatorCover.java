@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.TransferMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
@@ -151,14 +152,14 @@ public class FluidRegulatorCover extends PumpCover {
     ///////////////////////////
     @Override
     protected void buildAdditionalUI(UIElement page) {
-        var field = new NumberField(LayoutStyle.AUTO, this::getCurrentBucketModeTransferSize, value -> setCurrentBucketModeTransferSize((int) value),
+        var field = NumberField.ofInt(LayoutStyle.AUTO, this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize,
                 () -> 0, () -> MAX_STACK_SIZE / transferBucketMode.multiplier);
         var amount = fluidAmountRow(this::getTransferSizeLabel, List.of(BucketMode.values()), this::getTransferBucketMode,
                 this::setTransferBucketMode, field)
                 .disabled(this::isTransferSizeFromFilter, "cover.fluid_regulator.ui.amount_from_filter");
         var amountRow = UIElement.column(LayoutStyle.AUTO).addChild(amount)
                 .disabled(() -> transferMode == TransferMode.TRANSFER_ANY, "cover.fluid_regulator.ui.amount_unused");
-        page.addChild(CoverUIs.section("cover.fluid_regulator.ui.regulation").addChildren(
+        page.addChild(Form.section("cover.fluid_regulator.ui.regulation").addChildren(
                 CoverUIs.enumRow("cover.fluid_regulator.ui.transfer_mode", List.of(TransferMode.values()), this::getTransferMode, this::setTransferMode,
                         "cover.fluid_regulator.transfer_mode.description.0",
                         "cover.fluid_regulator.transfer_mode.description.1",

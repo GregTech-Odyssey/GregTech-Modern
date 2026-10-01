@@ -13,12 +13,12 @@ import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
-import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayouts;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeTierPreview;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeInfoLines;
@@ -121,7 +121,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private Component[] rowTexts = new Component[0];
     /// 各槽位对应的配方内容，与带内容的槽位（切换电压档时只刷新它们）
     private final Table<IO, RecipeInfo, List<Content>> contents = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap::new);
-    private final List<Widget> contentSlots = new ArrayList<>();
+    private final List<ContentSlot> contentSlots = new ArrayList<>();
 
     public GTRecipeWidget(GTRecipeDefinition recipe) {
         this(recipe, PageFrame.COMPACT);
@@ -145,11 +145,11 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         boolean inline = inlineSlots(recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe).width, info.slots().size(), size.width);
 
         var stage = new UIElement().layout(l -> l.column().flexGrow(1).alignCenter().justifyContent(AlignContent.CENTER)
-                .paddingHorizontal(UITheme.PANEL_PADDING));
+                .paddingHorizontal(UISizes.PANEL_PADDING));
         stage.setBackground(UITheme.PANEL);
         if (inline) {
             var row = new UIElement().layout(l -> l.row().gapAll(INLINE_SLOT_GAP).alignCenter());
-            row.addChild(RecipeSlotLayouts.grid(createSlots(info), info.slots().size()));
+            row.addChild(SlotGrid.of(info.slots().size(), createSlots(info)));
             row.addChild(createSlotArea(growth));
             stage.addChild(row);
         } else {
@@ -191,13 +191,13 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private static Size contentSize(GTRecipeDefinition recipe, PageFrame frame) {
         var slotArea = recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe);
         // 宽度取偶数：配方查看器会把页面宽度补成偶数，奇数宽的卡片会偏 1 像素
-        int width = Math.max(slotArea.width + 2 * UITheme.PANEL_PADDING, frame.minWidth());
+        int width = Math.max(slotArea.width + 2 * UISizes.PANEL_PADDING, frame.minWidth());
         width += width & 1;
         var counter = new RecipeInfoLines.Counter();
         var preview = RecipeTierPreview.create(recipe);
         appendInfo(recipe, counter, null, preview);
         boolean inline = inlineSlots(slotArea.width, counter.slots(), width);
-        int stage = inline ? Math.max(slotArea.height, UISizes.SLOT) : slotArea.height;
+        int stage = inline ? Math.max(slotArea.height, UISizes.SLOT_SIZE) : slotArea.height;
         int left = panelHeight(preview != null && preview.hasStepper(), counter.labeled(), counter.sentenceRows(frame.besideNotch(width)));
         int footer = footerHeight(inline ? 0 : counter.slots(), frame.besideNotch(width));
         if (footer > 0) left += (left > 0 ? UISizes.SECTION_GAP : 0) + footer;
@@ -207,7 +207,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     private static boolean inlineSlots(int slotAreaWidth, int slots, int width) {
-        return slots > 0 && slotAreaWidth + INLINE_SLOT_GAP + slots * UISizes.SLOT <= width - 2 * UITheme.PANEL_PADDING;
+        return slots > 0 && slotAreaWidth + INLINE_SLOT_GAP + slots * UISizes.SLOT_SIZE <= width - 2 * UISizes.PANEL_PADDING;
     }
 
     /** 参数表高度；没有任何内容时为 0（不显示）。 */
@@ -273,25 +273,42 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     // ==================== 槽位区 ====================
 
     private Widget createSlotArea(int growth) {
-        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
-        collectStorage(storages, contents, recipe);
-        var slotArea = recipe.recipeType.getRecipeUI().createRecipeTemplate(recipe, storages);
+        var slotArea = createSlotTemplate(recipe, contents);
         for (var widget : slotArea.getContainedWidgets(true)) {
             if (growth <= 0) break;
             if (widget instanceof ScrollerView scroller) growth -= scroller.growAdaptiveHeight(growth);
         }
-        collectContentSlots(slotArea);
+        collectContentSlots(slotArea, contents, contentSlots);
         applyContentInfo();
         return slotArea;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static List<Widget> createInfoSlots(GTRecipeDefinition recipe) {
+        var info = new RecipeInfoLines();
+        appendInfo(recipe, info, null, RecipeTierPreview.create(recipe));
+        var slots = createSlots(info);
+        for (var slot : slots) slot.setClientSideWidget();
+        return slots;
+    }
+
+    private static WidgetGroup createSlotTemplate(GTRecipeDefinition recipe, Table<IO, RecipeInfo, List<Content>> contents) {
+        var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
+        collectStorages(storages, contents, recipe);
+        return recipe.recipeType.getRecipeUI().createRecipeTemplate(recipe, storages);
+    }
+
     public void collectStorage(Table<IO, RecipeInfo, Object> extraTable,
                                Table<IO, RecipeInfo, List<Content>> extraContents, GTRecipeDefinition recipe) {
-        collectStorage(extraTable, extraContents, IO.IN, ItemRecipeInfo.INSTANCE, (List) displayItemInputs(recipe));
-        collectStorage(extraTable, extraContents, IO.IN, FluidRecipeInfo.INSTANCE, (List) recipe.fluidInputs);
-        collectStorage(extraTable, extraContents, IO.OUT, ItemRecipeInfo.INSTANCE, (List) recipe.itemOutputs);
-        collectStorage(extraTable, extraContents, IO.OUT, FluidRecipeInfo.INSTANCE, (List) recipe.fluidOutputs);
+        collectStorages(extraTable, extraContents, recipe);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static void collectStorages(Table<IO, RecipeInfo, Object> extraTable,
+                                        Table<IO, RecipeInfo, List<Content>> extraContents, GTRecipeDefinition recipe) {
+        collectStorage(extraTable, extraContents, recipe, IO.IN, ItemRecipeInfo.INSTANCE, (List) displayItemInputs(recipe));
+        collectStorage(extraTable, extraContents, recipe, IO.IN, FluidRecipeInfo.INSTANCE, (List) recipe.fluidInputs);
+        collectStorage(extraTable, extraContents, recipe, IO.OUT, ItemRecipeInfo.INSTANCE, (List) recipe.itemOutputs);
+        collectStorage(extraTable, extraContents, recipe, IO.OUT, FluidRecipeInfo.INSTANCE, (List) recipe.fluidOutputs);
     }
 
     private static List<Content<ItemIngredient>> displayItemInputs(GTRecipeDefinition recipe) {
@@ -311,8 +328,8 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void collectStorage(Table<IO, RecipeInfo, Object> extraTable, Table<IO, RecipeInfo, List<Content>> extraContents,
-                                IO io, ContentRecipeInfo cap, List<Content> contents) {
+    private static void collectStorage(Table<IO, RecipeInfo, Object> extraTable, Table<IO, RecipeInfo, List<Content>> extraContents,
+                                       GTRecipeDefinition recipe, IO io, ContentRecipeInfo cap, List<Content> contents) {
         if (contents.isEmpty()) return;
         extraContents.put(io, cap, contents);
         List<Object> entries = cap.createXEIContainerContents(contents, recipe, io);
@@ -323,32 +340,32 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     /** 记下有配方内容的槽位，切换电压档时只刷新它们的概率角标与提示，不重建控件。 */
-    private void collectContentSlots(WidgetGroup slotArea) {
+    private record ContentSlot(Widget widget, IO io, ContentRecipeInfo<?, ?> cap, Content content, int index) {}
+
+    private static void collectContentSlots(WidgetGroup slotArea, Table<IO, RecipeInfo, List<Content>> contents, List<ContentSlot> contentSlots) {
         for (var ioEntry : contents.rowMap().entrySet()) {
+            var io = ioEntry.getKey();
             for (var capEntry : ioEntry.getValue().entrySet()) {
                 if (!(capEntry.getKey() instanceof ContentRecipeInfo<?, ?> cap) || cap.getWidgetClass() == null) continue;
-                WidgetUtils.widgetByIdForEach(slotArea, "^%s_[0-9]+$".formatted(cap.slotName(ioEntry.getKey())), cap.getWidgetClass(), contentSlots::add);
+                var capContents = capEntry.getValue();
+                WidgetUtils.indexedWidgetForEach(slotArea, cap.slotName(io), cap.getWidgetClass(), (widget, index) -> {
+                    if (index < capContents.size()) contentSlots.add(new ContentSlot(widget, io, cap, capContents.get(index), index));
+                });
             }
         }
     }
 
     /** 把每个槽位对应的配方内容（概率、消耗说明、角标）按当前电压档应用到槽位上。 */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void applyContentInfo() {
-        for (var widget : contentSlots) {
-            var id = widget.getId();
-            for (var ioEntry : contents.rowMap().entrySet()) {
-                var io = ioEntry.getKey();
-                for (var capEntry : ioEntry.getValue().entrySet()) {
-                    if (!(capEntry.getKey() instanceof ContentRecipeInfo cap) || !id.startsWith(cap.slotName(io) + "_")) continue;
-                    int index = WidgetUtils.widgetIdIndex(widget);
-                    List<Content> capContents = capEntry.getValue();
-                    if (index < 0 || index >= capContents.size()) continue;
-                    var content = capContents.get(index);
-                    cap.applyWidgetInfo(widget, index, true, io, null, recipe.recipeType, recipe, content, null, minTier, tier);
-                    widget.setOverlay(content.createOverlay(false, minTier, tier, recipe.chanceFunction));
-                }
-            }
+        applyContentInfo(contentSlots, recipe, minTier, tier);
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private static void applyContentInfo(List<ContentSlot> contentSlots, GTRecipeDefinition recipe, int minTier, int tier) {
+        for (var slot : contentSlots) {
+            ContentRecipeInfo cap = slot.cap();
+            cap.applyWidgetInfo(slot.widget(), slot.index(), true, slot.io(), null, recipe.recipeType, recipe, slot.content(), null, minTier, tier);
+            slot.widget().setOverlay(slot.content().createOverlay(false, minTier, tier, recipe.chanceFunction));
         }
     }
 
@@ -435,19 +452,19 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     private static int slotsPerRow(int width) {
-        return Math.max(1, (width - UISizes.GAP) / UISizes.SLOT);
+        return Math.max(1, (width - UISizes.GAP) / UISizes.SLOT_SIZE);
     }
 
     private static int footerHeight(int slots, int width) {
         int perRow = slotsPerRow(width);
-        return slots == 0 ? 0 : (slots + perRow - 1) / perRow * UISizes.SLOT;
+        return slots == 0 ? 0 : (slots + perRow - 1) / perRow * UISizes.SLOT_SIZE;
     }
 
     @Nullable
     private Widget createFooter(RecipeInfoLines info, int width) {
         if (info.slots().isEmpty()) return null;
         var footer = new UIElement().layout(l -> l.row().gapAll(UISizes.GAP).alignItems(AlignItems.END));
-        footer.addChild(RecipeSlotLayouts.grid(createSlots(info), slotsPerRow(frame.besideNotch(width))));
+        footer.addChild(SlotGrid.of(slotsPerRow(frame.besideNotch(width)), createSlots(info)));
         return footer;
     }
 

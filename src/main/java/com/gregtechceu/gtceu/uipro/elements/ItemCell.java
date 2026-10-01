@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncItem;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
@@ -13,21 +14,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
 public class ItemCell extends UIElement {
 
-    public static final int SIZE = UISizes.SLOT;
+    public static final int SIZE = UISizes.SLOT_SIZE;
 
     private final SyncValue<SyncItem> item;
     private boolean plain;
 
-    public ItemCell(Supplier<ItemStack> stack, ItemStack initial) {
+    protected ItemCell(Supplier<ItemStack> stack, ItemStack initial) {
         layout(l -> l.size(SIZE, SIZE));
-        this.item = addSyncValue(SyncValue.of(() -> SyncItem.of(stack.get()), SyncItem.CODEC, SyncItem.of(initial)));
+        this.item = addSyncValue(SyncValue.ofItem(stack, initial));
     }
 
     public static ItemCell of(Supplier<ItemStack> stack) {
@@ -60,11 +60,7 @@ public class ItemCell extends UIElement {
         if (!plain) UITheme.ITEM_SLOT.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
         var stack = getStack();
         if (!stack.isEmpty()) graphics.renderItem(stack, x + 1, y + 1);
-        if (!plain && isMouseOverElement(mouseX, mouseY)) {
-            RenderSystem.colorMask(true, true, true, false);
-            graphics.fill(x + 1, y + 1, x + SIZE - 1, y + SIZE - 1, 200, UITheme.SLOT_HOVER_OVERLAY);
-            RenderSystem.colorMask(true, true, true, true);
-        }
+        if (!plain && isMouseOverElement(mouseX, mouseY)) UIDraw.hoverOverlay(graphics, x, y, SIZE, SIZE);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 

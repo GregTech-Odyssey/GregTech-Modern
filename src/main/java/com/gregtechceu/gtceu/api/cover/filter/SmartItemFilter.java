@@ -5,11 +5,12 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
+import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -78,9 +79,9 @@ public class SmartItemFilter implements ItemFilter {
     @Override
     public Widget createConfigUI() {
         var modes = SmartFilteringMode.VALUES;
-        var info = new InfoIcon(InfoIcon.Kind.INFO, LangHandler.getMultiLang("cover.item_smart_filter.filtering_mode.description").toArray(new Component[0]));
-        var head = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
-                .addChildren(CoverUIs.label("cover.item_smart_filter.target_machine"), info);
+        var info = InfoIcon.of(Level.NORMAL, LangHandler.getMultiLang("cover.item_smart_filter.filtering_mode.description").toArray(new Component[0]));
+        var head = UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
+                .addChildren(Form.label("cover.item_smart_filter.target_machine"), info);
         var group = ButtonGroup.single(modes.length, i -> Component.translatable(modes[i].getTooltip()),
                 () -> filterMode.ordinal(), i -> setFilterMode(modes[i]));
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(head, group);

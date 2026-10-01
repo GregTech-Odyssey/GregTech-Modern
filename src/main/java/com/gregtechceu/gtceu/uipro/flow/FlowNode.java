@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.uipro.flow;
 import com.gregtechceu.gtceu.uipro.IHoverOwner;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -43,12 +43,12 @@ public class FlowNode extends UIElement {
         this.state = addSyncValue(SyncValue.ofInt(() -> stateGetter.get().ordinal(), FlowState.IDLE.ordinal()));
     }
 
-    public FlowNode state(Supplier<FlowState> state) {
+    public FlowNode bindState(Supplier<FlowState> state) {
         this.stateGetter = state;
         return this;
     }
 
-    public FlowNode detail(Supplier<List<Component>> lines) {
+    public FlowNode bindDetail(Supplier<List<Component>> lines) {
         this.detail = addSyncValue(SyncValue.of(lines, LINES, Collections.emptyList()));
         return this;
     }
@@ -73,8 +73,8 @@ public class FlowNode extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var current = getFlowState();
-        UITheme.drawFlowPlate(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(),
-                current.outline(), current.stripLight(), current.stripMid());
+        UIDraw.flowPlate(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(),
+                current.getOutline(), current.getStripLight(), current.getStripMid());
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 

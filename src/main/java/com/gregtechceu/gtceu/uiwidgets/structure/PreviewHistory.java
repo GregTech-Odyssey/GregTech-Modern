@@ -32,7 +32,7 @@ final class PreviewHistory {
             this.definition = definition;
             this.structure = structure;
             this.values = StructureBuildFlow.remembered(definition, structure);
-            this.excluded = new boolean[structure.tree().nodes().length];
+            this.excluded = StructureConfigView.defaultExcluded(structure.tree(), values);
         }
     }
 

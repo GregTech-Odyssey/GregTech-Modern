@@ -39,6 +39,6 @@ public interface IDisplayUIMachine extends IUIMachine, IMultiController {
      */
     @Override
     default ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(176, 216, this, entityPlayer).widget(new MachineWindow(MachineDisplay.provider(this)));
+        return MachineWindow.createUI(MachineDisplay.provider(this), this, entityPlayer);
     }
 }

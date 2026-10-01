@@ -217,6 +217,11 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
 
     @Override
     public @NotNull ModularUI createUI(@NotNull Player entityPlayer) {
-        return new ModularUI(198, 208, this, entityPlayer).widget(new MachineWindow(this));
+        return MachineWindow.createUI(this, this, entityPlayer);
+    }
+
+    @Override
+    public boolean hasDiagnosisTab() {
+        return false;
     }
 }

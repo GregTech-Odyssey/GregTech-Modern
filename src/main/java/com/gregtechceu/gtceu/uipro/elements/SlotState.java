@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.ElementState;
-import com.gregtechceu.gtceu.uipro.data.SyncValueHost;
-import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uipro.render.UIDraw;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -21,13 +21,13 @@ import java.util.function.BooleanSupplier;
 final class SlotState {
 
     private final Widget owner;
-    private final SyncValueHost syncValues;
+    final UIChannel channel;
     final ElementState state;
 
-    SlotState(Widget owner) {
+    <T extends Widget & UIChannel.Host> SlotState(T owner) {
         this.owner = owner;
-        this.syncValues = new SyncValueHost(owner);
-        this.state = new ElementState(owner, syncValues::add);
+        this.channel = new UIChannel(owner);
+        this.state = new ElementState(owner, owner);
     }
 
     boolean isDisabled() {
@@ -40,42 +40,57 @@ final class SlotState {
      */
     @OnlyIn(Dist.CLIENT)
     IGuiTexture background(IGuiTexture base, boolean darkSlot, BooleanSupplier xeiPhantom) {
-        return (graphics, mouseX, mouseY, x, y, width, height) -> {
+        return new XeiPhantomBackground(base, darkSlot, xeiPhantom);
+    }
+
+    private record XeiPhantomBackground(IGuiTexture base, boolean darkSlot, BooleanSupplier xeiPhantom) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
             base.draw(graphics, mouseX, mouseY, x, y, width, height);
-            if (xeiPhantom.getAsBoolean()) UITheme.drawXeiPhantom(graphics, (int) x, (int) y, width, height, darkSlot);
-        };
+            if (xeiPhantom.getAsBoolean()) UIDraw.xeiPhantomMark(graphics, (int) x, (int) y, width, height, darkSlot);
+        }
     }
 
     /** 在槽的内容画完后调用：禁用时叠统一斜纹。 */
     @OnlyIn(Dist.CLIENT)
     void drawDisabled(GuiGraphics graphics) {
-        if (isDisabled()) UITheme.drawDisabled(graphics, owner.getPositionX(), owner.getPositionY(), owner.getSizeWidth(), owner.getSizeHeight());
+        if (isDisabled()) UIDraw.disabledHatch(graphics, owner.getPositionX(), owner.getPositionY(), owner.getSizeWidth(), owner.getSizeHeight());
     }
 
     /** 在前景层调用：选中时画统一选中框。 */
     @OnlyIn(Dist.CLIENT)
     void drawSelection(GuiGraphics graphics) {
-        if (state.isSelected()) UITheme.drawSelection(graphics, owner.getPositionX(), owner.getPositionY(), owner.getSizeWidth(), owner.getSizeHeight());
+        if (state.isSelected()) UIDraw.selectionFrame(graphics, owner.getPositionX(), owner.getPositionY(), owner.getSizeWidth(), owner.getSizeHeight());
     }
 
     void writeInitialData(FriendlyByteBuf buffer) {
-        syncValues.writeInitialData(buffer);
+        channel.writeInitialData(buffer);
     }
 
     void readInitialData(FriendlyByteBuf buffer) {
-        syncValues.readInitialData(buffer);
+        channel.readInitialData(buffer);
     }
 
-    void detectAndSendChanges(SyncValueHost.UpdateSender sender) {
-        syncValues.detectAndSendChanges(sender);
+    void detectAndSendChanges() {
+        channel.detectAndSendChanges();
     }
 
     boolean readUpdateInfo(int id, FriendlyByteBuf buffer) {
-        return syncValues.readUpdateInfo(id, buffer);
+        return channel.readUpdateInfo(id, buffer);
+    }
+
+    boolean handleClientAction(int id, FriendlyByteBuf buffer) {
+        return channel.handleClientAction(id, buffer);
+    }
+
+    void prime() {
+        channel.prime();
     }
 
     /** 客户端每帧调用（纯客户端界面靠它取本端值）。 */
     void pollClient() {
-        syncValues.pollClient();
+        channel.pollClient();
     }
 }

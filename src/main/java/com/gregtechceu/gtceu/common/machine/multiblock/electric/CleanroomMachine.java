@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
@@ -354,19 +355,12 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             if (cleanroomType != null) {
                 textList.add(Component.translatable(cleanroomType.getTranslationKey()));
             }
-            if (!isWorkingEnabled()) {
-                textList.add(Component.translatable("gtceu.multiblock.work_paused"));
-            } else if (isActive()) {
-                textList.add(Component.translatable("gtceu.multiblock.running"));
+            MultiblockDisplayText.builder(textList, true, false).addIssueLines(recipeLogic);
+            if (isWorkingEnabled() && isActive()) {
                 int currentProgress = (int) (recipeLogic.getProgressPercent() * 100);
                 double maxInSec = (float) recipeLogic.getDuration() / 20.0F;
                 double currentInSec = (float) recipeLogic.getProgress() / 20.0F;
                 textList.add(Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec), String.format("%.2f", (float) maxInSec), currentProgress));
-            } else {
-                textList.add(Component.translatable("gtceu.multiblock.idling"));
-            }
-            if (recipeLogic.isWaiting()) {
-                textList.add(Component.translatable("gtceu.multiblock.waiting").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
             if (isClean()) textList.add(Component.translatable("gtceu.multiblock.cleanroom.clean_state"));
             else textList.add(Component.translatable("gtceu.multiblock.cleanroom.dirty_state"));
@@ -421,4 +415,9 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     @Override
     public void setWorkingEnabled(boolean ignored) {}
+
+    @Override
+    public boolean hasDiagnosisTab() {
+        return false;
+    }
 }

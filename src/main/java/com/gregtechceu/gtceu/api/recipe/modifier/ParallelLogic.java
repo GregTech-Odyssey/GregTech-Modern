@@ -2,11 +2,12 @@ package com.gregtechceu.gtceu.api.recipe.modifier;
 
 import com.gregtechceu.gtceu.api.machine.feature.IOverclockMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
+import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
+import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
-import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -16,6 +17,7 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.OptimalSearch;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -60,7 +62,9 @@ public final class ParallelLogic {
      */
     public static long getRemainingMaxParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (recipe.contentParallel > 0) {
-            return recipe.contentParallel / recipe.parallels;
+            long remaining = recipe.contentParallel / recipe.parallels;
+            if (remaining == 0) holder.reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, null, -1, -1, -1, recipe.definition);
+            return remaining;
         }
         return getMaxContentParallelAmount(holder, unit, recipe, MAX_PARALLEL);
     }
@@ -115,8 +119,7 @@ public final class ParallelLogic {
     }
 
     /**
-     * 每 tick 消耗带来的并行上限：电压不够就把停机原因写成「输入不足（EU）」，
-     * 之后依次交给每个 tick 扩展（如算力）继续收紧。
+     * 每 tick 消耗带来的并行上限。
      */
     private static long getMaxTickParallelAmount(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long maxParallel) {
         if (maxParallel > 1) {
@@ -126,15 +129,21 @@ public final class ParallelLogic {
                     if (eu < 0) {
                         eu = -eu;
                     }
-                    maxParallel = Math.min(maxParallel, overclockMachine.getOverclockVoltage() / eu);
+                    long voltage = overclockMachine.getOverclockVoltage();
+                    maxParallel = Math.min(maxParallel, voltage / eu);
                     if (maxParallel == 0) {
-                        holder.setIdleReason(() -> ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
+                        if (recipe.eut < 0) holder.reportIssue(GTIssues.OUTPUT_POWER_LOW, null, IO.OUT, EURecipeInfo.INSTANCE, -1, eu, voltage, recipe.definition);
+                        else holder.reportIssue(GTIssues.LOW_VOLTAGE, null, IO.IN, EURecipeInfo.INSTANCE, -1, GTUtil.getTierByVoltage(eu), voltage > 0 ? GTUtil.getFloorTierByVoltage(voltage) : -1, recipe.definition);
+                        return 0;
                     }
                 }
             }
             for (var extension : recipe.definition.tickRecipeExtensions) {
                 maxParallel = extension.getParallel(holder, unit, recipe, maxParallel);
-                if (maxParallel == 0) return 0;
+                if (maxParallel == 0) {
+                    holder.reportIssue(GTIssues.EXTENSION_UNMET, IssueStage.MODIFIER, IO.IN, null, -1, 0, 0, recipe.definition);
+                    return 0;
+                }
             }
         }
         return maxParallel;
@@ -144,8 +153,7 @@ public final class ParallelLogic {
      * 内容库存带来的并行上限：先看输入（物品、流体、非 tick 扩展），再看输出容量。
      *
      * <p>
-     * 输出侧只对非空、且机器不能虚空处理的那一类做检查，容量不够就把停机原因写成
-     * {@link ActionResult#FAIL_INSUFFICIENT_OUT}。算出的上限会写进
+     * 输出侧只对非空、且机器不能虚空处理的那一类做检查。算出的上限会写进
      * {@link GTRecipe#contentParallel} 作为缓存。
      *
      * @return {@code min(maxParallel, 内容上限)}
@@ -155,22 +163,31 @@ public final class ParallelLogic {
         var items = recipe.itemInputs;
         if (!items.isEmpty()) {
             parallel = unit.getInputItemParallelAmount(items, parallel);
-            if (parallel == 0) return 0;
+            if (parallel == 0) {
+                holder.reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, ItemRecipeInfo.INSTANCE, -1, -1, -1, recipe.definition);
+                return 0;
+            }
         }
         var fluids = recipe.fluidInputs;
         if (!fluids.isEmpty()) {
             parallel = unit.getInputFluidParallelAmount(fluids, parallel);
-            if (parallel == 0) return 0;
+            if (parallel == 0) {
+                holder.reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, FluidRecipeInfo.INSTANCE, -1, -1, -1, recipe.definition);
+                return 0;
+            }
         }
         for (var extension : recipe.definition.recipeExtensions) {
             parallel = extension.getParallel(holder, unit, recipe, parallel);
-            if (parallel == 0) return 0;
+            if (parallel == 0) {
+                holder.reportIssue(GTIssues.EXTENSION_UNMET, IssueStage.MODIFIER, IO.IN, null, -1, 0, 0, recipe.definition);
+                return 0;
+            }
         }
         items = recipe.itemOutputs;
         if (!(items.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE)))) {
             parallel = getOutputItemParallelAmount(holder.getOutputUnits(recipe), recipe, items, parallel);
             if (parallel == 0) {
-                holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
+                holder.reportIssue(GTIssues.OUTPUT_FULL, null, IO.OUT, ItemRecipeInfo.INSTANCE, -1, 0, 0, recipe.definition);
                 return 0;
             }
         }
@@ -178,7 +195,7 @@ public final class ParallelLogic {
         if (!(fluids.isEmpty() || (holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE)))) {
             parallel = getOutputFluidParallelAmount(holder.getOutputUnits(recipe), recipe, fluids, parallel);
             if (parallel == 0) {
-                holder.setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
+                holder.reportIssue(GTIssues.OUTPUT_FULL, null, IO.OUT, FluidRecipeInfo.INSTANCE, -1, 0, 0, recipe.definition);
                 return 0;
             }
         }

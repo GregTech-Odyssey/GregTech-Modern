@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.uipro.canvas;
 
+import com.gregtechceu.gtceu.uipro.render.UILayers;
+
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -43,7 +45,6 @@ public class ItemLayer<T extends CanvasItem> implements CanvasLayer {
     }
 
     /// 蒙层画在物品图标（z 约 150~160）之上
-    private static final float OVERLAY_Z = 200;
 
     @Override
     @OnlyIn(Dist.CLIENT)
@@ -62,7 +63,7 @@ public class ItemLayer<T extends CanvasItem> implements CanvasLayer {
         painter.flush();
         var pose = painter.graphics().pose();
         pose.pushPose();
-        pose.translate(0, 0, OVERLAY_Z);
+        pose.translate(0, 0, UILayers.ITEM_OVERLAY);
         for (var item : visibleItems) item.drawOverlay(painter, item == hovered);
         painter.flush();
         pose.popPose();

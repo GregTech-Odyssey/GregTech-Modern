@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.integration.xei.widgets;
 
-import com.gregtechceu.gtceu.api.data.DimensionMarker;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
@@ -12,6 +11,8 @@ import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget.PageFrame;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Label;
+import com.gregtechceu.gtceu.uipro.render.FittedText;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeSpecPanel;
@@ -57,7 +58,7 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
 
     public static final int ICON = 16;
     private static final int TILE_INNER = 50;
-    private static final int TILE = TILE_INNER + 2 * UITheme.PANEL_PADDING;
+    private static final int TILE = TILE_INNER + 2 * UISizes.PANEL_PADDING;
     private static final int HEADER_GAP = 2;
     private static final int CELL_GAP = 3;
     private static final int BAR_HEIGHT = 6;
@@ -125,11 +126,11 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
     }
 
     private Widget createTile() {
-        var tile = new UIElement().layout(l -> l.size(TILE, TILE).paddingAll(UITheme.PANEL_PADDING).flexShrink(0));
+        var tile = new UIElement().layout(l -> l.size(TILE, TILE).paddingAll(UISizes.PANEL_PADDING).flexShrink(0));
         tile.setBackground(UITheme.PANEL);
         if (!info.fluid().isEmpty()) {
-            var hole = new ImageWidget(0, 0, UISizes.SLOT, UISizes.SLOT, UITheme.ITEM_SLOT);
-            displaySlots.add(new DisplaySlot(hole, UISizes.SLOT, ItemStack.EMPTY, info.fluid(), IngredientIO.OUTPUT, List.of(), null));
+            var hole = new ImageWidget(0, 0, UISizes.SLOT_SIZE, UISizes.SLOT_SIZE, UITheme.ITEM_SLOT);
+            displaySlots.add(new DisplaySlot(hole, UISizes.SLOT_SIZE, ItemStack.EMPTY, info.fluid(), IngredientIO.OUTPUT, List.of(), null));
             var reservoir = new Reservoir(info.fluid());
             reservoir.layout(l -> l.column().alignItems(AlignItems.CENTER).justifyContent(AlignContent.CENTER).paddingTop(BEDROCK_HEIGHT));
             reservoir.addChild(hole);
@@ -153,13 +154,13 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
         var dimensions = info.dimensions();
         var strip = new UIElement().layout(l -> l.row().flexWrap(FlexWrap.WRAP).paddingLeft(1).alignItems(AlignItems.CENTER));
         if (dimensions == null || dimensions.isEmpty()) {
-            strip.addChild(Label.translatable(ANY_DIMENSION, 4 * ICON));
+            strip.addChild(Label.translatable(4 * ICON, ANY_DIMENSION));
             return strip;
         }
         boolean showTier = ConfigHolder.INSTANCE.compat.showDimensionTier;
         for (var marker : dimensions) {
             var hole = new UIElement().layout(l -> l.size(ICON, ICON));
-            String tier = showTier ? "T" + (marker.tier >= DimensionMarker.MAX_TIER ? "?" : marker.tier) : null;
+            String tier = showTier ? marker.getTierLabel() : null;
             displaySlots.add(new DisplaySlot(hole, ICON, marker.getIcon(), FluidStack.EMPTY, IngredientIO.CATALYST, List.of(), tier));
             strip.addChild(hole);
         }
@@ -168,14 +169,14 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
     }
 
     private Widget createComposition() {
-        var panel = new UIElement().layout(l -> l.row().flexGrow(1).flexShrink(1).minWidth(0).paddingAll(UITheme.PANEL_PADDING)
+        var panel = new UIElement().layout(l -> l.row().flexGrow(1).flexShrink(1).minWidth(0).paddingAll(UISizes.PANEL_PADDING)
                 .gapAll(CELL_GAP).alignItems(AlignItems.CENTER));
         panel.setBackground(UITheme.PANEL);
         int total = Math.max(1, info.totalWeight());
         for (var entry : info.entries()) {
             double share = entry.weight() * 100.0 / total;
-            var hole = new ImageWidget(0, 0, UISizes.SLOT, UISizes.SLOT, UITheme.ITEM_SLOT);
-            displaySlots.add(new DisplaySlot(hole, UISizes.SLOT, entry.stack(), FluidStack.EMPTY, IngredientIO.OUTPUT,
+            var hole = new ImageWidget(0, 0, UISizes.SLOT_SIZE, UISizes.SLOT_SIZE, UITheme.ITEM_SLOT);
+            displaySlots.add(new DisplaySlot(hole, UISizes.SLOT_SIZE, entry.stack(), FluidStack.EMPTY, IngredientIO.OUTPUT,
                     List.of(Component.translatable(SHARE, FormattingUtil.formatNumber2Places(share) + "%")), null));
             var cell = new UIElement().layout(l -> l.row().gapAll(1).alignItems(AlignItems.CENTER).flexShrink(0));
             cell.addChild(hole);
@@ -228,7 +229,7 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
             int nameSpace = width - weightWidth - UISizes.TEXT_PADDING;
             String nameText = name.getString();
             truncated = font.width(nameText) > nameSpace;
-            graphics.drawString(font, UITheme.clip(font, nameText, nameSpace), x, y, UITheme.TEXT, false);
+            graphics.drawString(font, UIText.fit(nameText, nameSpace), x, y, UITheme.TEXT, false);
         }
 
         @Override
@@ -245,6 +246,8 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
         private final VeinPreview preview;
         private final int[] palette;
         private final List<Component> tooltip;
+        @Nullable
+        private FittedText captionText;
 
         private PreviewScreen(VeinInfo info) {
             this.preview = info.preview();
@@ -301,14 +304,9 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
             }
             var caption = preview.caption();
             if (caption != null) {
-                var font = Minecraft.getInstance().font;
-                float scale = UISizes.SMALL_TEXT_SCALE;
-                var pose = graphics.pose();
-                pose.pushPose();
-                pose.translate(x0 + 2, y0 + TILE_INNER - 2 - UISizes.SMALL_TEXT_HEIGHT, 0);
-                pose.scale(scale, scale, 1);
-                graphics.drawString(font, caption, 0, 0, CAPTION_COLOR, true);
-                pose.popPose();
+                if (captionText == null) captionText = new FittedText();
+                var shown = captionText.fit(caption, TILE_INNER - 4);
+                graphics.drawString(UIText.font(), shown, x0 + 2, y0 + TILE_INNER - 2 - UIText.GLYPH_HEIGHT, CAPTION_COLOR, true);
             }
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         }
@@ -330,21 +328,14 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
         private ShareText(String text, int rgb) {
             this.text = text;
             this.color = 0xFF000000 | UITheme.lightBackgroundColor(rgb);
-            int width = (int) Math.ceil(Minecraft.getInstance().font.width(text) * UISizes.SMALL_TEXT_SCALE);
-            layout(l -> l.size(width, UISizes.SMALL_TEXT_HEIGHT));
+            int width = Minecraft.getInstance().font.width(text);
+            layout(l -> l.size(width, UISizes.TEXT_HEIGHT));
         }
 
         @Override
         @OnlyIn(Dist.CLIENT)
         public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-            var font = Minecraft.getInstance().font;
-            float scale = UISizes.SMALL_TEXT_SCALE;
-            var pose = graphics.pose();
-            pose.pushPose();
-            pose.translate(getPositionX(), getPositionY(), 0);
-            pose.scale(scale, scale, 1);
-            graphics.drawString(font, text, 0, 0, color, false);
-            pose.popPose();
+            UIText.drawLeft(graphics, text, getPositionX(), getPositionY(), color);
         }
     }
 
@@ -401,15 +392,15 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
             DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(fluid), x + 1, y + BEDROCK_HEIGHT, width - 2, height - BEDROCK_HEIGHT - 1);
             graphics.fill(x + 1, y + BEDROCK_HEIGHT, x + width - 1, y + height - 1, POOL_SHADE);
             graphics.fill(x + 1, y + BEDROCK_HEIGHT, x + width - 1, y + BEDROCK_HEIGHT + 1, POOL_SURFACE);
-            int slotX = x + (width - UISizes.SLOT) / 2;
-            int slotY = y + BEDROCK_HEIGHT + (height - BEDROCK_HEIGHT - UISizes.SLOT) / 2;
+            int slotX = x + (width - UISizes.SLOT_SIZE) / 2;
+            int slotY = y + BEDROCK_HEIGHT + (height - BEDROCK_HEIGHT - UISizes.SLOT_SIZE) / 2;
             int pipeX = x + (width - PIPE_WIDTH) / 2;
             graphics.fill(pipeX, y, pipeX + PIPE_WIDTH, slotY, OUTLINE);
             graphics.fill(pipeX + 1, y, pipeX + PIPE_WIDTH - 1, slotY, PIPE_FILL);
             graphics.fill(pipeX + 1, y, pipeX + 3, slotY, PIPE_HIGHLIGHT);
             graphics.fill(pipeX + PIPE_WIDTH - 3, y, pipeX + PIPE_WIDTH - 1, slotY, PIPE_SHADE);
-            graphics.fill(slotX - 2, slotY - 2, slotX + UISizes.SLOT + 2, slotY + UISizes.SLOT + 2, OUTLINE);
-            graphics.fill(slotX - 1, slotY - 1, slotX + UISizes.SLOT + 1, slotY + UISizes.SLOT + 1, WELL_RING);
+            graphics.fill(slotX - 2, slotY - 2, slotX + UISizes.SLOT_SIZE + 2, slotY + UISizes.SLOT_SIZE + 2, OUTLINE);
+            graphics.fill(slotX - 1, slotY - 1, slotX + UISizes.SLOT_SIZE + 1, slotY + UISizes.SLOT_SIZE + 1, WELL_RING);
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         }
     }

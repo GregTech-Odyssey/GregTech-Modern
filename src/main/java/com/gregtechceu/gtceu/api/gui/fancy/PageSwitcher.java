@@ -50,12 +50,12 @@ public class PageSwitcher implements IFancyUIProvider {
 
     /**
      * 页面切换页（新式框架组件）：按分组各一个区块，组名在上，下面每行 {@link #PAGES_PER_ROW} 个页面图标按钮，
-     * 悬停显示页面名；页面多时列表滚动。点击两端各切换一次（界面结构两端同步变化）。
+     * 悬停显示页面名；页面多时列表滚动。
      */
     @Override
     public Widget createMainPage(FancyMachineUIWidget widget) {
         var list = new ScrollerView("page_switcher", UISizes.CONTENT_WIDTH, PAGE_BUTTON, UISizes.SECTION_GAP)
-                .adaptiveHeight(MAX_LIST_HEIGHT);
+                .setAdaptiveHeight(MAX_LIST_HEIGHT);
         var groupedPages = pages.stream().collect(Collectors.groupingBy(
                 page -> Objects.requireNonNullElse(page.getPageGroupingData(), new PageGroupingData(null, -1))));
         groupedPages.keySet().stream()
@@ -63,15 +63,15 @@ public class PageSwitcher implements IFancyUIProvider {
                 .forEachOrdered(group -> {
                     var section = UIElement.section();
                     if (group.groupKey() != null) {
-                        section.addChild(TextLine.translatable(LayoutStyle.AUTO, group.groupKey()).setColor(UITheme::panelText));
+                        section.addChild(TextLine.translatable(LayoutStyle.AUTO, group.groupKey()).bindClientColor(UITheme::panelText));
                     }
                     var groupPages = groupedPages.get(group);
                     for (int rowStart = 0; rowStart < groupPages.size(); rowStart += PAGES_PER_ROW) {
                         var row = UIElement.row(PAGE_BUTTON).layout(l -> l.gapAll(UISizes.GAP));
                         for (int i = rowStart; i < Math.min(groupPages.size(), rowStart + PAGES_PER_ROW); i++) {
                             var page = groupPages.get(i);
-                            var button = Button.icon(page.getTabIcon(), PAGE_BUTTON).setOnClick(clickData -> onPageSwitched.accept(page));
-                            button.setHoverTooltips(page.getTitle());
+                            var button = Button.icon(PAGE_BUTTON, page.getTabIcon()).setOnClientClick(() -> onPageSwitched.accept(page));
+                            button.tooltips(page.getTitle());
                             row.addChild(button);
                         }
                         section.addChild(row);

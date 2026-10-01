@@ -255,11 +255,15 @@ public abstract class SceneView extends Viewport {
         RenderSystem.applyModelViewMatrix();
         RenderSystem.activeTexture(GL13.GL_TEXTURE0);
         RenderSystem.enableCull();
+        var gameRenderer = minecraft.gameRenderer;
+        boolean panoramic = gameRenderer.isPanoramicMode();
+        gameRenderer.setPanoramicMode(true);
         try {
             renderContent(new FrustumIntersection(combined), eye, partialTicks);
             hasMatrix = true;
             renderExtras(partialTicks);
         } finally {
+            gameRenderer.setPanoramicMode(panoramic);
             RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
             RenderSystem.viewport(0, 0, window.getWidth(), window.getHeight());
             RenderSystem.restoreProjectionMatrix();

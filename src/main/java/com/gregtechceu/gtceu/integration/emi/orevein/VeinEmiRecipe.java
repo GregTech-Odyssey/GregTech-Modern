@@ -4,9 +4,12 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.integration.emi.recipe.EmiPageSizes;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTOreVeinWidget;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget.PageFrame;
 import com.gregtechceu.gtceu.integration.xei.widgets.VeinInfo;
+import com.gregtechceu.gtceu.uipro.render.UILayers;
+import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import com.lowdragmc.lowdraglib.emi.ModularEmiRecipe;
@@ -46,8 +49,7 @@ public class VeinEmiRecipe implements EmiRecipe {
     private VeinInfo cachedInfo;
     @Nullable
     private List<EmiStack> cachedOutputs;
-    @Nullable
-    private Size compactSize;
+    private final EmiPageSizes sizes = new EmiPageSizes(this::measure);
 
     public VeinEmiRecipe(EmiRecipeCategory category, ResourceLocation id, Supplier<VeinInfo> info, Supplier<List<EmiStack>> outputs) {
         this.category = category;
@@ -116,20 +118,18 @@ public class VeinEmiRecipe implements EmiRecipe {
         return new Size(page.getSizeWidth(), page.getSizeHeight());
     }
 
-    protected Size compactSize() {
-        var size = compactSize;
-        if (size == null) compactSize = size = measure(PageFrame.COMPACT);
-        return size;
+    protected EmiPageSizes getSizes() {
+        return sizes;
     }
 
     @Override
     public int getDisplayWidth() {
-        return compactSize().width;
+        return sizes.getCompactSize().width;
     }
 
     @Override
     public int getDisplayHeight() {
-        return compactSize().height;
+        return sizes.getCompactSize().height;
     }
 
     protected PageFrame frameFor(WidgetHolder widgets) {
@@ -187,13 +187,11 @@ public class VeinEmiRecipe implements EmiRecipe {
             super.drawOverlay(draw, mouseX, mouseY, delta);
             if (overlay == null) return;
             var font = Minecraft.getInstance().font;
-            float scale = UISizes.SMALL_TEXT_SCALE;
-            int inset = size == UISizes.SLOT ? 1 : 0;
+            int inset = size == UISizes.SLOT_SIZE ? 1 : 0;
             var pose = draw.pose();
             pose.pushPose();
-            pose.translate(x + size - inset - font.width(overlay) * scale, y + size - inset - UISizes.SMALL_TEXT_HEIGHT, 200);
-            pose.scale(scale, scale, 1);
-            draw.drawString(font, overlay, 0, 0, TIER_COLOR, true);
+            pose.translate(0, 0, UILayers.ITEM_OVERLAY);
+            draw.drawString(font, overlay, x + size - inset - font.width(overlay), y + size - inset - UIText.GLYPH_HEIGHT, TIER_COLOR, true);
             pose.popPose();
         }
     }

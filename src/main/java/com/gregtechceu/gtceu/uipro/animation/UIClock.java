@@ -18,6 +18,10 @@ public final class UIClock {
         return frameMillis;
     }
 
+    public static double phase(long periodMillis) {
+        return (frameMillis % periodMillis) / (double) periodMillis;
+    }
+
     public static float pulse() {
         return 0.5f + (float) Math.sin(frameMillis / MS_PER_RADIAN) * 0.5f;
     }

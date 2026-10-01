@@ -234,15 +234,15 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
         private UIElement titleRow() {
             var close = Button.glyph("×").setOnClientClick(() -> onClose.run());
-            close.setHoverTooltips(MachineWindow.POPUP_CLOSE);
+            close.tooltips(MachineWindow.POPUP_CLOSE);
             var toggle = Button.icon(WidgetIcons.SETTINGS).setOnClientClick(this::toggleCard);
             toggle.setSelected(() -> card != null);
-            toggle.setHoverTooltips(CONFIG);
+            toggle.tooltips(CONFIG);
             var highlight = Button.icon(WidgetIcons.HIGHLIGHT).setOnClientClick(this::toggleHighlight)
-                    .setVariant(() -> highlightOn ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
-            highlight.setHoverTooltips(HIGHLIGHT);
+                    .bindClientVariant(() -> highlightOn ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
+            highlight.tooltips(HIGHLIGHT);
             var tools = ZoomBar.of(scene, false).fit(ZoomBar.RESET).minimap().add(highlight).build();
-            return UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter())
+            return UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                     .addChildren(heading, tools, toggle, close);
         }
 
@@ -257,9 +257,9 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             heading.clearAllWidgets();
             if (history.hasMany()) {
                 var back = Button.icon(UITheme.ARROW_LEFT).setOnClientClick(this::back).disabled(history::isRoot, null);
-                back.setHoverTooltips(BACK);
+                back.tooltips(BACK);
                 var forward = Button.icon(UITheme.ARROW_RIGHT).setOnClientClick(this::forward).disabled(() -> !history.canForward(), null);
-                forward.setHoverTooltips(FORWARD);
+                forward.tooltips(FORWARD);
                 heading.addChildren(back, forward);
             }
             var icon = page.definition.asStack();
@@ -414,10 +414,10 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             shownLayers = layerCount();
             var popup = Popup.of(() -> Component.translatable(CONFIG), column -> {
                 column.addChild(config);
-                var layerRow = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChildren(
+                var layerRow = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
                         TextLine.translatable(LayoutStyle.AUTO, LAYER).setColor(UITheme.PANEL_TEXT).layout(l -> l.flex(1)),
-                        new Stepper(UISizes.VALUE_WIDTH * 2, () -> layer, this::setLayer, 0, shownLayers, true,
-                                value -> value == 0 ? I18n.get(LAYER_ALL) : I18n.get(LAYER_N, value)));
+                        Stepper.of(UISizes.VALUE_WIDTH * 2, () -> layer, this::setLayer, 0, shownLayers).wrap()
+                                .setFormatter(value -> value == 0 ? I18n.get(LAYER_ALL) : I18n.get(LAYER_N, value)));
                 column.addChild(UIElement.section().addChild(layerRow));
                 partsSection = UIElement.section();
                 partsSection.addChild(TextLine.translatable(LayoutStyle.AUTO, PARTS).setColor(UITheme.PANEL_TEXT));
@@ -425,13 +425,13 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
                 column.addChild(partsSection);
                 if (!actions.isEmpty()) column.addChild(actionRow());
             });
-            card = new PopupCard(CARD_ID, popup, Math.max(UISizes.SLOT, frameHeight()), this::closeCard);
+            card = new PopupCard(CARD_ID, popup, Math.max(UISizes.SLOT_SIZE, frameHeight()), this::closeCard);
             place();
             addChild(card);
         }
 
         private UIElement actionRow() {
-            var row = UIElement.row(UISizes.CONTROL_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter());
+            var row = UIElement.centeredRow(UISizes.CONTROL_HEIGHT);
             row.disabled(() -> !history.isRoot(), ROOT_ONLY);
             boolean single = actions.size() == 1;
             if (single) row.addChild(UIElement.flexSpacer());
@@ -482,7 +482,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             if (predicate == null) return;
             var popup = Popup.of(() -> Component.translatable(CANDIDATES),
                     column -> predicate.forEachSimple(simple -> addCandidates(column, predicate, simple)));
-            candidates = new PopupCard(CANDIDATES_ID, popup, Math.max(UISizes.SLOT, frameHeight()), this::closeCandidates);
+            candidates = new PopupCard(CANDIDATES_ID, popup, Math.max(UISizes.SLOT_SIZE, frameHeight()), this::closeCandidates);
             place();
             addChild(candidates);
         }
@@ -561,7 +561,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
         private void fitParts() {
             if (partsSection == null || card == null) return;
-            int columns = Math.max(PARTS_PER_ROW, (partsSection.getSizeWidth() - 2 * UITheme.PANEL_PADDING) / UISizes.SLOT);
+            int columns = Math.max(PARTS_PER_ROW, (partsSection.getSizeWidth() - 2 * UISizes.PANEL_PADDING) / UISizes.SLOT_SIZE);
             parts.arrange(columns);
         }
 
