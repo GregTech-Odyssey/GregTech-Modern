@@ -333,6 +333,10 @@ public final class LayoutStyle {
         return style.minSize.width.isLength() ? Math.round(style.minSize.width.getValue()) : 0;
     }
 
+    public int declaredMinHeight() {
+        return style.minSize.height.isLength() ? Math.round(style.minSize.height.getValue()) : 0;
+    }
+
     int horizontalPadding() {
         return Math.round(lengthOf(style.padding.left) + lengthOf(style.padding.right));
     }

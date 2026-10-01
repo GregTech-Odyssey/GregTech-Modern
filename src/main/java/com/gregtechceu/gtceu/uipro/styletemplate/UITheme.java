@@ -296,6 +296,15 @@ public final class UITheme {
     public static final int PAGE_OVERLAY_Z = 250;
     /// 窗口外框（{@link #WINDOW}，即 BORDER_7）最外圈的描边色
     public static int WINDOW_OUTLINE = 0xFF181A1B;
+
+    /** Pixel bracket across the gap between two independently framed window panels. */
+    @OnlyIn(Dist.CLIENT)
+    public static void drawWindowConnector(GuiGraphics graphics, int x, int y, int width) {
+        graphics.fill(x, y - 2, x + width, y + 2, WINDOW_OUTLINE);
+        graphics.fill(x, y - 1, x + width, y, CARD_HIGHLIGHT);
+        graphics.fill(x, y, x + width, y + 1, CARD_SHADOW);
+    }
+
     /// 弹出面板指向所属对象的小尖角高度
     public static final int POPUP_NOTCH = 4;
     /// 分段选择（{@code ButtonGroup.compact}）里未选中项悬停时叠的暗色

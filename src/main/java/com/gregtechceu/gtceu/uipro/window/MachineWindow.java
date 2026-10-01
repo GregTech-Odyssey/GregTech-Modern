@@ -47,7 +47,10 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -79,6 +82,11 @@ public class MachineWindow extends FancyMachineUIWidget {
     public static final String POPUP_CLOSE = "gtceu.uipro.popup.close";
 
     private static final ResourceLocation LOGO = GTCEu.id("textures/gui/uipro/gto_logo.png");
+
+    private static final TreeMap<ResourceLocation, Function<MachineWindow, UIElement>> RIGHT_ACCESSORY_FACTORIES = new TreeMap<>();
+    private final ArrayList<UIElement> rightAccessories = new ArrayList<>(RIGHT_ACCESSORY_FACTORIES.size());
+    private boolean placingAccessories;
+    private int mainPanelWidth = UISizes.WINDOW_WIDTH;
 
     private final WindowTitleBar title;
     private final WindowTabBar tabs;
@@ -129,6 +137,11 @@ public class MachineWindow extends FancyMachineUIWidget {
         addWidget(title = new WindowTitleBar());
         addWidget(tabs = new WindowTabBar());
         addWidget(popups = new PopupHost());
+        for (var factory : RIGHT_ACCESSORY_FACTORIES.values()) {
+            var accessory = Objects.requireNonNull(factory.apply(this));
+            rightAccessories.add(accessory);
+            addWidget(accessory);
+        }
         // 左侧机器小组件最后加：展开后会伸到主窗口上方，要最先接到点击、最后绘制（另见 drawWidgetsBackground）
         addWidget(configurators);
     }
@@ -137,6 +150,24 @@ public class MachineWindow extends FancyMachineUIWidget {
     @Override
     public ConfiguratorPanel getConfiguratorPanel() {
         return configurators;
+    }
+
+    /**
+     * Registers an addon accessory in a separate panel connected to the main window's right edge. Call during common
+     * setup, before opening any UI.
+     * Factories run on both sides and must always create the same widget tree; hide unsupported accessories instead of
+     * conditionally creating them. Visible accessories keep their declared width and stretch to the window's inner
+     * height.
+     * Accessory IDs determine the order on both sides, independently of addon initialization order.
+     * After changing visibility, call {@link #onContentResized(Widget)} with the accessory to update the reserved
+     * panel space.
+     */
+    public static void registerRightAccessory(ResourceLocation id, Function<MachineWindow, UIElement> factory) {
+        Objects.requireNonNull(id);
+        Objects.requireNonNull(factory);
+        if (RIGHT_ACCESSORY_FACTORIES.putIfAbsent(id, factory) != null) {
+            throw new IllegalArgumentException("Duplicate window accessory: " + id);
+        }
     }
 
     // ==================== 展开的机器小组件盖住主窗口 ====================
@@ -199,6 +230,24 @@ public class MachineWindow extends FancyMachineUIWidget {
         int y = playerInventory.getPositionY() - UITheme.LOGO_HEIGHT - UITheme.LOGO_GAP;
         RenderSystem.enableBlend();
         graphics.blit(LOGO, x, y, 0, 0, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT, UITheme.LOGO_WIDTH, UITheme.LOGO_HEIGHT);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected void drawBackgroundTexture(GuiGraphics graphics, int mouseX, int mouseY) {
+        int x = getPosition().x, y = getPosition().y, height = getSizeHeight();
+        int previousRight = x + mainPanelWidth;
+        UITheme.WINDOW.draw(graphics, mouseX, mouseY, x, y, mainPanelWidth, height);
+        for (var accessory : rightAccessories) {
+            if (!accessory.isVisible()) continue;
+            int panelX = accessory.getPositionX() - UISizes.WINDOW_PADDING_X;
+            int panelWidth = accessory.getSizeWidth() + 2 * UISizes.WINDOW_PADDING_X;
+            int gap = panelX - previousRight;
+            UITheme.drawWindowConnector(graphics, previousRight, y + height / 6, gap);
+            UITheme.drawWindowConnector(graphics, previousRight, y + height * 5 / 6, gap);
+            UITheme.WINDOW.draw(graphics, mouseX, mouseY, panelX, y, panelWidth, height);
+            previousRight = panelX + panelWidth;
+        }
     }
 
     @Override
@@ -606,6 +655,27 @@ public class MachineWindow extends FancyMachineUIWidget {
         if (inventory) y += inventoryGap() + UISizes.PLAYER_INVENTORY_HEIGHT;
         int height = y + UISizes.WINDOW_PADDING_BOTTOM;
 
+        int accessoryHeight = height - UISizes.WINDOW_PADDING_TOP - UISizes.WINDOW_PADDING_BOTTOM;
+        for (var accessory : rightAccessories) {
+            if (accessory.isVisible()) accessoryHeight = Math.max(accessoryHeight, accessory.getLayoutStyle().declaredMinHeight());
+        }
+        height = Math.max(height, accessoryHeight + UISizes.WINDOW_PADDING_TOP + UISizes.WINDOW_PADDING_BOTTOM);
+        int gutterHeight = accessoryHeight;
+        mainPanelWidth = width;
+        int accessoryX = width;
+        placingAccessories = true;
+        {
+            for (var accessory : rightAccessories) {
+                if (!accessory.isVisible()) continue;
+                accessory.layout(l -> l.height(gutterHeight));
+                accessoryX += UISizes.SECTION_GAP;
+                accessory.setSelfPosition(new Position(accessoryX + UISizes.WINDOW_PADDING_X, UISizes.WINDOW_PADDING_TOP));
+                accessoryX += accessory.getSizeWidth() + 2 * UISizes.WINDOW_PADDING_X;
+            }
+        }
+        placingAccessories = false;
+        width = accessoryX;
+
         setSize(new Size(width, height));
         pageContainer.setSize(new Size(width, height));
         return contentWidth;
@@ -626,8 +696,11 @@ public class MachineWindow extends FancyMachineUIWidget {
     /** 页面或弹出面板的尺寸变了（内容增减、滚动区拖拽缩放）：窗口随之重排，界面尺寸与面板位置重新摆放。 */
     @Override
     public void onContentResized(Widget root) {
+        if (placingAccessories) return;
         if (root == popups) {
             relayoutAnimated(this::updatePlacement);
+        } else if (rightAccessories.contains(root)) {
+            if (!pageContainer.widgets.isEmpty()) onContentResized(pageContainer.widgets.get(0));
         } else if (root.getParent() == pageContainer && pageContainer.widgets.contains(root)) {
             relayoutAnimated(() -> {
                 title.resize(placePage(root, pageShowsInventory));
