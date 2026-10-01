@@ -355,7 +355,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             if (cleanroomType != null) {
                 textList.add(Component.translatable(cleanroomType.getTranslationKey()));
             }
-            MultiblockDisplayText.builder(textList, true, false).addIssueLines(recipeLogic);
+            MultiblockDisplayText.builder(textList, true, false).addReasonLines(recipeLogic);
             if (isWorkingEnabled() && isActive()) {
                 int currentProgress = (int) (recipeLogic.getProgressPercent() * 100);
                 double maxInSec = (float) recipeLogic.getDuration() / 20.0F;
@@ -415,9 +415,4 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     @Override
     public void setWorkingEnabled(boolean ignored) {}
-
-    @Override
-    public boolean hasDiagnosisTab() {
-        return false;
-    }
 }

@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -254,7 +253,6 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(holder instanceof SteamBoilerMachine boilerMachine)) {
-            holder.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         if (boilerMachine.isHighPressure) recipe.durationMultiplier(0.5);

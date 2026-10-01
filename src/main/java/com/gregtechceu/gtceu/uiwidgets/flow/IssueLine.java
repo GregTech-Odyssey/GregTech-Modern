@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.uipro.flow.FlowState;
 import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
-import com.gregtechceu.gtceu.uiwidgets.icon.IssueIcons;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -53,8 +52,7 @@ public class IssueLine extends UIElement {
         }
         var font = Minecraft.getInstance().font;
         int x = getPositionX(), y = getPositionY(), w = getSizeWidth();
-        var source = current.source();
-        var icon = source != null ? IssueIcons.iconFor(source) : current.issue().icon();
+        var icon = current.issue().icon();
         int iconSpace = icon == null ? 0 : ICON + UISizes.GAP;
         int textY = UIText.centerY(y, HEIGHT);
         int start;

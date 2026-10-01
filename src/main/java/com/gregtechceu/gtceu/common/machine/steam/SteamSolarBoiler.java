@@ -2,12 +2,8 @@ package com.gregtechceu.gtceu.common.machine.steam;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -15,11 +11,15 @@ import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 
-import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 public class SteamSolarBoiler extends SteamBoilerMachine {
+
+    private static final Component NO_SUNLIGHT_REASON = Component.translatable("gtceu.issue.no_sunlight");
+    private static final Supplier<Component> NO_SUNLIGHT = () -> NO_SUNLIGHT_REASON;
 
     public SteamSolarBoiler(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
@@ -48,20 +48,10 @@ public class SteamSolarBoiler extends SteamBoilerMachine {
         if (GTUtil.canSeeSunClearly(getLevel(), getPos())) {
             recipeLogic.setStatus(RecipeLogic.WORKING);
         } else {
-            boolean changed = !recipeLogic.isIdle();
             recipeLogic.setStatus(RecipeLogic.IDLE);
-            if (changed) reportIssue(GTIssues.NO_SUNLIGHT);
+            setIdleReason(NO_SUNLIGHT);
         }
         super.updateCurrentTemperature();
-    }
-
-    @Override
-    public boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle, GTRecipeDefinition lockedRecipe) {
-        if (recipeLogic.isIdle()) {
-            reportIssue(GTIssues.NO_SUNLIGHT);
-            return false;
-        }
-        return super.findRecipe(type, canHandle, lockedRecipe);
     }
 
     @Override

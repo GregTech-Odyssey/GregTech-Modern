@@ -10,9 +10,6 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IIssueProvider;
-import com.gregtechceu.gtceu.api.machine.issue.IssueSink;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 
@@ -35,7 +32,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @Getter
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MufflerPartMachine extends WorkableTieredPartMachine implements IMufflerMachine, IIssueProvider {
+public class MufflerPartMachine extends WorkableTieredPartMachine implements IMufflerMachine {
 
     private final int recoveryChance;
     @SaveToDisk
@@ -65,11 +62,6 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
 
     private boolean calculateChance() {
         return recoveryChance >= 100 || recoveryChance >= GTValues.RNG.nextInt(100);
-    }
-
-    @Override
-    public void collectIssues(IssueSink sink) {
-        if (!isFrontFaceFree()) sink.accept(GTIssues.MUFFLER_OBSTRUCTED);
     }
 
     @Override

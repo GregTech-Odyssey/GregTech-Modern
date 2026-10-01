@@ -10,8 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
-import org.jetbrains.annotations.Nullable;
-
 public class AdjacentBlockCondition extends RecipeCondition {
 
     public final Block A;
@@ -25,28 +23,7 @@ public class AdjacentBlockCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return Component.translatable(isReverse ? "recipe.condition.adjacent_block.reverse.tooltip" : "recipe.condition.adjacent_block.tooltip");
-    }
-
-    @Override
-    public @Nullable Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
-        boolean hasBlockA = false;
-        boolean hasBlockB = false;
-        for (Direction side : GTUtil.DIRECTIONS) {
-            if (side.getAxis() == Direction.Axis.Y) continue;
-            var block = holder.self().holder.getNeighborBlockState(side).getBlock();
-            if (block == A) hasBlockA = true;
-            else if (block == B) hasBlockB = true;
-        }
-        return adjacentText(isReverse, hasBlockA, hasBlockB, A.getName(), B.getName());
-    }
-
-    @Nullable
-    static Component adjacentText(boolean reverse, boolean hasA, boolean hasB, Component nameA, Component nameB) {
-        if (reverse) return hasA && hasB ? Component.translatable("gtceu.issue.current.adjacent_present", nameA, nameB) : null;
-        if (hasA && hasB) return null;
-        if (!hasA && !hasB) return Component.translatable("gtceu.issue.current.adjacent_missing_both", nameA, nameB);
-        return Component.translatable("gtceu.issue.current.adjacent_missing", hasA ? nameB : nameA);
+        return Component.translatable("recipe.condition.adjacent_block.tooltip");
     }
 
     @Override

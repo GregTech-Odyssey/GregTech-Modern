@@ -17,8 +17,6 @@ import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
 import com.gregtechceu.gtceu.api.gui.factory.GTUIEditorFactory;
 import com.gregtechceu.gtceu.api.gui.factory.MachineSubWindowFactory;
 import com.gregtechceu.gtceu.api.gui.factory.MachineUIFactory;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IssueType;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualItemStorage;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualRedstone;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualTank;
@@ -64,7 +62,6 @@ import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 
@@ -144,7 +141,6 @@ public class CommonProxy {
         KeyBind.init();
         MachineOwner.init();
         GTTickTimeMonitors.init();
-        GTIssues.init();
 
         FusionReactorMachine.registerFusionTier(GTValues.LuV, " (MKI)");
         FusionReactorMachine.registerFusionTier(GTValues.ZPM, " (MKII)");
@@ -179,11 +175,6 @@ public class CommonProxy {
         event.enqueueWork(() -> {
             CraftingHelper.register(FluidContainerIngredient.TYPE, FluidContainerIngredient.SERIALIZER);
         });
-    }
-
-    @SubscribeEvent
-    public void loadComplete(FMLLoadCompleteEvent event) {
-        IssueType.freeze();
     }
 
     @SubscribeEvent

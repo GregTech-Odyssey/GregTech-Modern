@@ -12,12 +12,10 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IIssueProvider;
-import com.gregtechceu.gtceu.api.machine.issue.IssueSink;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTItems;
@@ -68,7 +66,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine implements IMachineLife, IMaintenanceMachine, IInteractedMachine, IIssueProvider {
+public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine implements IMachineLife, IMaintenanceMachine, IInteractedMachine {
 
     private static final float MAX_DURATION_MULTIPLIER = 1.1F;
     private static final float MIN_DURATION_MULTIPLIER = 0.9F;
@@ -164,7 +162,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     public @Nullable GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             if (hasMaintenanceProblems()) {
-                controller.reportIssue(GTIssues.MAINTENANCE);
+                controller.setIdleReason(ActionResult.FAIL_MAINTENANCE_BROKEN);
                 return null;
             }
             var durationMultiplier = this.durationMultiplier;
@@ -173,11 +171,6 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
             }
         }
         return recipe;
-    }
-
-    @Override
-    public void collectIssues(IssueSink sink) {
-        if (ConfigHolder.INSTANCE.machines.enableMaintenance && hasMaintenanceProblems()) sink.accept(GTIssues.MAINTENANCE);
     }
 
     protected void updateMaintenanceSubscription() {

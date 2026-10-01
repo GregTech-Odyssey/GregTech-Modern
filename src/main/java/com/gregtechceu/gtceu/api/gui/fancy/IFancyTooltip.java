@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.api.gui.fancy;
 
-import com.gregtechceu.gtceu.api.machine.issue.IssueType;
-
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
 import net.minecraft.network.chat.Component;
@@ -28,17 +26,17 @@ public interface IFancyTooltip {
         return null;
     }
 
-    default boolean coversIssue(IssueType type) {
+    default boolean coversReason(@Nullable String reasonKey) {
         return false;
     }
 
     @Nullable
-    default IssueType coveredIssue() {
+    default String coveredReason() {
         return null;
     }
 
-    static IFancyTooltip covering(IssueType type, IFancyTooltip tooltip) {
-        return new Covering(type, tooltip);
+    static IFancyTooltip covering(String reasonKey, IFancyTooltip tooltip) {
+        return new Covering(reasonKey, tooltip);
     }
 
     record Basic(Supplier<IGuiTexture> icon, Supplier<List<Component>> content, BooleanSupplier predicate,
@@ -66,7 +64,7 @@ public interface IFancyTooltip {
         }
     }
 
-    record Covering(IssueType type, IFancyTooltip tooltip) implements IFancyTooltip {
+    record Covering(String reasonKey, IFancyTooltip tooltip) implements IFancyTooltip {
 
         @Override
         public IGuiTexture getFancyTooltipIcon() {
@@ -89,13 +87,13 @@ public interface IFancyTooltip {
         }
 
         @Override
-        public boolean coversIssue(IssueType type) {
-            return this.type == type || tooltip.coversIssue(type);
+        public boolean coversReason(@Nullable String reasonKey) {
+            return this.reasonKey.equals(reasonKey) || tooltip.coversReason(reasonKey);
         }
 
         @Override
-        public IssueType coveredIssue() {
-            return type;
+        public String coveredReason() {
+            return reasonKey;
         }
     }
 }

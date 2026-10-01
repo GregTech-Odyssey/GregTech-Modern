@@ -12,9 +12,6 @@ import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IIssueProvider;
-import com.gregtechceu.gtceu.api.machine.issue.IssueSink;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -47,7 +44,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class RotorHolderPartMachine extends WorkableTieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine, IIssueProvider {
+public class RotorHolderPartMachine extends WorkableTieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
 
     @SaveToDisk
     public final NotifiableItemStackHandler inventory;
@@ -138,12 +135,6 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
                 recipeLogicMachine.getRecipeLogic().updateTickSubscription();
             }
         }
-    }
-
-    @Override
-    public void collectIssues(IssueSink sink) {
-        if (!isFrontFaceFree()) sink.accept(GTIssues.ROTOR_OBSTRUCTED);
-        if (!hasRotor()) sink.accept(GTIssues.ROTOR_MISSING);
     }
 
     @Override

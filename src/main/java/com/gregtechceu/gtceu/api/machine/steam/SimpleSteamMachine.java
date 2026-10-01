@@ -6,11 +6,6 @@ import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IssueLines;
-import com.gregtechceu.gtceu.api.machine.issue.IssueSeverity;
-import com.gregtechceu.gtceu.api.machine.issue.IssueSnapshot;
-import com.gregtechceu.gtceu.api.machine.issue.IssueText;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -133,14 +128,24 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         checkVenting();
     }
 
+    @Override
+    public void onWaiting() {
+        super.onWaiting();
+        var recipe = recipeLogic.getLastRecipe();
+        if (recipe != null && recipe.eut > 0 && !useEnergy(recipe.eut, true)) setIdleReason(Component.translatable("gtceu.issue.steam_short"));
+    }
+
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof SimpleSteamMachine steamMachine)) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
-        if (!steamMachine.checkVenting() || !VentCondition.INSTANCE.testCondition(machine, unit, recipe.definition)) {
-            machine.reportIssue(GTIssues.VENT_BLOCKED);
+        if (!steamMachine.checkVenting()) {
+            machine.setIdleReason(Component.translatable("gtceu.issue.vent_blocked"));
+            return null;
+        }
+        if (!VentCondition.INSTANCE.testCondition(machine, unit, recipe.definition)) {
+            machine.setIdleReason(Component.translatable("gtceu.issue.vent_blocked"));
             return null;
         }
         if (!steamMachine.isHighPressure) recipe.durationMultiplier(2);
@@ -173,45 +178,9 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         indicator.addChild(new PredicatedImageWidget(0, 0, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting));
         stage.addChild(indicator);
         var steam = StatusLine.of(UISizes.CONTENT_WIDTH, Component.translatable("gtceu.gui.steam_machine.steam"), new SteamText())
-                .bindLevel(new IssueLevel())
-                .bindDetail(new IssueDetail());
+                .bindLevel(() -> recipeLogic.isWaiting() ? Level.WARNING : Level.NORMAL)
+                .bindDetail(() -> recipeLogic.isWaiting() ? Component.translatable("gtceu.gui.steam_machine.waiting") : Component.empty());
         return RecipeMachinePage.page(stage, steam);
-    }
-
-    private final class IssueLevel implements Supplier<Level> {
-
-        @Override
-        public Level get() {
-            var snapshot = recipeLogic.getIssueSnapshot();
-            if (!shows(snapshot)) return Level.NORMAL;
-            return IssueLines.level(snapshot);
-        }
-    }
-
-    private final class IssueDetail implements Supplier<Component> {
-
-        @Nullable
-        private IssueSnapshot snapshot;
-        private Component text = Component.empty();
-
-        @Override
-        public Component get() {
-            var current = recipeLogic.getIssueSnapshot();
-            if (current != snapshot) {
-                snapshot = current;
-                var primary = current.primary();
-                if (!shows(current)) text = Component.empty();
-                else if (primary == null) text = Component.translatable("gtceu.gui.steam_machine.waiting");
-                else text = IssueText.summary(primary);
-            }
-            return text;
-        }
-    }
-
-    private static boolean shows(IssueSnapshot snapshot) {
-        var primary = snapshot.primary();
-        if (primary == null) return snapshot.isWaiting();
-        return snapshot.isWaiting() || primary.severity() != IssueSeverity.INFO;
     }
 
     /** 蒸汽储量一行的数值：服务端每 tick 取值，储量不变时复用上次的文字，不重复拼字符串。 */

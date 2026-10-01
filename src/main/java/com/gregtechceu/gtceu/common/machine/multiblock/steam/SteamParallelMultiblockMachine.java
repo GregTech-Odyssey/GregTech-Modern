@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
@@ -25,6 +24,7 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
 import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -121,7 +121,6 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof SteamParallelMultiblockMachine steamMachine)) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         // Duration = 1.5x base duration
@@ -143,8 +142,8 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             if (energyContainer instanceof SteamEnergyContainer container) {
                 textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", container.steamTank.getFluidInTank(0).getAmount(), container.steamTank.getTankCapacity(0)));
             }
-            MultiblockDisplayText.builder(textList, true, false).addIssueLines(recipeLogic);
-            if (recipeLogic.isWaiting() && recipeLogic.getIssueSnapshot().primary() == null) {
+            MultiblockDisplayText.builder(textList, true, false).addReasonLines(recipeLogic);
+            if (recipeLogic.isWaiting() && IdleReasonInfo.reasonOf(recipeLogic) == null) {
                 textList.add(Component.translatable("gtceu.multiblock.steam.low_steam").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             }
             if (isWorkingEnabled() && isActive()) {
@@ -155,6 +154,13 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
                 textList.add(Component.translatable("gtceu.multiblock.progress", String.format("%.2f", (float) currentInSec), String.format("%.2f", (float) maxInSec), currentProgress));
             }
         }
+    }
+
+    @Override
+    public void onWaiting() {
+        super.onWaiting();
+        var recipe = recipeLogic.getLastRecipe();
+        if (recipe != null && recipe.eut > 0 && !useEnergy(recipe.eut, true)) setIdleReason(Component.translatable("gtceu.issue.steam_short"));
     }
 
     @Override

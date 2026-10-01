@@ -3,15 +3,13 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -120,7 +118,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
         if (this.energyContainer.removeEnergy(energyUsage) >= energyUsage) {
             getRecipeLogic().setStatus(RecipeLogic.WORKING);
         } else {
-            getRecipeLogic().setWaiting(GTIssues.EU_SHORT, IO.IN, EURecipeInfo.INSTANCE, -1, energyUsage, -1);
+            getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(energyUsage)));
         }
     }
 
@@ -137,10 +135,5 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     @Override
     public int getMaxProgress() {
         return 0;
-    }
-
-    @Override
-    public boolean hasDiagnosisTab() {
-        return false;
     }
 }

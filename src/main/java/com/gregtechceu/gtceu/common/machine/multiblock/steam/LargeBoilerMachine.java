@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -192,7 +191,6 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
             recipe.duration = (int) duration;
             return recipe;
         }
-        machine.reportIssue(GTIssues.NOT_APPLICABLE);
         return null;
     }
 

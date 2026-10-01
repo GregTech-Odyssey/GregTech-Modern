@@ -12,7 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 public final class WidgetIcons {
 
     /// 行数必须与图集高度一致；加图标时加一行并改这里
-    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 43);
+    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 42);
 
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
@@ -53,7 +53,7 @@ public final class WidgetIcons {
     /// 设置（齿轮）
     public static final IGuiTexture SETTINGS = ATLAS.icon(11);
     /// 说明
-    public static final IGuiTexture INFO = ATLAS.pixelIcon(12);
+    public static final IGuiTexture INFO = ATLAS.icon(12);
     /// 过滤设置（漏斗）
     public static final IGuiTexture FILTER = ATLAS.icon(13);
     /// 黑名单 / 白名单
@@ -123,7 +123,6 @@ public final class WidgetIcons {
     public static final IGuiTexture MAP_DARK = ATLAS.icon(40, 1);
     public static final IGuiTexture FAVORITE_OFF = ATLAS.icon(41, 0);
     public static final IGuiTexture FAVORITE_ON = ATLAS.icon(41, 1);
-    public static final IGuiTexture DIAGNOSIS = ATLAS.pixelIcon(42);
 
     private WidgetIcons() {}
 }

@@ -5,8 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.integration.jade.IssueJade;
+import com.gregtechceu.gtceu.integration.jade.IdleReasonJade;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
@@ -71,7 +70,7 @@ public class MaintenanceBlockProvider extends CapabilityBlockProvider<IMaintenan
                             iTooltip.append(tuple.getB());
                         }
                     }
-                } else if (!IssueJade.reports(blockAccessor, RecipeLogicProvider.UID, GTIssues.MAINTENANCE)) {
+                } else if (!IdleReasonJade.reports(blockAccessor, RecipeLogicProvider.UID, "gtceu.top.maintenance_broken")) {
                     iTooltip.add(Component.translatable("gtceu.top.maintenance_broken").withStyle(ChatFormatting.RED));
                 }
             } else {

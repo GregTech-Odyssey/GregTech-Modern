@@ -2,10 +2,7 @@ package com.gregtechceu.gtceu.api.capability;
 
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.machine.trait.miner.MinerLogic;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,10 +20,6 @@ public interface IMiner extends IRecipeLogicMachine, IMachineLife {
     }
 
     boolean drainInput(boolean simulate);
-
-    default void reportDrainIssue() {
-        reportIssue(GTIssues.EU_SHORT, null, IO.IN, EURecipeInfo.INSTANCE, -1, -1, -1, null);
-    }
 
     /**
      * 本矿机的附魔槽。

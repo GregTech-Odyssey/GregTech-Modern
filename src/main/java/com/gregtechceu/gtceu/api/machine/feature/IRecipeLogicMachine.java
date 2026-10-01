@@ -4,20 +4,15 @@ import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
-import com.gregtechceu.gtceu.api.machine.issue.IssueType;
-import com.gregtechceu.gtceu.api.machine.issue.MachineIssue;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
@@ -119,10 +114,7 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     default GTRecipe fullModifyRecipe(RecipeHandlerUnit unit, GTRecipeDefinition definition) {
-        if (!GTRecipeType.available(definition.recipeType, getAvailableRecipeTypes())) {
-            reportIssue(GTIssues.NOT_APPLICABLE, null, IO.NONE, null, -1, 0, 0, definition);
-            return null;
-        }
+        if (!GTRecipeType.available(definition.recipeType, getAvailableRecipeTypes())) return null;
         var recipe = definition.toRuntime();
         if (unit.color != -1) recipe.outputColor = unit.color;
         for (var mod : definition.recipeModifiers) {
@@ -146,56 +138,24 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
     }
 
     @Override
-    @Deprecated
     default void setIdleReason(Supplier<Component> reason) {
-        getRecipeLogic().reportCustom(reason);
-    }
-
-    @Override
-    default void reportIssue(IssueType type, @Nullable IssueStage stage, IO io, @Nullable RecipeInfo capability, int index, long a, long b, @Nullable GTRecipeDefinition recipe) {
-        getRecipeLogic().report(type, stage, io, capability, index, a, b, recipe);
-    }
-
-    @Nullable
-    default GTRecipeDefinition getDiagnosisRecipe() {
-        return null;
-    }
-
-    default long getIssueEnergyBuffer() {
-        return 0;
-    }
-
-    default boolean isPowerGated() {
-        return false;
-    }
-
-    default boolean hasDiagnosisTab() {
-        return self() instanceof IMultiController;
-    }
-
-    default MachineIssue getUnavailableIssue() {
-        return self() instanceof IMultiController controller && !controller.isFormed() ? GTIssues.UNFORMED.bare() : GTIssues.DISABLED.bare();
+        getRecipeLogic().setIdleReasonSupplier(reason);
     }
 
     @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
         for (var e : recipe.definition.recipeExtensions) {
-            if (!e.handleOutput(this, recipe, true)) {
-                reportIssue(GTIssues.EXTENSION_UNMET, IssueStage.OUTPUT, IO.OUT, null, -1, 0, 0, recipe.definition);
-                return false;
-            }
+            if (!e.handleOutput(this, recipe, true)) return false;
         }
         List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
         List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
         if (items.isEmpty() && fluids.isEmpty()) return true;
-        var units = getOutputUnits(recipe);
-        boolean itemAccepted = items.isEmpty();
-        for (var handler : units) {
-            if (!handler.handleRecipeItem(IO.OUT, recipe, items, true)) continue;
-            itemAccepted = true;
-            if (handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) return true;
+        for (var handler : getOutputUnits(recipe)) {
+            if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
+                return true;
+            }
         }
-        reportOutputFailure(recipe, units.isEmpty(), itemAccepted);
+        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 

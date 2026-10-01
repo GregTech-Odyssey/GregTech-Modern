@@ -3,12 +3,12 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
-import com.gregtechceu.gtceu.uiwidgets.icon.IssueIcons;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
@@ -190,11 +190,11 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
     @Override
     default GTRecipe modifyRecipe(IWorkableMultiController controller, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!isFrontFaceFree()) {
-            controller.reportIssue(GTIssues.ROTOR_OBSTRUCTED);
+            controller.setIdleReason(ActionResult.FAIL_ROTOR_OBSTRUCTED);
             return null;
         }
         if (!hasRotor()) {
-            controller.reportIssue(GTIssues.ROTOR_MISSING);
+            controller.setIdleReason(Component.translatable("gtceu.issue.rotor_missing"));
             return null;
         }
         return recipe;
@@ -211,8 +211,8 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
 
     @Override
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
-        tooltipsPanel.attachTooltips(IFancyTooltip.covering(GTIssues.ROTOR_OBSTRUCTED, new IFancyTooltip.Basic(
-                () -> IssueIcons.iconFor(GTIssues.ROTOR_OBSTRUCTED),
+        tooltipsPanel.attachTooltips(IFancyTooltip.covering("gtceu.multiblock.universal.rotor_obstructed", new IFancyTooltip.Basic(
+                () -> WidgetIcons.STATUS_OBSTRUCTED,
                 () -> List.of(Component.translatable("gtceu.multiblock.universal.rotor_obstructed")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.RED))),
                 () -> !isFrontFaceFree(),

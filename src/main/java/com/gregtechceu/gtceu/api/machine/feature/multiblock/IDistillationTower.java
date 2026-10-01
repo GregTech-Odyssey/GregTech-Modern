@@ -69,24 +69,18 @@ public interface IDistillationTower extends IWorkableMultiController {
         var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
         var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
         if (items.isEmpty() && fluids.isEmpty()) return true;
-        var units = getOutputUnits(recipe);
-        boolean itemAccepted = items.isEmpty();
-        for (var handler : units) {
+        for (var handler : getOutputUnits(recipe)) {
             if (handler.handleRecipeItem(IO.OUT, recipe, items, true)) {
-                itemAccepted = true;
                 if (fluids.isEmpty()) return true;
                 if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
                     if (handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
                         return true;
                     }
                 } else {
-                    if (applyFluidOutputs(fluids, IFluidHandler.FluidAction.SIMULATE)) return true;
-                    reportOutputFailure(recipe, false, true);
-                    return false;
+                    return applyFluidOutputs(fluids, IFluidHandler.FluidAction.SIMULATE);
                 }
             }
         }
-        reportOutputFailure(recipe, units.isEmpty(), itemAccepted);
         return false;
     }
 

@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.steam.SteamWorkableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
@@ -203,7 +202,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         group.addWidget(new SlotWidget(enchantmentSlot.getStorage(), 0, 0, 78, true, true)
                 .setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure()))
                 .setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.enchantment_slot.tooltip").toArray(Component[]::new)));
-        group.addWidget(new PredicatedImageWidget(43, 28, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure())).setPredicate(() -> !drainInput(true)));
+        group.addWidget(new PredicatedImageWidget(43, 28, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure())).setPredicate(() -> !drainSteam(true)));
         return RecipeMachinePage.page(group);
     }
 
@@ -218,7 +217,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         else if (!this.isWorkingEnabled()) textList.add(Component.translatable("gtceu.multiblock.work_paused"));
         if (getRecipeLogic().isInventoryFull()) textList.add(Component.translatable("gtceu.multiblock.large_miner.invfull").withStyle(ChatFormatting.RED));
         if (isVentingBlocked()) textList.add(Component.translatable("gtceu.multiblock.large_miner.vent").withStyle(ChatFormatting.RED));
-        else if (!drainInput(true)) textList.add(Component.translatable("gtceu.multiblock.large_miner.steam").withStyle(ChatFormatting.RED));
+        else if (!drainSteam(true)) textList.add(Component.translatable("gtceu.multiblock.large_miner.steam").withStyle(ChatFormatting.RED));
     }
 
     void addDisplayText2(List<Component> textList) {
@@ -227,13 +226,13 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         textList.add(Component.translatable("gtceu.machine.miner.minez", this.getRecipeLogic().getMineZ()));
     }
 
-    @Override
-    public void reportDrainIssue() {
-        reportIssue(isVentingBlocked() ? GTIssues.VENT_BLOCKED : GTIssues.STEAM_SHORT);
+    public boolean drainInput(boolean simulate) {
+        if (drainSteam(simulate)) return true;
+        if (!isRemote()) setIdleReason(Component.translatable(isVentingBlocked() ? "gtceu.issue.vent_blocked" : "gtceu.issue.steam_short"));
+        return false;
     }
 
-    @Override
-    public boolean drainInput(boolean simulate) {
+    private boolean drainSteam(boolean simulate) {
         long stored = steamTank.getFluidInTank(0).getAmount();
         // 附魔会抬高耗汽；蒸汽不够时按比例削弱效果，而不是直接停机
         long cost = getRecipeLogic().resolveEnchantmentCost(energyPerTick, stored);

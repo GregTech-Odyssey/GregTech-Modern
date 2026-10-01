@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
@@ -16,6 +15,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.block.FusionCasingBlock;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -135,20 +135,17 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof FusionReactorMachine fusionReactorMachine)) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         var eu = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
-        long capacity = fusionReactorMachine.energyContainer.getEnergyCapacity();
-        if (eu > capacity) {
-            machine.reportIssue(GTIssues.START_ENERGY_CAPACITY, eu, capacity);
+        if (eu > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
+            machine.setIdleReason(Component.translatable("gtceu.issue.start_energy_capacity", FormattingUtil.formatNumbers(eu), FormattingUtil.formatNumbers(fusionReactorMachine.energyContainer.getEnergyCapacity())));
             return null;
         }
         long heatDiff = eu - fusionReactorMachine.heat;
         if (heatDiff > 0) {
-            long stored = fusionReactorMachine.energyContainer.getEnergyStored();
-            if (stored < heatDiff) {
-                machine.reportIssue(GTIssues.START_ENERGY_SHORT, heatDiff, preheatProgress(stored, heatDiff));
+            if (fusionReactorMachine.energyContainer.getEnergyStored() < heatDiff) {
+                machine.setIdleReason(startEnergyShort(heatDiff, fusionReactorMachine.energyContainer.getEnergyStored()));
                 return null;
             }
             fusionReactorMachine.energyContainer.removeEnergy(heatDiff);
@@ -157,11 +154,10 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         return RecipeModifier.perfectOverclocking(machine, unit, recipe);
     }
 
-    private static long preheatProgress(long stored, long need) {
-        if (need <= 0) return -1;
-        if (stored >= need) return need;
-        long percent = stored <= 0 ? 0 : stored < Long.MAX_VALUE / 100 ? stored * 100 / need : stored / (need / 100);
-        return need / 100 * percent + need % 100 * percent / 100;
+    private static Component startEnergyShort(long need, long stored) {
+        long percent = stored <= 0 ? 0 : stored >= need ? 100 : stored < Long.MAX_VALUE / 100 ? stored * 100 / need : stored / (need / 100);
+        long shown = need / 100 * percent + need % 100 * percent / 100;
+        return Component.translatable("gtceu.issue.start_energy_short", FormattingUtil.formatNumbers(need), FormattingUtil.formatNumbers(shown));
     }
 
     @Override
@@ -173,7 +169,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
             long heatDiff = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START) - this.heat;
             // if the remaining energy needed is more than stored, do not run
             if (heatDiff > 0) {
-                recipeLogic.setWaiting(GTIssues.START_ENERGY_SHORT, heatDiff, preheatProgress(this.energyContainer.getEnergyStored(), heatDiff));
+                recipeLogic.setWaiting(startEnergyShort(heatDiff, this.energyContainer.getEnergyStored()));
                 // if the remaining energy needed is more than stored, do not run
                 if (this.energyContainer.getEnergyStored() < heatDiff) {
                     return;

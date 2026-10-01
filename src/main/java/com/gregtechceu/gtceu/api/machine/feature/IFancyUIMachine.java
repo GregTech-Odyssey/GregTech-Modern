@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.uipro.UIElement;
-import com.gregtechceu.gtceu.uipro.issue.MachineDiagnosisTab;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
@@ -85,7 +84,6 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
             sideTabs.attachSubTab(new MachineModeFancyConfigurator(rLMachine));
         }
         CoverTab.attach(sideTabs, self());
-        MachineDiagnosisTab.attachIfEnabled(sideTabs, this);
     }
 
     @Override

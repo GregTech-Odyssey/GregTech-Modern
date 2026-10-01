@@ -5,19 +5,17 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
@@ -136,17 +134,6 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     }
 
     @Override
-    public void reportDrainIssue() {
-        long energy = GTValues.VA[getEnergyTier()];
-        long stored = energyContainer.getEnergyStored();
-        if (stored < energy) {
-            reportIssue(GTIssues.EU_SHORT, null, IO.IN, EURecipeInfo.INSTANCE, -1, energy, stored, null);
-        } else {
-            reportIssue(GTIssues.INPUT_SHORT, null, IO.IN, FluidRecipeInfo.INSTANCE, -1, (long) this.drillingFluidConsumePerTick * getRecipeLogic().getOverclockAmount(), -1, null);
-        }
-    }
-
-    @Override
     public boolean drainInput(boolean simulate) {
         // drain energy
         long stored = energyContainer.getEnergyStored();
@@ -159,15 +146,19 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
                     energyContainer.changeEnergy(-energyToDrain);
                 }
             } else {
+                if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(GTValues.VA[getEnergyTier()])));
                 return false;
             }
         } else {
+            if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(GTValues.VA[getEnergyTier()])));
             return false;
         }
         // drain fluid
         int drillingFluidAmount = this.drillingFluidConsumePerTick * getRecipeLogic().getOverclockAmount();
-        return simulate ? matchFluid(DrillingFluid.getFluid(), drillingFluidAmount) :
+        boolean drained = simulate ? matchFluid(DrillingFluid.getFluid(), drillingFluidAmount) :
                 inputFluid(DrillingFluid.getFluid(), drillingFluidAmount);
+        if (!drained && !isRemote()) setIdleReason(() -> ActionResult.failInsufficientIn(DrillingFluid.getFluid().getFluidType().getDescription()).reason());
+        return drained;
     }
 
     //////////////////////////////////////

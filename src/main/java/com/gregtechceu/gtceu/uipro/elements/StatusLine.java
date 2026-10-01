@@ -54,8 +54,8 @@ public class StatusLine extends UIElement {
     public static final int HEIGHT = UISizes.STATUS_LINE_HEIGHT;
     /** 带物品图标的行高。 */
     public static final int ICON_HEIGHT = UISizes.STATUS_LINE_ICON_HEIGHT;
-    public static final int LAMP_SIZE = 6;
-    public static final int LAMP_GAP = 3;
+    private static final int LAMP_SIZE = 6;
+    private static final int LAMP_GAP = 3;
     private static final int ICON_SIZE = 16;
     private static final int ICON_GAP = 2;
 

@@ -13,13 +13,11 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.WorkableTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
@@ -27,6 +25,7 @@ import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.MinerLogic;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
@@ -340,16 +339,17 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         else if (getRecipeLogic().isWorking()) textList.add(Component.translatable("gtceu.multiblock.large_miner.working").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
         else if (!this.isWorkingEnabled()) textList.add(Component.translatable("gtceu.multiblock.work_paused"));
         if (getRecipeLogic().isInventoryFull()) textList.add(Component.translatable("gtceu.multiblock.large_miner.invfull").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-        if (!drainInput(true)) textList.add(Component.translatable("gtceu.multiblock.large_miner.needspower").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-    }
-
-    @Override
-    public void reportDrainIssue() {
-        reportIssue(GTIssues.EU_SHORT, null, IO.IN, EURecipeInfo.INSTANCE, -1, energyPerTick, -1, null);
+        if (!drainEnergy(true)) textList.add(Component.translatable("gtceu.multiblock.large_miner.needspower").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
     }
 
     @Override
     public boolean drainInput(boolean simulate) {
+        if (drainEnergy(simulate)) return true;
+        if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(energyPerTick)));
+        return false;
+    }
+
+    private boolean drainEnergy(boolean simulate) {
         long stored = energyContainer.getEnergyStored();
         // 附魔会抬高耗电；电力不够时按比例削弱效果，而不是直接停机
         long cost = getRecipeLogic().resolveEnchantmentCost(energyPerTick, stored);

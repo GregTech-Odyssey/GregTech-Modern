@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.trait.miner;
 
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 
 public class SteamMinerLogic extends MinerLogic {
 
@@ -21,10 +20,7 @@ public class SteamMinerLogic extends MinerLogic {
     @Override
     protected boolean checkCanMine() {
         IExhaustVentMachine machine = (IExhaustVentMachine) this.machine;
-        if (!super.checkCanMine()) return false;
-        if (machine.checkVenting()) return true;
-        report(GTIssues.VENT_BLOCKED);
-        return false;
+        return super.checkCanMine() && machine.checkVenting();
     }
 
     @Override

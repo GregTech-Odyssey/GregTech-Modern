@@ -48,7 +48,7 @@ public interface IFancyUIProvider {
     default void attachTooltips(TooltipsPanel tooltipsPanel) {}
 
     @Nullable
-    default MetaMachine getIssueMachine() {
+    default MetaMachine getReasonMachine() {
         return this instanceof MetaMachine machine ? machine : null;
     }
 

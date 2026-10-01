@@ -11,14 +11,11 @@ import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -176,7 +173,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
                 getRecipeLogic().setStatus(RecipeLogic.WORKING);
             } else {
-                getRecipeLogic().setWaiting(GTIssues.EU_SHORT, IO.IN, EURecipeInfo.INSTANCE, -1, energyToConsume, -1);
+                getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(energyToConsume)));
             }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
             double temperatureChange = hpcaHandler.calculateTemperatureChange(this, overheated || temperature >= SAFE_TEMPERATURE);
@@ -596,10 +593,5 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         public void clearClientComponents() {
             components.clear();
         }
-    }
-
-    @Override
-    public boolean hasDiagnosisTab() {
-        return false;
     }
 }

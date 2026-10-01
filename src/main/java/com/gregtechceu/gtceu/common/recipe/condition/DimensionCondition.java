@@ -1,8 +1,6 @@
 package com.gregtechceu.gtceu.common.recipe.condition;
 
 import com.gregtechceu.gtceu.api.data.DimensionMarker;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IssueType;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
@@ -20,8 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-
-import org.jetbrains.annotations.Nullable;
 
 public class DimensionCondition extends RecipeCondition {
 
@@ -45,19 +41,7 @@ public class DimensionCondition extends RecipeCondition {
 
     @Override
     public Component getTooltips() {
-        return Component.translatable(isReverse ? "recipe.condition.dimension.reverse.tooltip" : "recipe.condition.dimension.tooltip", dimension.location().toString());
-    }
-
-    @Override
-    public IssueType getIssueType() {
-        return GTIssues.DIMENSION;
-    }
-
-    @Override
-    public @Nullable Component describeCurrent(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipeDefinition recipe) {
-        Level level = holder.self().getLevel();
-        if (level == null) return null;
-        return Component.translatable("gtceu.issue.current.dimension", level.dimension().location().toString());
+        return Component.translatable("recipe.condition.dimension.tooltip", dimension);
     }
 
     /** 维度标志物品的展示槽。 */

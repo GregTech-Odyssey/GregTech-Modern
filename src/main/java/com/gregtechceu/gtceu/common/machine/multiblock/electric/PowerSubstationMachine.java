@@ -483,9 +483,4 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             return this;
         }
     }
-
-    @Override
-    public boolean hasDiagnosisTab() {
-        return false;
-    }
 }

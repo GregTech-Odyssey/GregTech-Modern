@@ -5,19 +5,16 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.uiwidgets.icon.IssueIcons;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTMath;
 
@@ -106,34 +103,23 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof LargeCombustionEngineMachine engineMachine)) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         long EUt = recipe.getOutputEUt();
-        if (EUt <= 0) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
-            return null;
-        }
-        if (engineMachine.isIntakesObstructed()) {
-            machine.reportIssue(GTIssues.INTAKE_OBSTRUCTED);
-            return null;
-        }
         // has lubricant
-        if (engineMachine.inputFluid(LUBRICANT_STACK)) {
-            long voltage = engineMachine.getOverclockVoltage();
-            var maxParallel = voltage / EUt; // get maximum parallel
-            if (maxParallel == 0) {
-                machine.reportIssue(GTIssues.OUTPUT_POWER_LOW, null, IO.OUT, EURecipeInfo.INSTANCE, -1, EUt, voltage, null);
+        if (EUt > 0 && !engineMachine.isIntakesObstructed() && engineMachine.inputFluid(LUBRICANT_STACK)) {
+            var maxParallel = engineMachine.getOverclockVoltage() / EUt; // get maximum parallel
+            var actualParallel = ParallelLogic.getMaxParallelAmount(engineMachine, unit, recipe, maxParallel);
+            if (actualParallel == 0) {
+                if (maxParallel == 0) machine.setIdleReason(Component.translatable("gtceu.issue.output_power_low", FormattingUtil.formatNumbers(EUt), FormattingUtil.formatNumbers(engineMachine.getOverclockVoltage())));
                 return null;
             }
-            var actualParallel = ParallelLogic.getMaxParallelAmount(engineMachine, unit, recipe, maxParallel);
-            if (actualParallel == 0) return null;
             double eutMultiplier = actualParallel * engineMachine.getProductionBoost();
             recipe.modifier(actualParallel, false);
             recipe.euMultiplier(eutMultiplier);
             return recipe;
         }
-        machine.reportIssue(GTIssues.NO_LUBRICANT);
+        if (EUt > 0) machine.setIdleReason(Component.translatable(engineMachine.isIntakesObstructed() ? "gtceu.issue.intake_obstructed" : "gtceu.issue.no_lubricant"));
         return null;
     }
 
@@ -144,7 +130,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         if (runningTimer % 72 == 0) {
             // insufficient lubricant
             if (!inputFluid(LUBRICANT_STACK)) {
-                recipeLogic.interruptRecipe(GTIssues.NO_LUBRICANT, 0, 0);
+                recipeLogic.interruptRecipe(Component.translatable("gtceu.issue.no_lubricant"));
                 return;
             }
         }
@@ -180,7 +166,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
             final var key = isExtreme() ? "gtceu.multiblock.large_combustion_engine.liquid_oxygen_boosted" : "gtceu.multiblock.large_combustion_engine.oxygen_boosted";
             builder.addCustom(tl -> tl.add(Component.translatable(key).withStyle(ChatFormatting.AQUA)));
         }
-        builder.addIssueLines(recipeLogic);
+        builder.addReasonLines(recipeLogic);
     }
 
     @Nullable
@@ -206,6 +192,6 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
     @Override
     public void attachTooltips(TooltipsPanel tooltipsPanel) {
         super.attachTooltips(tooltipsPanel);
-        tooltipsPanel.attachTooltips(IFancyTooltip.covering(GTIssues.INTAKE_OBSTRUCTED, new IFancyTooltip.Basic(() -> IssueIcons.iconFor(GTIssues.INTAKE_OBSTRUCTED), () -> List.of(Component.translatable("gtceu.multiblock.large_combustion_engine.obstructed").setStyle(Style.EMPTY.withColor(ChatFormatting.RED))), this::isIntakesObstructed, () -> null)));
+        tooltipsPanel.attachTooltips(IFancyTooltip.covering("gtceu.issue.intake_obstructed", new IFancyTooltip.Basic(() -> WidgetIcons.STATUS_OBSTRUCTED, () -> List.of(Component.translatable("gtceu.multiblock.large_combustion_engine.obstructed").setStyle(Style.EMPTY.withColor(ChatFormatting.RED))), this::isIntakesObstructed, () -> null)));
     }
 }

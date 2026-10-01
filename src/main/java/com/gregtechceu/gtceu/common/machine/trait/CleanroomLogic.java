@@ -3,10 +3,8 @@ package com.gregtechceu.gtceu.common.machine.trait;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.CleanroomMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -57,15 +55,6 @@ public class CleanroomLogic extends RecipeLogic {
      * Call this method every tick in update
      */
     public void serverTick() {
-        beginIssueRound(IssueStage.WORKING);
-        try {
-            cleanTick();
-        } finally {
-            endIssueRound();
-        }
-    }
-
-    private void cleanTick() {
         // always run this logic
         if (duration > 0) {
             if (maintenanceMachine == null || maintenanceMachine.getNumMaintenanceProblems() < 6) {
@@ -82,7 +71,7 @@ public class CleanroomLogic extends RecipeLogic {
                     if (getOffsetTimer() % duration == 0) {
                         adjustCleanAmount(true);
                     }
-                    setWaiting(GTIssues.EU_SHORT, IO.IN, EURecipeInfo.INSTANCE, -1, getEnergyToDrain(), -1);
+                    setWaiting(ActionResult.failInsufficientIn(EURecipeInfo.INSTANCE.getName()).reason());
                     return;
                 }
                 setStatus(WORKING);
@@ -101,7 +90,6 @@ public class CleanroomLogic extends RecipeLogic {
                 if (getOffsetTimer() % duration == 0) {
                     adjustCleanAmount(true);
                 }
-                report(GTIssues.MAINTENANCE);
                 setStatus(IDLE);
                 machine.afterWorking();
             }
@@ -119,16 +107,12 @@ public class CleanroomLogic extends RecipeLogic {
         machine.adjustCleanAmount(amountToClean);
     }
 
-    private long getEnergyToDrain() {
+    protected boolean consumeEnergy() {
         var cleanroom = machine;
         // clamp to max for VA indexing
         var tier = Mth.clamp(cleanroom.getTier(), GTValues.ULV, GTValues.MAX);
         // use 3/16th an amp when fully clean otherwise 15/16th an amp during cleaning
-        return cleanroom.isClean() ? Math.max(8, (3 * GTValues.V[tier] / 16)) : GTValues.VA[tier];
-    }
-
-    protected boolean consumeEnergy() {
-        long energyToDrain = getEnergyToDrain();
+        long energyToDrain = cleanroom.isClean() ? Math.max(8, (3 * GTValues.V[tier] / 16)) : GTValues.VA[tier];
         if (energyContainer != null) {
             long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
             if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {

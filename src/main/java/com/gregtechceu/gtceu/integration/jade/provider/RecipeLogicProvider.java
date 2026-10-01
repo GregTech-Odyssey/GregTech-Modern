@@ -8,7 +8,7 @@ import com.gregtechceu.gtceu.api.machine.steam.SimpleSteamMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.machine.multiblock.steam.SteamParallelMultiblockMachine;
-import com.gregtechceu.gtceu.integration.jade.IssueJade;
+import com.gregtechceu.gtceu.integration.jade.IdleReasonJade;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -56,7 +56,7 @@ public class RecipeLogicProvider extends CapabilityBlockProvider<RecipeLogic> {
     @Override
     protected void write(CompoundTag data, RecipeLogic capability) {
         data.putBoolean("Working", capability.isWorking());
-        IssueJade.write(data, capability);
+        IdleReasonJade.write(data, capability);
         var recipeInfo = new CompoundTag();
         var recipe = capability.getLastRecipe();
         if (recipe != null) {
@@ -79,7 +79,7 @@ public class RecipeLogicProvider extends CapabilityBlockProvider<RecipeLogic> {
     @Override
     protected void addTooltip(CompoundTag capData, ITooltip tooltip, Player player, BlockAccessor block,
                               BlockEntity blockEntity, IPluginConfig config) {
-        IssueJade.append(tooltip, capData, block.showDetails());
+        IdleReasonJade.append(tooltip, capData, block.showDetails());
         if (capData.getBoolean("Working")) {
             var recipeInfo = capData.getCompound("Recipe");
             if (!recipeInfo.isEmpty()) {

@@ -27,9 +27,9 @@ public class TooltipsPanel extends Widget {
     protected List<IFancyTooltip> tooltips = new ArrayList<>();
     @Nullable
     @Getter(AccessLevel.NONE)
-    private IssueSyncWidget issues;
+    private IdleReasonSyncWidget reasons;
     @Getter(AccessLevel.NONE)
-    private final Map<RecipeLogic, IssueTooltip> issueTooltips = new IdentityHashMap<>(2);
+    private final Map<RecipeLogic, IdleReasonTooltip> reasonTooltips = new IdentityHashMap<>(2);
 
     public TooltipsPanel() {
         super(202, 2, 20, 0);
@@ -39,9 +39,9 @@ public class TooltipsPanel extends Widget {
         tooltips.clear();
     }
 
-    public void setIssues(@Nullable IssueSyncWidget issues) {
-        this.issues = issues;
-        issueTooltips.clear();
+    public void setReasons(@Nullable IdleReasonSyncWidget reasons) {
+        this.reasons = reasons;
+        reasonTooltips.clear();
     }
 
     public void attachTooltips(IFancyTooltip... tooltips) {
@@ -49,33 +49,33 @@ public class TooltipsPanel extends Widget {
     }
 
     public void attachRecipeLogics(MetaMachine machine) {
-        for (var logic : IssueSyncWidget.logicsOf(machine)) add(resolve(logic));
+        for (var logic : IdleReasonSyncWidget.logicsOf(machine)) add(resolve(logic));
     }
 
     private void add(IFancyTooltip tooltip) {
-        if (tooltip instanceof IssueTooltip && tooltips.contains(tooltip)) return;
+        if (tooltip instanceof IdleReasonTooltip && tooltips.contains(tooltip)) return;
         tooltips.add(tooltip);
     }
 
     private IFancyTooltip resolve(IFancyTooltip tooltip) {
-        if (issues == null || !(tooltip instanceof RecipeLogic logic)) return tooltip;
-        var cached = issueTooltips.get(logic);
+        if (reasons == null || !(tooltip instanceof RecipeLogic logic)) return tooltip;
+        var cached = reasonTooltips.get(logic);
         if (cached != null) return cached;
-        var source = issues.source(logic);
-        if (source == null) return tooltip;
-        var created = new IssueTooltip(source, this);
-        issueTooltips.put(logic, created);
+        var state = reasons.state(logic);
+        if (state == null) return tooltip;
+        var created = new IdleReasonTooltip(state, this);
+        reasonTooltips.put(logic, created);
         return created;
     }
 
     public boolean isShown(int index) {
         var tooltip = tooltips.get(index);
         if (!tooltip.showFancyTooltip()) return false;
-        var type = tooltip.coveredIssue();
-        if (type == null) return true;
+        var key = tooltip.coveredReason();
+        if (key == null) return true;
         for (int i = 0; i < index; i++) {
             var other = tooltips.get(i);
-            if (other.coveredIssue() == type && other.showFancyTooltip()) return false;
+            if (key.equals(other.coveredReason()) && other.showFancyTooltip()) return false;
         }
         return true;
     }
@@ -90,6 +90,7 @@ public class TooltipsPanel extends Widget {
         for (int i = 0; i < tooltips.size(); i++) {
             var tooltip = tooltips.get(i);
             if (isShown(i)) {
+                // draw icon
                 tooltip.getFancyTooltipIcon().draw(graphics, mouseX, mouseY, position.x, position.y + offsetY, size.width, size.width);
                 offsetY += size.getWidth() + 2;
             }

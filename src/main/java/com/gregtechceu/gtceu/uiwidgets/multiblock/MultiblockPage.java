@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.ScreenSprite;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeIOList;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -64,7 +65,6 @@ public final class MultiblockPage {
     private static final Component UNFORMED = Component.translatable(STATE_UNFORMED);
     private static final Component PAUSED = Component.translatable(STATE_PAUSED);
     private static final Component RUNNING = Component.translatable(STATE_RUNNING);
-    private static final Component WAITING = Component.translatable(STATE_WAITING);
     private static final Component IDLE = Component.translatable(STATE_IDLE);
     private static final Component NONE = Component.empty();
     private static final Component ON_TEXT = Component.translatable(ON);
@@ -79,6 +79,8 @@ public final class MultiblockPage {
     @Nullable
     private BooleanSupplier alert;
     private Component alertText = NONE;
+    @Nullable
+    private ReasonView reasonView;
 
     private MultiblockPage(WorkableMultiblockMachine machine) {
         this.machine = machine;
@@ -293,8 +295,13 @@ public final class MultiblockPage {
     }
 
     private void addStateLine() {
-        var logic = machine.getRecipeLogic();
-        addLine(STATE, this::stateText).bindLevel(this::stateLevel).bindDetail(() -> reason(logic));
+        addLine(STATE, this::stateText).bindLevel(this::stateLevel).bindDetail(() -> reasonView().hover);
+        var detail = new RichText().darkBackground().collapseEmpty();
+        detail.textSupplier(machine.isRemote() ? null : list -> {
+            var view = reasonView();
+            if (view.line != null) list.add(view.line);
+        });
+        screen.addChild(detail);
     }
 
     private Component stateText() {
@@ -302,22 +309,39 @@ public final class MultiblockPage {
         if (!machine.isFormed()) return UNFORMED;
         if (!logic.isWorkingEnabled()) return PAUSED;
         if (logic.isWorking()) return alert != null && alert.getAsBoolean() ? alertText : RUNNING;
-        var reason = reason(logic);
-        if (reason != NONE) return reason;
-        return logic.isWaiting() ? WAITING : IDLE;
+        var view = reasonView();
+        return view.shown ? view.headline : IDLE;
     }
 
     private Level stateLevel() {
         var logic = machine.getRecipeLogic();
         if (!machine.isFormed()) return Level.ERROR;
-        if (!logic.isWorkingEnabled() || logic.isWaiting()) return Level.WARNING;
+        if (!logic.isWorkingEnabled()) return Level.WARNING;
         if (logic.isWorking()) return alert != null && alert.getAsBoolean() ? Level.WARNING : Level.GOOD;
-        return Level.NORMAL;
+        return reasonView().level;
     }
 
-    private Component reason(RecipeLogic logic) {
-        if (!machine.isFormed() || !logic.showFancyTooltip()) return NONE;
-        var reason = logic.getIdleReason();
-        return reason == null ? NONE : reason;
+    private ReasonView reasonView() {
+        var logic = machine.getRecipeLogic();
+        int status = logic.getStatus();
+        var reason = machine.isFormed() && logic.isWorkingEnabled() ? IdleReasonInfo.reasonOf(logic) : null;
+        if (reasonView == null || reasonView.status != status || reasonView.reason != reason) reasonView = ReasonView.of(status, reason);
+        return reasonView;
+    }
+
+    private record ReasonView(int status, @Nullable Component reason, boolean shown, Component headline, Level level,
+                              @Nullable Component line, Component hover) {
+
+        private static ReasonView of(int status, @Nullable Component reason) {
+            boolean shown = reason != null || status == RecipeLogic.WAITING;
+            if (!shown) return new ReasonView(status, null, false, IDLE, Level.NORMAL, null, NONE);
+            var entry = IdleReasonInfo.lookup(reason);
+            var headline = IdleReasonInfo.headline(status, reason, entry);
+            var level = IdleReasonInfo.level(status, reason);
+            var detail = IdleReasonInfo.detail(status, reason, entry);
+            if (detail == null) return new ReasonView(status, reason, true, headline, level, null, NONE);
+            if (IdleReasonInfo.showsDetail(status, reason, entry)) return new ReasonView(status, reason, true, headline, level, detail, NONE);
+            return new ReasonView(status, reason, true, headline, level, null, detail);
+        }
     }
 }

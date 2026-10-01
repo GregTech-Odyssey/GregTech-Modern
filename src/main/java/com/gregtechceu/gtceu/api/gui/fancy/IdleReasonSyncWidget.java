@@ -2,14 +2,15 @@ package com.gregtechceu.gtceu.api.gui.fancy;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.machine.issue.IssueSnapshot;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.data.UIChannel;
+import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -17,28 +18,25 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
-public final class IssueSyncWidget extends Widget implements UIChannel.Host {
+public final class IdleReasonSyncWidget extends Widget implements UIChannel.Host {
 
     private final UIChannel channel = new UIChannel(this);
     private final List<RecipeLogic> logics;
-    private final List<SyncValue<IssueSnapshot>> values;
+    private final List<State> states;
 
-    public IssueSyncWidget(List<RecipeLogic> logics) {
+    public IdleReasonSyncWidget(List<RecipeLogic> logics) {
         super(0, 0, 0, 0);
         this.logics = List.copyOf(logics);
-        this.values = new ArrayList<>(this.logics.size());
-        for (var logic : this.logics) {
-            values.add(channel.addSyncValue(SyncValue.of(logic::getIssueSnapshot, IssueSnapshot.STREAM_CODEC, IssueSnapshot.EMPTY)));
-        }
+        this.states = new ArrayList<>(this.logics.size());
+        for (var logic : this.logics) states.add(new State(channel, logic));
     }
 
     @Nullable
-    public static IssueSyncWidget of(@Nullable MetaMachine machine) {
+    public static IdleReasonSyncWidget of(@Nullable MetaMachine machine) {
         if (machine == null) return null;
         var logics = logicsOf(machine);
-        return logics.isEmpty() ? null : new IssueSyncWidget(logics);
+        return logics.isEmpty() ? null : new IdleReasonSyncWidget(logics);
     }
 
     public static List<RecipeLogic> logicsOf(MetaMachine machine) {
@@ -52,9 +50,9 @@ public final class IssueSyncWidget extends Widget implements UIChannel.Host {
     }
 
     @Nullable
-    public Supplier<IssueSnapshot> source(RecipeLogic logic) {
+    public State state(RecipeLogic logic) {
         int index = logics.indexOf(logic);
-        return index < 0 ? null : values.get(index)::getValue;
+        return index < 0 ? null : states.get(index);
     }
 
     @Override
@@ -102,5 +100,35 @@ public final class IssueSyncWidget extends Widget implements UIChannel.Host {
     @OnlyIn(Dist.CLIENT)
     public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
         if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    public static final class State {
+
+        private final SyncValue<Integer> status;
+        private final SyncValue<Boolean> available;
+        private final SyncValue<Component> reason;
+
+        private State(UIChannel channel, RecipeLogic logic) {
+            this.status = channel.addSyncValue(SyncValue.ofInt(logic::getStatus, RecipeLogic.IDLE));
+            this.available = channel.addSyncValue(SyncValue.ofBool(() -> IdleReasonInfo.available(logic), true));
+            this.reason = channel.addSyncValue(SyncValue.ofComponent(() -> {
+                var current = IdleReasonInfo.reasonOf(logic);
+                return current == null ? IdleReasonInfo.NONE : current;
+            }, IdleReasonInfo.NONE));
+        }
+
+        public int getStatus() {
+            return status.getValue();
+        }
+
+        public boolean isAvailable() {
+            return available.getValue();
+        }
+
+        @Nullable
+        public Component getReason() {
+            var value = reason.getValue();
+            return IdleReasonInfo.isNone(value) ? null : value;
+        }
     }
 }

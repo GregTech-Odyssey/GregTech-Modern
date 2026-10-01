@@ -4,13 +4,10 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.info.EURecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
@@ -91,27 +88,21 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
     @Nullable
     public static GTRecipe recipeModifier(IRecipeHandlerHolder machine, RecipeHandlerUnit unit, GTRecipe recipe) {
         if (!(machine instanceof LargeTurbineMachine turbineMachine)) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
             return null;
         }
         var rotorHolder = turbineMachine.getRotorHolder();
         if (rotorHolder == null) {
-            machine.reportIssue(GTIssues.ROTOR_MISSING);
+            machine.setIdleReason(Component.translatable("gtceu.issue.rotor_missing"));
             return null;
         }
         long EUt = recipe.getOutputEUt();
         long turbineMaxVoltage = turbineMachine.getOverclockVoltage();
         double holderEfficiency = rotorHolder.getTotalEfficiency() / 100.0;
-        if (EUt <= 0) {
-            machine.reportIssue(GTIssues.NOT_APPLICABLE);
-            return null;
-        }
-        if (holderEfficiency <= 0) {
-            machine.reportIssue(GTIssues.ROTOR_MISSING);
-            return null;
-        }
-        if (turbineMaxVoltage <= EUt) {
-            machine.reportIssue(GTIssues.OUTPUT_POWER_LOW, null, IO.OUT, EURecipeInfo.INSTANCE, -1, EUt, turbineMaxVoltage, null);
+        if (EUt <= 0 || turbineMaxVoltage <= EUt || holderEfficiency <= 0) {
+            if (EUt > 0) {
+                if (holderEfficiency <= 0) machine.setIdleReason(Component.translatable("gtceu.issue.rotor_missing"));
+                else machine.setIdleReason(Component.translatable("gtceu.issue.output_power_low", FormattingUtil.formatNumbers(EUt), FormattingUtil.formatNumbers(turbineMaxVoltage)));
+            }
             return null;
         }
         // get the amount of parallel required to match the desired output voltage

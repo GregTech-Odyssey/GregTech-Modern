@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.uiwidgets.display;
 
 import com.gregtechceu.gtceu.api.gui.fancy.FancyMachineUIWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
-import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
@@ -10,7 +9,6 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.RichText;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.TextPane;
-import com.gregtechceu.gtceu.uipro.issue.MachineDiagnosisTab;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
 
@@ -134,14 +132,8 @@ public final class MachineDisplay {
             }
 
             @Override
-            public MetaMachine getIssueMachine() {
+            public MetaMachine getReasonMachine() {
                 return machine.self();
-            }
-
-            @Override
-            public void attachSideTabs(TabsWidget sideTabs) {
-                sideTabs.setMainTab(this);
-                MachineDiagnosisTab.attachIfEnabled(sideTabs, machine);
             }
 
             @Override

@@ -118,10 +118,10 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
         addWidget(this.titleBar = new TitleBarWidget(width, this::navigateBack, this::openPageSwitcher));
         addWidget(this.sideTabsWidget = new VerticalTabsWidget(this::navigate, -20, 0, 24, height));
         addWidget(this.tooltipsPanel = new TooltipsPanel());
-        var issues = IssueSyncWidget.of(mainPage.getIssueMachine());
-        if (issues != null) {
-            addWidget(issues);
-            tooltipsPanel.setIssues(issues);
+        var reasons = IdleReasonSyncWidget.of(mainPage.getReasonMachine());
+        if (reasons != null) {
+            addWidget(reasons);
+            tooltipsPanel.setReasons(reasons);
         }
         addWidget(this.configuratorPanel = new ConfiguratorPanel(-(24 + 2), height));
         this.pageSwitcher = new PageSwitcher(this::switchPage);

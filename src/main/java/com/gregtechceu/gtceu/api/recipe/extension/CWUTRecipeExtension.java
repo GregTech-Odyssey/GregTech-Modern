@@ -1,14 +1,10 @@
 package com.gregtechceu.gtceu.api.recipe.extension;
 
 import com.gregtechceu.gtceu.api.machine.feature.IComputationContainerMachine;
-import com.gregtechceu.gtceu.api.machine.issue.GTIssues;
-import com.gregtechceu.gtceu.api.machine.issue.IssueStage;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.info.CWURecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -51,9 +47,14 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
     public boolean handleTick(@NotNull IRecipeHandlerHolder holder, @NotNull GTRecipe recipe, boolean simulate) {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return true;
-        long provided = holder instanceof IComputationContainerMachine machine ? machine.requestCWU(cwu, simulate) : 0;
-        if (provided >= cwu) return true;
-        holder.reportIssue(GTIssues.NO_CWU, simulate ? IssueStage.ENERGY : IssueStage.WORKING, IO.IN, CWURecipeInfo.INSTANCE, -1, cwu, provided, recipe.definition);
+        boolean result;
+        if (holder instanceof IComputationContainerMachine machine) {
+            result = machine.requestCWU(cwu, simulate) >= cwu;
+        } else {
+            result = false;
+        }
+        if (result) return true;
+        holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
         return false;
     }
 
@@ -69,15 +70,13 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
     public long getParallel(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, long parallel) {
         var cwu = recipe.getInputCWUt();
         if (cwu < 1) return parallel;
-        long available = 0;
         if (holder instanceof IComputationContainerMachine machine) {
-            available = machine.requestCWU(Long.MAX_VALUE, true);
-            parallel = Math.min(parallel, available / cwu);
+            parallel = Math.min(parallel, machine.requestCWU(Long.MAX_VALUE, true) / cwu);
         } else {
             parallel = 0;
         }
         if (parallel > 0) return parallel;
-        holder.reportIssue(GTIssues.NO_CWU, IssueStage.MODIFIER, IO.IN, CWURecipeInfo.INSTANCE, -1, cwu, available, recipe.definition);
+        holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
         return 0;
     }
 
