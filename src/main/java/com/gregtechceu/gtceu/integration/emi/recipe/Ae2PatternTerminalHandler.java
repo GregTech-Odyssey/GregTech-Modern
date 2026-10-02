@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.integration.emi.recipe;
 
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.integration.emi.multipage.MultiblockInfoEmiRecipe;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderPanel;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
@@ -75,7 +74,7 @@ public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implem
     }
 
     private static boolean openPatternBuilder(PatternEncodingTermMenu menu, MultiblockInfoEmiRecipe recipe, Screen terminal) {
-        var structure = StructurePattern.of(recipe.definition);
+        var structure = recipe.definition.displayStructure();
         if (structure == null) return false;
         StructurePreviewScreen.open(recipe.definition, structure, previous -> () -> Minecraft.getInstance().setScreen(terminal),
                 encodeAction(menu, recipe.definition, terminal));

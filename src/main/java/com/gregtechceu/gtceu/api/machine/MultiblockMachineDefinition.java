@@ -3,8 +3,7 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
 
 import net.minecraft.core.Direction;
@@ -23,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class MultiblockMachineDefinition extends MachineDefinition {
 
@@ -32,8 +30,8 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     @Setter
     protected boolean generator;
 
-    @Getter
-    protected Supplier<BlockPattern>[] patternFactory;
+    @Nullable
+    protected StructureFactory structureFactory;
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      * -- SETTER --
@@ -83,21 +81,30 @@ public class MultiblockMachineDefinition extends MachineDefinition {
     }
 
     public boolean hasStructure() {
-        return patternFactory != null && patternFactory.length > 0;
+        return structureFactory != null;
     }
 
     @Nullable
-    public BlockPattern displayPattern() {
-        if (!hasStructure()) return null;
-        return patternFactory[0] instanceof PatternFactory factory ? factory.peek() : patternFactory[0].get();
+    public Structure getStructure() {
+        var factory = structureFactory;
+        return factory == null ? null : factory.get();
+    }
+
+    @Nullable
+    public Structure displayStructure() {
+        var factory = structureFactory;
+        return factory == null ? null : factory.peek();
     }
 
     @Nullable
     public StructureInfo getStructureInfo() {
         var info = structureInfo;
-        if (info == null && displayPattern() instanceof StructurePattern pattern) {
-            info = new StructureInfo(pattern.getWidth(), pattern.getHeight(), pattern.getDepth(), pattern.getStructure().optionalModuleCount());
-            structureInfo = info;
+        if (info == null) {
+            var structure = displayStructure();
+            if (structure != null) {
+                info = new StructureInfo(structure.getWidth(), structure.getHeight(), structure.getDepth(), structure.optionalModuleCount());
+                structureInfo = info;
+            }
         }
         return info;
     }
@@ -108,8 +115,8 @@ public class MultiblockMachineDefinition extends MachineDefinition {
         }
     }
 
-    public void setPatternFactory(final List<Function<MultiblockMachineDefinition, BlockPattern>> patternFactory) {
-        this.patternFactory = patternFactory.stream().map(p -> new PatternFactory(this, p)).toArray(Supplier[]::new);
+    public void setStructure(final Function<MultiblockMachineDefinition, Structure> factory) {
+        this.structureFactory = new StructureFactory(this, factory);
     }
 
     public void setRecoveryItems(@Nullable final MultiblockMachineBuilder.MufflerProductionGenerator recoveryItems) {
@@ -123,45 +130,39 @@ public class MultiblockMachineDefinition extends MachineDefinition {
 
     public record StructureInfo(int width, int height, int depth, int optionalModules) {}
 
-    public static final class PatternFactory implements Supplier<BlockPattern> {
+    private static final class StructureFactory {
 
         private final MultiblockMachineDefinition definition;
-        private final Function<MultiblockMachineDefinition, BlockPattern> factory;
+        private final Function<MultiblockMachineDefinition, Structure> factory;
         @Nullable
-        private volatile SoftReference<BlockPattern> cached;
+        private volatile SoftReference<Structure> cached;
         @Nullable
-        private volatile WeakReference<BlockPattern> shared;
+        private volatile WeakReference<Structure> shared;
 
-        private PatternFactory(MultiblockMachineDefinition definition, Function<MultiblockMachineDefinition, BlockPattern> factory) {
+        private StructureFactory(MultiblockMachineDefinition definition, Function<MultiblockMachineDefinition, Structure> factory) {
             this.definition = definition;
             this.factory = factory;
         }
 
-        @Override
-        public BlockPattern get() {
+        private Structure get() {
             var soft = cached;
-            var pattern = soft == null ? null : soft.get();
-            if (pattern != null) return pattern;
-            pattern = peek();
-            cached = new SoftReference<>(pattern);
-            return pattern;
+            var structure = soft == null ? null : soft.get();
+            if (structure != null) return structure;
+            structure = peek();
+            cached = new SoftReference<>(structure);
+            return structure;
         }
 
-        public BlockPattern peek() {
+        private Structure peek() {
             var soft = cached;
-            var pattern = soft == null ? null : soft.get();
-            if (pattern != null) return pattern;
+            var structure = soft == null ? null : soft.get();
+            if (structure != null) return structure;
             var weak = shared;
-            pattern = weak == null ? null : weak.get();
-            if (pattern != null) return pattern;
-            pattern = factory.apply(definition);
-            shared = new WeakReference<>(pattern);
-            return pattern;
-        }
-
-        public void invalidate() {
-            cached = null;
-            shared = null;
+            structure = weak == null ? null : weak.get();
+            if (structure != null) return structure;
+            structure = factory.apply(definition).bind(definition);
+            shared = new WeakReference<>(structure);
+            return structure;
         }
     }
 }

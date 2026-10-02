@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
 import net.minecraft.core.Direction;
@@ -111,24 +110,94 @@ final class Orientation {
 
     private static int[] basis(Direction facing, Direction up, boolean flip) {
         int[] basis = new int[9];
-        unit(RelativeDirection.RIGHT, RelativeDirection.UP, RelativeDirection.FRONT, facing, up, flip, basis, 0);
-        unit(RelativeDirection.UP, RelativeDirection.LEFT, RelativeDirection.FRONT, facing, up, flip, basis, 3);
-        unit(RelativeDirection.BACK, RelativeDirection.LEFT, RelativeDirection.UP, facing, up, flip, basis, 6);
+        unit(RelativeDirection.RIGHT, facing, up, flip, basis, 0);
+        unit(RelativeDirection.UP, facing, up, flip, basis, 3);
+        unit(RelativeDirection.BACK, facing, up, flip, basis, 6);
         assert consistent(basis, facing, up, flip);
         return basis;
     }
 
-    private static void unit(RelativeDirection dir, RelativeDirection second, RelativeDirection third, Direction facing, Direction up, boolean flip, int[] out, int offset) {
+    private static void unit(RelativeDirection dir, Direction facing, Direction up, boolean flip, int[] out, int offset) {
         int[] c1 = new int[3];
-        BlockPattern.relativeToWorld(new RelativeDirection[] { dir, second, third }, 1, 0, 0, facing, up, flip, c1);
+        int ordinal = facing.ordinal();
+        boolean down = ordinal == 0;
+        if (down || ordinal == 1) {
+            axis(dir.getActualOrdinal(down ? up.ordinal() : up.getOpposite().ordinal()), c1);
+            int xOffset = up.getStepX();
+            int tmp;
+            if (xOffset == 0) {
+                tmp = c1[2];
+                int zOffset = up.getStepZ();
+                c1[2] = zOffset > 0 ? c1[1] : -c1[1];
+                c1[1] = zOffset > 0 ? -tmp : tmp;
+            } else {
+                tmp = c1[0];
+                c1[0] = xOffset > 0 ? c1[1] : -c1[1];
+                c1[1] = xOffset > 0 ? -tmp : tmp;
+            }
+            if (flip) {
+                if (up == Direction.NORTH || up == Direction.SOUTH) {
+                    c1[0] = -c1[0];
+                } else {
+                    c1[2] = -c1[2];
+                }
+            }
+        } else {
+            axis(dir.getActualOrdinal(ordinal), c1);
+            boolean east = up == Direction.EAST;
+            if (east || up == Direction.WEST) {
+                var side = east ? facing.getClockWise() : facing.getClockWise().getOpposite();
+                int xOffset = side.getStepX();
+                int tmp;
+                if (xOffset == 0) {
+                    tmp = c1[2];
+                    int zOffset = side.getStepZ();
+                    c1[2] = zOffset > 0 ? -c1[1] : c1[1];
+                    c1[1] = zOffset > 0 ? tmp : -tmp;
+                } else {
+                    tmp = c1[0];
+                    c1[0] = xOffset > 0 ? -c1[1] : c1[1];
+                    c1[1] = xOffset > 0 ? tmp : -tmp;
+                }
+            } else if (up == Direction.SOUTH) {
+                c1[1] = -c1[1];
+                if (facing.getStepX() == 0) {
+                    c1[0] = -c1[0];
+                } else {
+                    c1[2] = -c1[2];
+                }
+            }
+            if (flip) {
+                if (up == Direction.NORTH || up == Direction.SOUTH) {
+                    if (ordinal == 2 || ordinal == 3) {
+                        c1[0] = -c1[0];
+                    } else {
+                        c1[2] = -c1[2];
+                    }
+                } else {
+                    c1[1] = -c1[1];
+                }
+            }
+        }
         System.arraycopy(c1, 0, out, offset, 3);
+    }
+
+    private static void axis(int worldOrdinal, int[] c1) {
+        switch (worldOrdinal) {
+            case 1 -> c1[1] = 1;
+            case 0 -> c1[1] = -1;
+            case 4 -> c1[0] = -1;
+            case 5 -> c1[0] = 1;
+            case 2 -> c1[2] = -1;
+            case 3 -> c1[2] = 1;
+        }
     }
 
     private static boolean consistent(int[] basis, Direction facing, Direction up, boolean flip) {
         int[] check = new int[9];
-        unit(RelativeDirection.LEFT, RelativeDirection.UP, RelativeDirection.FRONT, facing, up, flip, check, 0);
-        unit(RelativeDirection.DOWN, RelativeDirection.LEFT, RelativeDirection.FRONT, facing, up, flip, check, 3);
-        unit(RelativeDirection.FRONT, RelativeDirection.LEFT, RelativeDirection.UP, facing, up, flip, check, 6);
+        unit(RelativeDirection.LEFT, facing, up, flip, check, 0);
+        unit(RelativeDirection.DOWN, facing, up, flip, check, 3);
+        unit(RelativeDirection.FRONT, facing, up, flip, check, 6);
         for (int i = 0; i < 9; i++) {
             if (check[i] != -basis[i]) return false;
         }

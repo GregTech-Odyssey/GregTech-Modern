@@ -84,6 +84,9 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         if (outputs == null) {
             setOutputUnits(Collections.emptyList());
         } else {
+            for (var unit : outputs) {
+                if (unit.part != null) unit.refreshPriority();
+            }
             outputs.sort(RecipeHandlerUnit.TYPE_COMPARATOR);
             Int2ObjectOpenHashMap<List<RecipeHandlerUnit>> colour = new Int2ObjectOpenHashMap<>();
             List<RecipeHandlerUnit> untreated = new ArrayList<>();
@@ -124,6 +127,9 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         if (inputs == null) {
             setInputUnits(Collections.emptyList());
         } else {
+            for (var unit : inputs) {
+                if (unit.part != null) unit.refreshPriority();
+            }
             inputs.sort(RecipeHandlerUnit.TYPE_COMPARATOR);
             Int2ObjectOpenHashMap<Map<IMultiPart, List<RecipeHandlerUnit>>> colour = new Int2ObjectOpenHashMap<>();
             List<RecipeHandlerUnit> untreated = new ArrayList<>();

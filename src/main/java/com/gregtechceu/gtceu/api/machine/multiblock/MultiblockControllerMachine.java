@@ -187,22 +187,17 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @Override
     public boolean checkPattern() {
         if (waitingTime < 1) {
-            var patterns = getPattern();
+            var structure = getDefinition().getStructure();
             var state = getMultiblockState();
             state.clearCache();
             boolean result = false;
-            for (var p : patterns) {
-                var pattern = p.get();
-                state.clearCache();
-                if (pattern != null) {
-                    result = pattern.checkPatternAt(state, false);
-                    if (result && getLevel() instanceof ServerLevel serverLevel) {
-                        var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
-                        TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
-                    }
-                    state.clearCache();
-                    if (result) break;
+            if (structure != null) {
+                result = structure.match(state, false);
+                if (result && getLevel() instanceof ServerLevel serverLevel) {
+                    var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
+                    TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
                 }
+                state.clearCache();
             }
             if (result) {
                 state.addShared();

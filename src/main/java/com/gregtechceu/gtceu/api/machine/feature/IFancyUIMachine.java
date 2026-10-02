@@ -8,8 +8,8 @@ import com.gregtechceu.gtceu.api.machine.fancyconfigurator.MachineModeFancyConfi
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
-import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.side.SideOverviewTab;
 import com.gregtechceu.gtceu.uiwidgets.structure.MachinePreviewScene;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -83,7 +83,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
         if (this instanceof IRecipeLogicMachine rLMachine && rLMachine.getAvailableRecipeTypes().length > 1) {
             sideTabs.attachSubTab(new MachineModeFancyConfigurator(rLMachine));
         }
-        CoverTab.attach(sideTabs, self());
+        SideOverviewTab.attach(sideTabs, self());
     }
 
     @Override

@@ -109,6 +109,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
             getHandlerUnit().setColor(getPaintingColor());
             inventorySubs = getInventory().addChangedListener(this::updateInventorySubscription);
             inventory.setPriority(priority);
+            circuitInventory.setPriority(priority);
         }
     }
 
@@ -136,6 +137,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         if (priority == Integer.MIN_VALUE) return;
         this.priority = priority;
         inventory.setPriority(priority);
+        circuitInventory.setPriority(priority);
         RecipeHandlerUnit.notify(this);
     }
 
@@ -255,7 +257,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     @Override
     public void attachSideTabs(TabsWidget sideTabs) {
         super.attachSideTabs(sideTabs);
-        sideTabs.attachSubTab(io == IO.OUT ? IFilteredHandler.createOutputPriorityConfigurator(this::getPriority, this::setPriority) : IFilteredHandler.createPriorityConfigurator(this::getPriority, this::setPriority));
+        sideTabs.attachSubTab(io == IO.OUT ? IFilteredHandler.createOutputPriorityConfigurator(this::getPriority, this::setPriority) : IFilteredHandler.createInputPriorityConfigurator(this::getPriority, this::setPriority));
     }
 
     @Override

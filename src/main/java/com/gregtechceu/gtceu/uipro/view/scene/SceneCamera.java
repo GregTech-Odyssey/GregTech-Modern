@@ -23,13 +23,13 @@ public final class SceneCamera {
     private static int speedLevel;
     private static final float SPRINT_MULTIPLIER = 2f;
     private static final double TURN_DEGREES_PER_PIXEL = 1.2;
-    private static final float PAN_SPEED = 0.004f;
-    private static final float MIN_PAN_SPEED = 0.03f;
     private static final double MAX_YAW = 89.9;
     private static final float WHEEL_RATIO = 0.15f;
     private static final float MIN_WHEEL_STEP = 0.5f;
     private static final int BUTTON_STEPS = 3;
-    private static final Vector3f UP = new Vector3f(0, 1, 0);
+    private static final float ORBIT_WHEEL_RATIO = 0.85f;
+    private static final float ORBIT_MIN_RATIO = 0.5f;
+    private static final float ORBIT_MAX_RATIO = 3f;
 
     private Vector3f center = new Vector3f();
     private float yaw = DEFAULT_YAW;
@@ -39,8 +39,24 @@ public final class SceneCamera {
     @Nullable
     private Vector3f home;
     private boolean recenter;
+    private boolean oriented;
+    private boolean orbit;
     @Nullable
     private SceneView.Camera restore;
+
+    public void setOrbit(boolean orbit) {
+        this.orbit = orbit;
+    }
+
+    public boolean isOrbit() {
+        return orbit;
+    }
+
+    public void orbitZoom(double delta) {
+        if (baseZoom <= 0) return;
+        float next = delta > 0 ? zoom * ORBIT_WHEEL_RATIO : zoom / ORBIT_WHEEL_RATIO;
+        zoom = Mth.clamp(next, baseZoom * ORBIT_MIN_RATIO, baseZoom * ORBIT_MAX_RATIO);
+    }
 
     public boolean hasHome() {
         return home != null;
@@ -57,10 +73,13 @@ public final class SceneCamera {
             zoom = restore.zoom();
         } else if (first) {
             center = new Vector3f(home);
-            yaw = DEFAULT_YAW;
-            pitch = DEFAULT_PITCH;
+            if (!oriented) {
+                yaw = DEFAULT_YAW;
+                pitch = DEFAULT_PITCH;
+            }
             zoom = baseZoom;
         }
+        oriented = false;
         recenter = false;
         restore = null;
     }
@@ -91,14 +110,6 @@ public final class SceneCamera {
         return new Vector3f((float) Math.cos(p), (float) Math.tan(y), (float) Math.sin(p)).normalize();
     }
 
-    private Vector3f right() {
-        return backward().negate().cross(UP).normalize();
-    }
-
-    private Vector3f up() {
-        return right().cross(backward().negate()).normalize();
-    }
-
     private void translate(Vector3f offset) {
         center = new Vector3f(center).add(offset);
     }
@@ -127,8 +138,16 @@ public final class SceneCamera {
         yaw = (float) Mth.clamp(yawDegrees, -MAX_YAW, MAX_YAW);
     }
 
-    public void focus(float x, float z) {
-        translate(new Vector3f(x - center.x(), 0, z - center.z()));
+    public void lookFrom(float x, float y, float z) {
+        pitch = (float) ((Math.toDegrees(Math.atan2(z, x)) + 360) % 360);
+        yaw = (float) Mth.clamp(Math.toDegrees(Math.atan2(y, Math.sqrt(x * x + z * z))), -MAX_YAW, MAX_YAW);
+        if (home == null) oriented = true;
+        else center = new Vector3f(home);
+    }
+
+    public void moveTo(float x, float z) {
+        var eye = eye();
+        translate(new Vector3f(x - eye.x(), 0, z - eye.z()));
     }
 
     public static void adjustSpeed(double delta) {
@@ -151,11 +170,6 @@ public final class SceneCamera {
         translate(backward().mul(-distance));
     }
 
-    public void pan(double dragX, double dragY, float reach) {
-        float speed = Math.max(MIN_PAN_SPEED, reach * PAN_SPEED);
-        translate(right().mul((float) -dragX * speed).add(up().mul((float) dragY * speed)));
-    }
-
     public void rotate(double dragX, double dragY) {
         var minecraft = Minecraft.getInstance();
         double sensitivity = minecraft.options.sensitivity().get() * 0.6 + 0.2;
@@ -164,7 +178,7 @@ public final class SceneCamera {
         var eye = eye();
         pitch = (float) ((pitch + dragX * degrees + 360) % 360);
         yaw = (float) Mth.clamp(yaw + dragY * degrees, -MAX_YAW, MAX_YAW);
-        center = eye.sub(backward().mul(zoom));
+        if (!orbit) center = eye.sub(backward().mul(zoom));
     }
 
     public void move(long window, float seconds) {

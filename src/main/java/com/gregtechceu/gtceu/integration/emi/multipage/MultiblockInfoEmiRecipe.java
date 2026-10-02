@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.integration.emi.multipage;
 
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructurePreviewWidget;
 
 import com.lowdragmc.lowdraglib.emi.ModularEmiRecipe;
@@ -18,7 +17,7 @@ public class MultiblockInfoEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
 
     public MultiblockInfoEmiRecipe(MultiblockMachineDefinition definition) {
         super(() -> {
-            var structure = StructurePattern.of(definition);
+            var structure = definition.displayStructure();
             return structure != null ? new StructurePreviewWidget(definition, structure, () -> StructurePreviewTrigger.open(definition, structure)) :
                     new WidgetGroup(0, 0, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT);
         });

@@ -73,7 +73,12 @@ public final class SyncValue<T> {
     }
 
     public static SyncValue<SyncItem> ofItem(Supplier<ItemStack> getter, ItemStack initialValue) {
-        return of(() -> SyncItem.of(getter.get()), SyncItem.CODEC, SyncItem.of(initialValue));
+        var last = new SyncItem[] { SyncItem.of(initialValue) };
+        return of(() -> {
+            var stack = getter.get();
+            if (!last[0].matches(stack)) last[0] = SyncItem.of(stack);
+            return last[0];
+        }, SyncItem.CODEC, last[0]);
     }
 
     /** 客户端收到不同的新值时回调（服务端比较出变化时也会回调）。 */

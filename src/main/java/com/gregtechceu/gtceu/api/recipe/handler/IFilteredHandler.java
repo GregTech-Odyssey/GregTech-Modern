@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 public interface IFilteredHandler {
 
     /** 按优先级从高到低排序；{@code priority} 越大越靠前。 */
-    Comparator<IFilteredHandler> PRIORITY_COMPARATOR = Comparator.comparingInt(h -> -h.getPriority());
+    Comparator<IFilteredHandler> PRIORITY_COMPARATOR = (a, b) -> Integer.compare(b.getPriority(), a.getPriority());
 
     /** 最高优先级，取 {@link Integer#MAX_VALUE}。 */
     int HIGHEST = Integer.MAX_VALUE;
@@ -45,6 +45,9 @@ public interface IFilteredHandler {
 
     String OUTPUT_PRIORITY = "gtceu.gui.output_priority";
     String OUTPUT_PRIORITY_DESC = "gtceu.gui.output_priority.desc";
+    String INPUT_PRIORITY = "gtceu.gui.input_priority";
+    String INPUT_PRIORITY_DESC = "gtceu.gui.input_priority.desc";
+    String INPUT_PRIORITY_SINGLE = "gtceu.gui.input_priority.single";
 
     /**
      * 创建一个用于在 GUI 中调整优先级的配置面板。
@@ -62,6 +65,10 @@ public interface IFilteredHandler {
 
     static NumberInputFancyConfigurator<Integer> createOutputPriorityConfigurator(Supplier<Integer> get, Consumer<Integer> set) {
         return createPriorityConfigurator(get, set).setInfoTooltips(List.of(Component.translatable(OUTPUT_PRIORITY), Component.translatable(OUTPUT_PRIORITY_DESC)));
+    }
+
+    static NumberInputFancyConfigurator<Integer> createInputPriorityConfigurator(Supplier<Integer> get, Consumer<Integer> set) {
+        return createPriorityConfigurator(get, set).setInfoTooltips(List.of(Component.translatable(INPUT_PRIORITY), Component.translatable(INPUT_PRIORITY_DESC), Component.translatable(INPUT_PRIORITY_SINGLE)));
     }
 
     /**

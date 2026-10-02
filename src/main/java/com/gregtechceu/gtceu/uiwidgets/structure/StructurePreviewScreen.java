@@ -4,21 +4,24 @@ import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
+import com.gregtechceu.gtceu.uipro.elements.Label;
 import com.gregtechceu.gtceu.uipro.elements.Stepper;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
 import com.gregtechceu.gtceu.uipro.view.ZoomBar;
+import com.gregtechceu.gtceu.uipro.view.scene.SceneView;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uipro.window.Popup;
 import com.gregtechceu.gtceu.uipro.window.PopupCard;
@@ -77,6 +80,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
     private static final String VIEW_ID = "structure_preview";
     private static final String HIGHLIGHT_PREFERENCE = "structure_preview.highlight";
     private static final String LEGACY_MINIMAP_PREFERENCE = "structure_preview.minimap";
+    private static final String CONTROLS_SEEN_PREFERENCE = "structure_preview.controls_seen";
     private static final int HIGHLIGHT_COLOR = 0x5055FF55;
     private static final int MINIMAP_THRESHOLD = 64;
 
@@ -167,6 +171,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
         private static final String CARD_ID = "structure_preview.config";
         private static final String CANDIDATES_ID = "structure_preview.candidates";
+        private static final String CONTROLS_ID = "structure_preview.controls";
 
         private final PreviewHistory history;
         private PreviewHistory.Page page;
@@ -195,6 +200,8 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private PopupCard card;
         @Nullable
         private PopupCard candidates;
+        @Nullable
+        private PopupCard controls;
         @Nullable
         private Layout layout;
         @Nullable
@@ -230,6 +237,10 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             addChildren(frame, scene, minimap);
             rebuild();
             openCard();
+            if (!Boolean.parseBoolean(UIPreferences.get(CONTROLS_SEEN_PREFERENCE, "false"))) {
+                UIPreferences.put(CONTROLS_SEEN_PREFERENCE, "true");
+                openControls();
+            }
         }
 
         private UIElement titleRow() {
@@ -242,8 +253,9 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
                     .bindClientVariant(() -> highlightOn ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT);
             highlight.tooltips(HIGHLIGHT);
             var tools = ZoomBar.of(scene, false).fit(ZoomBar.RESET).minimap().add(highlight).build();
+            var help = InfoIcon.of(Level.NORMAL, SceneView.controlTips().toArray(Component[]::new));
             return UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
-                    .addChildren(heading, tools, toggle, close);
+                    .addChildren(heading, help, tools, toggle, close);
         }
 
         private StructureConfigView createConfig() {
@@ -269,7 +281,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         }
 
         private void navigate(MultiblockMachineDefinition definition) {
-            var structure = StructurePattern.of(definition);
+            var structure = definition.displayStructure();
             if (structure == null) return;
             show(history.push(new PreviewHistory.Page(definition, structure)));
         }
@@ -336,6 +348,10 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             if (candidates != null) {
                 candidates.setMaxHeight(cardHeight);
                 candidates.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(left + UISizes.GAP).top(top + UISizes.GAP));
+            }
+            if (controls != null) {
+                controls.setMaxHeight(cardHeight);
+                controls.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(left + UISizes.GAP).top(top + UISizes.GAP));
             }
         }
 
@@ -476,8 +492,29 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             place();
         }
 
+        private void openControls() {
+            var popup = Popup.of(() -> Component.translatable(SceneView.CONTROLS), column -> {
+                var section = UIElement.section();
+                for (var tip : SceneView.controlTips()) {
+                    section.addChild(Label.of(UISizes.POPUP_CONTENT_WIDTH, () -> tip).bindClientColor(() -> UITheme.PANEL_TEXT));
+                }
+                column.addChild(section);
+            });
+            controls = new PopupCard(CONTROLS_ID, popup, Math.max(UISizes.SLOT_SIZE, frameHeight()), this::closeControls);
+            place();
+            addChild(controls);
+        }
+
+        private void closeControls() {
+            if (controls == null) return;
+            removeWidget(controls);
+            controls = null;
+            place();
+        }
+
         private void showCandidates(BlockPos pos) {
             var predicate = cells.get(pos.asLong());
+            closeControls();
             closeCandidates();
             if (predicate == null) return;
             var popup = Popup.of(() -> Component.translatable(CANDIDATES),

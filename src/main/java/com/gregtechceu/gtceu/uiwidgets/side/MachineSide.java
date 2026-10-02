@@ -20,9 +20,14 @@ public enum MachineSide {
     private static final MachineSide[] VALUES = values();
     private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/direction_icons.png"), 2);
     private static final IGuiTexture[] ICONS = new IGuiTexture[VALUES.length];
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final Direction[][] FRAMES = new Direction[DIRECTIONS.length * DIRECTIONS.length][];
 
     static {
         for (var side : VALUES) ICONS[side.ordinal()] = ATLAS.pixelIcon(side.row, side.column);
+        for (var front : DIRECTIONS) {
+            for (var up : DIRECTIONS) FRAMES[front.ordinal() * DIRECTIONS.length + up.ordinal()] = frame(front, up);
+        }
     }
 
     public final String translationKey;
@@ -39,18 +44,30 @@ public enum MachineSide {
     }
 
     public Direction toDirection(MetaMachine machine) {
-        return frame(machine)[ordinal()];
+        return FRAMES[frameKey(machine)][ordinal()];
+    }
+
+    public Direction toDirection(int frameKey) {
+        return FRAMES[Math.floorMod(frameKey, FRAMES.length)][ordinal()];
     }
 
     public static MachineSide of(MetaMachine machine, Direction direction) {
-        var frame = frame(machine);
+        return of(frameKey(machine), direction);
+    }
+
+    public static MachineSide of(int frameKey, Direction direction) {
+        var frame = FRAMES[Math.floorMod(frameKey, FRAMES.length)];
         for (var side : VALUES) if (frame[side.ordinal()] == direction) return side;
         return FRONT;
     }
 
-    private static Direction[] frame(MetaMachine machine) {
+    public static int frameKey(MetaMachine machine) {
         Direction front = machine.hasFrontFacing() ? machine.getFrontFacing() : Direction.NORTH;
         Direction up = front.getAxis().isHorizontal() ? Direction.UP : MetaMachine.getUpwardFacing(machine);
+        return front.ordinal() * DIRECTIONS.length + up.ordinal();
+    }
+
+    private static Direction[] frame(Direction front, Direction up) {
         var cross = front.getNormal().cross(up.getNormal());
         Direction left = Direction.fromDelta(cross.getX(), cross.getY(), cross.getZ());
         if (left == null) left = front.getAxis().isHorizontal() ? front.getClockWise() : Direction.WEST;

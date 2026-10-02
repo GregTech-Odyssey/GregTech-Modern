@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.ControllerPredicate;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 
+import it.unimi.dsi.fastutil.chars.Char2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2IntLinkedOpenHashMap;
 
@@ -27,13 +27,10 @@ final class CompiledPiece {
     final int[] bounds;
     final int controller;
 
-    CompiledPiece(Piece template, BlockPattern compiled) {
+    CompiledPiece(Piece template, List<String[]> aisles, Char2ObjectMap<TraceabilityPredicate> symbols, int height, int width) {
         this.template = template;
         var dirs = template.dirs;
-        var grid = compiled.blockMatches;
-        this.aisleCount = compiled.fingerLength;
-        int height = compiled.thumbLength;
-        int width = compiled.palmLength;
+        this.aisleCount = aisles.size();
         int[] charVec = Orientation.VEC[dirs[0].ordinal()];
         int[] stringVec = Orientation.VEC[dirs[1].ordinal()];
         int[] aisleVec = Orientation.VEC[dirs[2].ordinal()];
@@ -44,23 +41,20 @@ final class CompiledPiece {
         this.aisleEnd = new int[aisleCount];
         int controllerCell = -1;
         for (int c = 0; c < aisleCount; c++) {
-            var aisle = grid[c];
-            if (aisle != null) {
-                for (int b = 0; b < height; b++) {
-                    var row = aisle[b];
-                    if (row == null) continue;
-                    for (int a = 0; a < width; a++) {
-                        var predicate = row[a];
-                        if (predicate == null) continue;
-                        if (predicate instanceof ControllerPredicate) {
-                            if (controllerCell >= 0) throw new IllegalStateException("piece has more than one controller");
-                            controllerCell = cells.size();
-                        }
-                        xs.add(a * charVec[0] + b * stringVec[0] + c * aisleVec[0]);
-                        ys.add(a * charVec[1] + b * stringVec[1] + c * aisleVec[1]);
-                        zs.add(a * charVec[2] + b * stringVec[2] + c * aisleVec[2]);
-                        cells.add(predicate);
+            var aisle = aisles.get(c);
+            for (int b = 0; b < height; b++) {
+                var row = aisle[b];
+                for (int a = 0; a < width; a++) {
+                    var predicate = symbols.get(row.charAt(a));
+                    if (predicate == null) continue;
+                    if (predicate instanceof ControllerPredicate) {
+                        if (controllerCell >= 0) throw new IllegalStateException("piece has more than one controller");
+                        controllerCell = cells.size();
                     }
+                    xs.add(a * charVec[0] + b * stringVec[0] + c * aisleVec[0]);
+                    ys.add(a * charVec[1] + b * stringVec[1] + c * aisleVec[1]);
+                    zs.add(a * charVec[2] + b * stringVec[2] + c * aisleVec[2]);
+                    cells.add(predicate);
                 }
             }
             aisleEnd[c] = cells.size();

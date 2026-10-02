@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraftforge.api.distmarker.Dist;
@@ -33,7 +32,7 @@ public final class StructureHosts {
         var map = new Reference2ObjectOpenHashMap<MachineProtocol, List<MultiblockMachineDefinition>>();
         for (var machine : GTRegistries.MACHINES) {
             if (!(machine instanceof MultiblockMachineDefinition definition)) continue;
-            var structure = StructurePattern.of(definition);
+            var structure = definition.displayStructure();
             if (structure == null) continue;
             for (var node : structure.tree().nodes()) {
                 var protocol = node.protocol();

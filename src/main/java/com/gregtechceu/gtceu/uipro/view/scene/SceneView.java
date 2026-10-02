@@ -37,6 +37,14 @@ import java.util.function.BooleanSupplier;
 @OnlyIn(Dist.CLIENT)
 public abstract class SceneView extends Viewport {
 
+    public static final String CONTROLS = "gtceu.uipro.scene.controls";
+    public static final String CONTROLS_HOVER = "gtceu.uipro.scene.controls.hover";
+    public static final String CONTROLS_MOVE = "gtceu.uipro.scene.controls.move";
+    public static final String CONTROLS_LIFT = "gtceu.uipro.scene.controls.lift";
+    public static final String CONTROLS_SPRINT = "gtceu.uipro.scene.controls.sprint";
+    public static final String CONTROLS_TURN = "gtceu.uipro.scene.controls.turn";
+    public static final String CONTROLS_SPEED = "gtceu.uipro.scene.controls.speed";
+
     private static final float FOV = (float) Math.toRadians(60);
     private static final float MIN_NEAR = 0.05f;
     private static final float NEAR_PER_ZOOM = 0.005f;
@@ -45,6 +53,7 @@ public abstract class SceneView extends Viewport {
     private static final int IDLE_TICKS = 40;
     private static final int SPEED_HINT_TICKS = 30;
     private static final int SPEED_HINT_COLOR = 0xFFFFFFFF;
+    private static final int SPEED_HINT_INSET = 6;
     private static final Vector3f UP = new Vector3f(0, 1, 0);
     private static final Set<SceneView> LIVE = Collections.newSetFromMap(new WeakHashMap<>());
     private static int ticks;
@@ -110,6 +119,11 @@ public abstract class SceneView extends Viewport {
         idle();
     }
 
+    public SceneView setOrbit(boolean orbit) {
+        camera.setOrbit(orbit);
+        return this;
+    }
+
     public SceneView setZoomButtons(boolean zoomButtons) {
         this.zoomButtons = zoomButtons;
         return this;
@@ -128,8 +142,19 @@ public abstract class SceneView extends Viewport {
         this.camera.recenter(camera);
     }
 
-    public Vector3f getCenter() {
-        return camera.center();
+    public Vector3f getEye() {
+        return camera.eye();
+    }
+
+    public static List<Component> controlTips() {
+        var options = Minecraft.getInstance().options;
+        return List.of(Component.translatable(CONTROLS_HOVER),
+                Component.translatable(CONTROLS_MOVE, options.keyUp.getTranslatedKeyMessage(), options.keyLeft.getTranslatedKeyMessage(),
+                        options.keyDown.getTranslatedKeyMessage(), options.keyRight.getTranslatedKeyMessage()),
+                Component.translatable(CONTROLS_LIFT, options.keyJump.getTranslatedKeyMessage(), options.keyShift.getTranslatedKeyMessage()),
+                Component.translatable(CONTROLS_SPRINT, options.keySprint.getTranslatedKeyMessage()),
+                Component.translatable(CONTROLS_TURN),
+                Component.translatable(CONTROLS_SPEED));
     }
 
     public void resetView() {
@@ -140,8 +165,12 @@ public abstract class SceneView extends Viewport {
         camera.resetZoom();
     }
 
-    public void focus(float x, float z) {
-        camera.focus(x, z);
+    public void moveTo(float x, float z) {
+        camera.moveTo(x, z);
+    }
+
+    public void lookFrom(float x, float y, float z) {
+        camera.lookFrom(x, y, z);
     }
 
     protected float reach() {
@@ -214,8 +243,9 @@ public abstract class SceneView extends Viewport {
         if (hasContent()) renderScene(graphics, mouseX, mouseY, partialTicks, over);
         drawOverScene(graphics, mouseX, mouseY, partialTicks);
         if (movable && speedShownTick >= 0 && ticks - speedShownTick < SPEED_HINT_TICKS) {
-            graphics.drawString(Minecraft.getInstance().font, String.format("×%.2f", SceneCamera.speedScale()), getPositionX() + 4,
-                    getPositionY() + 4, SPEED_HINT_COLOR, true);
+            var font = Minecraft.getInstance().font;
+            graphics.drawString(font, String.format("×%.2f", SceneCamera.speedScale()), getPositionX() + SPEED_HINT_INSET,
+                    getPositionY() + getSizeHeight() - SPEED_HINT_INSET - font.lineHeight, SPEED_HINT_COLOR, true);
         }
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -306,8 +336,7 @@ public abstract class SceneView extends Viewport {
     protected void onViewDrag(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (!gesture.drag(mouseX, mouseY)) return;
         double dx = gesture.stepX(mouseX), dy = gesture.stepY(mouseY);
-        if (gesture.button() == 1) camera.pan(dx, dy, reach());
-        else camera.rotate(dx, dy);
+        if (gesture.button() == 0 || camera.isOrbit()) camera.rotate(dx, dy);
     }
 
     @Override
@@ -317,6 +346,10 @@ public abstract class SceneView extends Viewport {
 
     @Override
     protected boolean onViewWheel(double mouseX, double mouseY, double wheelDelta) {
+        if (camera.isOrbit()) {
+            camera.orbitZoom(wheelDelta);
+            return true;
+        }
         if (!movable) return false;
         SceneCamera.adjustSpeed(wheelDelta);
         speedShownTick = ticks;

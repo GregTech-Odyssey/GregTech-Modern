@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 @OnlyIn(Dist.CLIENT)
 public final class StructureScene extends SceneView {
@@ -50,6 +52,8 @@ public final class StructureScene extends SceneView {
     private static final long ORBIT_TICKS = 180;
     private static final float ORBIT_DEGREES_PER_TICK = 2;
     private static final float ORBIT_ELEVATION = 25;
+    private static final float FACE_OFFSET = 0.004f;
+    private static final float FACE_FRAME = 0.07f;
 
     private final StructureRenderer renderer = new StructureRenderer();
     private final SceneMarkers markers = new SceneMarkers();
@@ -70,6 +74,8 @@ public final class StructureScene extends SceneView {
     private float renderStart;
     @Nullable
     private Long2ObjectOpenHashMap<BlockState> pendingBlocks;
+    @Nullable
+    private Long2ObjectOpenHashMap<BlockEntity> pendingEntities;
     private int pendingLayer = ALL_LAYERS;
     private float pendingZoom = -1;
     private boolean hasPending;
@@ -87,6 +93,27 @@ public final class StructureScene extends SceneView {
     private boolean autoOrbit;
     @Setter
     private boolean selectable = true;
+    @Setter
+    private boolean selectionBox = true;
+    @Setter
+    @Nullable
+    private FacePainter facePainter;
+    @Setter
+    @Nullable
+    private Supplier<List<Component>> tooltip;
+    @Nullable
+    private BufferBuilder faceBuffer;
+    private final FaceSink faceSink = this::addFace;
+
+    public interface FacePainter {
+
+        void paint(FaceSink sink);
+    }
+
+    public interface FaceSink {
+
+        void face(BlockPos pos, Direction face, int frameColor, int fillColor, float inset);
+    }
 
     public record Marker(Vector3f pos, int color, boolean selected, List<Component> tooltip) {}
 
@@ -162,10 +189,28 @@ public final class StructureScene extends SceneView {
     }
 
     public void show(@Nullable Long2ObjectOpenHashMap<BlockState> blocks, int onlyY, float zoom) {
-        if (blocks != null) pendingBlocks = blocks;
+        if (blocks != null) {
+            pendingBlocks = blocks;
+            pendingEntities = null;
+        }
         pendingLayer = onlyY;
         if (zoom > 0) pendingZoom = zoom;
         hasPending = true;
+    }
+
+    public void showLive(Long2ObjectOpenHashMap<BlockState> blocks, Long2ObjectOpenHashMap<BlockEntity> entities, float zoom) {
+        show(blocks, ALL_LAYERS, zoom);
+        pendingEntities = entities;
+    }
+
+    @Nullable
+    public BlockPos getHoverPos() {
+        return hoverPos;
+    }
+
+    @Nullable
+    public Direction getHoverFace() {
+        return hoverFace;
     }
 
     public void releaseGpu() {
@@ -198,8 +243,10 @@ public final class StructureScene extends SceneView {
         boolean changed = pendingBlocks != null;
         if (changed) {
             if (level == null) level = new PreviewLevel(minecraft.level);
-            level.setBlocks(pendingBlocks);
+            if (pendingEntities != null) level.setLiveBlocks(pendingBlocks, pendingEntities);
+            else level.setBlocks(pendingBlocks);
             pendingBlocks = null;
+            pendingEntities = null;
             hoverPos = selectedPos = null;
             hoverItem = ItemStack.EMPTY;
         }
@@ -255,7 +302,70 @@ public final class StructureScene extends SceneView {
     @Override
     protected void renderExtras(float partialTicks) {
         if (!highlight.isEmpty()) renderHighlight();
-        if (selectedPos != null) RenderUtils.renderBlockOverLay(new PoseStack(), selectedPos, SELECTION_RED, 0, 0, SELECTION_SCALE);
+        if (facePainter != null) renderFaces(facePainter);
+        if (selectionBox && selectedPos != null) RenderUtils.renderBlockOverLay(new PoseStack(), selectedPos, SELECTION_RED, 0, 0, SELECTION_SCALE);
+    }
+
+    private void renderFaces(FacePainter painter) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.disableCull();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        faceBuffer = Tesselator.getInstance().getBuilder();
+        faceBuffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        painter.paint(faceSink);
+        faceBuffer = null;
+        Tesselator.getInstance().end();
+        RenderSystem.enableCull();
+        RenderSystem.depthMask(true);
+    }
+
+    private void addFace(BlockPos pos, Direction face, int frameColor, int fillColor, float inset) {
+        var buffer = faceBuffer;
+        if (buffer == null) return;
+        float lo = inset, hi = 1 - inset;
+        if ((fillColor >>> 24) != 0) faceQuad(buffer, pos, face, lo, lo, hi, hi, fillColor);
+        if ((frameColor >>> 24) == 0) return;
+        float in = Math.min(FACE_FRAME, (hi - lo) / 2);
+        faceQuad(buffer, pos, face, lo, lo, hi, lo + in, frameColor);
+        faceQuad(buffer, pos, face, lo, hi - in, hi, hi, frameColor);
+        faceQuad(buffer, pos, face, lo, lo + in, lo + in, hi - in, frameColor);
+        faceQuad(buffer, pos, face, hi - in, lo + in, hi, hi - in, frameColor);
+    }
+
+    private static void faceQuad(BufferBuilder buffer, BlockPos pos, Direction face, float u0, float v0, float u1, float v1, int argb) {
+        float a = (argb >>> 24) / 255f, r = (argb >> 16 & 0xFF) / 255f, g = (argb >> 8 & 0xFF) / 255f, b = (argb & 0xFF) / 255f;
+        boolean positive = face.getAxisDirection() == Direction.AxisDirection.POSITIVE;
+        float plane = positive ? 1 + FACE_OFFSET : -FACE_OFFSET;
+        faceVertex(buffer, pos, face.getAxis(), plane, u0, v0, r, g, b, a);
+        faceVertex(buffer, pos, face.getAxis(), plane, u1, v0, r, g, b, a);
+        faceVertex(buffer, pos, face.getAxis(), plane, u1, v1, r, g, b, a);
+        faceVertex(buffer, pos, face.getAxis(), plane, u0, v1, r, g, b, a);
+    }
+
+    private static void faceVertex(BufferBuilder buffer, BlockPos pos, Direction.Axis axis, float plane, float u, float v, float r, float g,
+                                   float b, float a) {
+        float x, y, z;
+        switch (axis) {
+            case X -> {
+                x = plane;
+                y = u;
+                z = v;
+            }
+            case Y -> {
+                x = u;
+                y = plane;
+                z = v;
+            }
+            default -> {
+                x = u;
+                y = v;
+                z = plane;
+            }
+        }
+        buffer.vertex(pos.getX() + x, pos.getY() + y, pos.getZ() + z).color(r, g, b, a).endVertex();
     }
 
     private void renderHighlight() {
@@ -357,7 +467,8 @@ public final class StructureScene extends SceneView {
     @Override
     protected List<Component> hoverTooltip() {
         var hovered = markers.hovered();
-        return hovered == null ? Collections.emptyList() : hovered.tooltip();
+        if (hovered != null) return hovered.tooltip();
+        return tooltip == null ? Collections.emptyList() : tooltip.get();
     }
 
     @Override

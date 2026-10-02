@@ -18,12 +18,17 @@ public record SyncItem(ItemStack stack) {
 
         @Override
         public SyncItem decode(FriendlyByteBuf buf) {
-            return of(buf.readItem());
+            var stack = buf.readItem();
+            return stack.isEmpty() ? EMPTY : new SyncItem(stack);
         }
     };
 
     public static SyncItem of(ItemStack stack) {
-        return stack == null || stack.isEmpty() ? EMPTY : new SyncItem(stack);
+        return stack == null || stack.isEmpty() ? EMPTY : new SyncItem(stack.copyWithCount(1));
+    }
+
+    public boolean matches(ItemStack other) {
+        return other == null || other.isEmpty() ? stack.isEmpty() : ItemStack.isSameItemSameTags(stack, other);
     }
 
     public boolean isEmpty() {

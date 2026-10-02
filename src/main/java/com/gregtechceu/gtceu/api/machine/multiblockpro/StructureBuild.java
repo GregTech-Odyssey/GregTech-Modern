@@ -35,7 +35,7 @@ public final class StructureBuild {
     private StructureBuild() {}
 
     public static void build(ServerPlayer player, IMultiController controller, int[] values, Item[] choices) {
-        var structure = StructurePattern.of(controller.self().getDefinition());
+        var structure = controller.self().getDefinition().displayStructure();
         var layout = structure == null ? null : structure.layout(values);
         if (layout == null) {
             player.sendSystemMessage(Component.translatable(INVALID));

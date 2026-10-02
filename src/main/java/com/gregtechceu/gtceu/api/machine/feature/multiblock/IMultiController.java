@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Assembly;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
@@ -24,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
 
 public interface IMultiController extends IMachineFeature {
 
@@ -91,14 +89,6 @@ public interface IMultiController extends IMachineFeature {
         } else {
             return false;
         }
-    }
-
-    /**
-     * Get structure pattern.
-     * You can override it to create dynamic patterns.
-     */
-    default Supplier<BlockPattern>[] getPattern() {
-        return self().getDefinition().getPatternFactory();
     }
 
     @Nullable

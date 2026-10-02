@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
@@ -46,7 +45,6 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.*;
 
@@ -59,7 +57,7 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     private int checkPriority;
     private boolean generator;
     @Nullable
-    private Function<MultiblockMachineDefinition, BlockPattern> pattern;
+    private Function<MultiblockMachineDefinition, Structure> structure;
     /**
      * Set this to false only if your multiblock is set up such that it could have a wall-shared controller.
      */
@@ -324,10 +322,10 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         var definition = super.register();
         definition.setCheckPriority(checkPriority);
         definition.setGenerator(generator);
-        if (pattern == null) {
+        if (structure == null) {
             throw new IllegalStateException("missing structure while creating multiblock " + name);
         }
-        definition.setPatternFactory(Collections.singletonList(pattern));
+        definition.setStructure(structure);
         definition.setAllowFlip(allowFlip);
         if (recoveryItems != null) {
             definition.setRecoveryItems(recoveryItems);
@@ -356,19 +354,15 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
         return this;
     }
 
-    private MultiblockMachineBuilder pattern(Function<MultiblockMachineDefinition, BlockPattern> pattern) {
-        if (this.pattern != null) throw new IllegalStateException("structure has already been set");
-        this.pattern = pattern;
-        return this;
-    }
-
     public MultiblockMachineBuilder mountedOn(MachineProtocol protocol) {
         mountedOn.add(protocol);
         return this;
     }
 
     public MultiblockMachineBuilder structure(Function<MultiblockMachineDefinition, Structure> structure) {
-        return pattern(definition -> structure.apply(definition).toPattern(definition));
+        if (this.structure != null) throw new IllegalStateException("structure has already been set");
+        this.structure = structure;
+        return this;
     }
 
     /**

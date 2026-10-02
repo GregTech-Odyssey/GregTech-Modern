@@ -77,7 +77,7 @@ import java.util.function.ObjLongConsumer;
 public class RecipeHandlerUnit {
 
     /** 按优先级从高到低排序，用于机器装配时决定先问谁。 */
-    public static final Comparator<RecipeHandlerUnit> PRIORITY_COMPARATOR = Comparator.comparingInt(u -> -u.priority);
+    public static final Comparator<RecipeHandlerUnit> PRIORITY_COMPARATOR = (a, b) -> Integer.compare(b.priority, a.priority);
     /** 先按类型、再按优先级排序：基类 unit 排在最后，让子类实现先被访问。 */
     public static final Comparator<RecipeHandlerUnit> TYPE_COMPARATOR = (a, b) -> {
         var aClass = a.getClass();
@@ -231,6 +231,16 @@ public class RecipeHandlerUnit {
         types.forEach((k, v) -> this.byType.put(k, v.toArray(new IRecipeHandler[0])));
     }
 
+    public void refreshPriority() {
+        if (allHandlers.length == 0) return;
+        int max = Integer.MIN_VALUE;
+        for (var handler : allHandlers) {
+            var p = handler.getPriority();
+            if (max < p) max = p;
+        }
+        this.priority = max;
+    }
+
     /** 用一组 handler 临时拼一个不隶属于任何部件的分组（无部件可通知）。 */
     public static RecipeHandlerUnit of(IO io, IRecipeHandler... handlers) {
         return new RecipeHandlerUnit(io, null, handlers);
@@ -303,6 +313,7 @@ public class RecipeHandlerUnit {
 
     /** 让该部件所属的所有多方块控制器重新装配处理器列表。 */
     public static void notify(IMultiPart part) {
+        part.self().onChanged();
         for (IMultiController controller : part.getControllers()) {
             if (controller instanceof IWorkableMultiController workableMultiController) {
                 workableMultiController.arrangeHandlerList();

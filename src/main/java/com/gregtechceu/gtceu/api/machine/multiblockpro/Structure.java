@@ -1,25 +1,31 @@
 package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
+import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
+import com.gregtechceu.gtceu.api.pattern.predicates.PredicateDirections;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -29,6 +35,8 @@ public final class Structure {
     private static final Size NO_SIZE = new Size(new ParamKey[0], new int[0]);
     private static final int RESOLVED_LIMIT = 64;
     private static final int[][] NO_CHILDREN = new int[0][];
+    private static final int[][] MIRRORS = mirrors();
+    static final Set<Class<?>> WHITELIST = new ReferenceOpenHashSet<>();
 
     final Piece root;
     final List<Slot.Binding> bindings;
@@ -46,6 +54,10 @@ public final class Structure {
     final PortKey[][] childPorts;
     @Nullable
     private volatile CompiledStructure concreteDefault;
+    @Nullable
+    private volatile int[] dimensions;
+    @Nullable
+    private volatile Boolean mirrorSymmetric;
     private final List<Limit> limits;
     private final List<Option> options;
     private final StructureTree tree;
@@ -291,11 +303,143 @@ public final class Structure {
         return new Builder(root);
     }
 
-    public BlockPattern toPattern(@Nullable MultiblockMachineDefinition definition) {
-        if (definition != null) {
-            for (var protocol : protocols) protocol.addHost(definition);
+    public static void addWhitelistBlockEntity(Class<?> clazz) {
+        WHITELIST.add(clazz);
+    }
+
+    public Structure bind(MultiblockMachineDefinition definition) {
+        for (var protocol : protocols) protocol.addHost(definition);
+        return this;
+    }
+
+    public boolean match(MultiblockState state, boolean save) {
+        var controller = state.controller;
+        var center = state.controllerPos;
+        var front = controller.self().getFrontFacing();
+        var facings = controller.hasFrontFacing() ? new Direction[] { front } : new Direction[] { Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST };
+        var up = controller.self().getUpwardsFacing();
+        boolean allowsFlip = controller.self().allowFlip();
+        state.errorRecord.clear();
+        for (var facing : facings) {
+            if (matchAt(state, center, facing, up, false, save)) return true;
+            if (!save) state.errorRecord.add(state.error);
+            if (allowsFlip) return matchAt(state, center, facing, up, true, save);
         }
-        return StructurePattern.create(this);
+        return false;
+    }
+
+    private boolean matchAt(MultiblockState state, BlockPos center, Direction front, Direction up, boolean flip, boolean save) {
+        boolean result = StructureMatcher.acquire().match(this, state, center, front, up, flip, save);
+        if (result && !flip && optionalSlots && fuller(state, center, front, up)) {
+            return StructureMatcher.acquire().match(this, state, center, front, up, true, save);
+        }
+        return result;
+    }
+
+    private boolean fuller(MultiblockState state, BlockPos center, Direction front, Direction up) {
+        if (mirrorSymmetric()) return false;
+        var assembly = state.getMatchContext().get(Assembly.KEY);
+        if (assembly == null || assembly.getOptionalMissing() == 0 || !state.controller.self().allowFlip()) return false;
+        var probe = MultiblockState.probe(state);
+        if (!StructureMatcher.acquire().match(this, probe, center, front, up, true, false)) return false;
+        var flipped = probe.getMatchContext().get(Assembly.KEY);
+        return flipped != null && flipped.getOptionalFormed() > assembly.getOptionalFormed();
+    }
+
+    private int[] dimensions() {
+        var result = dimensions;
+        if (result == null) {
+            var layout = layout(defaultValues());
+            result = layout == null ? new int[3] : new int[] { layout.width(), layout.height(), layout.depth() };
+            dimensions = result;
+        }
+        return result;
+    }
+
+    public int getWidth() {
+        return dimensions()[0];
+    }
+
+    public int getHeight() {
+        return dimensions()[1];
+    }
+
+    public int getDepth() {
+        return dimensions()[2];
+    }
+
+    private boolean mirrorSymmetric() {
+        var result = mirrorSymmetric;
+        if (result == null) {
+            result = computeMirrorSymmetric();
+            mirrorSymmetric = result;
+        }
+        return result;
+    }
+
+    private boolean computeMirrorSymmetric() {
+        if (!optionalSlots || perSize) return false;
+        var values = defaultValues();
+        for (var node : tree.nodes()) {
+            int option = node.option();
+            if (option < 0 || option >= values.length) continue;
+            if (node.kind() == StructureTree.Kind.CHOICE && node.max() > 1) return false;
+            if (node.isOptionalModule()) values[option] = 1;
+        }
+        var layout = layout(values);
+        if (layout == null) return false;
+        var cells = layout.cells();
+        var index = new Long2IntOpenHashMap(cells.size());
+        index.defaultReturnValue(-1);
+        for (int i = 0; i < cells.size(); i++) {
+            var cell = cells.get(i);
+            if (directional(cell.predicate())) return false;
+            index.put(BlockPos.asLong(cell.x(), cell.y(), cell.z()), i);
+        }
+        for (var m : MIRRORS) {
+            for (var cell : cells) {
+                int x = m[0] * cell.x() + m[1] * cell.y() + m[2] * cell.z();
+                int y = m[3] * cell.x() + m[4] * cell.y() + m[5] * cell.z();
+                int z = m[6] * cell.x() + m[7] * cell.y() + m[8] * cell.z();
+                int j = index.get(BlockPos.asLong(x, y, z));
+                if (j < 0) return false;
+                var other = cells.get(j);
+                if (other.predicate() != cell.predicate() || other.node() != cell.node()) return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean directional(TraceabilityPredicate predicate) {
+        if (predicate.direction != GTUtil.NULL_FUNCTION) return true;
+        for (var simple : predicate.common) {
+            if (simple instanceof PredicateDirections) return true;
+        }
+        for (var simple : predicate.limited) {
+            if (simple instanceof PredicateDirections) return true;
+        }
+        return false;
+    }
+
+    private static int[][] mirrors() {
+        List<int[]> mirrors = new ArrayList<>();
+        for (var front : Direction.values()) {
+            for (var up : Direction.Plane.HORIZONTAL) {
+                int[] plain = Orientation.world(front, up, false);
+                int[] flipped = Orientation.world(front, up, true);
+                int[] m = new int[9];
+                for (int row = 0; row < 3; row++) {
+                    for (int column = 0; column < 3; column++) {
+                        m[row * 3 + column] = plain[row * 3] * flipped[column * 3] + plain[row * 3 + 1] * flipped[column * 3 + 1] +
+                                plain[row * 3 + 2] * flipped[column * 3 + 2];
+                    }
+                }
+                boolean known = false;
+                for (var existing : mirrors) known |= Arrays.equals(existing, m);
+                if (!known) mirrors.add(m);
+            }
+        }
+        return mirrors.toArray(int[][]::new);
     }
 
     public record Option(Kind kind, @Nullable ParamKey key, int min, int max, int defaultValue) {

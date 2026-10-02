@@ -562,6 +562,10 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         }
     }
 
+    public void onBlockStateChanged() {
+        frontFacing = null;
+    }
+
     public void onRotated(Direction oldFacing, Direction newFacing) {
         clearDirectionCache();
         for (var trait : traits) {

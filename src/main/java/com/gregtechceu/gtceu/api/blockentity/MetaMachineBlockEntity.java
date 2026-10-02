@@ -59,6 +59,12 @@ public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHi
     }
 
     @Override
+    public void setBlockState(BlockState blockState) {
+        super.setBlockState(blockState);
+        metaMachine.onBlockStateChanged();
+    }
+
+    @Override
     public void setRemoved() {
         super.setRemoved();
         metaMachine.onUnload();

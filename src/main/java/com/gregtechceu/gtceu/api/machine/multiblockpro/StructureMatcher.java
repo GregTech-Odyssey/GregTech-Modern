@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
+import com.gregtechceu.gtceu.api.block.ActiveBlock;
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.pattern.BlockPattern;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
@@ -12,6 +14,7 @@ import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.core.Iblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,6 +33,9 @@ final class StructureMatcher {
 
     private static final ThreadLocal<StructureMatcher> LOCAL = ThreadLocal.withInitial(StructureMatcher::new);
     private static final DataComponentKey<?>[] UNDONE_BY_POSITION = { Predicates.DataKey.ACTIVE_BLOCKS, Predicates.DataKey.RENDER_MASK };
+    private static final int CELL_PASS = 0;
+    private static final int CELL_FAIL = 1;
+    private static final int CELL_ABORT = 2;
 
     private final ArrayList<Placement> log = new ArrayList<>();
     private final ArrayList<Mark> marks = new ArrayList<>();
@@ -357,10 +363,10 @@ final class StructureMatcher {
                     state.setError(new PatternError());
                     return false;
                 }
-                int result = BlockPattern.testCell(state, pos, piece.predicate(i), save);
-                if (result != BlockPattern.CELL_PASS) {
+                int result = testCell(state, pos, piece.predicate(i), save);
+                if (result != CELL_PASS) {
                     placement.tested = i + 1;
-                    if (result == BlockPattern.CELL_ABORT) {
+                    if (result == CELL_ABORT) {
                         aborted = true;
                     } else if (!state.hasError()) {
                         state.setError(new PatternError());
@@ -385,6 +391,57 @@ final class StructureMatcher {
         }
         placement.tested = i;
         return true;
+    }
+
+    private static int testCell(MultiblockState worldState, BlockPos pos, TraceabilityPredicate predicate, boolean savePredicate) {
+        worldState.update(pos, predicate);
+        long posLong = pos.asLong();
+        boolean success = predicate.test(worldState);
+        if (success && !predicate.testOnly()) {
+            var matchContext = worldState.getMatchContext();
+            if (savePredicate) {
+                matchContext.getPredicates().put(posLong, predicate);
+            }
+            var block = worldState.getBlockState().getBlock();
+            var data = worldState.data;
+            if (data != null && !((Iblock) block).gtceu$canMultiShared()) {
+                if (data.hasShared(posLong)) {
+                    success = false;
+                    worldState.setError(MultiblockState.SHARE_ERROR.copy());
+                } else {
+                    worldState.sharedCache.add(posLong);
+                }
+            }
+            if (success) {
+                if (block instanceof ActiveBlock) {
+                    if (!savePredicate)
+                        matchContext.getOrCreate(Predicates.DataKey.ACTIVE_BLOCKS, LongOpenHashSet::new).add(posLong);
+                } else {
+                    var blockentity = worldState.getTileEntity();
+                    if (blockentity != null) {
+                        if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
+                            if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
+                                if (!worldState.world.isLoaded(pos)) {
+                                    worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
+                                    return CELL_ABORT;
+                                }
+                                matchContext.getParts().add(part);
+                            }
+                        } else if (!(blockentity instanceof GTBlockEntity) && !Structure.WHITELIST.contains(blockentity.getClass())) {
+                            worldState.blockEntityCache.add(posLong);
+                        }
+                    }
+                }
+            }
+        }
+        if (success) {
+            if (!savePredicate) worldState.cache.add(posLong);
+            return CELL_PASS;
+        }
+        if (worldState.blockState == ILevel.OUTSIDE_WORLD_BLOCK) {
+            worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
+        }
+        return CELL_FAIL;
     }
 
     private boolean countLimits(int mask) {

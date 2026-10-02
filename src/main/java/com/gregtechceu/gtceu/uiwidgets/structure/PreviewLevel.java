@@ -18,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,6 +57,7 @@ final class PreviewLevel extends DummyWorld {
     }
 
     void setBlocks(Long2ObjectOpenHashMap<BlockState> states) {
+        states = connectShapes(connectShapes(states));
         var entities = new Long2ObjectOpenHashMap<BlockEntity>();
         var parts = new ReferenceOpenHashSet<IMultiPart>();
         IMultiController controller = null;
@@ -85,6 +87,25 @@ final class PreviewLevel extends DummyWorld {
             var finalController = controller;
             parts.forEach(entry -> entry.addedToController(finalController));
         }
+        view = new View(this, states, entities, ALL_LAYERS);
+    }
+
+    private Long2ObjectOpenHashMap<BlockState> connectShapes(Long2ObjectOpenHashMap<BlockState> states) {
+        view = new View(this, states, new Long2ObjectOpenHashMap<>(), ALL_LAYERS);
+        var connected = new Long2ObjectOpenHashMap<BlockState>(states.size());
+        for (var it = states.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
+            var state = entry.getValue();
+            try {
+                var updated = Block.updateFromNeighbourShapes(state, this, BlockPos.of(entry.getLongKey()));
+                if (updated.getBlock() == state.getBlock()) state = updated;
+            } catch (Throwable ignored) {}
+            connected.put(entry.getLongKey(), state);
+        }
+        return connected;
+    }
+
+    void setLiveBlocks(Long2ObjectOpenHashMap<BlockState> states, Long2ObjectOpenHashMap<BlockEntity> entities) {
         view = new View(this, states, entities, ALL_LAYERS);
     }
 

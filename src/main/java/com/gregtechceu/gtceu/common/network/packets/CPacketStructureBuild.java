@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.BuildUpload;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBuild;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.common.data.GTItems;
 
 import com.lowdragmc.lowdraglib.networking.IHandlerContext;
@@ -56,7 +55,7 @@ public class CPacketStructureBuild implements IPacket {
         if (!(MetaMachine.getMachine(player.level(), pos) instanceof IMultiController controller)) return;
         player.getCooldowns().addCooldown(terminal, COOLDOWN);
         var definition = controller.self().getDefinition();
-        var structure = StructurePattern.of(definition);
+        var structure = definition.displayStructure();
         var layout = structure == null ? null : structure.layout(values);
         var choices = layout == null ? null : BuildUpload.take(player, upload, definition, values, layout.cells().size());
         if (choices == null) {

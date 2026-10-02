@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,6 +24,7 @@ import java.util.Arrays;
 @OnlyIn(Dist.CLIENT)
 public final class StructureMinimap extends UIElement {
 
+    public static final String TIP = "gtceu.structure_preview.minimap.tip";
     private static final int BORDER = 2;
     private static final int MARKER = 0xFFFF3030;
     private static final int EMPTY = 0x00000000;
@@ -42,6 +44,7 @@ public final class StructureMinimap extends UIElement {
         this.scene = scene;
         layout(l -> l.size(size, size));
         setClientSideWidget();
+        tooltips(TIP);
     }
 
     void setBlocks(Long2ObjectOpenHashMap<BlockState> blocks, PreviewBounds bounds) {
@@ -122,9 +125,9 @@ public final class StructureMinimap extends UIElement {
         int x = originX(), y = originY();
         int w = Math.round(mapWidth * scale), h = Math.round(mapDepth * scale);
         graphics.blit(location, x, y, w, h, 0, 0, mapWidth, mapDepth, mapWidth, mapDepth);
-        var center = scene.getCenter();
-        if (center == null) return;
-        int mx = x + Math.round((center.x() - minX) * scale), my = y + Math.round((center.z() - minZ) * scale);
+        var eye = scene.getEye();
+        int mx = Mth.clamp(x + Math.round((eye.x() - minX) * scale), x, x + w - 1);
+        int my = Mth.clamp(y + Math.round((eye.z() - minZ) * scale), y, y + h - 1);
         graphics.fill(mx - 2, my - 2, mx + 3, my + 3, 0xFF000000);
         graphics.fill(mx - 1, my - 1, mx + 2, my + 2, MARKER);
     }
@@ -133,7 +136,7 @@ public final class StructureMinimap extends UIElement {
         float scale = scale();
         float x = (float) (mouseX - originX()) / scale + minX;
         float z = (float) (mouseY - originY()) / scale + minZ;
-        scene.focus(x, z);
+        scene.moveTo(x, z);
     }
 
     @Override

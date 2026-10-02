@@ -524,6 +524,11 @@ public final class UITheme {
     public static int FLOW_AMBER_LIGHT = 0xFFECC66E, FLOW_AMBER_MID = 0xFFD19B36, FLOW_AMBER_DARK = 0xFFA2711F;
     public static int FLOW_RED_LIGHT = 0xFFE27F6C, FLOW_RED_MID = 0xFFC24D3E, FLOW_RED_DARK = 0xFF8F3328;
     public static int FACE_NET_OFF = 0x38000000;
+    public static int SIDE_ITEM_OUTPUT = 0xFFFF7A1A;
+    public static int SIDE_FLUID_OUTPUT = 0xFF2F9BFF;
+    public static int SIDE_OUTPUT_IDLE_ALPHA = 0x90000000;
+    public static int SIDE_HOVER_FRAME = 0xD0FFFFFF;
+    public static int SIDE_HOVER_FILL = 0x30FFFFFF;
     public static int LIST_ROW_FILL = 0x14000000;
     public static WireStyle FLOW_WIRE_DISABLED = WireStyle.patterned(0xFF9A9A9A, WireStyle.Pattern.DOTTED);
     public static WireStyle FLOW_WIRE_IDLE = WireStyle.solid(0xFF8A8A8A);

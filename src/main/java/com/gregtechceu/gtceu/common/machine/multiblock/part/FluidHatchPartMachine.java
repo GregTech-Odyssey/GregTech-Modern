@@ -109,6 +109,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
             getHandlerUnit().setColor(getPaintingColor());
             tankSubs = tank.addChangedListener(this::updateTankSubscription);
             tank.setPriority(priority);
+            circuitInventory.setPriority(priority);
         }
     }
 
@@ -131,6 +132,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
         if (priority == Integer.MIN_VALUE) return;
         this.priority = priority;
         tank.setPriority(priority);
+        circuitInventory.setPriority(priority);
         RecipeHandlerUnit.notify(this);
     }
 
@@ -247,7 +249,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     @Override
     public void attachSideTabs(TabsWidget sideTabs) {
         super.attachSideTabs(sideTabs);
-        sideTabs.attachSubTab(io == IO.OUT ? IFilteredHandler.createOutputPriorityConfigurator(this::getPriority, this::setPriority) : IFilteredHandler.createPriorityConfigurator(this::getPriority, this::setPriority));
+        sideTabs.attachSubTab(io == IO.OUT ? IFilteredHandler.createOutputPriorityConfigurator(this::getPriority, this::setPriority) : IFilteredHandler.createInputPriorityConfigurator(this::getPriority, this::setPriority));
     }
 
     @Override

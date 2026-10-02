@@ -140,19 +140,10 @@ public class StatusLine extends UIElement {
 
     /**
      * 数值左边显示物品图标（服务端取值下发，空物品不显示），行高随之加到 {@link #ICON_HEIGHT}。
-     * getter 最好返回缓存的物品（同一对象时不再比较内容）。两端建页时都要以同样顺序调用。
+     * 两端建页时都要以同样顺序调用。
      */
     public StatusLine bindIcon(Supplier<ItemStack> icon) {
-        var last = new ItemStack[1];
-        var memo = new SyncItem[] { SyncItem.EMPTY };
-        this.icon = addSyncValue(SyncValue.of(() -> {
-            var stack = icon.get();
-            if (stack != last[0]) {
-                last[0] = stack;
-                memo[0] = SyncItem.of(stack);
-            }
-            return memo[0];
-        }, SyncItem.CODEC, SyncItem.EMPTY));
+        this.icon = addSyncValue(SyncValue.ofItem(icon));
         layout(l -> l.height(ICON_HEIGHT));
         return this;
     }

@@ -78,9 +78,11 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
     @Override
     protected void setPriority(int priority) {
+        if (priority == Integer.MIN_VALUE) return;
         this.priority = priority;
         inventory.setPriority(priority);
         tank.setPriority(priority);
+        circuitInventory.setPriority(priority);
         RecipeHandlerUnit.notify(this);
     }
 

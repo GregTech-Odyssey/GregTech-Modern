@@ -159,6 +159,12 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     @Override
     public void setVoidingMode(VoidingMode mode) {
         voidingMode = mode;
+        onChanged();
+    }
+
+    public void setBatchEnabled(boolean batchEnabled) {
+        this.batchEnabled = batchEnabled;
+        onChanged();
     }
 
     public void attachRecipeConfigurators(ConfiguratorPanel configuratorPanel) {
@@ -169,7 +175,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
 
     public void attachBatchConfigurator(ConfiguratorPanel configuratorPanel) {
         if (!hasBatchConfig()) return;
-        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.BATCH_OFF, WidgetIcons.BATCH_ON, this::isBatchEnabled, (clickData, pressed) -> batchEnabled = pressed)
+        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.BATCH_OFF, WidgetIcons.BATCH_ON, this::isBatchEnabled, (clickData, pressed) -> setBatchEnabled(pressed))
                 .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "gtceu.machine.batch_enabled" : "gtceu.machine.batch_disabled"))));
     }
 

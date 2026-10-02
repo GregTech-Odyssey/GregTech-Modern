@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
-import com.gregtechceu.gtceu.api.pattern.FactoryBlockPattern;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
@@ -116,18 +115,35 @@ public final class Piece {
 
     CompiledPiece compile(Symbols symbols) {
         if (sizer != null) throw new IllegalStateException("sized piece must be resolved before compiling");
-        var pattern = FactoryBlockPattern.start(dirs[0], dirs[1], dirs[2]);
-        for (var aisle : aisles) {
+        int axes = 0;
+        for (var dir : dirs) {
+            switch (dir) {
+                case UP, DOWN -> axes |= 0x1;
+                case LEFT, RIGHT -> axes |= 0x2;
+                case FRONT, BACK -> axes |= 0x4;
+            }
+        }
+        if (axes != 0x7) throw new IllegalArgumentException("Must have 3 different axes!");
+        int height = 0;
+        int width = 0;
+        for (int c = 0; c < aisles.size(); c++) {
+            var aisle = aisles.get(c);
             for (var row : aisle) {
                 for (int i = 0; i < row.length(); i++) {
                     char symbol = row.charAt(i);
                     if (symbol != ' ' && !symbols.has(symbol)) throw new IllegalStateException("symbol '" + symbol + "' is not defined in the structure symbols");
                 }
             }
-            pattern.aisle(aisle);
+            if (aisle.length == 0 || aisle[0].isEmpty()) throw new IllegalArgumentException("Empty pattern for aisle");
+            if (c == 0) {
+                height = aisle.length;
+                width = aisle[0].length();
+            }
+            if (aisle.length != height) {
+                throw new IllegalArgumentException("Expected aisle with height of " + height + ", but was given one with a height of " + aisle.length);
+            }
         }
-        symbols.applyTo(pattern);
-        return new CompiledPiece(this, pattern.build());
+        return new CompiledPiece(this, aisles, symbols.cells(), height, width);
     }
 
     Port port(PortKey key) {

@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.BuildUpload;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.StructurePattern;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.CPacketStructureBuild;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -79,7 +78,7 @@ public final class StructureBuildFlow {
     public static void openTerminal(IMultiController controller) {
         var machine = controller.self();
         var definition = machine.getDefinition();
-        var structure = StructurePattern.of(definition);
+        var structure = definition.displayStructure();
         if (structure == null) return;
         var pos = machine.getPos();
         var icon = definition.asStack();

@@ -3,15 +3,19 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.view.scene.SceneView;
 
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -23,6 +27,7 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
     public static final int WIDTH = 160;
     public static final int HEIGHT = 160;
     private static final int SCENE_DELAY_FRAMES = 3;
+    private static final int TITLE_INSET = 3;
 
     private final MultiblockMachineDefinition definition;
     private final Structure structure;
@@ -41,10 +46,11 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
         int sceneHeight = height - Button.HEIGHT - UISizes.GAP;
         layout(l -> l.column().size(width, height).gapAll(UISizes.GAP));
         setSize(new Size(width, height));
-        scene = new StructureScene("structure_preview.card", width, sceneHeight, false);
+        scene = new StructureScene("structure_preview.card", width, sceneHeight, true);
         scene.setReloader(() -> sceneShown = false);
-        var title = new ImageWidget(0, 0, width - 6, 10, new TextTexture(definition.getDescriptionId(), -1)
-                .setType(TextTexture.TextType.ROLL).setWidth(width - 6).setDropShadow(true));
+        int titleWidth = width - 2 * TITLE_INSET - InfoIcon.SIZE - UISizes.GAP;
+        var title = new ImageWidget(0, 0, titleWidth, 10, new TextTexture(definition.getDescriptionId(), -1)
+                .setType(TextTexture.TextType.ROLL).setWidth(titleWidth).setDropShadow(true));
         var stage = new UIElement().layout(l -> l.size(width, sceneHeight));
         stage.addChild(scene);
         stage.addChild(new UIElement() {
@@ -53,7 +59,9 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
             public boolean isMouseOverElement(double mouseX, double mouseY) {
                 return false;
             }
-        }.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(3).top(3)).addChild(title));
+        }.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(TITLE_INSET).top(TITLE_INSET)).addChild(title));
+        stage.addChild(InfoIcon.of(Level.NORMAL, SceneView.controlTips().toArray(Component[]::new))
+                .layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(TITLE_INSET).top(TITLE_INSET)));
         var open = Button.translatable(width, StructurePreviewScreen.OPEN).setOnClientClick(openFull);
         addChildren(stage, open);
     }

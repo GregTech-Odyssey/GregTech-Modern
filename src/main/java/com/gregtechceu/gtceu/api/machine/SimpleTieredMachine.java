@@ -402,6 +402,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @Override
     public void setVoidingMode(VoidingMode mode) {
         this.voidingMode = mode;
+        onChanged();
     }
 
     @Override
