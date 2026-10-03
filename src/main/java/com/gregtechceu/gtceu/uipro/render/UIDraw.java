@@ -112,6 +112,10 @@ public final class UIDraw {
     }
 
     public static void selectionFrame(GuiGraphics graphics, int x, int y, int width, int height) {
+        selectionFrame(graphics, x, y, width, height, UITheme.SELECTION_COLOR);
+    }
+
+    public static void selectionFrame(GuiGraphics graphics, int x, int y, int width, int height, int color) {
         int l = x - 1, t = y - 1, r = x + width + 1, b = y + height + 1;
         double phase = UIClock.phase(SELECTION_PULSE_MS);
         int alpha = (int) (SELECTION_FILL_ALPHA_MIN + (SELECTION_FILL_ALPHA_MAX - SELECTION_FILL_ALPHA_MIN) * (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
@@ -120,9 +124,9 @@ public final class UIDraw {
         pose.translate(0, 0, UILayers.SELECTION);
         var consumer = begin(graphics);
         var matrix = pose.last().pose();
-        quad(consumer, matrix, l + 2, t + 2, r - 2, b - 2, alpha << 24 | (UITheme.SELECTION_COLOR & 0xFFFFFF));
+        quad(consumer, matrix, l + 2, t + 2, r - 2, b - 2, alpha << 24 | (color & 0xFFFFFF));
         ring(consumer, matrix, l, t, r, b, UITheme.SELECTION_OUTLINE, true);
-        ring(consumer, matrix, l + 1, t + 1, r - 1, b - 1, UITheme.SELECTION_COLOR, false);
+        ring(consumer, matrix, l + 1, t + 1, r - 1, b - 1, color, false);
         end(graphics);
         pose.popPose();
     }

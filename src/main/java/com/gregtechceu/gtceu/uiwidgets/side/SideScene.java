@@ -7,12 +7,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,15 +31,17 @@ final class SideScene {
     private static final float SKEW = 0.35f;
     private static final float OVERVIEW_SIDE = 0.6f;
     private static final float OVERVIEW_UP = 0.6f;
+    private static final double PLAYER_VIEW_RANGE_SQR = 64;
     private static final int GHOST_LAYER = 1;
-    private static final float OUTPUT_INNER_INSET = 0.07f;
-    private static final float MARK_INSET = 0.16f;
-    private static final int MARK_FILL_ALPHA = 0x30000000;
+    private static final int MARK_RING = 1;
+    private static final int ITEM_RING = 3;
+    private static final int FLUID_RING = 4;
 
     private final SideOverview page;
     private final StructureScene view;
     private boolean dirty;
     private boolean loaded;
+    private int renderKey;
 
     SideScene(SideOverview page, int width, int height) {
         this.page = page;
@@ -45,7 +50,7 @@ final class SideScene {
         view.setOrbit(true);
         view.setFacePainter(this::paint);
         view.setTooltip(this::tooltip);
-        view.setOnSelected(this::onSelected);
+        view.setOnFaceClick(this::onFaceClick);
         view.setReloader(this::load);
         reload();
     }
@@ -70,6 +75,7 @@ final class SideScene {
         dirty = false;
         var level = Minecraft.getInstance().level;
         if (level == null) return;
+        renderKey = renderKey();
         var pos = page.machine.getPos();
         var blocks = new Long2ObjectOpenHashMap<BlockState>(1);
         var entities = new Long2ObjectOpenHashMap<BlockEntity>(1);
@@ -84,7 +90,26 @@ final class SideScene {
             if (!state.isAir()) ghosts.put(neighbor.asLong(), state);
         }
         view.setOverlay(GHOST_LAYER, ghosts, 1, 1, 1, GHOST_ALPHA);
-        if (first) lookOverview();
+        if (first) lookFromPlayer(level);
+    }
+
+    private int renderKey() {
+        var machine = page.machine;
+        int key = MachineSide.frameKey(machine) * 256 + page.getOutputKey();
+        var covers = machine.getCoverContainer();
+        for (var direction : DIRECTIONS) key = key * 31 + System.identityHashCode(covers.getCoverAtSide(direction));
+        return key;
+    }
+
+    private void lookFromPlayer(Level level) {
+        var player = Minecraft.getInstance().player;
+        var center = Vec3.atCenterOf(page.machine.getPos());
+        if (player == null || player.level() != level || player.distanceToSqr(center) > PLAYER_VIEW_RANGE_SQR) {
+            lookOverview();
+            return;
+        }
+        var eye = player.getEyePosition();
+        view.lookFrom((float) (eye.x - center.x), (float) (eye.y - center.y), (float) (eye.z - center.z));
     }
 
     private void lookOverview() {
@@ -108,27 +133,20 @@ final class SideScene {
     }
 
     private void paint(StructureScene.FaceSink sink) {
+        if (loaded && !dirty && renderKey() != renderKey) reload();
         var pos = page.machine.getPos();
         int item = page.getItemOutput(), fluid = page.getFluidOutput();
         var itemFace = SideOverview.outputFace(item);
+        if (itemFace != null) sink.ring(pos, itemFace, ITEM_RING, SideOverview.outputColor(UITheme.SIDE_ITEM_OUTPUT, item));
         var fluidFace = SideOverview.outputFace(fluid);
-        if (itemFace != null) sink.face(pos, itemFace, outputColor(UITheme.SIDE_ITEM_OUTPUT, item), 0, 0);
-        if (fluidFace != null) sink.face(pos, fluidFace, outputColor(UITheme.SIDE_FLUID_OUTPUT, fluid), 0, fluidFace == itemFace ? OUTPUT_INNER_INSET : 0);
+        if (fluidFace != null) sink.ring(pos, fluidFace, FLUID_RING, SideOverview.outputColor(UITheme.SIDE_FLUID_OUTPUT, fluid));
         page.setSceneHover(hoveredSide(pos));
         int selected = page.getSelected(), highlighted = page.getHighlighted();
-        if (highlighted >= 0 && highlighted != selected) {
-            sink.face(pos, page.direction(SIDES[highlighted]), UITheme.SIDE_HOVER_FRAME, UITheme.SIDE_HOVER_FILL, MARK_INSET);
-        }
-        if (selected >= 0) {
-            int color = UITheme.SELECTION_COLOR;
-            sink.face(pos, page.direction(SIDES[selected]), color, (color & 0xFFFFFF) | MARK_FILL_ALPHA, MARK_INSET);
-        }
+        if (highlighted >= 0 && highlighted != selected) sink.ring(pos, page.direction(SIDES[highlighted]), MARK_RING, UITheme.SIDE_HOVER_FRAME);
+        if (selected >= 0) sink.ring(pos, page.direction(SIDES[selected]), MARK_RING, UITheme.SIDE_SELECTED_FRAME);
     }
 
-    private static int outputColor(int color, int state) {
-        return SideOverview.isAuto(state) ? color : (color & 0xFFFFFF) | UITheme.SIDE_OUTPUT_IDLE_ALPHA;
-    }
-
+    @Nullable
     private MachineSide hoveredSide(BlockPos pos) {
         var face = view.getHoverFace();
         return face != null && pos.equals(view.getHoverPos()) ? page.side(face) : null;
@@ -136,10 +154,14 @@ final class SideScene {
 
     private List<Component> tooltip() {
         var side = hoveredSide(page.machine.getPos());
-        return side == null ? Collections.emptyList() : page.tooltip(side);
+        return side == null ? Collections.emptyList() : page.hoverLines(side);
     }
 
-    private void onSelected(BlockPos pos, Direction face) {
-        if (pos.equals(page.machine.getPos())) page.select(page.side(face));
+    private void onFaceClick(@Nullable BlockPos pos, @Nullable Direction face, int button) {
+        if (pos == null) {
+            if (button == 0) page.clientDeselect();
+            return;
+        }
+        if (face != null && pos.equals(page.machine.getPos())) page.clientClick(page.side(face), button, false);
     }
 }

@@ -52,8 +52,10 @@ public final class StructureScene extends SceneView {
     private static final long ORBIT_TICKS = 180;
     private static final float ORBIT_DEGREES_PER_TICK = 2;
     private static final float ORBIT_ELEVATION = 25;
-    private static final float FACE_OFFSET = 0.004f;
+    private static final float FACE_OFFSET = 0.012f;
     private static final float FACE_FRAME = 0.07f;
+    private static final int FACE_TEXELS = 16;
+    private static final float TEXEL = 1f / FACE_TEXELS;
 
     private final StructureRenderer renderer = new StructureRenderer();
     private final SceneMarkers markers = new SceneMarkers();
@@ -63,6 +65,9 @@ public final class StructureScene extends SceneView {
     @Setter
     @Nullable
     private BiConsumer<BlockPos, Direction> onSelected;
+    @Setter
+    @Nullable
+    private FaceClick onFaceClick;
     @Setter
     @Nullable
     private Runnable reloader;
@@ -105,7 +110,18 @@ public final class StructureScene extends SceneView {
     private Supplier<List<Component>> tooltip;
     @Nullable
     private BufferBuilder faceBuffer;
-    private final FaceSink faceSink = this::addFace;
+    private final FaceSink faceSink = new FaceSink() {
+
+        @Override
+        public void face(BlockPos pos, Direction face, int frameColor, int fillColor, float inset) {
+            addFace(pos, face, frameColor, fillColor, inset);
+        }
+
+        @Override
+        public void ring(BlockPos pos, Direction face, int ring, int color) {
+            addRing(pos, face, ring, color);
+        }
+    };
 
     public interface FacePainter {
 
@@ -115,6 +131,13 @@ public final class StructureScene extends SceneView {
     public interface FaceSink {
 
         void face(BlockPos pos, Direction face, int frameColor, int fillColor, float inset);
+
+        void ring(BlockPos pos, Direction face, int ring, int color);
+    }
+
+    public interface FaceClick {
+
+        void click(@Nullable BlockPos pos, @Nullable Direction face, int button);
     }
 
     public record Marker(Vector3f pos, int color, boolean selected, List<Component> tooltip) {}
@@ -343,11 +366,21 @@ public final class StructureScene extends SceneView {
         float lo = inset, hi = 1 - inset;
         if ((fillColor >>> 24) != 0) faceQuad(buffer, pos, face, lo, lo, hi, hi, fillColor);
         if ((frameColor >>> 24) == 0) return;
-        float in = Math.min(FACE_FRAME, (hi - lo) / 2);
-        faceQuad(buffer, pos, face, lo, lo, hi, lo + in, frameColor);
-        faceQuad(buffer, pos, face, lo, hi - in, hi, hi, frameColor);
-        faceQuad(buffer, pos, face, lo, lo + in, lo + in, hi - in, frameColor);
-        faceQuad(buffer, pos, face, hi - in, lo + in, hi, hi - in, frameColor);
+        frame(buffer, pos, face, lo, hi, Math.min(FACE_FRAME, (hi - lo) / 2), frameColor);
+    }
+
+    private void addRing(BlockPos pos, Direction face, int ring, int color) {
+        var buffer = faceBuffer;
+        if (buffer == null || (color >>> 24) == 0 || ring < 1 || ring > FACE_TEXELS / 2) return;
+        float lo = (ring - 1) * TEXEL, hi = 1 - lo;
+        frame(buffer, pos, face, lo, hi, TEXEL, color);
+    }
+
+    private static void frame(BufferBuilder buffer, BlockPos pos, Direction face, float lo, float hi, float in, int color) {
+        faceQuad(buffer, pos, face, lo, lo, hi, lo + in, color);
+        faceQuad(buffer, pos, face, lo, hi - in, hi, hi, color);
+        faceQuad(buffer, pos, face, lo, lo + in, lo + in, hi - in, color);
+        faceQuad(buffer, pos, face, hi - in, lo + in, hi, hi - in, color);
     }
 
     private static void faceQuad(BufferBuilder buffer, BlockPos pos, Direction face, float u0, float v0, float u1, float v1, int argb) {
@@ -500,7 +533,12 @@ public final class StructureScene extends SceneView {
             onMarker.accept(hovered);
             return;
         }
-        if (!selectable || button != 0 || hoverPos == null) return;
+        if (!selectable) return;
+        if (onFaceClick != null) {
+            onFaceClick.click(hoverPos, hoverFace, button);
+            return;
+        }
+        if (button != 0 || hoverPos == null) return;
         selectedPos = hoverPos;
         if (onSelected != null) onSelected.accept(selectedPos, hoverFace == null ? Direction.UP : hoverFace);
     }

@@ -1715,6 +1715,9 @@ public class LangHandler {
         provider.add("gtceu.gui.side_overview.auto_on", "auto output on");
         provider.add("gtceu.gui.side_overview.auto_off", "auto output off");
         provider.add("gtceu.gui.side_overview.show_face", "Click to select this side and configure its output");
+        provider.add("gtceu.gui.side_overview.hint.both", "Left click cycles item output, right click cycles fluid output (none → output → auto)");
+        provider.add("gtceu.gui.side_overview.hint.item", "Click to cycle item output (none → output → auto)");
+        provider.add("gtceu.gui.side_overview.hint.fluid", "Click to cycle fluid output (none → output → auto)");
         provider.add("gtceu.gui.side_overview.open_cover", "Open cover settings");
         provider.add("gtceu.gui.side_overview.no_cover_settings", "This side has no configurable cover");
         provider.add("gtceu.gui.side_overview.open_cover_short", "Settings");
@@ -1723,6 +1726,10 @@ public class LangHandler {
         provider.add("gtceu.gui.side_overview.selected_cover", "%s: %s");
         provider.add("gtceu.gui.side_overview.item_mode", "Item output");
         provider.add("gtceu.gui.side_overview.fluid_mode", "Fluid output");
+        provider.add("gtceu.gui.side_overview.item_allow_input", "Item input on output side");
+        provider.add("gtceu.gui.side_overview.fluid_allow_input", "Fluid input on output side");
+        provider.add("gtceu.gui.side_overview.not_item_output", "This side is not the item output side");
+        provider.add("gtceu.gui.side_overview.not_fluid_output", "This side is not the fluid output side");
         provider.add("gtceu.gui.side_overview.mode.none", "None");
         provider.add("gtceu.gui.side_overview.mode.output", "Output");
         provider.add("gtceu.gui.side_overview.mode.auto", "Auto");
@@ -1949,6 +1956,13 @@ public class LangHandler {
         provider.add("gtceu.uipro.view.reset", "Reset view");
         provider.add("gtceu.uipro.view.zoom_distance", "Distance relative to the default view. Click to return to the default distance");
         provider.add("gtceu.structure_preview.highlight", "Highlight part positions: positions that accept hatches, buses and other parts");
+        provider.add("gtceu.gui.part_cells.title", "Show Part Positions in World");
+        provider.add("gtceu.gui.part_cells.legend", "Green boxes: casings that can be replaced with hatches, buses and other parts; blue boxes: parts already placed");
+        provider.add("gtceu.gui.part_cells.hint", "Click again to hide. Hidden automatically when you move away, the controller is removed or the structure breaks");
+        provider.add("gtceu.gui.part_cells.hide", "Click to hide");
+        provider.add("gtceu.gui.part_cells.not_formed", "The structure is not formed, so part positions cannot be determined");
+        provider.add("gtceu.gui.part_cells.none", "This structure has no positions that accept parts");
+        provider.add("gtceu.gui.part_cells.truncated", "Too many positions: showing the %s nearest to you (%s in total)");
 
         // 配方页（uipro）
         provider.add("gtceu.recipe.info.duration", "Duration");

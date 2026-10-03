@@ -9,12 +9,14 @@ import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.Binding;
 import com.gregtechceu.gtceu.uipro.data.ClientOnly;
+import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.SyncItem;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.render.UILayers;
@@ -33,6 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -50,6 +53,7 @@ public final class SideOverview {
     private static final int SCENE_WIDTH = UISizes.CONTENT_WIDTH - CROSS_SIZE - UISizes.SECTION_GAP;
     private static final int SCENE_HEIGHT = 4 * UISizes.SLOT_SIZE;
     private static final int NONE = 0, OUTPUT = 1, AUTO_OUTPUT = 2;
+    private static final int NO_TARGET = -1, ITEM_TARGET = 0, FLUID_TARGET = 1;
     private static final int KEY_SPAN = 64;
     private static final String[] MODES = { "gtceu.gui.side_overview.mode.none", "gtceu.gui.side_overview.mode.output",
             "gtceu.gui.side_overview.mode.auto" };
@@ -57,7 +61,6 @@ public final class SideOverview {
             List.of(Component.translatable("gtceu.gui.side_overview.mode.none.tooltip")),
             List.of(Component.translatable("gtceu.gui.side_overview.mode.output.tooltip")),
             List.of(Component.translatable("gtceu.gui.side_overview.mode.auto.tooltip")));
-    private static final int MARK = 4;
     private static final String FACE = "gtceu.gui.output_side.face";
     private static final String NO_COVER = "gtceu.gui.side_overview.no_cover";
     private static final String ITEM_OUTPUT = "gtceu.gui.side_overview.item_output";
@@ -74,6 +77,16 @@ public final class SideOverview {
     private static final String ITEM_MODE = "gtceu.gui.side_overview.item_mode";
     private static final String FLUID_MODE = "gtceu.gui.side_overview.fluid_mode";
     private static final String FRONT = "gtceu.gui.output_side.front";
+    private static final String ITEM_ALLOW_INPUT = "gtceu.gui.side_overview.item_allow_input";
+    private static final String FLUID_ALLOW_INPUT = "gtceu.gui.side_overview.fluid_allow_input";
+    private static final String ALLOW_INPUT_TOOLTIP = "gtceu.gui.output_side.allow_input.tooltip";
+    private static final String NOT_ITEM_OUTPUT = "gtceu.gui.side_overview.not_item_output";
+    private static final String NOT_FLUID_OUTPUT = "gtceu.gui.side_overview.not_fluid_output";
+    private static final Component HINT_SELECT = Component.translatable(SHOW_FACE).withStyle(ChatFormatting.DARK_GRAY);
+    private static final Component HINT_FRONT = Component.translatable(FRONT).withStyle(ChatFormatting.GRAY);
+    private static final Component HINT_BOTH = Component.translatable("gtceu.gui.side_overview.hint.both").withStyle(ChatFormatting.YELLOW);
+    private static final Component HINT_ITEM = Component.translatable("gtceu.gui.side_overview.hint.item").withStyle(ChatFormatting.YELLOW);
+    private static final Component HINT_FLUID = Component.translatable("gtceu.gui.side_overview.hint.fluid").withStyle(ChatFormatting.YELLOW);
 
     final MetaMachine machine;
     @Nullable
@@ -90,9 +103,16 @@ public final class SideOverview {
     private final FaceCell[] cells = new FaceCell[MachineSide.values().length];
     @SuppressWarnings("unchecked")
     private final List<Component>[] tooltips = new List[MachineSide.values().length];
+    @SuppressWarnings("unchecked")
+    private final List<Component>[] hoverLines = new List[MachineSide.values().length];
+    @SuppressWarnings("unchecked")
+    private final List<Component>[] hoverBases = new List[MachineSide.values().length];
+    private final Component[] hoverHints = new Component[MachineSide.values().length];
     private int serverSelected = -1;
     @Nullable
     private Binding<Integer> selection;
+    @Nullable
+    private RPC<Integer> quickConfig;
     private int selectedKey = Integer.MIN_VALUE;
     @Nullable
     private CoverBehavior selectedTextCover;
@@ -121,6 +141,8 @@ public final class SideOverview {
         content.addSyncValue(fluidOutput);
         content.addSyncValue(covers);
         selection = content.getChannel().addBinding(Binding.bindInt(() -> serverSelected, v -> serverSelected = v, -1, SIDES.length - 1));
+        quickConfig = content.getChannel().addRPC(ByteStreamCodec.INT_CODEC, (player, packed) -> cycleMode(packed))
+                .validate(packed -> packed >= 0 && packed < SIDES.length * 2);
         var holder = new UIElement().layout(l -> l.size(SCENE_WIDTH, SCENE_HEIGHT));
         if (machine.isRemote()) addScene(holder);
         var cross = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP))
@@ -159,14 +181,56 @@ public final class SideOverview {
         var open = Button.translatable(UISizes.BUTTON_WIDTH, OPEN_COVER_SHORT).tooltips(OPEN_COVER).setOnClientClick(this::openSelectedCover);
         open.disabled(() -> !(selectedCover() instanceof IUICover), NO_COVER_SETTINGS);
         section.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(name, open));
-        if (items != null) section.addChild(Form.controlRow(ITEM_MODE, modeGroup(false)).disabled(this::isSelectedFront, FRONT));
-        if (fluids != null) section.addChild(Form.controlRow(FLUID_MODE, modeGroup(true)).disabled(this::isSelectedFront, FRONT));
+        if (items != null) {
+            section.addChild(Form.controlRow(ITEM_MODE, modeGroup(false)).disabled(this::isSelectedFront, FRONT));
+            section.addChild(Form.controlRow(ITEM_ALLOW_INPUT, allowInputSwitch(false), ALLOW_INPUT_TOOLTIP)
+                    .disabled(() -> !isSelectedOutput(false), NOT_ITEM_OUTPUT));
+        }
+        if (fluids != null) {
+            section.addChild(Form.controlRow(FLUID_MODE, modeGroup(true)).disabled(this::isSelectedFront, FRONT));
+            section.addChild(Form.controlRow(FLUID_ALLOW_INPUT, allowInputSwitch(true), ALLOW_INPUT_TOOLTIP)
+                    .disabled(() -> !isSelectedOutput(true), NOT_FLUID_OUTPUT));
+        }
         return section;
     }
 
+    private Switch allowInputSwitch(boolean fluid) {
+        return Switch.of(() -> isAllowInput(fluid), on -> setAllowInput(fluid, on));
+    }
+
+    private boolean isSelectedOutput(boolean fluid) {
+        var side = selectedSide();
+        return side != null && mode(side, fluid) != NONE;
+    }
+
+    private boolean isAllowInput(boolean fluid) {
+        if (fluid) return fluids != null && fluids.isAllowInputFromOutputSideFluids();
+        return items != null && items.isAllowInputFromOutputSideItems();
+    }
+
+    private void setAllowInput(boolean fluid, boolean on) {
+        if (!isSelectedOutput(fluid)) return;
+        if (fluid) {
+            if (fluids != null) fluids.setAllowInputFromOutputSideFluids(on);
+        } else if (items != null) {
+            items.setAllowInputFromOutputSideItems(on);
+        }
+        machine.requestSync();
+    }
+
     private ButtonGroup modeGroup(boolean fluid) {
-        return ButtonGroup.single(MODES.length, i -> Component.translatable(MODES[i]), () -> mode(fluid), i -> setMode(fluid, i))
+        return ButtonGroup.single(MODES.length, i -> Component.translatable(MODES[i]), () -> selectedMode(fluid), i -> setSelectedMode(fluid, i))
                 .compact().optionTooltips(MODE_TOOLTIPS::get);
+    }
+
+    private int selectedMode(boolean fluid) {
+        var side = selectedSide();
+        return side == null ? NONE : mode(side, fluid);
+    }
+
+    private void setSelectedMode(boolean fluid, int mode) {
+        var side = selectedSide();
+        if (side != null) setMode(side, fluid, mode);
     }
 
     @Nullable
@@ -207,9 +271,7 @@ public final class SideOverview {
         return selectedText;
     }
 
-    private int mode(boolean fluid) {
-        var side = selectedSide();
-        if (side == null) return NONE;
+    private int mode(MachineSide side, boolean fluid) {
         Direction face;
         boolean auto;
         if (fluid) {
@@ -225,9 +287,7 @@ public final class SideOverview {
         return auto ? AUTO_OUTPUT : OUTPUT;
     }
 
-    private void setMode(boolean fluid, int mode) {
-        var side = selectedSide();
-        if (side == null) return;
+    private void setMode(MachineSide side, boolean fluid, int mode) {
         var direction = side.toDirection(machine);
         if (isFront(direction)) return;
         if (fluid) {
@@ -252,6 +312,24 @@ public final class SideOverview {
             }
         }
         machine.requestSync();
+    }
+
+    private void cycleMode(int packed) {
+        var side = SIDES[packed >> 1];
+        int target = clickTarget(packed & 1);
+        if (target == NO_TARGET || isFront(side.toDirection(machine))) return;
+        boolean fluid = target == FLUID_TARGET;
+        setMode(side, fluid, (mode(side, fluid) + 1) % MODES.length);
+    }
+
+    private int clickTarget(int button) {
+        if (button == 1 ? fluids != null : items != null) return button == 1 ? FLUID_TARGET : ITEM_TARGET;
+        if (items != null) return ITEM_TARGET;
+        return fluids != null ? FLUID_TARGET : NO_TARGET;
+    }
+
+    private boolean isFrontSide(MachineSide side) {
+        return side == MachineSide.FRONT && machine.hasFrontFacing();
     }
 
     private void openSelectedCover() {
@@ -320,6 +398,14 @@ public final class SideOverview {
         for (int i = 0; i < tooltips.length; i++) tooltips[i] = null;
     }
 
+    int getOutputKey() {
+        return itemState() << 4 | fluidState();
+    }
+
+    static int outputColor(int color, int state) {
+        return isAuto(state) ? color : (color & 0xFFFFFF) | UITheme.SIDE_OUTPUT_IDLE_ALPHA;
+    }
+
     Direction direction(MachineSide side) {
         return side.toDirection(frame.getValue());
     }
@@ -366,20 +452,48 @@ public final class SideOverview {
         sceneHover = side == null ? -1 : side.ordinal();
     }
 
-    void select(MachineSide side) {
-        if (selection != null) selection.set(side.ordinal());
+    @OnlyIn(Dist.CLIENT)
+    void clientClick(MachineSide side, int button, boolean fromCell) {
+        if (selection == null || (button != 0 && button != 1)) return;
+        if (getSelected() != side.ordinal()) {
+            selection.set(side.ordinal());
+            Widget.playButtonClickSound();
+            var current = scene.get();
+            if (fromCell && current != null) current.lookAt(side);
+            return;
+        }
+        if (quickConfig == null || clickTarget(button) == NO_TARGET || isFrontSide(side)) return;
+        quickConfig.send(side.ordinal() << 1 | button);
+        Widget.playButtonClickSound();
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void clientSelect(MachineSide side) {
-        if (selection == null) return;
-        if (getSelected() == side.ordinal()) {
-            selection.set(-1);
-            return;
-        }
-        selection.set(side.ordinal());
-        var current = scene.get();
-        if (current != null) current.lookAt(side);
+    void clientDeselect() {
+        if (selection != null && getSelected() >= 0) selection.set(-1);
+    }
+
+    List<Component> hoverLines(MachineSide side) {
+        var base = tooltip(side);
+        var hint = hint(side);
+        int index = side.ordinal();
+        var cached = hoverLines[index];
+        if (cached != null && hoverBases[index] == base && hoverHints[index] == hint) return cached;
+        var lines = new ArrayList<Component>(base.size() + 1);
+        lines.addAll(base);
+        if (hint != null) lines.add(hint);
+        hoverBases[index] = base;
+        hoverHints[index] = hint;
+        hoverLines[index] = lines;
+        return lines;
+    }
+
+    @Nullable
+    private Component hint(MachineSide side) {
+        if (getSelected() != side.ordinal()) return HINT_SELECT;
+        if (isFrontSide(side)) return HINT_FRONT;
+        if (items != null && fluids != null) return HINT_BOTH;
+        if (items != null) return HINT_ITEM;
+        return fluids != null ? HINT_FLUID : null;
     }
 
     List<Component> tooltip(MachineSide side) {
@@ -409,9 +523,6 @@ public final class SideOverview {
         private final SideOverview page;
         private final MachineSide side;
         private final SyncValue<SyncItem> item;
-        @Nullable
-        private List<Component> hoverSource;
-        private List<Component> hoverLines = Collections.emptyList();
 
         private FaceCell(SideOverview page, MachineSide side) {
             this.page = page;
@@ -433,9 +544,8 @@ public final class SideOverview {
         @Override
         @OnlyIn(Dist.CLIENT)
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
-            if (button != 0 || !isMouseOverElement(mouseX, mouseY)) return super.mouseClicked(mouseX, mouseY, button);
-            page.clientSelect(side);
-            playButtonClickSound();
+            if ((button != 0 && button != 1) || !isMouseOverElement(mouseX, mouseY)) return super.mouseClicked(mouseX, mouseY, button);
+            page.clientClick(side, button, true);
             return true;
         }
 
@@ -455,8 +565,8 @@ public final class SideOverview {
                 var pose = graphics.pose();
                 pose.pushPose();
                 pose.translate(0, 0, UILayers.ITEM_OVERLAY);
-                if (itemOut) UIDraw.lamp(graphics, x + 1, y + SIZE - 1 - MARK, MARK, UITheme.SIDE_ITEM_OUTPUT);
-                if (fluidOut) UIDraw.lamp(graphics, x + SIZE - 1 - MARK, y + SIZE - 1 - MARK, MARK, UITheme.SIDE_FLUID_OUTPUT);
+                if (itemOut) UIDraw.strokeRect(graphics, x + 1, y + 1, SIZE - 2, SIZE - 2, outputColor(UITheme.SIDE_ITEM_OUTPUT, page.getItemOutput()));
+                if (fluidOut) UIDraw.strokeRect(graphics, x + 2, y + 2, SIZE - 4, SIZE - 4, outputColor(UITheme.SIDE_FLUID_OUTPUT, page.getFluidOutput()));
                 pose.popPose();
             }
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
@@ -465,17 +575,9 @@ public final class SideOverview {
         @Override
         @OnlyIn(Dist.CLIENT)
         public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-            if (page.getSelected() == side.ordinal()) UIDraw.selectionFrame(graphics, getPositionX(), getPositionY(), SIZE, SIZE);
+            if (page.getSelected() == side.ordinal()) UIDraw.selectionFrame(graphics, getPositionX(), getPositionY(), SIZE, SIZE, UITheme.SIDE_SELECTED_FRAME);
             if (gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
-            var lines = page.tooltip(side);
-            if (hoverSource != lines) {
-                var withHint = new ArrayList<Component>(lines.size() + 1);
-                withHint.addAll(lines);
-                withHint.add(Component.translatable(SHOW_FACE).withStyle(ChatFormatting.DARK_GRAY));
-                hoverSource = lines;
-                hoverLines = withHint;
-            }
-            gui.getModularUIGui().setHoverTooltip(hoverLines, ItemStack.EMPTY, null, null);
+            gui.getModularUIGui().setHoverTooltip(page.hoverLines(side), ItemStack.EMPTY, null, null);
         }
     }
 }

@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.OutputSideConfigurator;
+import com.gregtechceu.gtceu.api.machine.fancyconfigurator.PartCellsConfigurator;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.animation.ColorMath;
 import com.gregtechceu.gtceu.uipro.animation.UIClock;
@@ -816,6 +817,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         tabs.setup();
         fancyUI.attachConfigurators(configurators);
         OutputSideConfigurator.attach(configurators, fancyUI);
+        PartCellsConfigurator.attach(configurators, fancyUI);
         placeConfigurators();
         fancyUI.attachTooltips(tooltipsPanel);
         title.setup(titleFollowsTab || onTransient ? fancyUI : currentHomePage, contentWidth, !onTransient && (!nav.back().isEmpty() || backToMachine != null),

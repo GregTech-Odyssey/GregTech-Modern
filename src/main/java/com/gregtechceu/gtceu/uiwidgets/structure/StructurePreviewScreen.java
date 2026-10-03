@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
-import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.PartCells;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
@@ -405,17 +405,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
         private boolean isReplaceable(TraceabilityPredicate predicate) {
             if (replaceable.containsKey(predicate)) return replaceable.getBoolean(predicate);
-            boolean[] part = { false };
-            predicate.forEachSimple(simple -> {
-                if (simple == null || part[0]) return;
-                for (var stack : simple.getCandidates()) {
-                    if (stack.getItem() instanceof MetaMachineItem machine && machine.getDefinition() != page.definition) {
-                        part[0] = true;
-                        return;
-                    }
-                }
-            });
-            boolean result = part[0];
+            boolean result = PartCells.acceptsPart(predicate, page.definition);
             replaceable.put(predicate, result);
             return result;
         }

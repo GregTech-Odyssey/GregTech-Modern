@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
+import com.gregtechceu.gtceu.uiwidgets.structure.PartCellsOverlay;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureProjection;
 
@@ -40,6 +41,8 @@ public class ForgeClientEventListener {
             // to render the preview after block entities, before the translucent. so it can be seen through the
             // transparent blocks.
             StructureProjection.render(event);
+        } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) {
+            PartCellsOverlay.render(event);
         }
     }
 
@@ -59,6 +62,7 @@ public class ForgeClientEventListener {
         if (event.phase == TickEvent.Phase.END) {
             TooltipHelper.onClientTick();
             StructureProjection.tick();
+            PartCellsOverlay.tick();
             GTValues.CLIENT_TIME++;
         }
     }
@@ -71,6 +75,7 @@ public class ForgeClientEventListener {
             ClientCacheManager.allowReinit();
             StructureProjection.clear();
         }
+        PartCellsOverlay.clear();
         CarriedStock.clear();
         StructureBuildFlow.clear();
     }
