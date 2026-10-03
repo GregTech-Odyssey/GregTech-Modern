@@ -3,15 +3,13 @@ package com.gregtechceu.gtceu.integration.xei.widgets;
 import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeTierPreview;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
@@ -26,15 +24,20 @@ import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeSpecPanel;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeTierChip;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.GradientUtil;
 
+import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
+import com.lowdragmc.lowdraglib.utils.ColorUtils;
+import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 import com.lowdragmc.lowdraglib.utils.Size;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -49,7 +52,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Supplier;
@@ -120,7 +122,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private Component durationText = Component.empty();
     private Component[] rowTexts = new Component[0];
     /// 各槽位对应的配方内容，与带内容的槽位（切换电压档时只刷新它们）
-    private final Table<IO, RecipeInfo, List<Content>> contents = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap::new);
+    private final Table<IO, RecipeInfo, ContentList> contents = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap::new);
     private final List<ContentSlot> contentSlots = new ArrayList<>();
 
     public GTRecipeWidget(GTRecipeDefinition recipe) {
@@ -291,45 +293,47 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         return slots;
     }
 
-    private static WidgetGroup createSlotTemplate(GTRecipeDefinition recipe, Table<IO, RecipeInfo, List<Content>> contents) {
+    private static WidgetGroup createSlotTemplate(GTRecipeDefinition recipe, Table<IO, RecipeInfo, ContentList> contents) {
         var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
         collectStorages(storages, contents, recipe);
         return recipe.recipeType.getRecipeUI().createRecipeTemplate(recipe, storages);
     }
 
     public void collectStorage(Table<IO, RecipeInfo, Object> extraTable,
-                               Table<IO, RecipeInfo, List<Content>> extraContents, GTRecipeDefinition recipe) {
+                               Table<IO, RecipeInfo, ContentList> extraContents, GTRecipeDefinition recipe) {
         collectStorages(extraTable, extraContents, recipe);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     private static void collectStorages(Table<IO, RecipeInfo, Object> extraTable,
-                                        Table<IO, RecipeInfo, List<Content>> extraContents, GTRecipeDefinition recipe) {
-        collectStorage(extraTable, extraContents, recipe, IO.IN, ItemRecipeInfo.INSTANCE, (List) displayItemInputs(recipe));
-        collectStorage(extraTable, extraContents, recipe, IO.IN, FluidRecipeInfo.INSTANCE, (List) recipe.fluidInputs);
-        collectStorage(extraTable, extraContents, recipe, IO.OUT, ItemRecipeInfo.INSTANCE, (List) recipe.itemOutputs);
-        collectStorage(extraTable, extraContents, recipe, IO.OUT, FluidRecipeInfo.INSTANCE, (List) recipe.fluidOutputs);
+                                        Table<IO, RecipeInfo, ContentList> extraContents, GTRecipeDefinition recipe) {
+        collectStorage(extraTable, extraContents, recipe, IO.IN, ItemRecipeInfo.INSTANCE, displayItemInputs(recipe));
+        collectStorage(extraTable, extraContents, recipe, IO.IN, FluidRecipeInfo.INSTANCE, recipe.fluidInputs);
+        collectStorage(extraTable, extraContents, recipe, IO.OUT, ItemRecipeInfo.INSTANCE, recipe.itemOutputs);
+        collectStorage(extraTable, extraContents, recipe, IO.OUT, FluidRecipeInfo.INSTANCE, recipe.fluidOutputs);
     }
 
-    private static List<Content<ItemIngredient>> displayItemInputs(GTRecipeDefinition recipe) {
+    private static ContentList displayItemInputs(GTRecipeDefinition recipe) {
         var inputs = recipe.itemInputs;
         if (!recipe.recipeType.getRecipeUI().getSlotLayout().fitsRecipe()) return inputs;
         boolean sorted = true;
-        for (int i = 1; i < inputs.size() && sorted; i++) sorted = inputOrder(inputs.get(i - 1)) <= inputOrder(inputs.get(i));
+        for (int i = 1; i < inputs.size() && sorted; i++) sorted = inputOrder(inputs, i - 1) <= inputOrder(inputs, i);
         if (sorted) return inputs;
-        var result = new ArrayList<>(inputs);
-        result.sort(Comparator.comparingInt(GTRecipeWidget::inputOrder));
-        return result;
+        var result = new ContentList.Builder(inputs.size());
+        for (int order = 0; order <= 2; order++) {
+            for (int i = 0; i < inputs.size(); i++) {
+                if (inputOrder(inputs, i) == order) result.add(inputs.ingredient(i), inputs.amount(i), inputs.chance(i), inputs.boost(i), inputs.rollUnit(i));
+            }
+        }
+        return result.build();
     }
 
-    private static int inputOrder(Content<ItemIngredient> content) {
-        if (content.chance > 0) return 2;
-        return content.inner instanceof IntCircuitIngredient ? 0 : 1;
+    private static int inputOrder(ContentList inputs, int i) {
+        if (inputs.chance(i) > 0) return 2;
+        return inputs.ingredient(i).kind == KeyIngredient.CIRCUIT ? 0 : 1;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private static void collectStorage(Table<IO, RecipeInfo, Object> extraTable, Table<IO, RecipeInfo, List<Content>> extraContents,
-                                       GTRecipeDefinition recipe, IO io, ContentRecipeInfo cap, List<Content> contents) {
+    private static void collectStorage(Table<IO, RecipeInfo, Object> extraTable, Table<IO, RecipeInfo, ContentList> extraContents,
+                                       GTRecipeDefinition recipe, IO io, ContentRecipeInfo cap, ContentList contents) {
         if (contents.isEmpty()) return;
         extraContents.put(io, cap, contents);
         List<Object> entries = cap.createXEIContainerContents(contents, recipe, io);
@@ -340,16 +344,16 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     /** 记下有配方内容的槽位，切换电压档时只刷新它们的概率角标与提示，不重建控件。 */
-    private record ContentSlot(Widget widget, IO io, ContentRecipeInfo<?, ?> cap, Content content, int index) {}
+    private record ContentSlot(Widget widget, IO io, ContentRecipeInfo cap, ContentList contents, int index) {}
 
-    private static void collectContentSlots(WidgetGroup slotArea, Table<IO, RecipeInfo, List<Content>> contents, List<ContentSlot> contentSlots) {
+    private static void collectContentSlots(WidgetGroup slotArea, Table<IO, RecipeInfo, ContentList> contents, List<ContentSlot> contentSlots) {
         for (var ioEntry : contents.rowMap().entrySet()) {
             var io = ioEntry.getKey();
             for (var capEntry : ioEntry.getValue().entrySet()) {
-                if (!(capEntry.getKey() instanceof ContentRecipeInfo<?, ?> cap) || cap.getWidgetClass() == null) continue;
+                if (!(capEntry.getKey() instanceof ContentRecipeInfo cap) || cap.getWidgetClass() == null) continue;
                 var capContents = capEntry.getValue();
                 WidgetUtils.indexedWidgetForEach(slotArea, cap.slotName(io), cap.getWidgetClass(), (widget, index) -> {
-                    if (index < capContents.size()) contentSlots.add(new ContentSlot(widget, io, cap, capContents.get(index), index));
+                    if (index < capContents.size()) contentSlots.add(new ContentSlot(widget, io, cap, capContents, index));
                 });
             }
         }
@@ -360,12 +364,13 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         applyContentInfo(contentSlots, recipe, minTier, tier);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     private static void applyContentInfo(List<ContentSlot> contentSlots, GTRecipeDefinition recipe, int minTier, int tier) {
         for (var slot : contentSlots) {
-            ContentRecipeInfo cap = slot.cap();
-            cap.applyWidgetInfo(slot.widget(), slot.index(), true, slot.io(), null, recipe.recipeType, recipe, slot.content(), null, minTier, tier);
-            slot.widget().setOverlay(slot.content().createOverlay(false, minTier, tier, recipe.chanceFunction));
+            var contents = slot.contents();
+            int i = slot.index();
+            slot.cap().applyWidgetInfo(slot.widget(), i, true, slot.io(), null, recipe.recipeType, recipe, contents, i, null, minTier, tier);
+            long fluidAmount = contents.ingredient(i).isFluid() ? contents.amount(i) : -1;
+            slot.widget().setOverlay(contentOverlay(contents.chance(i), contents.boost(i), fluidAmount, minTier, tier, recipe.chanceFunction));
         }
     }
 
@@ -537,39 +542,73 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     // ==================== 公共工具 ====================
 
-    public static void setConsumedChance(Content content, ChanceLogic logic, List<Component> tooltips, int recipeTier,
+    public static void setConsumedChance(int chance, int boost, List<Component> tooltips, int recipeTier,
                                          int chanceTier, ChanceBoostFunction function) {
-        if (content.chance < Content.MAX_CHANCE) {
-            int boostedChance = function.getBoostedChance(content, recipeTier, chanceTier);
+        if (chance < ContentList.MAX_CHANCE) {
+            int boostedChance = function.getBoostedChance(chance, boost, recipeTier, chanceTier);
             if (boostedChance == 0) {
                 tooltips.add(Component.translatable("gtceu.gui.content.chance_nc"));
             } else {
-                float baseChanceFloat = 100f * content.chance / Content.MAX_CHANCE;
-                float boostedChanceFloat = 100f * boostedChance / Content.MAX_CHANCE;
-                if (logic != ChanceLogic.NONE && logic != ChanceLogic.OR) {
-                    tooltips.add(Component.translatable("gtceu.gui.content.chance_base_logic",
-                            FormattingUtil.formatNumber2Places(baseChanceFloat), logic.getTranslation())
-                            .withStyle(ChatFormatting.YELLOW));
-                } else {
-                    tooltips.add(
-                            FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_base", baseChanceFloat));
+                float baseChanceFloat = 100f * chance / ContentList.MAX_CHANCE;
+                float boostedChanceFloat = 100f * boostedChance / ContentList.MAX_CHANCE;
+                tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_base", baseChanceFloat));
+                if (boost != 0) {
+                    String key = boost > 0 ? "gtceu.gui.content.chance_tier_boost_plus" : "gtceu.gui.content.chance_tier_boost_minus";
+                    tooltips.add(FormattingUtil.formatPercentage2Places(key, Math.abs(100f * boost / ContentList.MAX_CHANCE)));
                 }
-                if (content.tierChanceBoost != 0) {
-                    String key = "gtceu.gui.content.chance_tier_boost_" +
-                            ((content.tierChanceBoost > 0) ? "plus" : "minus");
-                    tooltips.add(FormattingUtil.formatPercentage2Places(key,
-                            Math.abs(100f * content.tierChanceBoost / Content.MAX_CHANCE)));
-                }
-                if (logic != ChanceLogic.NONE && logic != ChanceLogic.OR) {
-                    tooltips.add(Component.translatable("gtceu.gui.content.chance_boosted_logic",
-                            FormattingUtil.formatNumber2Places(boostedChanceFloat), logic.getTranslation())
-                            .withStyle(ChatFormatting.YELLOW));
-                } else {
-                    tooltips.add(
-                            FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_boosted",
-                                    boostedChanceFloat));
-                }
+                tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_boosted", boostedChanceFloat));
             }
+        }
+    }
+
+    public static IGuiTexture contentOverlay(int chance, int boost, long fluidAmount, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {
+        return new ContentOverlay(chance, boost, fluidAmount, recipeTier, chanceTier, function == null ? ChanceBoostFunction.NONE : function);
+    }
+
+    private record ContentOverlay(int chance, int boost, long fluidAmount, int recipeTier, int chanceTier, ChanceBoostFunction function) implements IGuiTexture {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
+            drawChance(graphics, x, y, width, height);
+            if (fluidAmount >= 0) drawFluidAmount(graphics, x, y, width, height);
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void drawFluidAmount(GuiGraphics graphics, float x, float y, int width, int height) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(0, 0, 400);
+            graphics.pose().scale(0.5F, 0.5F, 1);
+            Font fontRenderer = Minecraft.getInstance().font;
+            String s = FormattingUtil.formatBuckets(fluidAmount);
+            if (fontRenderer.width(s) > 32) s = FormattingUtil.formatNumberReadable(fluidAmount, true, FormattingUtil.DECIMAL_FORMAT_1F, "B");
+            if (fontRenderer.width(s) > 32) s = FormattingUtil.formatNumberReadable(fluidAmount, true, FormattingUtil.DECIMAL_FORMAT_0F, "B");
+            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 22), (int) ((y + (height / 3.0F) + 6) * 2), 16777215, true);
+            graphics.pose().popPose();
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void drawChance(GuiGraphics graphics, float x, float y, int width, int height) {
+            if (chance == ContentList.MAX_CHANCE) return;
+            graphics.pose().pushPose();
+            graphics.pose().translate(0, 0, 400);
+            graphics.pose().scale(0.5F, 0.5F, 1);
+            int boosted = function.getBoostedChance(chance, boost, recipeTier, chanceTier);
+            float chanceFloat = 1.0F * boosted / ContentList.MAX_CHANCE;
+            String percent = FormattingUtil.formatNumber2Places(100 * chanceFloat);
+            String s = boosted == 0 ? LocalizationUtils.format("gtceu.gui.content.chance_nc_short") : percent + "%";
+            int color = boosted == 0 ? 16711680 : GradientUtil.toRGB(Mth.lerp(chanceFloat, 29.0F, 167.0F), 100.0F, 50.0F);
+            Font fontRenderer = Minecraft.getInstance().font;
+            graphics.drawString(fontRenderer, s, (int) ((x + (width / 3.0F)) * 2 - fontRenderer.width(s) + 23), (int) ((y + (height / 3.0F) + 6) * 2 - height), color(color), true);
+            graphics.pose().popPose();
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private static int color(int color) {
+            if (color != 0xFF0000) return color;
+            double progress = Math.abs(System.currentTimeMillis() % 4000) / 4000.0d;
+            float alpha = (float) ((Math.cos(progress * 2 * Math.PI) + 1) / 2.2 + 0.05);
+            return ColorUtils.color(alpha, 1f, 0.0f, 0.0f);
         }
     }
 

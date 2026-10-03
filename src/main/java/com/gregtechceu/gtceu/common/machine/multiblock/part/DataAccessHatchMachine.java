@@ -10,9 +10,12 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.research.DataBankMachine;
 import com.gregtechceu.gtceu.utils.ResearchManager;
@@ -27,9 +30,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.util.ItemStackHashStrategy;
-import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import java.util.*;
@@ -43,7 +46,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     private final Set<GTRecipeDefinition> recipes;
     private final boolean isCreative;
     @SaveToDisk
-    public final NotifiableItemStackHandler importItems;
+    public final NotifiableInventory<AEItemKey> importItems;
 
     public DataAccessHatchMachine(MetaMachineBlockEntity holder, int tier, boolean isCreative) {
         super(holder, tier);
@@ -52,45 +55,34 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
         this.importItems = createImportItemHandler();
     }
 
-    protected NotifiableItemStackHandler createImportItemHandler() {
-        if (isCreative) return new NotifiableItemStackHandler(this, 0, IO.NONE, IO.BOTH);
-        return new NotifiableItemStackHandler(this, getInventorySize(), IO.NONE, IO.BOTH) {
+    protected NotifiableInventory<AEItemKey> createImportItemHandler() {
+        if (isCreative) return NotifiableInventory.items(this, 0, IO.NONE, IO.BOTH);
+        var inventory = new NotifiableInventory<AEItemKey>(this, KeyInventory.items(getInventorySize()), IO.NONE, IO.BOTH) {
 
             @Override
             public void onContentsChanged() {
                 super.onContentsChanged();
                 rebuildData(isFormed() && getController() instanceof DataBankMachine);
             }
-
-            @Override
-            public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-                boolean isDataBank = isFormed() && getController() instanceof DataBankMachine;
-                if (ResearchManager.isStackDataItem(stack, isDataBank) && ResearchManager.hasResearchTag(stack)) {
-                    return super.insertItem(slot, stack, simulate);
-                }
-                return stack;
-            }
-
-            @Override
-            public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
-                boolean isDataBank = isFormed() && getController() instanceof DataBankMachine;
-                if (ResearchManager.isStackDataItem(stack, isDataBank) && ResearchManager.hasResearchTag(stack)) {
-                    return super.insertItemStacked(stack, simulate);
-                }
-                return stack;
-            }
         };
+        return inventory.setFilter(key -> {
+            if (!(key instanceof AEItemKey itemKey)) return false;
+            boolean isDataBank = isFormed() && getController() instanceof DataBankMachine;
+            var stack = itemKey.getReadOnlyStack();
+            return ResearchManager.isStackDataItem(stack, isDataBank) && ResearchManager.hasResearchTag(stack);
+        });
     }
 
     @Override
     public Widget createUIWidget() {
         int rowSize = (int) Math.sqrt(getInventorySize());
         int xOffset = 18 * rowSize / 2;
+        var slots = new MenuItemAdapter(importItems.storage);
         WidgetGroup group = new WidgetGroup(0, 0, 18 * rowSize, 18 * rowSize);
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
-                group.addWidget(new SlotWidget(importItems, index, rowSize * 9 + x * 18 - xOffset, y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
+                group.addWidget(new SlotWidget(slots, index, rowSize * 9 + x * 18 - xOffset, y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
             }
         }
         return group;
@@ -113,8 +105,11 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
     private void rebuildData(boolean isDataBank) {
         if (isCreative || getLevel() == null || getLevel().isClientSide) return;
         recipes.clear();
-        for (int i = 0; i < this.importItems.getSlots(); i++) {
-            ItemStack stack = this.importItems.getStackInSlot(i);
+        var storage = this.importItems.storage;
+        for (int i = 0; i < storage.size(); i++) {
+            var key = storage.keyAt(i);
+            if (key == null) continue;
+            ItemStack stack = key.getReadOnlyStack();
             ResearchManager.ResearchItem researchData = ResearchManager.readResearchId(stack);
             boolean isValid = ResearchManager.isStackDataItem(stack, isDataBank);
             if (researchData != null && isValid) {
@@ -149,11 +144,12 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             List<Component> list = new ArrayList<>();
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
-            var itemsAdded = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ALL);
+            var itemsAdded = new ReferenceOpenHashSet<AEKey>();
             for (GTRecipeDefinition recipe : recipes) {
-                ItemStack stack = recipe.itemOutputs.getFirst().inner.getInnerItemStack();
-                if (itemsAdded.add(stack)) {
-                    list.add(Component.translatable("behavior.data_item.assemblyline.data", stack.getDisplayName()));
+                if (recipe.itemOutputs.isEmpty()) continue;
+                var key = recipe.itemOutputs.outputKey(0);
+                if (itemsAdded.add(key)) {
+                    list.add(Component.translatable("behavior.data_item.assemblyline.data", Keys.toStack(key, 1).getDisplayName()));
                 }
             }
             return list;

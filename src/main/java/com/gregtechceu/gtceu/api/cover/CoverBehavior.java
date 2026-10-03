@@ -7,8 +7,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.client.renderer.cover.ICoverRenderer;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -26,6 +25,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
@@ -203,12 +204,12 @@ public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHol
     }
 
     @Nullable
-    public ICustomItemStackHandler getItemHandlerCap(ICustomItemStackHandler defaultValue) {
+    public IKeyHandler<AEItemKey> getItemHandlerCap(IKeyHandler<AEItemKey> defaultValue) {
         return defaultValue;
     }
 
     @Nullable
-    public ICustomFluidStackHandler getFluidHandlerCap(ICustomFluidStackHandler defaultValue) {
+    public IKeyHandler<AEFluidKey> getFluidHandlerCap(IKeyHandler<AEFluidKey> defaultValue) {
         return defaultValue;
     }
 

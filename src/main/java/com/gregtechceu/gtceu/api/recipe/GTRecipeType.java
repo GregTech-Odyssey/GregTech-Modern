@@ -5,17 +5,18 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.gui.SteamTexture;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.content.Circuits;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.*;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayout;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
@@ -25,17 +26,16 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.IntTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.gto.recipesearch.IntLongMap;
@@ -51,6 +51,16 @@ import java.util.*;
 import java.util.function.*;
 
 public class GTRecipeType implements RecipeType<Recipe<?>> {
+
+    private static volatile int searchGeneration = 1;
+
+    public static int searchGeneration() {
+        return searchGeneration;
+    }
+
+    public static void bumpSearchGeneration() {
+        searchGeneration = searchGeneration + 1;
+    }
 
     public final ResourceLocation registryName;
     public final String group;
@@ -102,7 +112,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         recipeBuilder = new GTRecipeBuilder(registryName, this);
         // must be linked to stop json contents from shuffling
         this.proxyRecipes = new ReferenceOpenHashSet<>(proxyRecipes);
-        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100, 0);
+        this.defaultDefinition = new GTRecipeDefinition(false, this, category, GTCEu.id("default"), ContentList.EMPTY, ContentList.EMPTY, ContentList.EMPTY, ContentList.EMPTY, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), new DataComponentMap(), ChanceBoostFunction.OVERCLOCK, 0, 0, 100, 0);
     }
 
     public static boolean available(@Nullable GTRecipeType recipeType, GTRecipeType... types) {
@@ -213,26 +223,22 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
 
     public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, ItemStack[] itemInputs, FluidStack... fluidInputs) {
         for (var item : itemInputs) {
-            this.convertItem(item, item.getCount(), map);
+            var key = Keys.item(item);
+            if (key != null) this.convertKey(key, item.getCount(), map);
         }
         for (var fluid : fluidInputs) {
-            this.convertFluid(fluid, fluid.getAmount(), map);
+            var key = Keys.fluid(fluid);
+            if (key != null) this.convertKey(key, fluid.getAmount(), map);
         }
         return search(map, canHandle);
     }
 
     public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, ItemStack... itemInputs) {
-        for (var item : itemInputs) {
-            this.convertItem(item, item.getCount(), map);
-        }
-        return search(map, canHandle);
+        return search(canHandle, map, itemInputs, new FluidStack[0]);
     }
 
     public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, FluidStack... fluidInputs) {
-        for (var fluid : fluidInputs) {
-            this.convertFluid(fluid, fluid.getAmount(), map);
-        }
-        return search(map, canHandle);
+        return search(canHandle, map, new ItemStack[0], fluidInputs);
     }
 
     protected void initDB() {
@@ -345,42 +351,32 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return categoryMap.getOrDefault(category, Collections.emptySet());
     }
 
-    public void convertItem(ItemIngredient ingredient, IntLongMap map) {
-        if (ingredient instanceof IntCircuitIngredient circuitIngredient) {
-            map.add(circuitIngredient.configuration, 1);
-        } else if (ingredient.inner.isVanilla() && ingredient.inner.values.length == 1) {
-            if (ingredient.inner.values[0] instanceof Ingredient.ItemValue itemValue) {
-                map.add(itemValue.item.getItem().hashCode(), ingredient.amount);
-            } else if (ingredient.inner.values[0] instanceof Ingredient.TagValue tagValue) {
-                map.add(tagValue.tag.hashCode(), ingredient.amount);
+    public void convertIngredient(KeyIngredient ingredient, long amount, IntLongMap map) {
+        switch (ingredient.kind) {
+            case KeyIngredient.CIRCUIT -> map.add(ingredient.circuitConfiguration(), 1);
+            case KeyIngredient.EXACT, KeyIngredient.BASE -> {
+                var key = ingredient.key();
+                if (key != null) map.add(key.getPrimaryKey().hashCode(), amount);
             }
-        }
-    }
-
-    public void convertItem(ItemStack stack, long amount, IntLongMap map) {
-        var item = stack.getItem();
-        map.add(item.hashCode(), amount);
-        item.builtInRegistryHolder().tags.forEach(t -> map.add(t.hashCode(), amount));
-        var nbt = stack.getTag();
-        if (nbt != null && item == IntCircuitIngredient.PROGRAMMED_CIRCUIT) {
-            if (nbt.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
-                map.add(intTag.getAsInt(), amount);
+            case KeyIngredient.TAG -> {
+                if (ingredient.tag() != null) map.add(ingredient.tag().hashCode(), amount);
             }
+            default -> {}
         }
     }
 
-    public void convertFluid(FluidIngredient ingredient, IntLongMap map) {
-        if (ingredient.value instanceof Fluid fluid) {
-            map.add(fluid.hashCode(), ingredient.amount);
-        } else if (ingredient.value instanceof TagKey<?> tagKey) {
-            map.add(tagKey.hashCode(), ingredient.amount);
+    public void convertKey(AEKey key, long amount, IntLongMap map) {
+        if (key instanceof AEItemKey itemKey) {
+            var item = itemKey.getItem();
+            map.add(item.hashCode(), amount);
+            for (var t : item.builtInRegistryHolder().tags) map.add(t.hashCode(), amount);
+            int config = Circuits.configOf(itemKey);
+            if (config >= 0) map.add(config, amount);
+        } else if (key instanceof AEFluidKey fluidKey) {
+            var fluid = fluidKey.getFluid();
+            map.add(fluid.hashCode(), amount);
+            for (var t : fluid.builtInRegistryHolder().tags) map.add(t.hashCode(), amount);
         }
-    }
-
-    public void convertFluid(FluidStack stack, long amount, IntLongMap map) {
-        var fluid = stack.getFluid();
-        map.add(fluid.hashCode(), amount);
-        fluid.builtInRegistryHolder().tags.forEach(t -> map.add(t.hashCode(), amount));
     }
 
     public interface ICustomRecipeLogic {

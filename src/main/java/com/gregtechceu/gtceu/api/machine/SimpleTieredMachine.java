@@ -17,7 +17,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -25,8 +25,7 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.ui.GTRecipeTypeUI;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -50,6 +49,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import appeng.api.stacks.AEItemKey;
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -97,10 +97,10 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     protected boolean allowInputFromOutputSideFluids;
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler chargerInventory;
+    protected final StackInventory chargerInventory;
     @Getter
     @SaveToDisk
-    protected final NotifiableItemStackHandler circuitInventory;
+    protected final NotifiableInventory<AEItemKey> circuitInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
@@ -126,13 +126,19 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         this.circuitInventory = createCircuitItemHandler(args);
     }
 
-    protected CustomItemStackHandler createChargerItemHandler(Object... args) {
-        var handler = new SingleCustomItemStackHandler(1);
+    protected StackInventory createChargerItemHandler(Object... args) {
+        var handler = new StackInventory(1) {
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return 1;
+            }
+        };
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
-    protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
+    protected NotifiableInventory<AEItemKey> createCircuitItemHandler(Object... args) {
         return CircuitHandler.create(this);
     }
 
@@ -176,12 +182,12 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     //////////////////////////////////////
     @Override
     public boolean hasAutoOutputFluid() {
-        return exportFluids.getTanks() > 0;
+        return exportFluids.size() > 0;
     }
 
     @Override
     public boolean hasAutoOutputItem() {
-        return exportItems.getSlots() > 0;
+        return exportItems.size() > 0;
     }
 
     @Override
@@ -324,8 +330,8 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
                     var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
                     storages.put(IO.IN, ItemRecipeInfo.INSTANCE, tieredMachine.importItems.storage);
                     storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, tieredMachine.exportItems.storage);
-                    storages.put(IO.IN, FluidRecipeInfo.INSTANCE, tieredMachine.importFluids);
-                    storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, tieredMachine.exportFluids);
+                    storages.put(IO.IN, FluidRecipeInfo.INSTANCE, tieredMachine.importFluids.storage);
+                    storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, tieredMachine.exportFluids.storage);
                     tieredMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false).setupUI(template, new GTRecipeTypeUI.RecipeHolder(tieredMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
                     createBatterySlot().setupUI(template, tieredMachine);
                 }
@@ -357,7 +363,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
             slotWidget.setBackground(GuiTextures.SLOT, GuiTextures.INT_CIRCUIT_OVERLAY);
             return slotWidget;
         }, (slotWidget, machine) -> {
-            slotWidget.setCircuitInventory(machine.circuitInventory);
+            slotWidget.setCircuitInventory(machine.circuitInventory.storage);
             slotWidget.setCanPutItems(false);
             slotWidget.setCanTakeItems(false);
             slotWidget.setHoverTooltips(LangHandler.getMultiLang("gtceu.gui.configurator_slot.tooltip").toArray(Component[]::new));

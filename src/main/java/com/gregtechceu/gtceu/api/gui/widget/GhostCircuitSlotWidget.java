@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
+import com.gregtechceu.gtceu.api.recipe.content.Circuits;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.UIChannel;
@@ -24,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -56,7 +58,7 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
     private static final String CONFIGURATOR_TITLE = "gtceu.gui.programmed_circuit_configuration";
 
     @Getter
-    private ICustomItemStackHandler circuitInventory;
+    private KeyInventory<AEItemKey> circuitInventory;
     /// 退路面板（不在 MachineWindow 里时），null 表示没打开
     @Nullable
     private Widget fallbackPanel;
@@ -71,7 +73,7 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
     public GhostCircuitSlotWidget() {
         super();
         circuitRequest = addRPC(ByteStreamCodec.INT_CODEC, (player, value) -> serverSetCircuit(value))
-                .validate(value -> value == NO_CONFIG || value >= 0 && value <= IntCircuitBehaviour.CIRCUIT_MAX);
+                .validate(value -> value == NO_CONFIG || value >= 0 && value <= Circuits.MAX);
         fallbackRequest = addRPC(ByteStreamCodec.BOOLEAN_CODEC, (player, open) -> serverSetFallbackOpen(open)).limit(1);
         fallbackChanged = addEvent(ByteStreamCodec.BOOLEAN_CODEC, this::setFallbackOpen);
     }
@@ -81,9 +83,13 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
         return channel;
     }
 
-    public void setCircuitInventory(ICustomItemStackHandler circuitInventory) {
+    public void setCircuitInventory(KeyInventory<AEItemKey> circuitInventory) {
         this.circuitInventory = circuitInventory;
         setHandlerSlot(circuitInventory, 0);
+    }
+
+    public void setCircuitInventory(NotifiableInventory<AEItemKey> circuitInventory) {
+        setCircuitInventory(circuitInventory.storage);
     }
 
     /** 两端都会执行：在所在的机器窗口里注册电路选择面板（切换页面时框架会清空注册表，新页面的槽重新注册）。 */
@@ -126,22 +132,22 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
     }
 
     private int getNextValue(boolean increment) {
-        int currentValue = IntCircuitBehaviour.getCircuitConfiguration(this.circuitInventory.getStackInSlot(0));
+        int currentValue = Circuits.get(this.circuitInventory, 0);
         if (increment) {
             // if at max, loop around to no circuit
-            if (currentValue == IntCircuitBehaviour.CIRCUIT_MAX) {
+            if (currentValue == Circuits.MAX) {
                 return 0;
             }
             // if at no circuit, skip 0 and return 1
-            if (this.circuitInventory.getStackInSlot(0).isEmpty()) {
+            if (this.circuitInventory.amountAt(0) == 0) {
                 return 1;
             }
             // normal case: increment by 1
             return currentValue + 1;
         } else {
             // if at no circuit, loop around to max
-            if (this.circuitInventory.getStackInSlot(0).isEmpty()) {
-                return IntCircuitBehaviour.CIRCUIT_MAX;
+            if (this.circuitInventory.amountAt(0) == 0) {
+                return Circuits.MAX;
             }
             // if at 1, skip 0 and return no circuit
             if (currentValue == 1) {
@@ -173,13 +179,13 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
     }
 
     public void setCircuitValue(int newValue) {
-        this.circuitInventory.setStackInSlot(0, newValue == NO_CONFIG ? ItemStack.EMPTY : IntCircuitBehaviour.stack(newValue));
+        Circuits.set(this.circuitInventory, 0, newValue);
         circuitRequest.send(newValue);
     }
 
     private void serverSetCircuit(int value) {
         if (circuitInventory == null) return;
-        this.circuitInventory.setStackInSlot(0, value == NO_CONFIG ? ItemStack.EMPTY : IntCircuitBehaviour.stack(value));
+        Circuits.set(this.circuitInventory, 0, value);
     }
 
     @Override

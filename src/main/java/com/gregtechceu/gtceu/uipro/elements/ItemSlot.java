@@ -1,7 +1,10 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.uipro.ElementState;
 import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.data.UIChannel;
@@ -19,7 +22,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.wrapper.EmptyHandler;
 
+import appeng.api.stacks.AEItemKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +51,7 @@ public class ItemSlot extends SlotWidget implements ElementState.Host<ItemSlot>,
     private ItemStack[] ghosts = NO_GHOSTS;
     private static final ItemStack[] NO_GHOSTS = new ItemStack[0];
 
-    protected ItemSlot(ICustomItemStackHandler handler, int index, boolean canTakeItems, boolean canPutItems) {
+    protected ItemSlot(IItemHandlerModifiable handler, int index, boolean canTakeItems, boolean canPutItems) {
         super(handler, index, 0, 0, canTakeItems, canPutItems);
         setBackgroundTexture(UITheme.ITEM_SLOT);
     }
@@ -55,20 +61,40 @@ public class ItemSlot extends SlotWidget implements ElementState.Host<ItemSlot>,
      * 如配方界面：同一个布局在机器里绑定机器库存，在配方查看器里绑定配方内容。
      */
     public static ItemSlot unbound() {
-        return new ItemSlot(ICustomItemStackHandler.EMPTY, 0, false, false);
+        return new ItemSlot((IItemHandlerModifiable) EmptyHandler.INSTANCE, 0, false, false);
     }
 
     /** 可取可放的物品槽。 */
-    public static ItemSlot of(ICustomItemStackHandler handler, int index) {
+    public static ItemSlot of(IItemHandlerModifiable handler, int index) {
         return new ItemSlot(handler, index, true, true);
     }
 
-    public static ItemSlot of(ICustomItemStackHandler handler, int index, boolean canTakeItems, boolean canPutItems) {
+    public static ItemSlot of(IItemHandlerModifiable handler, int index, boolean canTakeItems, boolean canPutItems) {
         return new ItemSlot(handler, index, canTakeItems, canPutItems);
     }
 
+    public static ItemSlot of(KeyInventory<AEItemKey> inventory, int index) {
+        return new ItemSlot(new MenuItemAdapter(inventory), index, true, true);
+    }
+
+    public static ItemSlot of(KeyInventory<AEItemKey> inventory, int index, boolean canTakeItems, boolean canPutItems) {
+        return new ItemSlot(new MenuItemAdapter(inventory), index, canTakeItems, canPutItems);
+    }
+
+    public static ItemSlot of(StackInventory inventory, int index) {
+        return new ItemSlot(new ForgeStackAdapter(inventory), index, true, true);
+    }
+
+    public static ItemSlot of(StackInventory inventory, int index, boolean canTakeItems, boolean canPutItems) {
+        return new ItemSlot(new ForgeStackAdapter(inventory), index, canTakeItems, canPutItems);
+    }
+
     /** 只作展示的槽：不可取放、始终禁用，EMI 里只作展示；{@code reasonKey} 说明原因（如"由步进器设置"），可为 null。 */
-    public static ItemSlot display(ICustomItemStackHandler handler, int index, @Nullable String reasonKey) {
+    public static ItemSlot display(KeyInventory<AEItemKey> inventory, int index, @Nullable String reasonKey) {
+        return display(new MenuItemAdapter(inventory), index, reasonKey);
+    }
+
+    public static ItemSlot display(IItemHandlerModifiable handler, int index, @Nullable String reasonKey) {
         var slot = new ItemSlot(handler, index, false, false);
         slot.setIngredientIO(IngredientIO.RENDER_ONLY);
         slot.disabled(() -> true, reasonKey);

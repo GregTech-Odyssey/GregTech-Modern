@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -13,14 +14,12 @@ import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -43,7 +42,7 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
     //////////////////////////////////////////////
     @Override
     protected void doVoidItems() {
-        IItemHandler handler = getOwnItemHandler();
+        IKeyHandler<AEItemKey> handler = getOwnItemHandler();
         if (handler == null) {
             return;
         }
@@ -53,32 +52,24 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
         }
     }
 
-    private void voidOverflow(IItemHandler handler) {
-        Map<ItemStack, TypeItemInfo> sourceItemAmounts = countInventoryItemsByType(handler);
+    private void voidOverflow(IKeyHandler<AEItemKey> handler) {
+        var sourceItemAmounts = countInventoryItemsByType(handler);
         for (TypeItemInfo itemInfo : sourceItemAmounts.values()) {
-            int itemToVoidAmount = itemInfo.totalCount - getFilteredItemAmount(itemInfo.itemStack);
+            long itemToVoidAmount = itemInfo.totalCount - getFilteredItemAmount(itemInfo.key);
             if (itemToVoidAmount <= 0) {
                 continue;
             }
-            for (int slot = 0; slot < handler.getSlots(); slot++) {
-                ItemStack is = handler.getStackInSlot(slot);
-                if (!is.isEmpty() && ItemStack.isSameItemSameTags(is, itemInfo.itemStack)) {
-                    ItemStack extracted = handler.extractItem(slot, itemToVoidAmount, false);
-                    if (!extracted.isEmpty()) {
-                        itemToVoidAmount -= extracted.getCount();
-                    }
-                }
-                if (itemToVoidAmount == 0) {
-                    break;
-                }
+            var slots = itemInfo.slots;
+            for (int i = 0; i < slots.size() && itemToVoidAmount > 0; i++) {
+                itemToVoidAmount -= handler.extract(slots.getInt(i), itemInfo.key, itemToVoidAmount, false);
             }
         }
     }
 
-    private int getFilteredItemAmount(ItemStack itemStack) {
+    private int getFilteredItemAmount(AEItemKey key) {
         if (!filterHandler.isFilterPresent()) return globalVoidingLimit;
         ItemFilter filter = filterHandler.getFilter();
-        return filter.isBlackList() ? globalVoidingLimit : filter.testItemCount(itemStack);
+        return filter.isBlackList() ? globalVoidingLimit : filter.testItemCount(key.getReadOnlyStack());
     }
 
     public void setVoidingMode(VoidingMode voidingMode) {

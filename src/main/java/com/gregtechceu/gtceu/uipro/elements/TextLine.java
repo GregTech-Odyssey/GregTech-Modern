@@ -129,6 +129,12 @@ public class TextLine extends UIElement {
 
     @Override
     @OnlyIn(Dist.CLIENT)
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return super.hasOwnTooltip(mouseX, mouseY) || UIText.width(text.getValue().getString()) > getSizeWidth();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
         // 自带提示优先；没有提示且文字被截断时，悬停显示全文

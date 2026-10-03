@@ -4,8 +4,9 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
@@ -25,6 +26,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -37,19 +39,19 @@ public class SteamLiquidBoilerMachine extends SteamBoilerMachine {
     public static final ReferenceOpenHashSet<Fluid> FUEL_CACHE = new ReferenceOpenHashSet<>();
 
     @SaveToDisk
-    public final NotifiableFluidTank fuelTank;
+    public final NotifiableInventory<AEFluidKey> fuelTank;
 
     public SteamLiquidBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
-        this.fuelTank = createFuelTank(args).setFilter(fluid -> FUEL_CACHE.contains(fluid.getFluid()));
+        this.fuelTank = createFuelTank(args).setFilter(key -> key instanceof AEFluidKey fluid && FUEL_CACHE.contains(fluid.getFluid()));
     }
 
     //////////////////////////////////////
     // ***** Initialization *****//
     //////////////////////////////////////
 
-    protected NotifiableFluidTank createFuelTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
+    protected NotifiableInventory<AEFluidKey> createFuelTank(Object... args) {
+        return NotifiableInventory.fluids(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class SteamLiquidBoilerMachine extends SteamBoilerMachine {
 
     @Override
     protected void addBoilerWidgets(WidgetGroup group) {
-        group.addWidget(new TankWidget(fuelTank.getStorages()[0], 112, 4, 10, 54, true, true)
+        group.addWidget(new TankWidget(new ForgeFluidAdapter(fuelTank.storage), 112, 4, 10, 54, true, true)
                 .setShowAmount(false)
                 .setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP)
                 .setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
@@ -82,7 +84,7 @@ public class SteamLiquidBoilerMachine extends SteamBoilerMachine {
             if (super.onUse(state, world, pos, player, hand, hit) == InteractionResult.SUCCESS) {
                 return InteractionResult.SUCCESS;
             }
-            if (FluidUtil.interactWithFluidHandler(player, hand, fuelTank)) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, new ForgeFluidAdapter(fuelTank))) {
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.PASS;

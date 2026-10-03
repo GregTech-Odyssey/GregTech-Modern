@@ -11,7 +11,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -165,7 +165,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
         }
     }
 
-    public boolean dischargeOrRechargeEnergyContainers(ICustomItemStackHandler itemHandler, int slotIndex, boolean simulate) {
+    public boolean dischargeOrRechargeEnergyContainers(StackInventory itemHandler, int slotIndex, boolean simulate) {
         var stackInSlot = itemHandler.getStackInSlot(slotIndex).copy();
         if (stackInSlot.isEmpty()) {
             // no stack to charge/discharge

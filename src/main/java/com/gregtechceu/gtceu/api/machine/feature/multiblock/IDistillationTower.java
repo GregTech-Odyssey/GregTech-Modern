@@ -3,28 +3,23 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
+import com.gregtechceu.gtceu.api.recipe.handler.PlanScratch;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.VoidFluidHandler;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public interface IDistillationTower extends IWorkableMultiController {
 
-    List<IFluidHandler> getFluidOutputs();
+    RecipeHandlerUnit VOID_LAYER = RecipeHandlerUnit.NO_DATA;
+
+    List<RecipeHandlerUnit> getFluidOutputs();
 
     int getYOffset();
 
@@ -38,16 +33,16 @@ public interface IDistillationTower extends IWorkableMultiController {
             int outputIndex = 0;
             for (int y = startY; y <= maxY; ++y) {
                 if (parts.size() <= outputIndex) {
-                    fluidOutputs.add(VoidFluidHandler.INSTANCE);
+                    fluidOutputs.add(VOID_LAYER);
                     continue;
                 }
                 var part = parts.get(outputIndex);
                 if (part.self().getPos().getY() == y) {
-                    var handler = part.getRecipeHandlers().getFirst().getCapabilities(FluidRecipeInfo.INSTANCE, IFluidHandler.class).stream().findFirst().orElse(VoidFluidHandler.INSTANCE);
-                    fluidOutputs.add(handler);
+                    var unit = part.getRecipeHandlers().getFirst();
+                    fluidOutputs.add(unit.fluidHandlers.length == 0 ? VOID_LAYER : unit);
                     outputIndex++;
                 } else if (part.self().getPos().getY() > y) {
-                    fluidOutputs.add(VoidFluidHandler.INSTANCE);
+                    fluidOutputs.add(VOID_LAYER);
                 } else {
                     GTCEu.LOGGER.error("The Distillation Tower at {} has a fluid export hatch with an unexpected Y position", self().getPos());
                     return false;
@@ -66,53 +61,72 @@ public interface IDistillationTower extends IWorkableMultiController {
 
     @Override
     default boolean matchRecipeOutput(GTRecipe recipe) {
-        var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
-        var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
+        var items = recipe.itemOutputs;
+        var fluids = recipe.fluidOutputs;
         if (items.isEmpty() && fluids.isEmpty()) return true;
-        for (var handler : getOutputUnits(recipe)) {
-            if (handler.handleRecipeItem(IO.OUT, recipe, items, true)) {
-                if (fluids.isEmpty()) return true;
-                if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
-                    if (handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
-                        return true;
+        boolean distillation = recipe.definition.recipeType == GTRecipeTypes.DISTILLATION_RECIPES;
+        var p = PlanScratch.acquire();
+        try {
+            for (var unit : getOutputUnits(recipe)) {
+                if (unit.fitsOutputs(recipe, p, recipe.scale, true, false)) {
+                    if (fluids.isEmpty()) return true;
+                    if (!distillation) {
+                        if (unit.fitsOutputs(recipe, p, recipe.scale, false, true)) {
+                            return true;
+                        }
+                    } else {
+                        return applyFluidOutputs(recipe, null, true);
                     }
-                } else {
-                    return applyFluidOutputs(fluids, IFluidHandler.FluidAction.SIMULATE);
                 }
             }
+        } finally {
+            PlanScratch.release();
         }
         return false;
     }
 
     @Override
     default boolean handleRecipeOutput(GTRecipe recipe) {
-        var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
-        var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
+        var items = recipe.itemOutputs;
+        var fluids = recipe.fluidOutputs;
         if (items.isEmpty() && fluids.isEmpty()) return true;
+        long[] itemLeft = roll(recipe, items);
+        long[] fluidLeft = roll(recipe, fluids);
         for (var handler : getOutputUnits(recipe)) {
-            var item = handler.handleRecipeItem(IO.OUT, recipe, items, false);
+            var item = handler.insertOutputs(items, itemLeft, false);
             if (fluids.isEmpty()) return item;
             if (recipe.definition.recipeType != GTRecipeTypes.DISTILLATION_RECIPES) {
-                if (handler.handleRecipeFluid(IO.OUT, recipe, fluids, false)) {
+                if (handler.insertOutputs(fluids, fluidLeft, true)) {
                     return item;
                 }
             } else {
-                return applyFluidOutputs(fluids, IFluidHandler.FluidAction.EXECUTE) && item;
+                return applyFluidOutputs(recipe, fluidLeft, false) && item;
             }
         }
         return false;
     }
 
-    default boolean applyFluidOutputs(List<Content<FluidIngredient>> fluids, IFluidHandler.FluidAction action) {
+    private static long[] roll(GTRecipe recipe, ContentList list) {
+        int n = list.size();
+        long[] amounts = new long[n];
+        for (int i = 0; i < n; i++) {
+            amounts[i] = ContentRoll.rolled(recipe, list, i, ContentRoll.RNG);
+        }
+        return amounts;
+    }
+
+    default boolean applyFluidOutputs(GTRecipe recipe, @Nullable long[] rolled, boolean simulate) {
         boolean valid = true;
+        var fluids = recipe.fluidOutputs;
         var outputs = getFluidOutputs();
-        for (int i = 0; i < Math.min(fluids.size(), outputs.size()); ++i) {
-            var handler = outputs.get(i);
-            var output = fluids.get(i);
-            var fluid = output.inner.getFluidStack(output.getIntAmount());
-            int filled = (handler instanceof ICustomFluidStackHandler nft) ? nft.fillInternal(fluid, action) : handler.fill(fluid, action);
-            if (filled != fluid.getAmount()) valid = false;
-            if (action.simulate() && !valid) break;
+        int n = Math.min(fluids.size(), outputs.size());
+        for (int i = 0; i < n; ++i) {
+            long amount = rolled != null ? rolled[i] : fluids.chance(i) == 0 ? 0 : fluids.effective(i, recipe.scale);
+            if (amount <= 0) continue;
+            var unit = outputs.get(i);
+            if (unit == VOID_LAYER) continue;
+            if (!unit.output(fluids.outputKey(i), amount, simulate)) valid = false;
+            if (simulate && !valid) break;
         }
         return valid;
     }
@@ -124,14 +138,12 @@ public interface IDistillationTower extends IWorkableMultiController {
         var outputs = getFluidOutputs();
         var size = Math.min(contents.size(), outputs.size());
         if (size == 0) {
-            recipe.fluidOutputs = Collections.emptyList();
+            recipe.fluidOutputs = ContentList.EMPTY;
         } else {
-            var trimmed = new ArrayList<Content<FluidIngredient>>(size);
+            var trimmed = contents.range(0, size);
             for (int i = 0; i < size; ++i) {
-                if ((outputs.get(i) instanceof VoidFluidHandler)) {
-                    trimmed.add(Content.EMPTY_FLUID);
-                } else {
-                    trimmed.add(contents.get(i));
+                if (outputs.get(i) == VOID_LAYER && trimmed.amount(i) != 0) {
+                    trimmed = trimmed.withAmount(i, 0);
                 }
             }
             recipe.fluidOutputs = trimmed;

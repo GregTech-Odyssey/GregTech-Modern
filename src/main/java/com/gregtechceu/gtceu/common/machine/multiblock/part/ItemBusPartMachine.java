@@ -11,7 +11,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -35,6 +35,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -48,7 +50,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Getter
     @SaveToDisk
-    protected final NotifiableItemStackHandler inventory;
+    protected final NotifiableInventory<AEItemKey> inventory;
     @Nullable
     protected TickableSubscription autoIOSubs;
     protected final TickTimeMonitor autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_IO, this::autoIO);
@@ -57,7 +59,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Getter
     @SaveToDisk
-    protected final NotifiableItemStackHandler circuitInventory;
+    protected final NotifiableInventory<AEItemKey> circuitInventory;
     @Getter
     @SaveToDisk
     @SyncToClient
@@ -83,15 +85,15 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         return sizeRoot * sizeRoot;
     }
 
-    protected NotifiableItemStackHandler createInventory(Object... args) {
-        return new NotifiableItemStackHandler(this, getInventorySize(), io);
+    protected NotifiableInventory<AEItemKey> createInventory(Object... args) {
+        return NotifiableInventory.items(this, getInventorySize(), io);
     }
 
-    protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
+    protected NotifiableInventory<AEItemKey> createCircuitItemHandler(Object... args) {
         if (args.length > 0 && args[0] instanceof IO io && io == IO.IN) {
             return CircuitHandler.create(this);
         } else {
-            return NotifiableItemStackHandler.empty(this);
+            return NotifiableInventory.empty(this, AEKeyType.items());
         }
     }
 
@@ -143,12 +145,12 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Override
     public boolean hasInputLimitConfig() {
-        return inventory.storage.size > 1;
+        return inventory.storage.size() > 1;
     }
 
     @Override
     public void setInputLimit(boolean inputLimit) {
-        this.inventory.storage.isInputLimited = (io != IO.OUT && inputLimit);
+        this.inventory.storage.setUniqueKeys(io != IO.OUT && inputLimit);
     }
 
     @Override
@@ -266,6 +268,6 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     public boolean isInputLimit() {
-        return this.inventory.storage.isInputLimited;
+        return this.inventory.storage.isUniqueKeys();
     }
 }

@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemStackList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemTagList;
@@ -25,7 +27,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
@@ -51,7 +55,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
     }
 
-    public SlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
+    public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
         this.setSelfPosition(xPosition, yPosition);
         this.setSize(18, 18);
         this.recomputePosition();
@@ -72,15 +76,31 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 
-    public SlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition) {
+    public SlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
         this(itemHandler, slotIndex, xPosition, yPosition, true, true);
+    }
+
+    public SlotWidget(KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
+        this(new MenuItemAdapter(inventory), slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
+    }
+
+    public SlotWidget(KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition) {
+        this(new MenuItemAdapter(inventory), slotIndex, xPosition, yPosition, true, true);
+    }
+
+    public SlotWidget(StackInventory inventory, int slotIndex, int xPosition, int yPosition, boolean canTakeItems, boolean canPutItems) {
+        this(new ForgeStackAdapter(inventory), slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
+    }
+
+    public SlotWidget(StackInventory inventory, int slotIndex, int xPosition, int yPosition) {
+        this(new ForgeStackAdapter(inventory), slotIndex, xPosition, yPosition, true, true);
     }
 
     public SlotWidget(Container container, int slotIndex, int xPosition, int yPosition) {
         this(container, slotIndex, xPosition, yPosition, true, true);
     }
 
-    protected Slot createSlot(ICustomItemStackHandler itemHandler, int index) {
+    protected Slot createSlot(IItemHandlerModifiable itemHandler, int index) {
         return new WidgetSlotItemHandler(itemHandler, index, 0, 0);
     }
 
@@ -100,9 +120,17 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
         return this;
     }
 
-    public SlotWidget setHandlerSlot(ICustomItemStackHandler itemHandler, int slotIndex) {
+    public SlotWidget setHandlerSlot(IItemHandlerModifiable itemHandler, int slotIndex) {
         updateSlot(createSlot(itemHandler, slotIndex));
         return this;
+    }
+
+    public SlotWidget setHandlerSlot(KeyInventory<AEItemKey> inventory, int slotIndex) {
+        return setHandlerSlot(new MenuItemAdapter(inventory), slotIndex);
+    }
+
+    public SlotWidget setHandlerSlot(StackInventory inventory, int slotIndex) {
+        return setHandlerSlot(new ForgeStackAdapter(inventory), slotIndex);
     }
 
     @Override
@@ -173,7 +201,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
 
     @Override
     public void buildConfigurator(ConfiguratorGroup father) {
-        var handler = new CustomItemStackHandler();
+        var handler = new StackInventory();
         handler.setStackInSlot(0, Blocks.STONE.asItem().getDefaultInstance());
         father.addConfigurators(new WrapperConfigurator("ldlib.gui.editor.group.preview", new SlotWidget() {
 
@@ -251,10 +279,10 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
     public class WidgetSlotItemHandler extends Slot {
 
         private static final Container emptyInventory = new SimpleContainer(0);
-        private final ICustomItemStackHandler itemHandler;
+        private final IItemHandlerModifiable itemHandler;
         private final int index;
 
-        public WidgetSlotItemHandler(ICustomItemStackHandler itemHandler, int index, int xPosition, int yPosition) {
+        public WidgetSlotItemHandler(IItemHandlerModifiable itemHandler, int index, int xPosition, int yPosition) {
             super(emptyInventory, index, xPosition, yPosition);
             this.itemHandler = itemHandler;
             this.index = index;
@@ -297,14 +325,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
 
         @Override
         public int getMaxStackSize(@NotNull ItemStack stack) {
-            ItemStack maxAdd = stack.copy();
-            int maxInput = stack.getMaxStackSize();
-            maxAdd.setCount(maxInput);
-            ItemStack currentStack = this.itemHandler.getStackInSlot(index);
-            this.itemHandler.setStackInSlot(index, ItemStack.EMPTY);
-            ItemStack remainder = this.itemHandler.insertItem(index, maxAdd, true);
-            this.itemHandler.setStackInSlot(index, currentStack);
-            return maxInput - remainder.getCount();
+            return Math.min(stack.getMaxStackSize(), this.itemHandler.getSlotLimit(index));
         }
 
         @NotNull
@@ -319,6 +340,7 @@ public class SlotWidget extends com.lowdragmc.lowdraglib.gui.widget.SlotWidget {
 
         @Override
         public void setChanged() {
+            if (itemHandler instanceof MenuItemAdapter adapter) adapter.flush(index);
             if (changeListener != null) {
                 changeListener.run();
             }

@@ -3,10 +3,13 @@ package com.gregtechceu.gtceu.common.cover.detector;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.RedstoneUtil;
 
 import net.minecraft.core.Direction;
-import net.minecraftforge.items.IItemHandler;
+
+import appeng.api.stacks.AEItemKey;
 
 public class ItemDetectorCover extends DetectorCover {
 
@@ -21,24 +24,28 @@ public class ItemDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        IItemHandler handler = getItemHandler();
+        IKeyHandler<AEItemKey> handler = getItemHandler();
         if (handler == null)
             return;
 
-        int storedItems = 0;
-        int itemCapacity = handler.getSlots() * handler.getSlotLimit(0);
+        int size = handler.size();
+        if (size == 0)
+            return;
+
+        long storedItems = 0;
+        long itemCapacity = Keys.multiply(size, handler.slotLimit(0));
 
         if (itemCapacity == 0)
             return;
 
-        for (int i = 0; i < handler.getSlots(); i++) {
-            storedItems += handler.getStackInSlot(i).getCount();
+        for (int i = 0; i < size; i++) {
+            storedItems = Keys.add(storedItems, handler.amountAt(i));
         }
 
         setRedstoneSignalOutput(RedstoneUtil.computeRedstoneValue(storedItems, itemCapacity, isInverted()));
     }
 
-    protected IItemHandler getItemHandler() {
-        return GTCapabilityHelper.getItemHandler(coverHolder.holder(), attachedSide);
+    protected IKeyHandler<AEItemKey> getItemHandler() {
+        return GTCapabilityHelper.getItemKeyHandler(coverHolder.holder(), attachedSide);
     }
 }

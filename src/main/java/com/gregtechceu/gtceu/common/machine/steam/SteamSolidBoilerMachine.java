@@ -7,8 +7,9 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.steam.SteamBoilerMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
@@ -22,6 +23,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -34,16 +36,11 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
     public static final ReferenceOpenHashSet<Item> FUEL_CACHE = new ReferenceOpenHashSet<>();
 
     @SaveToDisk
-    public final NotifiableItemStackHandler fuelHandler, ashHandler;
+    public final NotifiableInventory<AEItemKey> fuelHandler, ashHandler;
 
     public SteamSolidBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
-        this.fuelHandler = createFuelHandler(args).setFilter(itemStack -> {
-            if (FluidUtil.getFluidContained(itemStack).isPresent()) {
-                return false;
-            }
-            return FUEL_CACHE.contains(itemStack.getItem());
-        });
+        this.fuelHandler = createFuelHandler(args).setFilter(key -> key instanceof AEItemKey item && FUEL_CACHE.contains(item.getItem()) && FluidUtil.getFluidContained(item.getReadOnlyStack()).isEmpty());
         this.ashHandler = createAshHandler(args);
     }
 
@@ -51,12 +48,12 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
     // ***** Initialization *****//
     //////////////////////////////////////
 
-    protected NotifiableItemStackHandler createFuelHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, 1, IO.IN, IO.IN);
+    protected NotifiableInventory<AEItemKey> createFuelHandler(Object... args) {
+        return NotifiableInventory.items(this, 1, IO.IN, IO.IN);
     }
 
-    protected NotifiableItemStackHandler createAshHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, 1, IO.OUT, IO.OUT);
+    protected NotifiableInventory<AEItemKey> createAshHandler(Object... args) {
+        return NotifiableInventory.items(this, 1, IO.OUT, IO.OUT);
     }
 
     @Override
@@ -70,13 +67,10 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
         super.afterWorking();
         if (recipeLogic.getLastRecipe() != null) {
             var inputs = recipeLogic.getLastRecipe().itemInputs;
-            if (!inputs.isEmpty()) {
-                var input = inputs.getFirst().inner.getInnerItemStack();
-                if (!input.isEmpty()) {
-                    var remaining = getBurningFuelRemainder(input);
-                    if (!remaining.isEmpty()) {
-                        ashHandler.insertItem(0, remaining, false);
-                    }
+            if (!inputs.isEmpty() && inputs.ingredient(0).displayKey() instanceof AEItemKey input) {
+                var remaining = getBurningFuelRemainder(Keys.displayStack(input));
+                if (!remaining.isEmpty()) {
+                    ashHandler.storage.insert(0, Keys.item(remaining), remaining.getCount(), false);
                 }
             }
         }

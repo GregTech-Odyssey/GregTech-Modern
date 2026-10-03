@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
-import com.gregtechceu.gtceu.api.machine.trait.FluidTankProxyTrait;
+import com.gregtechceu.gtceu.api.machine.trait.InventoryProxyTrait;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.MultiblockTankMachine;
@@ -17,6 +17,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyType;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,7 +27,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class TankValvePartMachine extends MultiblockPartMachine {
 
-    private final FluidTankProxyTrait tankProxy;
+    private final InventoryProxyTrait<AEFluidKey> tankProxy;
     private final ConditionalSubscriptionHandler autoIOSubscription;
     private ISubscription tankChangeListener;
 
@@ -36,8 +38,8 @@ public class TankValvePartMachine extends MultiblockPartMachine {
         autoIOSubscription = new ConditionalSubscriptionHandler(this, autoIOMonitor, 20, this::shouldAutoIO);
     }
 
-    protected FluidTankProxyTrait createTank(Object... args) {
-        return new FluidTankProxyTrait(this, IO.BOTH);
+    protected InventoryProxyTrait<AEFluidKey> createTank(Object... args) {
+        return new InventoryProxyTrait<>(this, AEKeyType.fluids(), IO.BOTH);
     }
 
     @Override

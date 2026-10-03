@@ -11,14 +11,14 @@ import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamEnergyContainer;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
@@ -36,6 +36,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyType;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,8 +94,11 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             var handlers = part.getRecipeHandlers();
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;
-                for (var fluidHandler : hl.getCapabilities(FluidRecipeInfo.INSTANCE, NotifiableFluidTank.class)) {
-                    energyContainer = new SteamEnergyContainer(getConversionRate(), fluidHandler);
+                for (var fluidHandler : hl.fluidHandlers) {
+                    if (!(fluidHandler instanceof NotifiableInventory<?> inventory) || inventory.keyType() != AEKeyType.fluids()) continue;
+                    @SuppressWarnings("unchecked")
+                    var steamTank = (NotifiableInventory<AEFluidKey>) inventory;
+                    energyContainer = new SteamEnergyContainer(getConversionRate(), steamTank);
                     return;
                 }
             }
@@ -140,7 +145,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         IMultiblockFancyUIMachine.super.addDisplayText(textList);
         if (isFormed()) {
             if (energyContainer instanceof SteamEnergyContainer container) {
-                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", container.steamTank.getFluidInTank(0).getAmount(), container.steamTank.getTankCapacity(0)));
+                textList.add(Component.translatable("gtceu.multiblock.steam.steam_stored", container.steamTank.storage.amountAt(0), container.steamTank.storage.slotLimit(0)));
             }
             MultiblockDisplayText.builder(textList, true, false).addReasonLines(recipeLogic);
             if (recipeLogic.isWaiting() && IdleReasonInfo.reasonOf(recipeLogic) == null) {
@@ -205,11 +210,11 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     }
 
     private int steamAmount() {
-        return energyContainer instanceof SteamEnergyContainer container ? container.steamTank.getFluidInTank(0).getAmount() : 0;
+        return energyContainer instanceof SteamEnergyContainer container ? Keys.saturatedInt(container.steamTank.storage.amountAt(0)) : 0;
     }
 
     private int steamCapacity() {
-        return energyContainer instanceof SteamEnergyContainer container ? container.steamTank.getTankCapacity(0) : 0;
+        return energyContainer instanceof SteamEnergyContainer container ? Keys.saturatedInt(container.steamTank.storage.slotLimit(0)) : 0;
     }
 
     private long steamUsage() {

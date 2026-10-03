@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.client.util;
 
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -28,6 +28,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.jetbrains.annotations.Nullable;
@@ -156,21 +158,17 @@ public class RenderUtil {
         if (recipe == null) {
             return null;
         }
-        var contents = new ArrayList<Content<FluidIngredient>>();
-        contents.addAll(recipe.fluidOutputs);
-        contents.addAll(recipe.fluidInputs);
-        if (contents.isEmpty()) {
-            return null;
-        }
+        var fluid = firstFluid(recipe.fluidOutputs);
+        return fluid != null ? fluid : firstFluid(recipe.fluidInputs);
+    }
 
-        var fluidContent = contents.stream()
-                .filter(content -> !content.isEmpty())
-                .findAny();
-        if (fluidContent.isEmpty()) {
-            return null;
+    @Nullable
+    private static Fluid firstFluid(ContentList contents) {
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.amount(i) < 1) continue;
+            if (contents.ingredient(i).displayKey() instanceof AEFluidKey key) return key.getFluid();
         }
-        var ingredient = fluidContent.get().inner;
-        return ingredient.getFluid();
+        return null;
     }
 
     public static boolean renderResearchItemContent(GuiGraphics graphics, Operation<Void> originalMethod,
@@ -187,8 +185,8 @@ public class RenderUtil {
         for (var recipe : recipes) {
             // check item outputs first
             var items = recipe.itemOutputs;
-            if (!items.isEmpty()) {
-                var output = items.getFirst().inner.getInnerItemStack();
+            if (!items.isEmpty() && items.ingredient(0).displayKey() instanceof AEItemKey itemKey) {
+                var output = Keys.displayStack(itemKey);
                 if (!output.isEmpty() && !ItemStack.isSameItemSameTags(output, stack)) {
                     originalMethod.call(entity, level, output, x, y, seed, z);
                     return true;
@@ -196,8 +194,8 @@ public class RenderUtil {
             }
             // if there are no item outputs, try to find a fluid output
             var fluids = recipe.fluidOutputs;
-            if (!fluids.isEmpty()) {
-                FluidStack output = fluids.getFirst().inner.getFluidStack();
+            if (!fluids.isEmpty() && fluids.ingredient(0).displayKey() instanceof AEFluidKey fluidKey) {
+                FluidStack output = Keys.displayFluid(fluidKey);
                 if (!output.isEmpty()) {
                     var clientExt = IClientFluidTypeExtensions.of(output.getFluid());
                     var texture = RenderUtil.FluidTextureType.STILL.map(clientExt, output);

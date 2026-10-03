@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.BlockDropCache;
@@ -20,7 +21,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.Tags;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +50,8 @@ public class MinerLogic extends RecipeLogic {
     protected final BlockDropCache dropCache;
     protected final LinkedList<BlockPos> blocksToMine = new LinkedList<>();
     protected final ArrayList<ItemStack> blockDrops = new ArrayList<>();
+    private final ArrayList<AEItemKey> dropKeys = new ArrayList<>();
+    private final LongArrayList dropAmounts = new LongArrayList();
     @Getter
     @SaveToDisk
     protected int x = Integer.MAX_VALUE;
@@ -424,7 +429,7 @@ public class MinerLogic extends RecipeLogic {
         // If the block's drops can fit in the inventory, move the previously mined position to the block
         // replace the ore block with cobblestone instead of breaking it to prevent mob spawning
         // remove the ore block's position from the mining queue
-        if (machine.outputItem(blockDrops.toArray(new ItemStack[0]))) {
+        if (outputDrops(blockDrops)) {
             var pos = blocksToMine.getFirst();
             setBlock(world, pos);
             mineX = pos.getX();
@@ -438,6 +443,33 @@ public class MinerLogic extends RecipeLogic {
             // the ore block was not able to fit, so the inventory is considered full
             isInventoryFull = true;
         }
+    }
+
+    private boolean outputDrops(List<ItemStack> drops) {
+        var keys = dropKeys;
+        var amounts = dropAmounts;
+        keys.clear();
+        amounts.clear();
+        for (int i = 0, n = drops.size(); i < n; i++) {
+            var stack = drops.get(i);
+            var key = Keys.item(stack);
+            if (key == null) continue;
+            int index = keys.indexOf(key);
+            if (index < 0) {
+                keys.add(key);
+                amounts.add(stack.getCount());
+            } else {
+                amounts.set(index, amounts.getLong(index) + stack.getCount());
+            }
+        }
+        for (int i = 0, n = keys.size(); i < n; i++) {
+            if (!machine.simulateOutput(keys.get(i), amounts.getLong(i))) return false;
+        }
+        boolean all = true;
+        for (int i = 0, n = keys.size(); i < n; i++) {
+            if (!machine.output(keys.get(i), amounts.getLong(i))) all = false;
+        }
+        return all;
     }
 
     /**

@@ -10,12 +10,13 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
@@ -57,8 +58,8 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -77,8 +78,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IFancyUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine {
 
+    @Nullable
+    private static AEFluidKey steamKey;
+
     @SaveToDisk
-    public final NotifiableFluidTank waterTank;
+    public final NotifiableInventory<AEFluidKey> waterTank;
     @Getter
     @SaveToDisk(defaultValue = "0")
     @SyncToClient
@@ -103,16 +107,16 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     public SteamBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
         this.waterTank = createWaterTank(args);
-        this.waterTank.setFilter(fluid -> fluid.getFluid() == Fluids.WATER);
+        this.waterTank.setFilter(key -> key instanceof AEFluidKey fluid && fluid.getFluid() == Fluids.WATER);
     }
 
     @Override
-    protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.OUT);
+    protected NotifiableInventory<AEFluidKey> createSteamTank(Object... args) {
+        return NotifiableInventory.fluids(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.OUT);
     }
 
-    protected NotifiableFluidTank createWaterTank(@SuppressWarnings("unused") Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
+    protected NotifiableInventory<AEFluidKey> createWaterTank(@SuppressWarnings("unused") Object... args) {
+        return NotifiableInventory.fluids(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.IN);
     }
 
     @Override
@@ -193,10 +197,13 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
             fillAmount = 0;
             if (currentTemperature >= 100) {
                 fillAmount = (int) (getBaseSteamOutput() * ((float) currentTemperature / getMaxTemperature()) / 2);
-                boolean hasDrainedWater = !waterTank.drainInternal(1, FluidAction.EXECUTE).isEmpty();
+                var water = waterTank.storage.keyAt(0);
+                boolean hasDrainedWater = water != null && waterTank.storage.extract(0, water, 1, false) > 0;
                 var filledSteam = 0L;
                 if (hasDrainedWater) {
-                    filledSteam = steamTank.fillInternal(GTMaterials.Steam.getFluid(fillAmount), FluidAction.EXECUTE);
+                    var steam = steamKey;
+                    if (steam == null) steamKey = steam = AEFluidKey.of(GTMaterials.Steam.getFluid());
+                    filledSteam = steamTank.storage.insert(steam, fillAmount, false);
                 }
                 if (this.hasNoWater && hasDrainedWater) {
                     doExplosion(2.0F);
@@ -210,7 +217,8 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
                         getLevel().playSound(null, x, y, z, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
                     }
                     // bypass capability check for special case behavior
-                    steamTank.drainInternal(FluidType.BUCKET_VOLUME * 4, FluidAction.EXECUTE);
+                    var steam = steamTank.storage.keyAt(0);
+                    if (steam != null) steamTank.storage.extract(0, steam, FluidType.BUCKET_VOLUME * 4, false);
                 }
             } else this.hasNoWater = false;
         }
@@ -271,7 +279,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand,
                                    BlockHitResult hit) {
         if (!isRemote()) {
-            if (FluidUtil.interactWithFluidHandler(player, hand, waterTank)) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, new ForgeFluidAdapter(waterTank))) {
                 return InteractionResult.SUCCESS;
             }
         }
@@ -295,8 +303,8 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, UISizes.CONTENT_WIDTH, BOILER_CONTENT_HEIGHT);
         group.addWidget(new ProgressWidget(this::getTemperaturePercent, 89, 4, 10, 54).setProgressTexture(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure), GuiTextures.PROGRESS_BAR_BOILER_HEAT).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setDynamicHoverTips(pct -> Component.translatable("gtceu.multiblock.large_boiler.temperature", currentTemperature + 274, getMaxTemperature() + 274).getString()));
-        group.addWidget(new TankWidget(waterTank.getStorages()[0], 76, 4, 10, 54, false, true).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
-        group.addWidget(new TankWidget(steamTank.getStorages()[0], 63, 4, 10, 54, true, false).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
+        group.addWidget(new TankWidget(new ForgeFluidAdapter(waterTank.storage), 76, 4, 10, 54, false, true).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
+        group.addWidget(new TankWidget(new ForgeFluidAdapter(steamTank.storage), 63, 4, 10, 54, true, false).setShowAmount(false).setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP).setBackground(GuiTextures.PROGRESS_BAR_BOILER_EMPTY.get(isHighPressure)));
         group.addWidget(new ImageWidget(36, 22, 18, 18, GuiTextures.CANISTER_OVERLAY_STEAM.get(isHighPressure)));
         addBoilerWidgets(group);
         return RecipeMachinePage.page(group);

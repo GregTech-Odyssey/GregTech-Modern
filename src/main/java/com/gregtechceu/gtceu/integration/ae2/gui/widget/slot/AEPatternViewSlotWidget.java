@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.integration.ae2.gui.widget.slot;
 
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -12,7 +13,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.Container;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import appeng.api.stacks.AEItemKey;
 import org.jetbrains.annotations.NotNull;
 
 public class AEPatternViewSlotWidget extends SlotWidget {
@@ -32,7 +35,7 @@ public class AEPatternViewSlotWidget extends SlotWidget {
     }
 
     public AEPatternViewSlotWidget(
-                                   ICustomItemStackHandler itemHandler,
+                                   IItemHandlerModifiable itemHandler,
                                    int slotIndex,
                                    int xPosition,
                                    int yPosition,
@@ -42,8 +45,38 @@ public class AEPatternViewSlotWidget extends SlotWidget {
     }
 
     public AEPatternViewSlotWidget(
-                                   ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition) {
+                                   IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
         super(itemHandler, slotIndex, xPosition, yPosition);
+    }
+
+    public AEPatternViewSlotWidget(
+                                   KeyInventory<AEItemKey> inventory,
+                                   int slotIndex,
+                                   int xPosition,
+                                   int yPosition,
+                                   boolean canTakeItems,
+                                   boolean canPutItems) {
+        super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
+    }
+
+    public AEPatternViewSlotWidget(
+                                   KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition) {
+        super(inventory, slotIndex, xPosition, yPosition);
+    }
+
+    public AEPatternViewSlotWidget(
+                                   StackInventory inventory,
+                                   int slotIndex,
+                                   int xPosition,
+                                   int yPosition,
+                                   boolean canTakeItems,
+                                   boolean canPutItems) {
+        super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
+    }
+
+    public AEPatternViewSlotWidget(
+                                   StackInventory inventory, int slotIndex, int xPosition, int yPosition) {
+        super(inventory, slotIndex, xPosition, yPosition);
     }
 
     public AEPatternViewSlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition) {

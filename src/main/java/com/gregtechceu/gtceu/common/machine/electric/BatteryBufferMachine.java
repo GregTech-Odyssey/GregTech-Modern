@@ -13,9 +13,8 @@ import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -28,6 +27,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
@@ -48,7 +48,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     private final int inventorySize;
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler batteryInventory;
+    protected final StackInventory batteryInventory;
 
     protected boolean checkEnergyStored = true;
     protected ObjectArrayList<Object> allBatteries;
@@ -88,8 +88,14 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
         return new EnergyBatteryTrait((int) args[0]);
     }
 
-    protected CustomItemStackHandler createBatteryInventory(Object... ignoredArgs) {
-        var handler = new SingleCustomItemStackHandler(this.inventorySize);
+    protected StackInventory createBatteryInventory(Object... ignoredArgs) {
+        var handler = new StackInventory(this.inventorySize) {
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return 1;
+            }
+        };
         handler.setFilter(item -> {
             var electric = GTCapabilityHelper.getElectricItem(item);
             if (electric != null) return electric.getTier() <= getTier();
@@ -99,7 +105,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
     }
 
     @Override
-    public @Nullable ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public @Nullable IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         return batteryInventory;
     }
 

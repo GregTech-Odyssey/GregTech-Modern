@@ -4,9 +4,11 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -14,18 +16,20 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyType;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.ObjLongConsumer;
 
 public final class RecipeDiagnoser {
 
     private final IRecipeHandlerHolder holder;
     private final long eut;
     private final int tier;
-    private final FluidIngredient[] inputs;
+    private final KeyIngredient[] inputs;
     private final FluidStack[] inputStacks;
     private final long[] need;
     private final long[] available;
@@ -35,11 +39,13 @@ public final class RecipeDiagnoser {
     private final RecipeIssue[] inputIssues;
     private final List<List<Component>> inputDetails;
     private final FluidStack[] outputStacks;
+    private final AEFluidKey[] outputKeys;
+    private final long[] outputNeed;
     private final Component[] outputNames;
     private final Component[] outputAmounts;
     private final RecipeIssue[] outputIssues;
     private final List<List<Component>> outputDetails;
-    private final ObjLongConsumer<FluidStack> collector;
+    private final IRecipeHandler.KeyVisitor collector;
     private RecipeIssue energyIssue = RecipeIssue.IDLE;
     private List<Component> energyDetail = Collections.emptyList();
     private long stored, capacity, power;
@@ -50,7 +56,7 @@ public final class RecipeDiagnoser {
         this.eut = recipe.getInputEUt();
         this.tier = GTUtil.getTierByVoltage(eut);
         int count = recipe.fluidInputs.size();
-        this.inputs = new FluidIngredient[count];
+        this.inputs = new KeyIngredient[count];
         this.inputStacks = new FluidStack[count];
         this.need = new long[count];
         this.available = new long[count];
@@ -58,39 +64,45 @@ public final class RecipeDiagnoser {
         this.inputNames = new Component[count];
         this.inputAmounts = new Component[count];
         this.inputIssues = new RecipeIssue[count];
+        var fluidInputs = recipe.fluidInputs;
         for (int i = 0; i < count; i++) {
-            var content = recipe.fluidInputs.get(i);
-            inputs[i] = content.inner;
-            need[i] = content.amount;
-            inputStacks[i] = content.inner.getFluidStack().copy();
-            inputNames[i] = inputStacks[i].getDisplayName();
-            inputAmounts[i] = amount(content.amount);
+            var ingredient = fluidInputs.ingredient(i);
+            long amount = fluidInputs.amount(i);
+            inputs[i] = ingredient;
+            need[i] = amount;
+            inputStacks[i] = ingredient.displayKey() instanceof AEFluidKey key ? Keys.toFluidStack(key, amount) : FluidStack.EMPTY;
+            inputNames[i] = inputStacks[i].isEmpty() ? ingredient.getName() : inputStacks[i].getDisplayName();
+            inputAmounts[i] = amount(amount);
         }
         Arrays.fill(inputIssues, RecipeIssue.IDLE);
         this.inputDetails = new ArrayList<>(Collections.nCopies(count, Collections.emptyList()));
         int outputs = recipe.fluidOutputs.size();
         this.outputStacks = new FluidStack[outputs];
+        this.outputKeys = new AEFluidKey[outputs];
+        this.outputNeed = new long[outputs];
         this.outputNames = new Component[outputs];
         this.outputAmounts = new Component[outputs];
         this.outputIssues = new RecipeIssue[outputs];
+        var fluidOutputs = recipe.fluidOutputs;
         for (int i = 0; i < outputs; i++) {
-            var content = recipe.fluidOutputs.get(i);
-            outputStacks[i] = content.inner.getFluidStack().copy();
-            outputStacks[i].setAmount((int) Math.min(Integer.MAX_VALUE, content.amount));
-            outputNames[i] = outputStacks[i].getDisplayName();
-            outputAmounts[i] = amount(content.amount);
+            var ingredient = fluidOutputs.ingredient(i);
+            long amount = fluidOutputs.amount(i);
+            outputKeys[i] = ingredient.displayKey() instanceof AEFluidKey key ? key : null;
+            outputNeed[i] = amount;
+            outputStacks[i] = outputKeys[i] == null ? FluidStack.EMPTY : Keys.toFluidStack(outputKeys[i], amount);
+            outputNames[i] = outputStacks[i].isEmpty() ? ingredient.getName() : outputStacks[i].getDisplayName();
+            outputAmounts[i] = amount(amount);
         }
         Arrays.fill(outputIssues, RecipeIssue.IDLE);
         this.outputDetails = new ArrayList<>(Collections.nCopies(outputs, Collections.emptyList()));
-        this.collector = (stack, amount) -> {
-            var fluid = stack.getFluid();
+        this.collector = (key, amount) -> {
             for (int i = 0; i < inputs.length; i++) {
-                if (inputs[i].testFluid(fluid)) {
-                    long sum = scratch[i] + amount;
-                    scratch[i] = sum < 0 ? Long.MAX_VALUE : sum;
-                    return;
+                if (inputs[i].test(key)) {
+                    scratch[i] = Keys.add(scratch[i], amount);
+                    return false;
                 }
             }
+            return false;
         };
     }
 
@@ -115,7 +127,7 @@ public final class RecipeDiagnoser {
     }
 
     public int findInput(FluidStack fluid) {
-        for (int i = 0; i < inputs.length; i++) if (inputs[i].testFluid(fluid.getFluid())) return i;
+        for (int i = 0; i < inputs.length; i++) if (inputs[i].test(fluid)) return i;
         return -1;
     }
 
@@ -216,7 +228,7 @@ public final class RecipeDiagnoser {
                 if (unit.fluidHandlers.length == 0) continue;
                 inputHatch = true;
                 Arrays.fill(scratch, 0);
-                unit.fastForEachFluids(true, collector);
+                unit.forEachKey(AEKeyType.fluids(), true, collector);
                 int satisfied = 0;
                 for (int i = 0; i < need.length; i++) if (scratch[i] >= need[i]) satisfied++;
                 if (satisfied > best) {
@@ -243,12 +255,12 @@ public final class RecipeDiagnoser {
         for (int u = 0; u < outputUnits.size() && !outputHatch; u++) outputHatch = outputUnits.get(u).fluidHandlers.length > 0;
         boolean voiding = holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE);
         for (int i = 0; i < outputStacks.length; i++) {
-            var stack = outputStacks[i];
+            var key = outputKeys[i];
             boolean fits = false;
-            if (formed && outputHatch) {
+            if (formed && outputHatch && key != null) {
                 for (int u = 0; u < outputUnits.size() && !fits; u++) {
                     var unit = outputUnits.get(u);
-                    if (unit.fluidHandlers.length > 0 && unit.simulateOutputFluid(stack.getFluid(), stack.getAmount())) fits = true;
+                    if (unit.fluidHandlers.length > 0 && unit.output(key, outputNeed[i], true)) fits = true;
                 }
             }
             RecipeIssue issue;

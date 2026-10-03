@@ -2,10 +2,8 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
@@ -125,13 +123,13 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
     public final ResourceLocation id;
 
     /** 物品输入，数量为<b>单份</b>配方所需（未乘并行）。 */
-    public final List<Content<ItemIngredient>> itemInputs;
+    public final ContentList itemInputs;
     /** 物品输出，单份数量。 */
-    public final List<Content<ItemIngredient>> itemOutputs;
+    public final ContentList itemOutputs;
     /** 流体输入，单份数量。 */
-    public final List<Content<FluidIngredient>> fluidInputs;
+    public final ContentList fluidInputs;
     /** 流体输出，单份数量。 */
-    public final List<Content<FluidIngredient>> fluidOutputs;
+    public final ContentList fluidOutputs;
     /** 触发条件，见 {@code IRecipeHandlerHolder#checkConditions}。 */
     public final RecipeCondition[] conditions;
     /** 非 tick 扩展：在输入 / 输出匹配时结算。 */
@@ -157,10 +155,10 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
                               GTRecipeType recipeType,
                               GTRecipeCategory recipeCategory,
                               ResourceLocation id,
-                              List<Content<ItemIngredient>> itemInputs,
-                              List<Content<ItemIngredient>> itemOutputs,
-                              List<Content<FluidIngredient>> fluidInputs,
-                              List<Content<FluidIngredient>> fluidOutputs,
+                              ContentList itemInputs,
+                              ContentList itemOutputs,
+                              ContentList fluidInputs,
+                              ContentList fluidOutputs,
                               List<RecipeModifier> recipeModifiers,
                               List<RecipeCondition> conditions,
                               List<RecipeExtension> recipeExtensions,
@@ -206,11 +204,11 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
     }
 
     /**
-     * 生成一份可执行的运行时副本：内容列表直接复用，{@link #data} 做一份拷贝，
+     * 生成一份可执行的运行时副本：内容列表直接复用，
      * 并行数、超频等级等可变状态使用 {@link GTRecipe} 的默认值。
      */
     public GTRecipe toRuntime() {
-        return new GTRecipe(this, itemInputs, itemOutputs, fluidInputs, fluidOutputs, data.clone(), eut, tier, duration);
+        return GTRecipe.runtime(this, this);
     }
 
     @Override

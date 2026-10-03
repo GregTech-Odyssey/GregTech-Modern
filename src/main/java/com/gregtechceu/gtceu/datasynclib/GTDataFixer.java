@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.datasynclib;
 
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 
 import net.minecraft.world.item.ItemStack;
 
@@ -16,13 +16,13 @@ import java.util.Arrays;
 @UtilityClass
 public class GTDataFixer {
 
-    public int VERSION = 3;
+    public int VERSION = 4;
 
     static {
         FieldDataHolderBlockEntity.VERSION = VERSION;
     }
 
-    public void decodeCustomItemStackHandler(CustomItemStackHandler inventory, Data data, int dataVersion) {
+    public void decodeStackInventory(StackInventory inventory, Data data, int dataVersion) {
         var stacks = inventory.stacks;
         Arrays.fill(stacks, ItemStack.EMPTY);
         if (data == NullData.INSTANCE) return;

@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.common.data.GCYMRecipeTypes;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -131,9 +131,9 @@ public class AlloyBlastRecipeProducer {
         // build the gas recipe if it exists
         if (property.getGasTier() != null) {
             GTRecipeBuilder builderGas = builder.copy(builder.getId().getPath() + "_gas");
-            FluidIngredient gas = property.getGasTier().getFluid().copy(property.getGasTier().getFluid().amount * outputAmount);
+            FluidStack gas = property.getGasTier().getFluid();
             builderGas.circuitMeta(getGasCircuitNum(componentAmount))
-                    .inputFluids(gas)
+                    .inputFluids(KeyIngredient.of(gas), (long) gas.getAmount() * outputAmount)
                     .duration((int) (duration * 0.67))
                     .save();
         }

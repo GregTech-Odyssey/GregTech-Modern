@@ -1,15 +1,17 @@
 package com.gregtechceu.gtceu.uiwidgets.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
-import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
 import com.gregtechceu.gtceu.uipro.elements.DecimalField;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.Stepper;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -21,6 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,12 +125,32 @@ public final class ControlPanel {
     }
 
     public UIElement addChoice(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
-        var group = ButtonGroup.single(count, option, getter, index -> {
+        return add(Form.choiceRow(labelKey, count, option, getter, index -> {
+            setter.accept(index);
+            machine.onChanged();
+        }, tooltipKeys));
+    }
+
+    public UIElement addSegments(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
+        return add(Form.segmentRow(labelKey, count, option, getter, index -> {
+            setter.accept(index);
+            machine.onChanged();
+        }, tooltipKeys));
+    }
+
+    public UIElement addCycle(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
+        var labels = new String[Math.max(1, count)];
+        var stepper = Stepper.of(INNER_WIDTH - 2 * UISizes.ICON_BUTTON_SIZE - 2 * UISizes.GAP, getter, index -> {
             if (index < 0 || index >= count || index == getter.getAsInt()) return;
             setter.accept(index);
             machine.onChanged();
-        }).horizontal();
-        return add(UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(Form.fieldLabel(labelKey, tooltipKeys), group));
+        }, 0, Math.max(0, count - 1)).wrap().setFormatter(index -> {
+            if (index < 0 || index >= count) return "";
+            var label = labels[index];
+            if (label == null) labels[index] = label = option.apply(index).getString();
+            return label;
+        });
+        return add(UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(Form.fieldLabel(labelKey, tooltipKeys), stepper));
     }
 
     public UIElement addServerButton(String labelKey, String buttonKey, Runnable onServerClick, String... tooltipKeys) {
@@ -143,7 +166,11 @@ public final class ControlPanel {
         return add(Form.controlRow(ROW_HEIGHT, labelKey, button, tooltipKeys));
     }
 
-    public UIElement addSlot(ICustomItemStackHandler inventory, int index, String labelKey, String... tooltipKeys) {
+    public UIElement addSlot(KeyInventory<AEItemKey> inventory, int index, String labelKey, String... tooltipKeys) {
+        return addSlot(ItemSlot.of(inventory, index), labelKey, contentName(inventory, index), tooltipKeys);
+    }
+
+    public UIElement addSlot(StackInventory inventory, int index, String labelKey, String... tooltipKeys) {
         return addSlot(ItemSlot.of(inventory, index), labelKey, contentName(inventory, index), tooltipKeys);
     }
 
@@ -164,8 +191,16 @@ public final class ControlPanel {
                 .addChildren(Form.label(labelKey), grid));
     }
 
-    public static Supplier<Component> contentName(ICustomItemStackHandler inventory, int index) {
+    public static Supplier<Component> contentName(KeyInventory<AEItemKey> inventory, int index) {
+        return MultiblockPage.cachedRef(() -> inventory.keyAt(index), ControlPanel::keyName);
+    }
+
+    public static Supplier<Component> contentName(StackInventory inventory, int index) {
         return MultiblockPage.cachedRef(() -> inventory.getStackInSlot(index), ControlPanel::stackName);
+    }
+
+    private static Component keyName(@Nullable AEItemKey key) {
+        return key == null ? EMPTY_SLOT : Keys.displayStack(key).getHoverName();
     }
 
     private static Component stackName(ItemStack stack) {

@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -19,8 +21,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -68,11 +70,15 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
     @Override
     protected void update() {
         ItemFilter filter = filterHandler.getFilter();
-        IItemHandler handler = getItemHandler();
+        IKeyHandler<AEItemKey> handler = getItemHandler();
         if (handler == null) return;
-        int storedItems = 0;
-        for (int i = 0; i < handler.getSlots(); i++) {
-            if (filter.test(handler.getStackInSlot(i))) storedItems += handler.getStackInSlot(i).getCount();
+        long storedItems = 0;
+        int size = handler.size();
+        for (int i = 0; i < size; i++) {
+            long amount = handler.amountAt(i);
+            if (amount <= 0) continue;
+            var key = handler.keyAt(i);
+            if (key != null && filter.test(key.getReadOnlyStack())) storedItems = Keys.add(storedItems, amount);
         }
         if (isLatched) {
             setRedstoneSignalOutput(RedstoneUtil.computeLatchedRedstoneBetweenValues(storedItems, maxValue, minValue, isInverted(), redstoneSignalOutput));

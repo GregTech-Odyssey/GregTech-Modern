@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.cover.filter;
 
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
@@ -98,16 +99,17 @@ public class SmartItemFilter implements ItemFilter {
     }
 
     private int lookup(ItemStack itemStack) {
+        var key = Keys.item(itemStack);
+        if (key == null) return 0;
         var map = new IntLongMap();
-        filterMode.type.convertItem(itemStack, Integer.MAX_VALUE, map);
+        filterMode.type.convertKey(key, Integer.MAX_VALUE, map);
         AtomicInteger count = new AtomicInteger();
         filterMode.type.search(map, r -> {
-            for (var content : r.itemInputs) {
-                var ingredient = content.inner;
-                var stacks = ingredient.inner.getItems();
-                for (var stack : stacks) {
+            var inputs = r.itemInputs;
+            for (int i = 0; i < inputs.size(); i++) {
+                for (var stack : inputs.ingredient(i).getItems()) {
                     if (ItemStack.isSameItem(stack, itemStack)) {
-                        count.set(ingredient.getAmount());
+                        count.set(Keys.saturatedInt(inputs.amount(i)));
                         return true;
                     }
                 }

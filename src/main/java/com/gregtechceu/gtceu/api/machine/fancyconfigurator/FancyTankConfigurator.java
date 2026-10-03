@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.inventory.SlotGridView;
 
@@ -10,6 +10,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.chat.Component;
 
+import appeng.api.stacks.AEFluidKey;
 import lombok.Getter;
 
 import java.util.Collections;
@@ -17,13 +18,13 @@ import java.util.List;
 
 public class FancyTankConfigurator implements IFancyConfigurator {
 
-    private final CustomFluidTank[] tanks;
+    private final KeyInventory<AEFluidKey> tanks;
     @Getter
     private final Component title;
     @Getter
     private List<Component> tooltips = Collections.emptyList();
 
-    public FancyTankConfigurator(CustomFluidTank[] tanks, Component title) {
+    public FancyTankConfigurator(KeyInventory<AEFluidKey> tanks, Component title) {
         this.tanks = tanks;
         this.title = title;
     }

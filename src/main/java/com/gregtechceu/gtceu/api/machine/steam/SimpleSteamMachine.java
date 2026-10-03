@@ -6,8 +6,7 @@ import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
@@ -34,6 +33,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fluids.FluidType;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.datastream.DataComponentMap;
@@ -54,9 +55,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaustVentMachine, IFancyUIMachine, IDummyEnergyMachine {
 
     @SaveToDisk
-    public final NotifiableItemStackHandler importItems;
+    public final NotifiableInventory<AEItemKey> importItems;
     @SaveToDisk
-    public final NotifiableItemStackHandler exportItems;
+    public final NotifiableInventory<AEItemKey> exportItems;
     @Setter
     @SaveToDisk(defaultValue = "false")
     private boolean needsVenting;
@@ -72,19 +73,19 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     }
 
     @Override
-    protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
+    protected NotifiableInventory<AEFluidKey> createSteamTank(Object... args) {
+        return NotifiableInventory.fluids(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
     }
 
-    protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
-        if (handler.storage.size == 0) handler.setAvailable(false);
+    protected NotifiableInventory<AEItemKey> createImportItemHandler(Object... args) {
+        var handler = NotifiableInventory.items(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
+        if (handler.storage.size() == 0) handler.setAvailable(false);
         return handler;
     }
 
-    protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
-        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
-        if (handler.storage.size == 0) handler.setAvailable(false);
+    protected NotifiableInventory<AEItemKey> createExportItemHandler(Object... args) {
+        var handler = NotifiableInventory.items(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
+        if (handler.storage.size() == 0) handler.setAvailable(false);
         return handler;
     }
 
@@ -191,10 +192,10 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
 
         @Override
         public Component get() {
-            long current = steamTank.getFluidInTank(0).getAmount();
+            long current = steamTank.storage.amountAt(0);
             if (current != amount) {
                 amount = current;
-                text = Component.literal(FormattingUtil.formatNumbers(current) + " / " + FormattingUtil.formatNumbers(steamTank.getTankCapacity(0)) + " mB");
+                text = Component.literal(FormattingUtil.formatNumbers(current) + " / " + FormattingUtil.formatNumbers(steamTank.storage.slotLimit(0)) + " mB");
             }
             return text;
         }

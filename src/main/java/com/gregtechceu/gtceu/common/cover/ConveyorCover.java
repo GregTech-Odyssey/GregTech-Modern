@@ -11,8 +11,10 @@ import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerView;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
@@ -21,7 +23,6 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -30,15 +31,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
+import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.datasynclib.util.ItemStackHashStrategy;
-import com.gto.fastcollection.fastutil.O2OOpenCustomCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,6 +82,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     @SyncToClient
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
+    protected final AEKeyFilter itemKeyFilter = this::matchesFilter;
 
     public ConveyorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -102,13 +106,14 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     @Nullable
-    protected ICustomItemStackHandler getOwnItemHandler() {
+    protected IKeyHandler<AEItemKey> getOwnItemHandler() {
         return coverHolder.getItemHandlerCap(attachedSide, false);
     }
 
     @Nullable
-    protected IItemHandler getAdjacentItemHandler() {
-        return coverHolder.getBlockEntityDirectionCache().getAdjacentItemHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).orElse(null);
+    @SuppressWarnings("unchecked")
+    protected IKeyHandler<AEItemKey> getAdjacentItemHandler() {
+        return (IKeyHandler<AEItemKey>) coverHolder.getBlockEntityDirectionCache().getAdjacentKeyHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide, AEKeyType.items());
     }
 
     //////////////////////////////////////
@@ -194,95 +199,62 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         this.subscriptionHandler.updateSubscription();
     }
 
-    protected int doTransferItems(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {
+    protected int doTransferItems(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, int maxTransferAmount) {
         return moveInventoryItems(sourceInventory, targetInventory, maxTransferAmount);
     }
 
-    protected int moveInventoryItems(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {
-        return GTTransferUtils.transferItemsFiltered(sourceInventory, targetInventory,
-                filterHandler.getFilter(), maxTransferAmount);
+    protected int moveInventoryItems(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, int maxTransferAmount) {
+        return (int) KeyTransfer.transfer(sourceInventory, targetInventory, maxTransferAmount, itemKeyFilter);
     }
 
-    protected static int moveInventoryItemsExact(IItemHandler sourceInventory, IItemHandler targetInventory,
+    protected static int moveInventoryItemsExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory,
                                                  TypeItemInfo itemInfo) {
-        // first, compute how much can we extract in reality from the machine,
-        // because totalCount is based on what getStackInSlot returns, which may differ from what
-        // extractItem() will return
-        ItemStack resultStack = itemInfo.itemStack.copy();
-        int totalExtractedCount = 0;
-        int itemsLeftToExtract = itemInfo.totalCount;
-        for (int i = 0; i < itemInfo.slots.size(); i++) {
-            int slotIndex = itemInfo.slots.getInt(i);
-            ItemStack extractedStack = sourceInventory.extractItem(slotIndex, itemsLeftToExtract, true);
-            if (!extractedStack.isEmpty() && ItemStack.isSameItemSameTags(resultStack, extractedStack)) {
-                totalExtractedCount += extractedStack.getCount();
-                itemsLeftToExtract -= extractedStack.getCount();
-            }
-            if (itemsLeftToExtract == 0) {
-                break;
-            }
+        AEItemKey key = itemInfo.key;
+        long total = itemInfo.totalCount;
+        IntList slots = itemInfo.slots;
+        long left = total;
+        for (int i = 0; i < slots.size() && left > 0; i++) {
+            left -= sourceInventory.extract(slots.getInt(i), key, left, true);
         }
-        // if amount of items extracted is not equal to the amount of items we
-        // wanted to extract, abort item extraction
-        if (totalExtractedCount != itemInfo.totalCount) {
+        if (left != 0 || targetInventory.insert(key, total, true) != total) {
             return 0;
         }
-        // adjust size of the result stack accordingly
-        resultStack.setCount(totalExtractedCount);
-        // now, see how much we can insert into destination inventory
-        ItemStack remainder = GTTransferUtils.insertItemStacked(targetInventory, resultStack, true);
-        if (!remainder.isEmpty()) {
+        left = total;
+        for (int i = 0; i < slots.size() && left > 0; i++) {
+            left -= sourceInventory.extract(slots.getInt(i), key, left, false);
+        }
+        long extracted = total - left;
+        if (extracted != total) {
+            if (extracted > 0) returnToSource(sourceInventory, slots.getInt(0), key, extracted);
             return 0;
         }
-        // Extract first so a source-side state change cannot duplicate items.
-        itemsLeftToExtract = itemInfo.totalCount;
-        totalExtractedCount = 0;
-        for (int i = 0; i < itemInfo.slots.size(); i++) {
-            int slotIndex = itemInfo.slots.getInt(i);
-            ItemStack extractedStack = sourceInventory.extractItem(slotIndex, itemsLeftToExtract, false);
-            if (!extractedStack.isEmpty() && ItemStack.isSameItemSameTags(resultStack, extractedStack)) {
-                totalExtractedCount += extractedStack.getCount();
-                itemsLeftToExtract -= extractedStack.getCount();
-            } else if (!extractedStack.isEmpty()) {
-                GTTransferUtils.returnItemToSource(sourceInventory, slotIndex, extractedStack);
-            }
-            if (itemsLeftToExtract == 0) {
-                break;
-            }
-        }
-        if (totalExtractedCount != itemInfo.totalCount) {
-            if (totalExtractedCount > 0) {
-                resultStack.setCount(totalExtractedCount);
-                GTTransferUtils.returnItemToSource(sourceInventory, itemInfo.slots.getInt(0), resultStack);
-            }
-            return 0;
-        }
-
-        resultStack.setCount(totalExtractedCount);
-        remainder = GTTransferUtils.insertItemStacked(targetInventory, resultStack, false);
-        int transferred = totalExtractedCount - Math.min(totalExtractedCount, remainder.getCount());
-        if (!remainder.isEmpty()) {
-            GTTransferUtils.returnItemToSource(sourceInventory, itemInfo.slots.getInt(0), remainder);
-        }
-        return transferred;
+        long inserted = targetInventory.insert(key, total, false);
+        if (inserted < total) returnToSource(sourceInventory, slots.getInt(0), key, total - inserted);
+        return (int) inserted;
     }
 
-    protected int moveInventoryItems(IItemHandler sourceInventory, IItemHandler targetInventory, Map<ItemStack, GroupItemInfo> itemInfos, int maxTransferAmount) {
-        ItemFilter filter = filterHandler.getFilter();
-        int itemsLeftToTransfer = maxTransferAmount;
-        for (int i = 0; i < sourceInventory.getSlots(); i++) {
-            ItemStack itemStack = sourceInventory.getStackInSlot(i);
-            if (itemStack.isEmpty() || !filter.test(itemStack) || !itemInfos.containsKey(itemStack)) {
-                continue;
-            }
-            GroupItemInfo itemInfo = itemInfos.get(itemStack);
-            int transferred = GTTransferUtils.transferItemsFromSlot(sourceInventory, i, targetInventory, filter,
-                    Math.min(itemInfo.totalCount, itemsLeftToTransfer));
+    private static void returnToSource(IKeyHandler<AEItemKey> sourceInventory, int slot, AEItemKey key, long amount) {
+        var source = sourceInventory.unrestricted();
+        long back = source.insert(slot, key, amount, false);
+        if (back < amount) source.insert(key, amount - back, false);
+    }
+
+    protected int moveInventoryItems(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, Map<AEItemKey, GroupItemInfo> itemInfos, int maxTransferAmount) {
+        long itemsLeftToTransfer = maxTransferAmount;
+        int size = sourceInventory.size();
+        for (int i = 0; i < size; i++) {
+            if (sourceInventory.amountAt(i) <= 0) continue;
+            AEItemKey key = sourceInventory.keyAt(i);
+            if (key == null || !itemKeyFilter.matches(key)) continue;
+            GroupItemInfo itemInfo = itemInfos.get(key);
+            if (itemInfo == null) continue;
+            long transferred = KeyTransfer.transferSlot(sourceInventory, i, targetInventory,
+                    Math.min(itemInfo.totalCount, itemsLeftToTransfer), null);
             if (transferred > 0) {
                 itemsLeftToTransfer -= transferred;
                 itemInfo.totalCount -= transferred;
                 if (itemInfo.totalCount == 0) {
-                    itemInfos.remove(itemStack);
+                    itemInfos.remove(key);
                     if (itemInfos.isEmpty()) {
                         break;
                     }
@@ -292,46 +264,54 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
                 }
             }
         }
-        return maxTransferAmount - itemsLeftToTransfer;
+        return (int) (maxTransferAmount - itemsLeftToTransfer);
     }
 
-    protected O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo> countInventoryItemsByType(IItemHandler inventory) {
-        ItemFilter filter = filterHandler.getFilter();
-        var result = new O2OOpenCustomCacheHashMap<ItemStack, TypeItemInfo>(ItemStackHashStrategy.ITEM_AND_TAG);
-        for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
-            ItemStack itemStack = inventory.getStackInSlot(srcIndex);
-            if (itemStack.isEmpty() || !filter.test(itemStack)) {
-                continue;
+    protected Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo> countInventoryItemsByType(IKeyHandler<AEItemKey> inventory) {
+        var result = new Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo>();
+        int size = inventory.size();
+        for (int srcIndex = 0; srcIndex < size; srcIndex++) {
+            long amount = inventory.amountAt(srcIndex);
+            if (amount <= 0) continue;
+            AEItemKey key = inventory.keyAt(srcIndex);
+            if (key == null || !itemKeyFilter.matches(key)) continue;
+            var itemInfo = result.get(key);
+            if (itemInfo == null) {
+                itemInfo = new TypeItemInfo(key, new IntArrayList(), 0);
+                result.put(key, itemInfo);
             }
-            var itemInfo = result.computeIfAbsent(itemStack, s -> new TypeItemInfo(itemStack, new IntArrayList(), 0));
-            itemInfo.totalCount += itemStack.getCount();
+            itemInfo.totalCount = Keys.add(itemInfo.totalCount, amount);
             itemInfo.slots.add(srcIndex);
         }
         return result;
     }
 
-    protected O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo> countInventoryItemsByMatchSlot(IItemHandler inventory) {
-        ItemFilter filter = filterHandler.getFilter();
-        var result = new O2OOpenCustomCacheHashMap<ItemStack, GroupItemInfo>(ItemStackHashStrategy.ITEM_AND_TAG);
-        for (int srcIndex = 0; srcIndex < inventory.getSlots(); srcIndex++) {
-            ItemStack itemStack = inventory.getStackInSlot(srcIndex);
-            if (itemStack.isEmpty() || !filter.test(itemStack)) {
-                continue;
+    protected Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> countInventoryItemsByMatchSlot(IKeyHandler<AEItemKey> inventory) {
+        var result = new Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo>();
+        int size = inventory.size();
+        for (int srcIndex = 0; srcIndex < size; srcIndex++) {
+            long amount = inventory.amountAt(srcIndex);
+            if (amount <= 0) continue;
+            AEItemKey key = inventory.keyAt(srcIndex);
+            if (key == null || !itemKeyFilter.matches(key)) continue;
+            var itemInfo = result.get(key);
+            if (itemInfo == null) {
+                itemInfo = new GroupItemInfo(key, 0);
+                result.put(key, itemInfo);
             }
-            var itemInfo = result.computeIfAbsent(itemStack, s -> new GroupItemInfo(itemStack, 0));
-            itemInfo.totalCount += itemStack.getCount();
+            itemInfo.totalCount = Keys.add(itemInfo.totalCount, amount);
         }
         return result;
     }
 
     protected static class TypeItemInfo {
 
-        public final ItemStack itemStack;
+        public final AEItemKey key;
         public final IntList slots;
-        public int totalCount;
+        public long totalCount;
 
-        public TypeItemInfo(final ItemStack itemStack, final IntList slots, final int totalCount) {
-            this.itemStack = itemStack;
+        public TypeItemInfo(final AEItemKey key, final IntList slots, final long totalCount) {
+            this.key = key;
             this.slots = slots;
             this.totalCount = totalCount;
         }
@@ -339,11 +319,11 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     protected static class GroupItemInfo {
 
-        public final ItemStack itemStack;
-        public int totalCount;
+        public final AEItemKey key;
+        public long totalCount;
 
-        public GroupItemInfo(final ItemStack itemStack, final int totalCount) {
-            this.itemStack = itemStack;
+        public GroupItemInfo(final AEItemKey key, final long totalCount) {
+            this.key = key;
             this.totalCount = totalCount;
         }
     }
@@ -384,57 +364,40 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
 
     @Nullable
     @Override
-    public ICustomItemStackHandler getItemHandlerCap(@Nullable ICustomItemStackHandler defaultValue) {
+    public IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable IKeyHandler<AEItemKey> defaultValue) {
         if (defaultValue == null) {
             return null;
         }
-        if (itemHandlerWrapper == null || itemHandlerWrapper.delegate != defaultValue) {
+        if (itemHandlerWrapper == null || itemHandlerWrapper.getDelegate() != defaultValue) {
             this.itemHandlerWrapper = new CoverableItemHandlerWrapper(defaultValue);
         }
         return itemHandlerWrapper;
     }
 
-    private class CoverableItemHandlerWrapper extends ItemHandlerDelegate {
+    private class CoverableItemHandlerWrapper extends KeyHandlerView<AEItemKey> {
 
-        public CoverableItemHandlerWrapper(ICustomItemStackHandler delegate) {
+        public CoverableItemHandlerWrapper(IKeyHandler<AEItemKey> delegate) {
             super(delegate);
         }
 
         @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+        protected boolean canInsert(AEItemKey key) {
             if (io == IO.OUT && manualIOMode == ManualIOMode.DISABLED) {
-                return stack;
+                return false;
             }
-            if (manualIOMode == ManualIOMode.FILTERED && !filterHandler.test(stack)) {
-                return stack;
-            }
-            return super.insertItem(slot, stack, simulate);
+            return manualIOMode != ManualIOMode.FILTERED || filterHandler.test(key.getReadOnlyStack());
         }
 
         @Override
-        public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
-            if (io == IO.OUT && manualIOMode == ManualIOMode.DISABLED) {
-                return stack;
-            }
-            if (manualIOMode == ManualIOMode.FILTERED && !filterHandler.test(stack)) {
-                return stack;
-            }
-            return delegate.insertItemStacked(stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+        protected boolean canExtract(AEItemKey key) {
             if (io == IO.IN && manualIOMode == ManualIOMode.DISABLED) {
-                return ItemStack.EMPTY;
+                return false;
             }
-            if (manualIOMode == ManualIOMode.FILTERED) {
-                ItemStack result = super.extractItem(slot, amount, true);
-                if (result.isEmpty() || !filterHandler.test(result)) {
-                    return ItemStack.EMPTY;
-                }
-                return simulate ? result : super.extractItem(slot, amount, false);
-            }
-            return super.extractItem(slot, amount, simulate);
+            return manualIOMode != ManualIOMode.FILTERED || filterHandler.test(key.getReadOnlyStack());
         }
+    }
+
+    private boolean matchesFilter(AEKey key) {
+        return key instanceof AEItemKey k && filterHandler.test(k.getReadOnlyStack());
     }
 }

@@ -17,15 +17,16 @@ import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -53,6 +54,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -80,12 +82,12 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @SaveToDisk
-    protected final NotifiableItemStackHandler output;
+    protected final NotifiableInventory<AEItemKey> output;
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler chargerInventory;
+    protected final StackInventory chargerInventory;
     @SaveToDisk
-    protected final CustomItemStackHandler filterInventory;
+    protected final StackInventory filterInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
@@ -132,20 +134,20 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     //////////////////////////////////////
     // ***** Initialization *****//
     //////////////////////////////////////
-    protected CustomItemStackHandler createChargerItemHandler() {
-        var handler = new CustomItemStackHandler();
+    protected StackInventory createChargerItemHandler() {
+        var handler = new StackInventory();
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
-    protected CustomItemStackHandler createFilterItemHandler() {
-        var handler = new CustomItemStackHandler();
+    protected StackInventory createFilterItemHandler() {
+        var handler = new StackInventory();
         handler.setFilter(item -> item.is(GTItems.ITEM_FILTER.asItem()) || item.is(GTItems.TAG_FILTER.asItem()));
         return handler;
     }
 
-    protected NotifiableItemStackHandler createOutputItemHandler() {
-        return new NotifiableItemStackHandler(this, inventorySize, IO.BOTH, IO.OUT);
+    protected NotifiableInventory<AEItemKey> createOutputItemHandler() {
+        return NotifiableInventory.items(this, inventorySize, IO.BOTH, IO.OUT);
     }
 
     @Override
@@ -227,10 +229,13 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
             if (!itemEntity.isAlive()) continue;
             if (filter != null && !filter.test(itemEntity.getItem())) continue;
             ItemStack stack = itemEntity.getItem();
-            ItemStack remainder = GTTransferUtils.insertItem(output.storage, stack, false);
-            if (stack.getCount() > remainder.getCount()) {
-                if (remainder.isEmpty()) itemEntity.kill();
-                else itemEntity.setItem(remainder);
+            var key = Keys.item(stack);
+            if (key == null) continue;
+            int count = stack.getCount();
+            long inserted = output.storage.insert(key, count, false);
+            if (inserted > 0) {
+                if (inserted >= count) itemEntity.kill();
+                else itemEntity.setItem(stack.copyWithCount(count - (int) inserted));
             }
         }
     }
@@ -396,10 +401,11 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
             main.setBackground(GuiTextures.BACKGROUND_INVERSE);
             return main;
         }, (group, machine) -> {
+            var adapter = new MenuItemAdapter(machine.output.storage);
             WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
                 var index = WidgetUtils.widgetIdIndex(slot);
-                if (index >= 0 && index < machine.output.getSlots()) {
-                    slot.setHandlerSlot(machine.output, index);
+                if (index >= 0 && index < machine.output.storage.size()) {
+                    slot.setHandlerSlot(adapter, index);
                     slot.setCanTakeItems(true);
                     slot.setCanPutItems(false);
                 }

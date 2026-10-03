@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -18,6 +19,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +63,7 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
                 Collection<ItemStack> added = new OpenCacheHashSet<>();
                 outer:
                 for (GTRecipeDefinition recipe : recipes) {
-                    ItemStack output = recipe.itemOutputs.getFirst().inner.getInnerItemStack();
+                    ItemStack output = Keys.displayStack((AEItemKey) recipe.itemOutputs.outputKey(0));
                     for (var item : added) {
                         if (output.is(item.getItem())) continue outer;
                     }

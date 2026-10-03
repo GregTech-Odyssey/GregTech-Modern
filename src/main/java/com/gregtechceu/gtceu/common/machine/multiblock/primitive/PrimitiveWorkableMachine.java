@@ -2,8 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
@@ -11,6 +10,8 @@ import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraftforge.fluids.FluidType;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -20,13 +21,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class PrimitiveWorkableMachine extends WorkableMultiblockMachine {
 
     @SaveToDisk
-    public final NotifiableItemStackHandler importItems;
+    public final NotifiableInventory<AEItemKey> importItems;
     @SaveToDisk
-    public final NotifiableItemStackHandler exportItems;
+    public final NotifiableInventory<AEItemKey> exportItems;
     @SaveToDisk
-    public final NotifiableFluidTank importFluids;
+    public final NotifiableInventory<AEFluidKey> importFluids;
     @SaveToDisk
-    public final NotifiableFluidTank exportFluids;
+    public final NotifiableInventory<AEFluidKey> exportFluids;
 
     public PrimitiveWorkableMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
@@ -40,21 +41,21 @@ public class PrimitiveWorkableMachine extends WorkableMultiblockMachine {
     // ***** Initialization ******//
     //////////////////////////////////////
 
-    protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
+    protected NotifiableInventory<AEItemKey> createImportItemHandler(Object... args) {
+        return NotifiableInventory.items(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
     }
 
-    protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
+    protected NotifiableInventory<AEItemKey> createExportItemHandler(Object... args) {
+        return NotifiableInventory.items(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
     }
 
-    protected NotifiableFluidTank createImportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeInfo.INSTANCE),
+    protected NotifiableInventory<AEFluidKey> createImportFluidHandler(Object... args) {
+        return NotifiableInventory.fluids(this, getRecipeType().getMaxInputs(FluidRecipeInfo.INSTANCE),
                 32 * FluidType.BUCKET_VOLUME, IO.IN);
     }
 
-    protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeInfo.INSTANCE),
+    protected NotifiableInventory<AEFluidKey> createExportFluidHandler(Object... args) {
+        return NotifiableInventory.fluids(this, getRecipeType().getMaxOutputs(FluidRecipeInfo.INSTANCE),
                 32 * FluidType.BUCKET_VOLUME, IO.OUT);
     }
 

@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.uiwidgets.filter;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
@@ -21,8 +23,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+
+import appeng.api.stacks.AEFluidKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,11 +81,17 @@ public class TagLookupView extends UIElement {
 
     public static TagLookupView fluids(String scrollerId, Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick,
                                        String... slotTooltipKeys) {
-        var tank = new CustomFluidTank(1);
-        var query = new TagQuery(() -> tank.getFluid().getFluid(), () -> tank.getFluid().getFluid().defaultFluidState().getTags().map(t -> t));
-        var slot = PhantomFluidSlot.of(tank, 0, tank::getFluid, tank::setFluid).xeiPhantom();
+        var tank = KeyInventory.fluids(1, 1);
+        var adapter = new ForgeFluidAdapter(tank);
+        var query = new TagQuery(() -> fluidOf(tank), () -> fluidOf(tank).defaultFluidState().getTags().map(t -> t));
+        var slot = PhantomFluidSlot.of(adapter, 0, () -> adapter.getFluidInTank(0), fluid -> tank.set(0, Keys.fluid(fluid), fluid.getAmount())).xeiPhantom();
         slot.tooltips(slotTooltipKeys);
         return new TagLookupView(scrollerId, getter, setter, onServerPick, slot, query);
+    }
+
+    private static Fluid fluidOf(KeyInventory<AEFluidKey> tank) {
+        var key = tank.keyAt(0);
+        return key == null ? Fluids.EMPTY : key.getFluid();
     }
 
     public TextField getField() {

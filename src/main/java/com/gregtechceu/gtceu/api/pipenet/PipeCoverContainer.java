@@ -5,8 +5,7 @@ import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
@@ -17,6 +16,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
@@ -125,18 +126,18 @@ public final class PipeCoverContainer implements ICoverable {
     }
 
     @Override
-    public ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        if (pipeTile instanceof ItemPipeBlockEntity itemPipe && getLevel() instanceof ServerLevel && itemPipe.getHandler(side, useCoverCapability) instanceof ICustomItemStackHandler itemHandlerModifiable) {
-            return itemHandlerModifiable;
+    public IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+        if (pipeTile instanceof ItemPipeBlockEntity itemPipe && getLevel() instanceof ServerLevel) {
+            return itemPipe.getHandler(side, useCoverCapability);
         } else {
             return null;
         }
     }
 
     @Override
-    public ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
-        if (pipeTile instanceof FluidPipeBlockEntity fluidPipe && getLevel() instanceof ServerLevel && fluidPipe.getHandler(side, useCoverCapability) instanceof ICustomFluidStackHandler fluidHandlerModifiable) {
-            return fluidHandlerModifiable;
+    public IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+        if (pipeTile instanceof FluidPipeBlockEntity fluidPipe && getLevel() instanceof ServerLevel) {
+            return fluidPipe.getHandler(side, useCoverCapability);
         } else {
             return null;
         }
@@ -167,10 +168,20 @@ public final class PipeCoverContainer implements ICoverable {
     }
 
     @Override
+    public void invalidateCapabilities() {
+        if (pipeTile instanceof ItemPipeBlockEntity itemPipe) {
+            itemPipe.invalidateCapabilityCache();
+        } else if (pipeTile instanceof FluidPipeBlockEntity fluidPipe) {
+            fluidPipe.invalidateCapabilityCache();
+        }
+    }
+
+    @Override
     public void setCoverAtSide(@Nullable CoverBehavior coverBehavior, Direction side) {
         var previousCover = getCoverAtSide(side);
         setCoverAtSideinternal(coverBehavior, side);
         getFieldDataManager().markAsChanged();
+        invalidateCapabilities();
         if (coverBehavior != null) {
             if (coverBehavior.canPipePassThrough()) {
                 pipeTile.setConnection(side, true, false);

@@ -22,8 +22,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.util.holder.ObjHolder;
 import lombok.Getter;
@@ -37,9 +37,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMachine {
 
-    private static final FluidStack OXYGEN_STACK = GTMaterials.Oxygen.getFluid(1);
-    private static final FluidStack LIQUID_OXYGEN_STACK = GTMaterials.Oxygen.getFluid(FluidStorageKeys.LIQUID, 4);
-    private static final FluidStack LUBRICANT_STACK = GTMaterials.Lubricant.getFluid(1);
+    private static final AEFluidKey OXYGEN = AEFluidKey.of(GTMaterials.Oxygen.getFluid());
+    private static final AEFluidKey LIQUID_OXYGEN = AEFluidKey.of(GTMaterials.Oxygen.getFluid(FluidStorageKeys.LIQUID));
+    private static final AEFluidKey LUBRICANT = AEFluidKey.of(GTMaterials.Lubricant.getFluid());
     @Getter
     private final int tier;
     // runtime
@@ -107,7 +107,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         }
         long EUt = recipe.getOutputEUt();
         // has lubricant
-        if (EUt > 0 && !engineMachine.isIntakesObstructed() && engineMachine.inputFluid(LUBRICANT_STACK)) {
+        if (EUt > 0 && !engineMachine.isIntakesObstructed() && engineMachine.inputFluid(LUBRICANT, 1)) {
             var maxParallel = engineMachine.getOverclockVoltage() / EUt; // get maximum parallel
             var actualParallel = ParallelLogic.getMaxParallelAmount(engineMachine, unit, recipe, maxParallel);
             if (actualParallel == 0) {
@@ -129,14 +129,14 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         // check lubricant
         if (runningTimer % 72 == 0) {
             // insufficient lubricant
-            if (!inputFluid(LUBRICANT_STACK)) {
+            if (!inputFluid(LUBRICANT, 1)) {
                 recipeLogic.interruptRecipe(Component.translatable("gtceu.issue.no_lubricant"));
                 return;
             }
         }
         // check boost fluid
         if (isBoostAllowed()) {
-            this.isOxygenBoosted = inputFluid(isExtreme() ? LIQUID_OXYGEN_STACK : OXYGEN_STACK);
+            this.isOxygenBoosted = isExtreme() ? inputFluid(LIQUID_OXYGEN, 4) : inputFluid(OXYGEN, 1);
         }
         runningTimer++;
         if (runningTimer > 72000) runningTimer %= 72000; // reset once every hour of running
@@ -183,9 +183,10 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
                 return false;
             }, recipeLogic.getLockedRecipe());
         }
-        var requiredFluidInput = recipe.get().fluidInputs.getFirst();
+        var runtime = recipe.get();
+        long requiredAmount = runtime.inputAmount(runtime.fluidInputs, 0);
         long ocAmount = getMaxVoltage() / recipe.get().getOutputEUt();
-        int neededAmount = GTMath.saturatedCast(ocAmount * requiredFluidInput.amount);
+        int neededAmount = GTMath.saturatedCast(ocAmount * requiredAmount);
         return ChatFormatting.RED + FormattingUtil.formatNumbers(neededAmount) + "mB";
     }
 

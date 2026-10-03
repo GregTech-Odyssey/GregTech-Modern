@@ -4,8 +4,7 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -15,6 +14,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,13 +42,19 @@ public class ShutterCover extends CoverBehavior implements IControllable {
     }
 
     @Override
+    public void setWorkingEnabled(boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
+        coverHolder.invalidateCapabilities();
+    }
+
+    @Override
     public boolean canPipePassThrough() {
         return !workingEnabled;
     }
 
     @Override
     public InteractionResult onSoftMalletClick(Player playerIn, InteractionHand hand, BlockHitResult hitResult) {
-        this.workingEnabled = !this.workingEnabled;
+        setWorkingEnabled(!workingEnabled);
         if (!playerIn.level().isClientSide) {
             playerIn.sendSystemMessage(Component.translatable(isWorkingEnabled() ? "cover.shutter.message.enabled" : "cover.shutter.message.disabled"));
         }
@@ -56,13 +63,13 @@ public class ShutterCover extends CoverBehavior implements IControllable {
 
     @Override
     @Nullable
-    public ICustomItemStackHandler getItemHandlerCap(ICustomItemStackHandler defaultValue) {
+    public IKeyHandler<AEItemKey> getItemHandlerCap(IKeyHandler<AEItemKey> defaultValue) {
         return isWorkingEnabled() ? null : super.getItemHandlerCap(defaultValue);
     }
 
     @Override
     @Nullable
-    public ICustomFluidStackHandler getFluidHandlerCap(ICustomFluidStackHandler defaultValue) {
+    public IKeyHandler<AEFluidKey> getFluidHandlerCap(IKeyHandler<AEFluidKey> defaultValue) {
         return isWorkingEnabled() ? null : super.getFluidHandlerCap(defaultValue);
     }
 }

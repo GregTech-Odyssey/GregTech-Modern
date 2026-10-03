@@ -71,13 +71,17 @@ public final class UIText {
     }
 
     public static void drawLabelValue(GuiGraphics graphics, int x, int y, int width, int height, String label, String value, int valueColor) {
+        drawLabelValue(graphics, x, y, width, height, label, value, UITheme.TEXT, valueColor);
+    }
+
+    public static void drawLabelValue(GuiGraphics graphics, int x, int y, int width, int height, String label, String value, int labelColor, int valueColor) {
         var font = font();
         int textY = centerY(y, height);
         int valueWidth = Math.min(font.width(value), (width - 2 * UISizes.TEXT_PADDING) / 2);
         String shownValue = fit(value, valueWidth);
         graphics.drawString(font, shownValue, x + width - UISizes.TEXT_PADDING + 1 - font.width(shownValue), textY, valueColor, false);
         String shownLabel = fit(label, width - 3 * UISizes.TEXT_PADDING - font.width(shownValue));
-        graphics.drawString(font, shownLabel, x + UISizes.TEXT_PADDING - 1, textY, UITheme.TEXT, false);
+        graphics.drawString(font, shownLabel, x + UISizes.TEXT_PADDING - 1, textY, labelColor, false);
     }
 
     public static void drawItemCount(GuiGraphics graphics, String text, int itemX, int itemY) {

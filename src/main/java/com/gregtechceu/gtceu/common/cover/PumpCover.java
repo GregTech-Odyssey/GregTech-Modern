@@ -11,9 +11,10 @@ import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerDelegate;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.fluid.ModifiableFluidHandlerWrapper;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerView;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
@@ -24,7 +25,6 @@ import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -35,13 +35,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
+import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.fastutil.O2LOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,6 +86,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     @SyncToClient
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
+    protected final AEKeyFilter fluidKeyFilter = this::matchesFilter;
 
     public PumpCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -105,13 +108,14 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     }
 
     @Nullable
-    protected ICustomFluidStackHandler getOwnFluidHandler() {
+    protected IKeyHandler<AEFluidKey> getOwnFluidHandler() {
         return coverHolder.getFluidHandlerCap(attachedSide, false);
     }
 
     @Nullable
-    protected IFluidHandler getAdjacentFluidHandler() {
-        return coverHolder.getBlockEntityDirectionCache().getAdjacentFluidHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide).orElse(null);
+    @SuppressWarnings("unchecked")
+    protected IKeyHandler<AEFluidKey> getAdjacentFluidHandler() {
+        return (IKeyHandler<AEFluidKey>) coverHolder.getBlockEntityDirectionCache().getAdjacentKeyHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide, AEKeyType.fluids());
     }
 
     //////////////////////////////////////
@@ -186,48 +190,36 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     private int doTransferFluids(int platformTransferLimit) {
         var adjacent = getAdjacentFluidHandler();
-        var adjacentModifiable = adjacent instanceof ICustomFluidStackHandler modifiable ? modifiable : new ModifiableFluidHandlerWrapper(adjacent);
         var ownFluidHandler = getOwnFluidHandler();
         if (adjacent != null && ownFluidHandler != null) {
             return switch (io) {
-                case IN -> doTransferFluidsInternal(adjacentModifiable, ownFluidHandler, platformTransferLimit);
-                case OUT -> doTransferFluidsInternal(ownFluidHandler, adjacentModifiable, platformTransferLimit);
+                case IN -> doTransferFluidsInternal(adjacent, ownFluidHandler, platformTransferLimit);
+                case OUT -> doTransferFluidsInternal(ownFluidHandler, adjacent, platformTransferLimit);
                 default -> 0;
             };
         }
         return 0;
     }
 
-    protected int doTransferFluidsInternal(ICustomFluidStackHandler source, ICustomFluidStackHandler destination, int platformTransferLimit) {
+    protected int doTransferFluidsInternal(IKeyHandler<AEFluidKey> source, IKeyHandler<AEFluidKey> destination, int platformTransferLimit) {
         return transferAny(source, destination, platformTransferLimit);
     }
 
-    protected int transferAny(ICustomFluidStackHandler source, ICustomFluidStackHandler destination, int platformTransferLimit) {
-        return GTTransferUtils.transferFluidsFiltered(source, destination, filterHandler.getFilter(), platformTransferLimit);
+    protected int transferAny(IKeyHandler<AEFluidKey> source, IKeyHandler<AEFluidKey> destination, int platformTransferLimit) {
+        return (int) KeyTransfer.transfer(source, destination, platformTransferLimit, fluidKeyFilter);
     }
 
-    protected enum TransferDirection {
-        INSERT,
-        EXTRACT
-    }
-
-    protected Object2LongMap<FluidStack> enumerateDistinctFluids(ICustomFluidStackHandler fluidHandler, TransferDirection direction) {
-        // Long map because we could have multiple tanks of the same fluid summing up to > Integer.MAX_VALUE
-        var summedFluids = new O2LOpenCacheHashMap<FluidStack>();
-        for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
-            if (!canTransfer(fluidHandler, direction, tank)) continue;
-            FluidStack fluidStack = fluidHandler.getFluidInTank(tank);
-            if (fluidStack.isEmpty()) continue;
-            summedFluids.addTo(fluidStack, fluidStack.getAmount());
+    protected Reference2LongLinkedOpenHashMap<AEFluidKey> enumerateDistinctFluids(IKeyHandler<AEFluidKey> fluidHandler) {
+        var summedFluids = new Reference2LongLinkedOpenHashMap<AEFluidKey>();
+        int size = fluidHandler.size();
+        for (int tank = 0; tank < size; tank++) {
+            long amount = fluidHandler.amountAt(tank);
+            if (amount <= 0) continue;
+            var key = fluidHandler.keyAt(tank);
+            if (key == null) continue;
+            summedFluids.put(key, Keys.add(summedFluids.getLong(key), amount));
         }
         return summedFluids;
-    }
-
-    private static boolean canTransfer(ICustomFluidStackHandler fluidHandler, TransferDirection direction, int tank) {
-        return switch (direction) {
-            case INSERT -> fluidHandler.supportsFill(tank);
-            case EXTRACT -> fluidHandler.supportsDrain(tank);
-        };
     }
 
     //////////////////////////////////////
@@ -296,42 +288,40 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
 
     @Nullable
     @Override
-    public ICustomFluidStackHandler getFluidHandlerCap(@Nullable ICustomFluidStackHandler defaultValue) {
+    public IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable IKeyHandler<AEFluidKey> defaultValue) {
         if (defaultValue == null) {
             return null;
         }
-        if (fluidHandlerWrapper == null || fluidHandlerWrapper.delegate != defaultValue) {
+        if (fluidHandlerWrapper == null || fluidHandlerWrapper.getDelegate() != defaultValue) {
             this.fluidHandlerWrapper = new CoverableFluidHandlerWrapper(defaultValue);
         }
         return fluidHandlerWrapper;
     }
 
-    private class CoverableFluidHandlerWrapper extends FluidHandlerDelegate {
+    private class CoverableFluidHandlerWrapper extends KeyHandlerView<AEFluidKey> {
 
-        public CoverableFluidHandlerWrapper(ICustomFluidStackHandler delegate) {
+        public CoverableFluidHandlerWrapper(IKeyHandler<AEFluidKey> delegate) {
             super(delegate);
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        protected boolean canInsert(AEFluidKey key) {
             if (io == IO.OUT && manualIOMode == ManualIOMode.DISABLED) {
-                return 0;
+                return false;
             }
-            if (!filterHandler.test(resource) && manualIOMode == ManualIOMode.FILTERED) {
-                return 0;
-            }
-            return super.fill(resource, action);
+            return manualIOMode != ManualIOMode.FILTERED || filterHandler.test(key.getReadOnlyStack());
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        protected boolean canExtract(AEFluidKey key) {
             if (io == IO.IN && manualIOMode == ManualIOMode.DISABLED) {
-                return FluidStack.EMPTY;
+                return false;
             }
-            if (manualIOMode == ManualIOMode.FILTERED && !filterHandler.test(resource)) {
-                return FluidStack.EMPTY;
-            }
-            return super.drain(resource, action);
+            return manualIOMode != ManualIOMode.FILTERED || filterHandler.test(key.getReadOnlyStack());
         }
+    }
+
+    private boolean matchesFilter(AEKey key) {
+        return key instanceof AEFluidKey k && filterHandler.test(k.getReadOnlyStack());
     }
 }

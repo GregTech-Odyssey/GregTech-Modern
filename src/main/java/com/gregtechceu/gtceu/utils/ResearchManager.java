@@ -8,8 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerList;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
@@ -20,13 +19,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
 
 public final class ResearchManager {
 
@@ -124,17 +123,26 @@ public final class ResearchManager {
 
         @Override
         public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
-            var itemInputs = Arrays.stream(unit.itemHandlers)
-                    .filter(ICustomItemStackHandler.class::isInstance)
-                    .map(ICustomItemStackHandler.class::cast)
-                    .toArray(ICustomItemStackHandler[]::new);
-            var inputs = new ItemHandlerList(itemInputs);
-            if (inputs.getSlots() > 1) {
+            AEKey[] keys = new AEKey[2];
+            long[] amounts = new long[2];
+            int slots = 0;
+            for (var handler : unit.itemHandlers) {
+                var inv = handler.storage(AEKeyType.items());
+                if (inv == null) continue;
+                for (int i = 0; i < inv.size() && slots < 2; i++, slots++) {
+                    keys[slots] = inv.keyAt(i);
+                    amounts[slots] = inv.amountAt(i);
+                }
+                if (slots == 2) break;
+            }
+            if (slots > 1) {
+                ItemStack first = Keys.toStack(keys[0], amounts[0]);
+                ItemStack second = Keys.toStack(keys[1], amounts[1]);
                 // try the data recipe both ways, prioritizing overwriting the first
-                GTRecipeDefinition recipe = createDataRecipe(inputs.getStackInSlot(0), inputs.getStackInSlot(1));
+                GTRecipeDefinition recipe = createDataRecipe(first, second);
                 if (recipe != null) return recipe;
 
-                return createDataRecipe(inputs.getStackInSlot(1), inputs.getStackInSlot(0));
+                return createDataRecipe(second, first);
             }
             return null;
         }

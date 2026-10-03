@@ -10,10 +10,11 @@ import com.gregtechceu.gtceu.api.machine.TieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.DualHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
@@ -32,6 +33,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -71,10 +74,10 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     protected boolean allowInputFromOutputSideFluids;
     @Getter
     @SaveToDisk
-    protected final NotifiableItemStackHandler inventory;
+    protected final NotifiableInventory<AEItemKey> inventory;
     @Getter
     @SaveToDisk
-    protected final NotifiableFluidTank tank;
+    protected final NotifiableInventory<AEFluidKey> tank;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
@@ -101,12 +104,12 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         return tier + 2;
     }
 
-    protected NotifiableItemStackHandler createInventory(Object... args) {
-        return new NotifiableItemStackHandler(this, getInventorySize(tier), IO.BOTH);
+    protected NotifiableInventory<AEItemKey> createInventory(Object... args) {
+        return NotifiableInventory.items(this, getInventorySize(tier), IO.BOTH);
     }
 
-    protected NotifiableFluidTank createTank(Object... args) {
-        return new NotifiableFluidTank(this, getTankSize(tier), FluidHatchPartMachine.getTankCapacity(
+    protected NotifiableInventory<AEFluidKey> createTank(Object... args) {
+        return NotifiableInventory.fluids(this, getTankSize(tier), FluidHatchPartMachine.getTankCapacity(
                 DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier), IO.BOTH);
     }
 
@@ -197,15 +200,17 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         int invTier = getTankSize(tier);
         var group = new WidgetGroup(0, 0, 18 * (invTier + 1) + 16, 18 * invTier + 16);
         var container = new WidgetGroup(4, 4, 18 * (invTier + 1) + 8, 18 * invTier + 8);
+        var items = new MenuItemAdapter(getInventory().storage);
+        var fluids = new ForgeFluidAdapter(tank.storage);
         int index = 0;
         for (int y = 0; y < invTier; y++) {
             for (int x = 0; x < invTier; x++) {
-                container.addWidget(new SlotWidget(getInventory().storage, index++, 4 + x * 18, 4 + y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
+                container.addWidget(new SlotWidget(items, index++, 4 + x * 18, 4 + y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
             }
         }
         index = 0;
         for (int y = 0; y < invTier; y++) {
-            container.addWidget(new TankWidget(tank.getStorages()[index++], 4 + invTier * 18, 4 + y * 18, true, true).setBackground(GuiTextures.FLUID_SLOT));
+            container.addWidget(new TankWidget(fluids, index++, 4 + invTier * 18, 4 + y * 18, true, true).setBackground(GuiTextures.FLUID_SLOT));
         }
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);

@@ -16,6 +16,8 @@ public abstract class NotifiableContentHandler extends NotifiableRecipeHandlerTr
     protected boolean isEmpty;
     protected boolean emptyChanged;
     protected boolean searchMapChanged = true;
+    private int searchGeneration;
+    private int searchMapVersion;
 
     protected boolean isAvailable = true;
 
@@ -47,12 +49,19 @@ public abstract class NotifiableContentHandler extends NotifiableRecipeHandlerTr
 
     @Override
     public final IntLongMap getSearchMap(@NotNull GTRecipeType type) {
-        if (searchMapChanged) {
+        int generation = GTRecipeType.searchGeneration();
+        if (searchMapChanged || searchGeneration != generation) {
             searchMapChanged = false;
+            searchGeneration = generation;
             searchMap.clear();
             fillSearchMap(type, searchMap);
+            searchMapVersion++;
         }
         return searchMap;
+    }
+
+    public final int searchMapVersion() {
+        return searchMapVersion;
     }
 
     @Override

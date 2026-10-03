@@ -52,7 +52,21 @@ public class PlungerBehavior implements IToolBehavior, IComponentCapability, IIn
 
         IFluidHandler fluidHandler;
         if (level.getBlockEntity(context.getClickedPos()) instanceof MetaMachineBlockEntity mmbe) {
-            fluidHandler = mmbe.getMetaMachine().getFluidHandlerCap(context.getClickedFace(), false);
+            var keyHandler = mmbe.getMetaMachine().getFluidHandlerCap(context.getClickedFace(), false);
+            if (keyHandler == null) {
+                return InteractionResult.PASS;
+            }
+            int size = keyHandler.size();
+            for (int i = 0; i < size; i++) {
+                var key = keyHandler.keyAt(i);
+                if (key == null || keyHandler.amountAt(i) <= 0) continue;
+                if (keyHandler.extract(key, FluidType.BUCKET_VOLUME, true) > 0) {
+                    keyHandler.extract(key, FluidType.BUCKET_VOLUME, false);
+                    ToolHelper.onActionDone(player, stack, level, context.getClickLocation());
+                    return InteractionResult.sidedSuccess(level.isClientSide);
+                }
+            }
+            return InteractionResult.PASS;
         } else {
             // noinspection DataFlowIssue
             fluidHandler = FluidUtil.getFluidHandler(level, context.getClickedPos(), context.getClickedFace())

@@ -1,6 +1,6 @@
 package com.gregtechceu.gtceu.api.capability;
 
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -42,9 +42,6 @@ public interface IObjectHolder {
 
     Direction getFrontFacing();
 
-    /**
-     * @return the object holder's contents represented as an IItemHandler
-     */
     @NotNull
-    NotifiableItemStackHandler getAsHandler();
+    IRecipeHandlerTrait getAsHandler();
 }

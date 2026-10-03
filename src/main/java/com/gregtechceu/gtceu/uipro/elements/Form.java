@@ -15,6 +15,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
+import java.util.function.IntSupplier;
 
 /**
  * 设置页的标准拼法：整页纵向排布、带标题的区块、"名称 + 控件"一行、"名称 + 数值调节器"一行。
@@ -54,6 +57,20 @@ public final class Form {
 
     public static UIElement numberRow(String labelKey, Adjuster field, String... tooltipKeys) {
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(fieldLabel(labelKey, tooltipKeys), field);
+    }
+
+    public static UIElement choiceRow(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
+        return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(fieldLabel(labelKey, tooltipKeys), choices(count, option, getter, setter).horizontal());
+    }
+
+    public static UIElement segmentRow(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
+        return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(fieldLabel(labelKey, tooltipKeys), choices(count, option, getter, setter).compact());
+    }
+
+    private static ButtonGroup choices(int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter) {
+        return ButtonGroup.single(count, option, getter, index -> {
+            if (index >= 0 && index < count && index != getter.getAsInt()) setter.accept(index);
+        });
     }
 
     public static UIElement inlineNumberRow(String labelKey, Adjuster field, String... tooltipKeys) {

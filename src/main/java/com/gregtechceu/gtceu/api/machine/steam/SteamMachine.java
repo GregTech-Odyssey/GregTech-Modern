@@ -3,11 +3,12 @@ package com.gregtechceu.gtceu.api.machine.steam;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 
@@ -20,13 +21,13 @@ public abstract class SteamMachine extends MetaMachine implements ITieredMachine
     @Getter
     public final boolean isHighPressure;
     @SaveToDisk
-    public final NotifiableFluidTank steamTank;
+    public final NotifiableInventory<AEFluidKey> steamTank;
 
     public SteamMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder);
         this.isHighPressure = isHighPressure;
         this.steamTank = createSteamTank(args);
-        this.steamTank.setFilter(fluidStack -> fluidStack.getFluid() == GTMaterials.Steam.getFluid());
+        this.steamTank.setFilter(key -> key instanceof AEFluidKey fluid && fluid.getFluid() == GTMaterials.Steam.getFluid());
     }
 
     @Override
@@ -39,5 +40,5 @@ public abstract class SteamMachine extends MetaMachine implements ITieredMachine
         return isHighPressure ? 1 : 0;
     }
 
-    protected abstract NotifiableFluidTank createSteamTank(Object... args);
+    protected abstract NotifiableInventory<AEFluidKey> createSteamTank(Object... args);
 }

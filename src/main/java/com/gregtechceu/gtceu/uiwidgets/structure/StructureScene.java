@@ -76,6 +76,8 @@ public final class StructureScene extends SceneView {
     private Long2ObjectOpenHashMap<BlockState> pendingBlocks;
     @Nullable
     private Long2ObjectOpenHashMap<BlockEntity> pendingEntities;
+    @Nullable
+    private Long2ObjectOpenHashMap<PartOwner> pendingOwners;
     private int pendingLayer = ALL_LAYERS;
     private float pendingZoom = -1;
     private boolean hasPending;
@@ -117,6 +119,8 @@ public final class StructureScene extends SceneView {
 
     public record Marker(Vector3f pos, int color, boolean selected, List<Component> tooltip) {}
 
+    public record PartOwner(long controller, BlockState state) {}
+
     private static final class Overlay {
 
         final int id;
@@ -153,6 +157,11 @@ public final class StructureScene extends SceneView {
     }
 
     public void setOverlay(int id, @Nullable Long2ObjectOpenHashMap<BlockState> blocks, float r, float g, float b, float a) {
+        setOverlay(id, blocks, null, r, g, b, a);
+    }
+
+    public void setOverlay(int id, @Nullable Long2ObjectOpenHashMap<BlockState> blocks, @Nullable Long2ObjectOpenHashMap<PartOwner> owners, float r, float g,
+                           float b, float a) {
         Overlay overlay = null;
         for (var candidate : overlays) {
             if (candidate.id == id) overlay = candidate;
@@ -172,7 +181,7 @@ public final class StructureScene extends SceneView {
             overlays.add(overlay);
         }
         if (overlay.level == null) overlay.level = new PreviewLevel(minecraft.level);
-        overlay.level.setBlocks(blocks);
+        overlay.level.setBlocks(blocks, owners);
         overlay.alpha = a;
         overlay.renderer.tint(r, g, b, a);
         overlay.renderer.show(overlay.level.view(), true, camera.center());
@@ -189,9 +198,14 @@ public final class StructureScene extends SceneView {
     }
 
     public void show(@Nullable Long2ObjectOpenHashMap<BlockState> blocks, int onlyY, float zoom) {
+        show(blocks, null, onlyY, zoom);
+    }
+
+    public void show(@Nullable Long2ObjectOpenHashMap<BlockState> blocks, @Nullable Long2ObjectOpenHashMap<PartOwner> owners, int onlyY, float zoom) {
         if (blocks != null) {
             pendingBlocks = blocks;
             pendingEntities = null;
+            pendingOwners = owners;
         }
         pendingLayer = onlyY;
         if (zoom > 0) pendingZoom = zoom;
@@ -244,9 +258,10 @@ public final class StructureScene extends SceneView {
         if (changed) {
             if (level == null) level = new PreviewLevel(minecraft.level);
             if (pendingEntities != null) level.setLiveBlocks(pendingBlocks, pendingEntities);
-            else level.setBlocks(pendingBlocks);
+            else level.setBlocks(pendingBlocks, pendingOwners);
             pendingBlocks = null;
             pendingEntities = null;
+            pendingOwners = null;
             hoverPos = selectedPos = null;
             hoverItem = ItemStack.EMPTY;
         }

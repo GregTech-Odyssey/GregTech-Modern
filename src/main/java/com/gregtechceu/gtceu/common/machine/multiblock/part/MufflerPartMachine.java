@@ -11,7 +11,9 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -21,8 +23,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.ItemHandlerHelper;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -36,14 +38,14 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
 
     private final int recoveryChance;
     @SaveToDisk
-    private final CustomItemStackHandler inventory;
+    private final KeyInventory<AEItemKey> inventory;
     @Nullable
     protected TickableSubscription particleSubs;
 
     public MufflerPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier);
         this.recoveryChance = Math.max(1, tier * 10);
-        this.inventory = new CustomItemStackHandler((int) Math.pow(tier + 1, 2));
+        this.inventory = KeyInventory.items((int) Math.pow(tier + 1, 2));
     }
 
     //////////////////////////////////////
@@ -56,7 +58,8 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     @Override
     public void recoverItemsTable(ItemStack recoveryItems) {
         if (calculateChance()) {
-            ItemHandlerHelper.insertItemStacked(inventory, recoveryItems.copy(), false);
+            var key = Keys.item(recoveryItems);
+            if (key != null) inventory.insert(key, recoveryItems.getCount(), false);
         }
     }
 
@@ -93,13 +96,14 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     //////////////////////////////////////
     @Override
     public ModularUI createUI(Player entityPlayer) {
-        int rowSize = (int) Math.sqrt(inventory.getSlots());
+        int rowSize = (int) Math.sqrt(inventory.size());
+        var slots = new MenuItemAdapter(inventory);
         int xOffset = rowSize == 10 ? 9 : 0;
         var modular = new ModularUI(176 + xOffset * 2, 18 + 18 * rowSize + 94, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(10, 5, getBlockState().getBlock().getDescriptionId())).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset, 18 + 18 * rowSize + 12, true));
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
-                modular.widget(new SlotWidget(inventory, index, (88 - rowSize * 9 + x * 18) + xOffset, 18 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT));
+                modular.widget(new SlotWidget(slots, index, (88 - rowSize * 9 + x * 18) + xOffset, 18 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT));
             }
         }
         return modular;

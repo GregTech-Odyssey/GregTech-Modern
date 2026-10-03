@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -52,17 +51,6 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
         return slotState.state;
     }
 
-    @Override
-    public UIChannel getChannel() {
-        return slotState.channel;
-    }
-
-    @Override
-    public void initWidget() {
-        super.initWidget();
-        slotState.prime();
-    }
-
     /** 可从 EMI 拖入（LDLib2 {@code FluidSlot.xeiPhantom()}）。 */
     public PhantomFluidSlot xeiPhantom() {
         this.xeiPhantom = true;
@@ -81,12 +69,9 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /// 服务端再判一次禁用：客户端的点击、拖入请求可以伪造
     @Override
-    public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        if (slotState.handleClientAction(id, buffer)) return;
-        if (isDisabled()) return;
-        super.handleClientAction(id, buffer);
+    protected boolean acceptsServerInput() {
+        return !isDisabled();
     }
 
     @Override
@@ -113,36 +98,5 @@ public class PhantomFluidSlot extends PhantomFluidWidget implements ElementState
     public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         slotState.drawSelection(graphics);
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
-    }
-
-    @Override
-    public void writeInitialData(FriendlyByteBuf buffer) {
-        super.writeInitialData(buffer);
-        slotState.writeInitialData(buffer);
-    }
-
-    @Override
-    public void readInitialData(FriendlyByteBuf buffer) {
-        super.readInitialData(buffer);
-        slotState.readInitialData(buffer);
-    }
-
-    @Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
-        slotState.detectAndSendChanges();
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
-        if (!slotState.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void updateScreen() {
-        super.updateScreen();
-        slotState.pollClient();
     }
 }

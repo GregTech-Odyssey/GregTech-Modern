@@ -4,12 +4,11 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.cover.PumpCover;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
-import com.gregtechceu.gtceu.utils.GTMath;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -24,11 +23,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMaps;
+import appeng.api.stacks.AEFluidKey;
+import it.unimi.dsi.fastutil.objects.Reference2LongMaps;
 
 import java.util.Set;
 
@@ -59,24 +56,20 @@ public class FluidVoidingCover extends PumpCover {
     }
 
     protected void doVoidFluids() {
-        ICustomFluidStackHandler fluidHandler = getOwnFluidHandler();
+        IKeyHandler<AEFluidKey> fluidHandler = getOwnFluidHandler();
         if (fluidHandler == null) {
             return;
         }
         voidAny(fluidHandler);
     }
 
-    void voidAny(ICustomFluidStackHandler fluidHandler) {
-        Object2LongMap<FluidStack> fluidAmounts = enumerateDistinctFluids(fluidHandler, TransferDirection.EXTRACT);
+    void voidAny(IKeyHandler<AEFluidKey> fluidHandler) {
+        var fluidAmounts = enumerateDistinctFluids(fluidHandler);
 
-        for (var entry : Object2LongMaps.fastIterable(fluidAmounts)) {
-            var stack = entry.getKey();
-            if (!filterHandler.test(stack)) continue;
-
-            for (int op : GTMath.split(entry.getLongValue())) {
-                var toDrain = new FluidStack(stack, op);
-                fluidHandler.drain(toDrain, IFluidHandler.FluidAction.EXECUTE);
-            }
+        for (var entry : Reference2LongMaps.fastIterable(fluidAmounts)) {
+            var key = entry.getKey();
+            if (!fluidKeyFilter.matches(key)) continue;
+            fluidHandler.extract(key, entry.getLongValue(), false);
         }
     }
 

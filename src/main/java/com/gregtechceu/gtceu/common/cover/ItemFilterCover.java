@@ -10,8 +10,8 @@ import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SmartItemFilter;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ItemHandlerDelegate;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerView;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.common.data.GTItems;
@@ -26,6 +26,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -92,11 +93,11 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     @Nullable
-    public ICustomItemStackHandler getItemHandlerCap(ICustomItemStackHandler defaultValue) {
+    public IKeyHandler<AEItemKey> getItemHandlerCap(IKeyHandler<AEItemKey> defaultValue) {
         if (defaultValue == null) {
             return null;
         }
-        if (itemFilterWrapper == null || itemFilterWrapper.delegate != defaultValue) {
+        if (itemFilterWrapper == null || itemFilterWrapper.getDelegate() != defaultValue) {
             this.itemFilterWrapper = new FilteredItemHandlerWrapper(defaultValue);
         }
         return itemFilterWrapper;
@@ -118,42 +119,22 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
         return Form.page().addChildren(modes, UIElement.section().addChild(getItemFilter().createConfigUI()));
     }
 
-    private class FilteredItemHandlerWrapper extends ItemHandlerDelegate {
+    private class FilteredItemHandlerWrapper extends KeyHandlerView<AEItemKey> {
 
-        public FilteredItemHandlerWrapper(ICustomItemStackHandler delegate) {
+        public FilteredItemHandlerWrapper(IKeyHandler<AEItemKey> delegate) {
             super(delegate);
         }
 
         @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED) return super.insertItem(slot, stack, simulate);
-            if (filterMode != FilterMode.FILTER_EXTRACT && getItemFilter().test(stack)) {
-                return super.insertItem(slot, stack, simulate);
-            }
-            return stack;
+        protected boolean canInsert(AEItemKey key) {
+            if (filterMode == FilterMode.FILTER_EXTRACT) return allowFlow == ManualIOMode.UNFILTERED;
+            return getItemFilter().test(key.getReadOnlyStack());
         }
 
         @Override
-        public ItemStack insertItemStacked(ItemStack stack, boolean simulate) {
-            if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED) {
-                return delegate.insertItemStacked(stack, simulate);
-            }
-            if (filterMode != FilterMode.FILTER_EXTRACT && getItemFilter().test(stack)) {
-                return delegate.insertItemStacked(stack, simulate);
-            }
-            return stack;
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            ItemStack result = super.extractItem(slot, amount, true);
-            if (result.isEmpty() && (filterMode == FilterMode.FILTER_INSERT) && allowFlow == ManualIOMode.UNFILTERED) {
-                return super.extractItem(slot, amount, simulate);
-            }
-            if (filterMode != FilterMode.FILTER_INSERT && getItemFilter().test(result)) {
-                return super.extractItem(slot, amount, simulate);
-            }
-            return ItemStack.EMPTY;
+        protected boolean canExtract(AEItemKey key) {
+            if (filterMode == FilterMode.FILTER_INSERT) return allowFlow == ManualIOMode.UNFILTERED;
+            return getItemFilter().test(key.getReadOnlyStack());
         }
     }
 }

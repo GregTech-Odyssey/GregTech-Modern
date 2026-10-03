@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.api.machine;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -19,6 +19,7 @@ import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
 
+import appeng.api.stacks.AEFluidKey;
 import com.google.common.collect.Tables;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -95,8 +96,8 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
     }
 
     @Override
-    protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, 0, 0, IO.OUT).setAvailable(false);
+    protected NotifiableInventory<AEFluidKey> createExportFluidHandler(Object... args) {
+        return NotifiableInventory.fluids(this, 0, 0, IO.OUT).setAvailable(false);
     }
 
     //////////////////////////////////////
@@ -110,8 +111,8 @@ public class SimpleGeneratorMachine extends WorkableTieredMachine {
                     var storages = Tables.newCustomTable(new EnumMap<>(IO.class), Reference2ReferenceLinkedOpenHashMap<RecipeInfo, Object>::new);
                     storages.put(IO.IN, ItemRecipeInfo.INSTANCE, generatorMachine.importItems.storage);
                     storages.put(IO.OUT, ItemRecipeInfo.INSTANCE, generatorMachine.exportItems.storage);
-                    storages.put(IO.IN, FluidRecipeInfo.INSTANCE, generatorMachine.importFluids);
-                    storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, generatorMachine.exportFluids);
+                    storages.put(IO.IN, FluidRecipeInfo.INSTANCE, generatorMachine.importFluids.storage);
+                    storages.put(IO.OUT, FluidRecipeInfo.INSTANCE, generatorMachine.exportFluids.storage);
                     generatorMachine.getRecipeType().getRecipeUI().createEditableUITemplate(false, false, (output, key) -> !output).setupUI(template, new GTRecipeTypeUI.RecipeHolder(generatorMachine.recipeLogic::getProgressPercent, storages, new DataComponentMap(), Collections.emptyList(), false, false));
                     createEnergyBar().setupUI(template, generatorMachine);
                 }

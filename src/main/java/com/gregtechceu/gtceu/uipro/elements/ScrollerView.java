@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
+import com.gregtechceu.gtceu.uipro.ITooltipOwner;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.render.UIClip;
@@ -54,7 +55,7 @@ import java.util.function.IntConsumer;
  * 内容列按 flexbox 默认拉伸子元素，行内再用 {@code flex(1)} 分宽度，就能随滚动条显隐自动铺满；
  * 不要在建界面时按 {@link #getContentWidth()} 算好宽度写死。视口外要与内容对齐的元素用 {@link #onContentWidthChanged}。
  */
-public class ScrollerView extends DraggableScrollableWidgetGroup implements ILayoutItem {
+public class ScrollerView extends DraggableScrollableWidgetGroup implements ILayoutItem, ITooltipOwner {
 
     public static final int SCROLL_BAR_WIDTH = 8;
     @Nullable
@@ -541,6 +542,11 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     }
 
     // ==================== 拖拽缩放角 ====================
+
+    @Override
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return !tooltipTexts.isEmpty() || isOverGrip(mouseX, mouseY);
+    }
 
     private boolean isOverGrip(double mouseX, double mouseY) {
         if (!resizable) return false;

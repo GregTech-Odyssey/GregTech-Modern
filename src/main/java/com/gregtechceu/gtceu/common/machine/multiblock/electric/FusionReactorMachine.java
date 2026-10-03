@@ -22,6 +22,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
@@ -183,9 +184,8 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
         if (recipe != colorRecipe) {
             colorRecipe = recipe;
-            if (!recipe.fluidOutputs.isEmpty()) {
-                var fluid = recipe.fluidOutputs.getFirst().inner.getFluid();
-                int newColor = -16777216 | GTUtil.getFluidColor(fluid);
+            if (!recipe.fluidOutputs.isEmpty() && recipe.fluidOutputs.outputKey(0) instanceof AEFluidKey fluidKey) {
+                int newColor = -16777216 | GTUtil.getFluidColor(fluidKey.getFluid());
                 if (color != newColor) {
                     color = newColor;
                 }

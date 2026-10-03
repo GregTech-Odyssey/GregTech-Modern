@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
@@ -16,6 +17,8 @@ import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,9 +35,9 @@ public enum MaceratorLogic implements GTRecipeType.ICustomRecipeLogic {
     @Override
     public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
         AtomicReference<GTRecipeDefinition> recipe = new AtomicReference<>();
-        if (unit.forEachItems(true, (stack, amount) -> {
-            if (stack.isEmpty()) return false;
-            recipe.set(search(stack));
+        if (unit.forEachKey(AEKeyType.items(), true, (key, amount) -> {
+            if (!(key instanceof AEItemKey itemKey) || amount <= 0) return false;
+            recipe.set(search(Keys.displayStack(itemKey)));
             return recipe.get() != null;
         })) {
             return recipe.get();

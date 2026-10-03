@@ -10,15 +10,16 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,6 +36,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -56,18 +58,12 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @Getter
     private final int maxStoredFluids;
     @SaveToDisk
-    protected final NotifiableFluidTank cache;
+    protected final NotifiableInventory<AEFluidKey> cache;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
     @Nullable
     protected ISubscription exportFluidSubs;
-    // rename "Fluid" for Item capability
-    @Getter
-    @SaveToDisk(key = "Fluid", defaultValueGetter = "getDefaultStored")
-    @SyncToClient
-    @DropSaved
-    protected FluidStack stored = getDefaultStored();
     @Getter
     protected final Material material;
 
@@ -78,22 +74,20 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         this.cache = createCacheFluidHandler(args);
     }
 
-    private FluidStack getDefaultStored() {
-        return FluidStack.EMPTY;
-    }
-
     //////////////////////////////////////
     // ***** Initialization *****//
     //////////////////////////////////////
 
-    protected NotifiableFluidTank createCacheFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, 1, maxStoredFluids, IO.BOTH).setFilter(material.getProperty(PropertyKey.FLUID_PIPE));
+    protected NotifiableInventory<AEFluidKey> createCacheFluidHandler(Object... args) {
+        var inventory = NotifiableInventory.fluids(this, 1, maxStoredFluids, IO.BOTH);
+        var pipe = material.getProperty(PropertyKey.FLUID_PIPE);
+        if (pipe != null) inventory.setFilter(key -> key instanceof AEFluidKey fluid && pipe.test(Keys.displayFluid(fluid)));
+        return inventory;
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
-        updateStoredFluidFromCache();
         if (getLevel() instanceof ServerLevel serverLevel) {
             TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
             this.exportFluidSubs = cache.addChangedListener(this::onFluidChanged);
@@ -102,14 +96,8 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     private void onFluidChanged() {
         if (!isRemote()) {
-            updateStoredFluidFromCache();
             updateAutoOutputSubscription();
         }
-    }
-
-    private void updateStoredFluidFromCache() {
-        FluidStack cachedFluid = cache.getFluidInTank(0);
-        this.stored = cachedFluid.isEmpty() ? FluidStack.EMPTY : cachedFluid;
     }
 
     @Override
@@ -121,11 +109,17 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         }
     }
 
+    public FluidStack getStored() {
+        var key = cache.storage.keyAt(0);
+        return key == null ? FluidStack.EMPTY : Keys.toFluidStack(key, cache.storage.amountAt(0));
+    }
+
     //////////////////////////////////////
     // ****** Fluid Logic *******//
     //////////////////////////////////////
     @Override
     public void saveToItem(CompoundTag tag) {
+        var stored = getStored();
         if (!stored.isEmpty()) {
             tag.put("Fluid", stored.writeToNBT(new CompoundTag()));
         }
@@ -134,12 +128,11 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @Override
     public void loadFromItem(CompoundTag tag) {
         if (!tag.contains("Fluid")) {
-            stored = FluidStack.EMPTY;
+            cache.storage.set(0, null, 0);
         } else {
-            stored = FluidStack.loadFluidStackFromNBT(tag.getCompound("Fluid"));
+            var stored = FluidStack.loadFluidStackFromNBT(tag.getCompound("Fluid"));
+            cache.storage.set(0, Keys.fluid(stored), stored.getAmount());
         }
-        // "stored" may not be same as cache (due to item's fluid cap). we should update it.
-        cache.getStorages()[0].setFluid(stored.copy());
     }
 
     @Override
@@ -200,7 +193,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (!isRemote()) {
-            if (FluidUtil.interactWithFluidHandler(player, hand, cache)) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, new ForgeFluidAdapter(cache))) {
                 return InteractionResult.SUCCESS;
             }
         }
@@ -209,7 +202,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
 
     @Override
     public boolean saveBreak() {
-        return !stored.isEmpty();
+        return !cache.storage.isEmpty();
     }
 
     @Override

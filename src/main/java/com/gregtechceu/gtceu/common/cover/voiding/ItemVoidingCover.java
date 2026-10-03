@@ -2,9 +2,9 @@ package com.gregtechceu.gtceu.common.cover.voiding;
 
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.cover.ConveyorCover;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
@@ -23,7 +23,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.items.IItemHandler;
+
+import appeng.api.stacks.AEItemKey;
 
 import java.util.Set;
 
@@ -54,22 +55,23 @@ public class ItemVoidingCover extends ConveyorCover {
     }
 
     protected void doVoidItems() {
-        IItemHandler handler = getOwnItemHandler();
+        IKeyHandler<AEItemKey> handler = getOwnItemHandler();
         if (handler == null) {
             return;
         }
         voidAny(handler);
     }
 
-    void voidAny(IItemHandler handler) {
-        ItemFilter filter = filterHandler.getFilter();
-
-        for (int slot = 0; slot < handler.getSlots(); slot++) {
-            ItemStack sourceStack = handler.extractItem(slot, Integer.MAX_VALUE, true);
-            if (sourceStack.isEmpty() || !filter.test(sourceStack)) {
+    void voidAny(IKeyHandler<AEItemKey> handler) {
+        int size = handler.size();
+        for (int slot = 0; slot < size; slot++) {
+            long stored = handler.amountAt(slot);
+            if (stored <= 0) continue;
+            AEItemKey key = handler.keyAt(slot);
+            if (key == null || !itemKeyFilter.matches(key)) {
                 continue;
             }
-            handler.extractItem(slot, Integer.MAX_VALUE, false);
+            handler.extract(slot, key, stored, false);
         }
     }
 

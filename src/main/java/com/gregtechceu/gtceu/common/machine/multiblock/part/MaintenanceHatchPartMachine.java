@@ -13,11 +13,12 @@ import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.elements.Button;
@@ -47,6 +48,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import dev.gigaherz.toolbelt.BeltFinder;
@@ -77,7 +79,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     @Getter
     private final boolean isConfigurable;
     @SaveToDisk
-    private final NotifiableItemStackHandler itemStackHandler;
+    private final NotifiableInventory<AEItemKey> itemStackHandler;
     @Getter
     @Setter
     @SaveToDisk
@@ -101,14 +103,14 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
         super(metaTileEntityId, isConfigurable ? 3 : 1);
         this.isConfigurable = isConfigurable;
         this.itemStackHandler = createInventory();
-        this.itemStackHandler.setFilter(itemStack -> itemStack.is(GTItems.DUCT_TAPE.get()));
+        this.itemStackHandler.setFilter(key -> key instanceof AEItemKey itemKey && itemKey.getItem() == GTItems.DUCT_TAPE.get());
     }
 
     //////////////////////////////////////
     // ****** Initialization ******//
     //////////////////////////////////////
-    protected NotifiableItemStackHandler createInventory() {
-        return new NotifiableItemStackHandler(this, 1, IO.BOTH, IO.BOTH);
+    protected NotifiableInventory<AEItemKey> createInventory() {
+        return NotifiableInventory.items(this, 1, IO.BOTH, IO.BOTH);
     }
 
     @Override
@@ -184,7 +186,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
 
     public void update() {
         if (hasMaintenanceProblems()) {
-            if (consumeDuctTape(this.itemStackHandler, 0)) {
+            if (consumeDuctTape(this.itemStackHandler.storage, 0)) {
                 fixAllMaintenanceProblems();
                 isTaped = true;
             }
@@ -230,6 +232,14 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
         var stored = handler.getStackInSlot(slot);
         if (!stored.isEmpty() && stored.is(GTItems.DUCT_TAPE.get())) {
             return handler.extractItem(slot, 1, false).is(GTItems.DUCT_TAPE.get());
+        }
+        return false;
+    }
+
+    private boolean consumeDuctTape(KeyInventory<AEItemKey> inventory, int slot) {
+        var stored = inventory.keyAt(slot);
+        if (stored != null && stored.getItem() == GTItems.DUCT_TAPE.get()) {
+            return inventory.extract(slot, stored, 1, false) == 1;
         }
         return false;
     }
@@ -357,19 +367,19 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
                 list.add(getTextWidgetText("duration", this::getDurationMultiplier));
                 list.add(getTextWidgetText("time", this::getTimeMultiplier));
             }, controls -> {
-                var tapeSlot = ItemSlot.of(itemStackHandler, 0);
+                var tapeSlot = ItemSlot.of(itemStackHandler.storage, 0);
                 tapeSlot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.DUCT_TAPE_OVERLAY));
                 tapeSlot.tooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip");
                 var fixButton = Button.icon(UISizes.SLOT_SIZE, GuiTextures.MAINTENANCE_BUTTON).tooltips("gtceu.machine.maintenance_hatch_tool_slot.tooltip");
                 fixButton.setOnServerClick(() -> fixMaintenanceProblems(fixButton.getGui().entityPlayer));
-                controls.addSlot(tapeSlot, TAPE_LABEL, ControlPanel.contentName(itemStackHandler, 0), "gtceu.machine.maintenance_hatch_tape_slot.tooltip");
+                controls.addSlot(tapeSlot, TAPE_LABEL, ControlPanel.contentName(itemStackHandler.storage, 0), "gtceu.machine.maintenance_hatch_tape_slot.tooltip");
                 controls.addSlot(fixButton, FIX_LABEL, null, "gtceu.machine.maintenance_hatch_tool_slot.tooltip");
                 controls.addDecimal(DURATION_LABEL, () -> durationMultiplier, value -> durationMultiplier = (float) value,
                         MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER, DURATION_STEP);
             });
         }
         var group = new WidgetGroup(0, 0, 8 + 18, 8 + 20 + 18);
-        group.addWidget(new SlotWidget(itemStackHandler, 0, group.getSize().width - 4 - 18, 4).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.DUCT_TAPE_OVERLAY)).setHoverTooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip"));
+        group.addWidget(new SlotWidget(itemStackHandler.storage, 0, group.getSize().width - 4 - 18, 4).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.DUCT_TAPE_OVERLAY)).setHoverTooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip"));
         group.addWidget(new ButtonWidget(group.getSize().width - 4 - 18, 4 + 20, 18, 18, GuiTextures.MAINTENANCE_BUTTON, data -> {
             if (!data.isRemote) fixMaintenanceProblems(group.getGui().entityPlayer);
         }).setHoverTooltips("gtceu.machine.maintenance_hatch_tool_slot.tooltip"));

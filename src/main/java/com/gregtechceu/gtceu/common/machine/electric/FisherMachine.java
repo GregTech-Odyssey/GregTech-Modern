@@ -16,10 +16,12 @@ import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -57,6 +59,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -82,15 +85,15 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @SaveToDisk
-    protected final NotifiableItemStackHandler cache;
+    protected final NotifiableInventory<AEItemKey> cache;
     @Getter
     @SaveToDisk
     protected boolean allowInputFromOutputSideItems;
     @SaveToDisk
-    protected final NotifiableItemStackHandler baitHandler;
+    protected final NotifiableInventory<AEItemKey> baitHandler;
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler chargerInventory;
+    protected final StackInventory chargerInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
@@ -144,19 +147,19 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     //////////////////////////////////////
     // ***** Initialization *****//
     //////////////////////////////////////
-    protected CustomItemStackHandler createChargerItemHandler() {
-        var handler = new CustomItemStackHandler();
+    protected StackInventory createChargerItemHandler() {
+        var handler = new StackInventory();
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
-    protected NotifiableItemStackHandler createCacheItemHandler() {
-        return new NotifiableItemStackHandler(this, inventorySize, IO.BOTH, IO.OUT);
+    protected NotifiableInventory<AEItemKey> createCacheItemHandler() {
+        return NotifiableInventory.items(this, inventorySize, IO.BOTH, IO.OUT);
     }
 
-    protected NotifiableItemStackHandler createBaitItemHandler() {
-        var handler = new NotifiableItemStackHandler(this, 1, IO.BOTH, IO.IN);
-        handler.setFilter(item -> item.is(Items.STRING));
+    protected NotifiableInventory<AEItemKey> createBaitItemHandler() {
+        var handler = NotifiableInventory.items(this, 1, IO.BOTH, IO.IN);
+        handler.setFilter(key -> key instanceof AEItemKey item && item.getItem() == Items.STRING);
         return handler;
     }
 
@@ -212,7 +215,8 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     // ********* Logic **********//
     //////////////////////////////////////
     public void updateFishingUpdateSubscription() {
-        if (drainEnergy(true) && this.baitHandler.getStackInSlot(0).is(Items.STRING) && isWorkingEnabled) {
+        var bait = this.baitHandler.storage.keyAt(0);
+        if (drainEnergy(true) && bait != null && bait.getItem() == Items.STRING && isWorkingEnabled) {
             fishingSubs = subscribeServerTick(fishingSubs, fishingMonitor);
             active = true;
             return;
@@ -255,8 +259,8 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
             generatedLoot.addAll(lootTable.getRandomItems(lootContext));
             boolean useBait = false;
             for (ItemStack itemStack : generatedLoot) useBait |= tryFillCache(itemStack);
-            if (useBait && junkEnabled) this.baitHandler.storage.extractItem(0, 1, false);
-            else if (useBait) this.baitHandler.storage.extractItem(0, 2, false);
+            var bait = this.baitHandler.storage.keyAt(0);
+            if (useBait && bait != null) this.baitHandler.storage.extract(0, bait, junkEnabled ? 1 : 2, false);
             updateFishingUpdateSubscription();
             progress = -1;
         }
@@ -264,8 +268,11 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     }
 
     private boolean tryFillCache(ItemStack stack) {
-        for (int i = 0; i < cache.getSlots(); i++) {
-            if (cache.insertItemInternal(i, stack, false).getCount() < stack.getCount()) {
+        var key = Keys.item(stack);
+        if (key == null) return false;
+        var storage = cache.storage;
+        for (int i = 0; i < storage.size(); i++) {
+            if (storage.insert(i, key, stack.getCount(), false) > 0) {
                 return true;
             }
         }
@@ -417,10 +424,11 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
             main.setBackground(GuiTextures.BACKGROUND_INVERSE);
             return main;
         }, (group, machine) -> {
+            var adapter = new MenuItemAdapter(machine.cache.storage);
             WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
                 var index = WidgetUtils.widgetIdIndex(slot);
-                if (index >= 0 && index < machine.cache.getSlots()) {
-                    slot.setHandlerSlot(machine.cache, index);
+                if (index >= 0 && index < machine.cache.storage.size()) {
+                    slot.setHandlerSlot(adapter, index);
                     slot.setCanTakeItems(true);
                     slot.setCanPutItems(false);
                 }

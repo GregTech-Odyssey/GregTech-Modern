@@ -37,6 +37,19 @@ public final class UICodecs {
         }, element);
     }
 
+    public static ByteStreamCodec<float[]> floats(int maxLength) {
+        return ByteStreamCodec.of((buf, value) -> {
+            buf.writeVarInt(value.length);
+            for (float v : value) buf.writeFloat(v);
+        }, buf -> {
+            int size = buf.readVarInt();
+            if (size < 0 || size > maxLength) throw new DecoderException("Invalid array size " + size);
+            var value = new float[size];
+            for (int i = 0; i < size; i++) value[i] = buf.readFloat();
+            return value;
+        });
+    }
+
     public static ByteStreamCodec<String> utf(int maxLength) {
         return ByteStreamCodec.of((buf, value) -> buf.writeUtf(value, maxLength), buf -> buf.readUtf(maxLength));
     }

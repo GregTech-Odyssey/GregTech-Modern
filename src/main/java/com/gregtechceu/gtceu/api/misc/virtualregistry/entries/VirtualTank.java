@@ -2,11 +2,13 @@ package com.gregtechceu.gtceu.api.misc.virtualregistry.entries;
 
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.datastream.codec.DataCodec;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.util.DataCodecs;
@@ -33,12 +35,12 @@ public class VirtualTank extends VirtualEntry {
     protected static final String CAPACITY_KEY = "capacity";
     protected static final String FLUID_KEY = "fluid";
     @NotNull
-    private final FluidTank fluidTank;
+    private final KeyInventory<AEFluidKey> fluidTank;
     private int capacity;
 
     public VirtualTank(int capacity) {
         this.capacity = capacity;
-        fluidTank = new FluidTank(this.capacity);
+        fluidTank = KeyInventory.fluids(1, this.capacity);
     }
 
     public VirtualTank() {
@@ -51,7 +53,7 @@ public class VirtualTank extends VirtualEntry {
     }
 
     public void setFluid(FluidStack fluid) {
-        this.fluidTank.setFluid(fluid);
+        this.fluidTank.set(0, Keys.fluid(fluid), fluid.getAmount());
     }
 
     @Override
@@ -64,7 +66,8 @@ public class VirtualTank extends VirtualEntry {
     public CompoundTag serializeNBT() {
         var tag = super.serializeNBT();
         tag.putInt(CAPACITY_KEY, this.capacity);
-        if (this.fluidTank.getFluid() != FluidStack.EMPTY) tag.put(FLUID_KEY, this.fluidTank.getFluid().writeToNBT(new CompoundTag()));
+        var key = this.fluidTank.keyAt(0);
+        if (key != null) tag.put(FLUID_KEY, Keys.toFluidStack(key, this.fluidTank.amountAt(0)).writeToNBT(new CompoundTag()));
         return tag;
     }
 
@@ -81,7 +84,7 @@ public class VirtualTank extends VirtualEntry {
     }
 
     @NotNull
-    public FluidTank getFluidTank() {
+    public KeyInventory<AEFluidKey> getFluidTank() {
         return this.fluidTank;
     }
 }

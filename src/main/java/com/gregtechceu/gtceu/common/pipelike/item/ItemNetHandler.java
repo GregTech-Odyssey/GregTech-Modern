@@ -6,8 +6,9 @@ import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.ConveyorCover;
 import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
@@ -15,12 +16,11 @@ import com.gregtechceu.gtceu.common.cover.RobotArmCover;
 import com.gregtechceu.gtceu.common.cover.data.DistributionMode;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.utils.FacingPos;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -28,14 +28,14 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public final class ItemNetHandler implements ICustomItemStackHandler {
+public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
 
     @Getter
     private ItemPipeNet net;
@@ -44,7 +44,7 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     private final Direction facing;
     private final O2IOpenCacheHashMap<FacingPos> simulatedTransfersGlobalRoundRobin = new O2IOpenCacheHashMap<>();
     private int simulatedTransfers = 0;
-    private final CustomItemStackHandler testHandler = new CustomItemStackHandler(1);
+    private final KeyInventory<AEItemKey> testHandler = KeyInventory.items(1, Long.MAX_VALUE, false);
 
     public ItemNetHandler(ItemPipeNet net, ItemPipeBlockEntity pipe, Direction facing) {
         this.net = net;
@@ -62,12 +62,12 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
         simulatedTransfersGlobalRoundRobin.putAll(pipe.getTransferred());
     }
 
-    @NotNull
     @Override
-    public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-        if (stack.isEmpty()) return stack;
-        if (net == null || pipe == null || pipe.isInValid() || pipe.isBlocked(facing)) {
-            return stack;
+    public long insert(AEItemKey key, long amount, boolean simulate) {
+        if (amount <= 0 || pipe == null) return 0;
+        pipe.checkNetwork();
+        if (net == null || pipe.isInValid() || pipe.isBlocked(facing)) {
+            return 0;
         }
         copyTransferred();
         CoverBehavior pipeCover = pipe.getCoverContainer().getCoverAtSide(facing);
@@ -75,46 +75,46 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
         boolean pipeConveyor = pipeCover instanceof ConveyorCover;
         boolean tileConveyor = tileCover instanceof ConveyorCover;
         // abort if there are two conveyors
-        if (pipeConveyor && tileConveyor) return stack;
-        if (tileCover != null && !checkImportCover(tileCover, false, stack)) return stack;
-        if (!pipeConveyor && !tileConveyor) return insertFirst(stack, simulate);
+        if (pipeConveyor && tileConveyor) return 0;
+        if (tileCover != null && !checkImportCover(tileCover, false, key)) return 0;
+        if (!pipeConveyor && !tileConveyor) return insertFirst(key, amount, simulate);
         ConveyorCover conveyor = (ConveyorCover) (pipeConveyor ? pipeCover : tileCover);
         if (conveyor.getIo() == (pipeConveyor ? IO.IN : IO.OUT)) {
             boolean roundRobinGlobal = conveyor.getDistributionMode() == DistributionMode.ROUND_ROBIN_GLOBAL;
-            if (roundRobinGlobal || conveyor.getDistributionMode() == DistributionMode.ROUND_ROBIN_PRIO) return insertRoundRobin(stack, simulate, roundRobinGlobal);
+            if (roundRobinGlobal || conveyor.getDistributionMode() == DistributionMode.ROUND_ROBIN_PRIO) return insertRoundRobin(key, amount, simulate, roundRobinGlobal);
         }
-        return insertFirst(stack, simulate);
+        return insertFirst(key, amount, simulate);
     }
 
-    public static boolean checkImportCover(CoverBehavior cover, boolean onPipe, ItemStack stack) {
+    public static boolean checkImportCover(CoverBehavior cover, boolean onPipe, AEItemKey key) {
         if (cover == null) return true;
         if (cover instanceof ItemFilterCover filter) {
-            return (filter.getFilterMode() != FilterMode.FILTER_BOTH && (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) && (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) || filter.getItemFilter().test(stack);
+            return (filter.getFilterMode() != FilterMode.FILTER_BOTH && (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) && (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) || filter.getItemFilter().test(Keys.displayStack(key));
         }
         return true;
     }
 
-    public ItemStack insertFirst(ItemStack stack, boolean simulate) {
+    public long insertFirst(AEItemKey key, long amount, boolean simulate) {
+        long left = amount;
         for (var inv : net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing).array) {
             if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
-            stack = insert(inv, stack, simulate);
-            if (stack.isEmpty()) return ItemStack.EMPTY;
+            left -= insert(inv, key, left, simulate);
+            if (left <= 0) return amount;
         }
-        return stack;
+        return amount - left;
     }
 
-    public ItemStack insertRoundRobin(ItemStack stack, boolean simulate, boolean global) {
+    public long insertRoundRobin(AEItemKey key, long amount, boolean simulate, boolean global) {
         var routePaths = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
-        if (routePaths.size == 0) return stack;
-        if (routePaths.size == 1) return insert(routePaths.array[0], stack, simulate);
+        if (routePaths.size == 0) return 0;
+        if (routePaths.size == 1) return insert(routePaths.array[0], key, amount, simulate);
         if (global) {
-            stack = insertToHandlersEnhanced(routePaths.array, stack, simulate);
-        } else {
-            var routePathsCopy = new ObjectArrayList<>(routePaths.array);
-            stack = insertToHandlers(routePathsCopy, stack, simulate);
-            if (!stack.isEmpty() && !routePathsCopy.isEmpty()) stack = insertToHandlers(routePathsCopy, stack, simulate);
+            return insertToHandlersEnhanced(routePaths.array, key, amount, simulate);
         }
-        return stack;
+        var routePathsCopy = new ObjectArrayList<>(routePaths.array);
+        long inserted = insertToHandlers(routePathsCopy, key, amount, simulate);
+        if (inserted < amount && !routePathsCopy.isEmpty()) inserted += insertToHandlers(routePathsCopy, key, amount - inserted, simulate);
+        return inserted;
     }
 
     /**
@@ -122,50 +122,41 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
      * if it couldn't insert all items, the handler will be removed
      *
      * @param copy     to insert to
-     * @param stack    to insert
      * @param simulate simulate
-     * @return remainder
      */
-    private ItemStack insertToHandlers(List<ItemRoutePath> copy, ItemStack stack, boolean simulate) {
+    private long insertToHandlers(List<ItemRoutePath> copy, AEItemKey key, long count, boolean simulate) {
         Iterator<ItemRoutePath> routePathIterator = copy.listIterator(0);
-        int inserted = 0;
-        int count = stack.getCount();
-        int c = count / copy.size();
-        int m = c == 0 ? count % copy.size() : 0;
+        long inserted = 0;
+        long c = count / copy.size();
+        long m = c == 0 ? count % copy.size() : 0;
         while (routePathIterator.hasNext()) {
             ItemRoutePath routePath = routePathIterator.next();
-            int amount = c;
+            long amount = c;
             if (m > 0) {
                 amount++;
                 m--;
             }
-            amount = Math.min(amount, stack.getCount() - inserted);
+            amount = Math.min(amount, count - inserted);
             if (amount == 0) break;
-            ItemStack toInsert = stack.copy();
-            toInsert.setCount(amount);
-            int r = insert(routePath, toInsert, simulate).getCount();
-            if (r < amount) {
-                inserted += (amount - r);
-            }
+            long ins = insert(routePath, key, amount, simulate);
+            long r = amount - ins;
+            inserted += ins;
             if (r == 1 && c == 0 && amount == 1) {
                 m++;
             }
             if (r > 0) routePathIterator.remove();
         }
-        ItemStack remainder = stack.copy();
-        remainder.setCount(count - inserted);
-        return remainder;
+        return inserted;
     }
 
-    private ItemStack insertToHandlersEnhanced(ItemRoutePath[] array, ItemStack stack, boolean simulate) {
+    private long insertToHandlersEnhanced(ItemRoutePath[] array, AEItemKey key, long total, boolean simulate) {
         List<EnhancedRoundRobinData> transferred = new ArrayList<>();
         IntList steps = new IntArrayList();
         int min = Integer.MAX_VALUE;
-        ItemStack simStack;
+        int count = Keys.saturatedInt(total);
         // find inventories that are not full and get the amount that was inserted in total
         for (var inv : array) {
-            simStack = stack.copy();
-            int ins = stack.getCount() - insert(inv, simStack, true, true).getCount();
+            int ins = (int) insert(inv, key, count, true, true);
             if (ins <= 0) continue;
             int didTransfer = didTransferTo(inv, simulate);
             EnhancedRoundRobinData data = new EnhancedRoundRobinData(inv, ins, didTransfer);
@@ -175,16 +166,16 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
                 steps.add(didTransfer);
             }
         }
-        if (transferred.isEmpty() || steps.isEmpty()) return stack;
+        if (transferred.isEmpty() || steps.isEmpty()) return 0;
         if (!simulate && min < Integer.MAX_VALUE) {
             decrementBy(min);
         }
         transferred.sort(Comparator.comparingInt(data -> data.transferred));
         steps.sort(Integer::compare);
         if (transferred.getFirst().transferred != steps.getInt(0)) {
-            return stack;
+            return 0;
         }
-        int amount = stack.getCount();
+        int amount = count;
         int c = amount / transferred.size();
         int m = amount % transferred.size();
         List<EnhancedRoundRobinData> transferredCopy = new ArrayList<>(transferred);
@@ -234,124 +225,117 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
                 nextStep = steps.removeInt(0);
             }
         }
-        int inserted = 0;
+        long inserted = 0;
         // finally actually insert the item
         for (EnhancedRoundRobinData data : transferred) {
-            ItemStack toInsert = stack.copy();
-            toInsert.setCount(data.toTransfer);
-            int ins = data.toTransfer - insert(data.routePath, toInsert, simulate).getCount();
+            int ins = (int) insert(data.routePath, key, data.toTransfer, simulate);
             inserted += ins;
             transferTo(data.routePath, simulate, ins);
         }
-        ItemStack remainder = stack.copy();
-        remainder.shrink(inserted);
-        return remainder;
+        return inserted;
     }
 
-    public ItemStack insert(ItemRoutePath handler, ItemStack stack, boolean simulate) {
-        return insert(handler, stack, simulate, false);
+    public long insert(ItemRoutePath handler, AEItemKey key, long amount, boolean simulate) {
+        return insert(handler, key, amount, simulate, false);
     }
 
-    public ItemStack insert(ItemRoutePath routePath, ItemStack stack, boolean simulate, boolean ignoreLimit) {
-        int allowed = ignoreLimit ? stack.getCount() : checkTransferable(routePath.getProperties().getTransferRate(), stack.getCount(), simulate);
-        if (allowed == 0 || !routePath.matchesFilters(stack)) {
-            return stack;
+    public long insert(ItemRoutePath routePath, AEItemKey key, long amount, boolean simulate, boolean ignoreLimit) {
+        if (amount <= 0) return 0;
+        long allowed = ignoreLimit ? amount : checkTransferable(routePath.getProperties().getTransferRate(), amount, simulate);
+        if (allowed == 0 || !routePath.matchesFilters(key)) {
+            return 0;
         }
         CoverBehavior pipeCover = routePath.getTargetPipe().getCoverContainer().getCoverAtSide(routePath.getTargetFacing());
         CoverBehavior tileCover = getCoverOnNeighbour(routePath.getTargetFacing());
         if (pipeCover != null) {
-            testHandler.setStackInSlot(0, stack.copy());
+            testHandler.set(0, key, amount);
             var itemHandler = pipeCover.getItemHandlerCap(testHandler);
-            if (itemHandler == null || (itemHandler != testHandler && (allowed = itemHandler.extractItem(0, allowed, true).getCount()) <= 0)) {
-                testHandler.setStackInSlot(0, ItemStack.EMPTY);
-                return stack;
+            if (itemHandler == null || (itemHandler != testHandler && (allowed = itemHandler.extract(0, key, allowed, true)) <= 0)) {
+                testHandler.set(0, null, 0);
+                return 0;
             }
-            testHandler.setStackInSlot(0, ItemStack.EMPTY);
+            testHandler.set(0, null, 0);
         }
-        IItemHandler neighbourHandler = routePath.getHandler(net.getLevel());
+        IKeyHandler<AEItemKey> neighbourHandler = routePath.getHandler(net.getLevel());
+        if (neighbourHandler == null) return 0;
         if (pipeCover instanceof RobotArmCover robotArm && robotArm.getIo() == IO.OUT) {
-            return insertOverRobotArm(neighbourHandler, robotArm, stack, simulate, allowed, ignoreLimit);
+            return insertOverRobotArm(neighbourHandler, robotArm, key, amount, simulate, allowed, ignoreLimit);
         }
         if (tileCover instanceof RobotArmCover robotArm && robotArm.getIo() == IO.IN) {
-            return insertOverRobotArm(neighbourHandler, robotArm, stack, simulate, allowed, ignoreLimit);
+            return insertOverRobotArm(neighbourHandler, robotArm, key, amount, simulate, allowed, ignoreLimit);
         }
-        return insert(neighbourHandler, stack, simulate, allowed, ignoreLimit);
+        return insert(neighbourHandler, key, amount, simulate, allowed, ignoreLimit);
     }
 
-    private ItemStack insert(IItemHandler handler, ItemStack stack, boolean simulate, int allowed, boolean ignoreLimit) {
-        if (stack.getCount() == allowed) {
-            ItemStack re = GTTransferUtils.insertItemStacked(handler, stack, simulate);
-            if (!ignoreLimit) transfer(simulate, stack.getCount() - re.getCount());
-            return re;
-        }
-        ItemStack toInsert = stack.copy();
-        toInsert.setCount(Math.min(allowed, stack.getCount()));
-        int r = GTTransferUtils.insertItemStacked(handler, toInsert, simulate).getCount();
-        if (!ignoreLimit) transfer(simulate, toInsert.getCount() - r);
-        ItemStack remainder = stack.copy();
-        remainder.setCount(r + (stack.getCount() - toInsert.getCount()));
-        return remainder;
+    private long insert(IKeyHandler<AEItemKey> handler, AEItemKey key, long amount, boolean simulate, long allowed, boolean ignoreLimit) {
+        long ins = handler.insert(key, Math.min(allowed, amount), simulate);
+        if (!ignoreLimit) transfer(simulate, Keys.saturatedInt(ins));
+        return ins;
     }
 
+    @Nullable
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
         ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighborBlockEntity(handlerFacing), handlerFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }
 
-    public ItemStack insertOverRobotArm(IItemHandler handler, RobotArmCover arm, ItemStack stack, boolean simulate, int allowed, boolean ignoreLimit) {
-        int rate = arm.getFilterHandler().getFilter().testItemCount(stack);
-        int count;
+    public long insertOverRobotArm(IKeyHandler<AEItemKey> handler, RobotArmCover arm, AEItemKey key, long amount, boolean simulate, long allowed, boolean ignoreLimit) {
+        int rate = arm.getFilterHandler().getFilter().testItemCount(Keys.displayStack(key));
+        long count;
         switch (arm.getTransferMode()) {
             case TRANSFER_ANY:
-                return insert(handler, stack, simulate, allowed, ignoreLimit);
+                return insert(handler, key, amount, simulate, allowed, ignoreLimit);
             case KEEP_EXACT:
                 if (arm.getFilterHandler().getFilter().supportsAmounts()) {
-                    count = rate - countStack(handler, stack, arm);
+                    count = rate - countStack(handler, key, arm);
                 } else {
                     count = rate;
                 }
-                if (count <= 0) return stack;
-                count = Math.min(allowed, Math.min(stack.getCount(), count));
-                return insert(handler, stack, simulate, count, ignoreLimit);
+                if (count <= 0) return 0;
+                count = Math.min(allowed, Math.min(amount, count));
+                return insert(handler, key, amount, simulate, count, ignoreLimit);
             case TRANSFER_EXACT:
-                int max = allowed + arm.getBuffer();
-                count = Math.min(max, Math.min(rate, stack.getCount()));
+                long max = allowed + arm.getBuffer();
+                count = Math.min(max, Math.min(rate, amount));
                 if (count < rate) {
-                    arm.buffer(allowed);
-                    return stack;
+                    arm.buffer(Keys.saturatedInt(allowed));
+                    return 0;
                 } else {
                     arm.clearBuffer();
                 }
-                if (insert(handler, stack, true, count, ignoreLimit).getCount() != stack.getCount() - count) {
-                    return stack;
+                if (insert(handler, key, amount, true, count, ignoreLimit) != count) {
+                    return 0;
                 }
-                return insert(handler, stack, simulate, count, ignoreLimit);
+                return insert(handler, key, amount, simulate, count, ignoreLimit);
         }
-        return stack;
+        return 0;
     }
 
-    public static int countStack(IItemHandler handler, ItemStack stack, RobotArmCover arm) {
+    public static long countStack(IKeyHandler<AEItemKey> handler, AEItemKey key, RobotArmCover arm) {
         if (arm == null) return 0;
-        int count = 0;
+        long count = 0;
         ItemFilter filter = arm.getFilterHandler().getFilter();
         boolean ignoreNBT = filter instanceof SimpleItemFilter simple && simple.isIgnoreNbt();
-        for (int i = 0; i < handler.getSlots(); i++) {
-            ItemStack slot = handler.getStackInSlot(i);
-            if (slot.isEmpty()) continue;
-            if (ignoreNBT && !ItemStack.isSameItem(stack, slot)) continue;
-            else if (!ItemStack.isSameItemSameTags(stack, slot)) continue;
-            if (arm.getFilterHandler().getFilter().test(slot)) {
-                count += slot.getCount();
+        int size = handler.size();
+        for (int i = 0; i < size; i++) {
+            long stored = handler.amountAt(i);
+            if (stored <= 0) continue;
+            AEItemKey slot = handler.keyAt(i);
+            if (slot == null) continue;
+            if (ignoreNBT && slot.getItem() != key.getItem()) continue;
+            else if (slot != key) continue;
+            if (filter.test(Keys.displayStack(slot))) {
+                count += stored;
             }
         }
         return count;
     }
 
-    private int checkTransferable(float rate, int amount, boolean simulate) {
+    private int checkTransferable(float rate, long amount, boolean simulate) {
         int max = (int) ((rate * 64) + 0.5);
-        if (simulate) return Math.max(0, Math.min(max - simulatedTransfers, amount));
-        else return Math.max(0, Math.min(max - pipe.getTransferredItems(), amount));
+        if (simulate) return (int) Math.max(0, Math.min(max - simulatedTransfers, amount));
+        else return (int) Math.max(0, Math.min(max - pipe.getTransferredItems(), amount));
     }
 
     private void transfer(boolean simulate, int amount) {
@@ -360,29 +344,57 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
     }
 
     @Override
-    public int getSlots() {
+    public AEKeyType keyType() {
+        return AEKeyType.items();
+    }
+
+    @Override
+    public int size() {
         return 1;
     }
 
-    @NotNull
     @Override
-    public ItemStack getStackInSlot(int i) {
-        return ItemStack.EMPTY;
-    }
-
-    @NotNull
-    @Override
-    public ItemStack extractItem(int slot, int amount, boolean simulate) {
-        return ItemStack.EMPTY;
+    public @Nullable AEItemKey keyAt(int slot) {
+        return null;
     }
 
     @Override
-    public int getSlotLimit(int i) {
+    public long amountAt(int slot) {
+        return 0;
+    }
+
+    @Override
+    public long slotLimit(int slot) {
         return 64;
     }
 
     @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+    public long insert(int slot, AEItemKey key, long amount, boolean simulate) {
+        return insert(key, amount, simulate);
+    }
+
+    @Override
+    public long extract(int slot, AEItemKey key, long amount, boolean simulate) {
+        return 0;
+    }
+
+    @Override
+    public long extract(AEItemKey key, long amount, boolean simulate) {
+        return 0;
+    }
+
+    @Override
+    public long spaceFor(int slot, AEItemKey key) {
+        return 64;
+    }
+
+    @Override
+    public long count(AEItemKey key) {
+        return 0;
+    }
+
+    @Override
+    public boolean isEmpty() {
         return true;
     }
 
@@ -408,9 +420,6 @@ public final class ItemNetHandler implements ICustomItemStackHandler {
             entry.setValue(entry.getIntValue() - amount);
         }
     }
-
-    @Override
-    public void setStackInSlot(int slot, @NotNull ItemStack stack) {}
 
     private static class EnhancedRoundRobinData {
 

@@ -8,10 +8,11 @@ import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -31,6 +32,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import appeng.api.stacks.AEItemKey;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
@@ -45,13 +48,13 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
     }
 
     @Override
-    protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
+    protected NotifiableInventory<AEItemKey> createImportItemHandler(Object... args) {
+        return NotifiableInventory.items(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
     }
 
     @Override
-    protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
+    protected NotifiableInventory<AEItemKey> createExportItemHandler(Object... args) {
+        return NotifiableInventory.items(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
     }
 
     @Override
@@ -115,27 +118,29 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
 
     @Override
     public ModularUI createUI(Player entityPlayer) {
+        var importSlots = new MenuItemAdapter(importItems.storage);
+        var exportSlots = new MenuItemAdapter(exportItems.storage);
         return new ModularUI(176, 166, this, entityPlayer)
                 .background(GuiTextures.PRIMITIVE_BACKGROUND)
                 .widget(new LabelWidget(5, 5, getBlockState().getBlock().getDescriptionId()))
-                .widget(new SlotWidget(importItems.storage, 0, 52, 20, true, true)
+                .widget(new SlotWidget(importSlots, 0, 52, 20, true, true)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_INGOT_OVERLAY)))
-                .widget(new SlotWidget(importItems.storage, 1, 52, 38, true, true)
+                .widget(new SlotWidget(importSlots, 1, 52, 38, true, true)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_DUST_OVERLAY)))
-                .widget(new SlotWidget(importItems.storage, 2, 52, 56, true, true)
+                .widget(new SlotWidget(importSlots, 2, 52, 56, true, true)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_FURNACE_OVERLAY)))
                 .widget(new ProgressWidget(recipeLogic::getProgressPercent, 77, 39, 20, 15,
                         GuiTextures.PRIMITIVE_BLAST_FURNACE_PROGRESS_BAR))
-                .widget(new SlotWidget(exportItems.storage, 0, 104, 38, true, false)
+                .widget(new SlotWidget(exportSlots, 0, 104, 38, true, false)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_INGOT_OVERLAY)))
-                .widget(new SlotWidget(exportItems.storage, 1, 122, 38, true, false)
+                .widget(new SlotWidget(exportSlots, 1, 122, 38, true, false)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_DUST_OVERLAY)))
-                .widget(new SlotWidget(exportItems.storage, 2, 140, 38, true, false)
+                .widget(new SlotWidget(exportSlots, 2, 140, 38, true, false)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_DUST_OVERLAY)))
                 .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.PRIMITIVE_SLOT, 7, 84,

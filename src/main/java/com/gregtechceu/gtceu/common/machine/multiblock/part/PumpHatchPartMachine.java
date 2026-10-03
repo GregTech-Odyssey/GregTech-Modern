@@ -5,8 +5,9 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -16,6 +17,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidType;
+
+import appeng.api.stacks.AEFluidKey;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -28,8 +31,8 @@ public class PumpHatchPartMachine extends FluidHatchPartMachine {
     }
 
     @Override
-    protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
-        return super.createTank(initialCapacity, slots).setFilter(fluidStack -> fluidStack.getFluid() == Fluids.WATER);
+    protected NotifiableInventory<AEFluidKey> createTank(int initialCapacity, int slots, Object... args) {
+        return super.createTank(initialCapacity, slots).setFilter(key -> key instanceof AEFluidKey fluidKey && fluidKey.getFluid() == Fluids.WATER);
     }
 
     @Override
@@ -38,10 +41,10 @@ public class PumpHatchPartMachine extends FluidHatchPartMachine {
                 .background(GuiTextures.BACKGROUND)
                 .widget(new ImageWidget(7, 16, 81, 55, GuiTextures.DISPLAY))
                 .widget(new LabelWidget(11, 20, "gtceu.gui.fluid_amount"))
-                .widget(new LabelWidget(11, 30, () -> String.valueOf(tank.getFluidInTank(0).getAmount()))
+                .widget(new LabelWidget(11, 30, () -> String.valueOf(tank.storage.amountAt(0)))
                         .setTextColor(-1).setDropShadow(true))
                 .widget(new LabelWidget(6, 6, getBlockState().getBlock().getDescriptionId()))
-                .widget(new TankWidget(tank.getStorages()[0], 90, 35, true, io.support(IO.IN))
+                .widget(new TankWidget(new ForgeFluidAdapter(tank.storage), 0, 90, 35, true, io.support(IO.IN))
                         .setBackground(GuiTextures.FLUID_SLOT))
                 .widget(new ToggleButtonWidget(7, 53, 18, 18,
                         GuiTextures.BUTTON_FLUID_OUTPUT, this::isWorkingEnabled, this::setWorkingEnabled)

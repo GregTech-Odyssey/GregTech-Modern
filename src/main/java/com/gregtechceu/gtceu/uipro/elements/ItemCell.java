@@ -65,6 +65,11 @@ public class ItemCell extends UIElement {
     }
 
     @Override
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return super.hasOwnTooltip(mouseX, mouseY) || !getStack().isEmpty();
+    }
+
+    @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);

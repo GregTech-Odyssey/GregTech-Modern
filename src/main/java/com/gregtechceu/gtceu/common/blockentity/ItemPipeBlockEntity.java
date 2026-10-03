@@ -1,17 +1,21 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
+import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipeProperties;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.block.ItemPipeBlock;
 import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemNetHandler;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeNet;
 import com.gregtechceu.gtceu.common.pipelike.item.ItemPipeType;
 import com.gregtechceu.gtceu.utils.FacingPos;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +28,8 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.AEKeyFilter;
 import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +45,8 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
     @Getter
     private final O2IOpenCacheHashMap<FacingPos> transferred = new O2IOpenCacheHashMap<>();
     private ItemNetHandler defaultHandler;
+    @SuppressWarnings("unchecked")
+    private final LazyOptional<IItemHandler>[] capabilityCache = new LazyOptional[6];
     private int transferredItems = 0;
     private long timer = 0;
 
@@ -59,11 +67,42 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
     public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ITEM_HANDLER) {
             if (side != null && isConnected(side)) {
-                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> getHandler(side, true)));
+                return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, getItemCapability(side));
             }
             return LazyOptional.empty();
         }
         return super.getCapability(cap, side);
+    }
+
+    private LazyOptional<IItemHandler> getItemCapability(Direction side) {
+        var cached = capabilityCache[side.ordinal()];
+        if (cached != null) return cached;
+        if (isRemote()) return LazyOptional.of(() -> EmptyHandler.INSTANCE);
+        ensureHandlersInitialized();
+        checkNetwork();
+        if (this.currentItemPipeNet.get() == null) return LazyOptional.of(() -> EmptyHandler.INSTANCE);
+        var handler = getHandler(side, true);
+        if (handler == null) return LazyOptional.empty();
+        var adapter = new ForgeItemAdapter(handler);
+        cached = LazyOptional.of(() -> adapter);
+        capabilityCache[side.ordinal()] = cached;
+        return cached;
+    }
+
+    public void invalidateCapabilityCache() {
+        for (int i = 0; i < capabilityCache.length; i++) {
+            var cached = capabilityCache[i];
+            if (cached != null) {
+                capabilityCache[i] = null;
+                cached.invalidate();
+            }
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        invalidateCapabilityCache();
     }
 
     private void ensureHandlersInitialized() {
@@ -75,6 +114,7 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
         if (net == null) {
             return;
         }
+        invalidateCapabilityCache();
         for (Direction facing : GTUtil.DIRECTIONS) {
             handlers.put(facing, new ItemNetHandler(net, this, facing));
         }
@@ -89,6 +129,7 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
                 for (ItemNetHandler handler : handlers.values()) {
                     handler.updateNetwork(current);
                 }
+                invalidateCapabilityCache();
             }
         }
     }
@@ -142,6 +183,7 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         this.handlers.clear();
+        invalidateCapabilityCache();
     }
 
     @Override
@@ -160,6 +202,7 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
     @Override
     protected void updateNetworkConnection(Direction side, boolean connected) {
         super.updateNetworkConnection(side, connected);
+        invalidateCapabilityCache();
         updateTransferTick(blockedSide != null && isBlocked(blockedSide), this::autoTransfer);
     }
 
@@ -180,10 +223,10 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
             if (facing != blockedSide && isConnected(facing)) {
                 var be = getNeighborBlockEntity(facing);
                 if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
-                var handler = LazyOptionalUtil.get(be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()));
+                var handler = GTCapabilityHelper.getItemKeyHandler(be, facing.getOpposite());
                 if (handler != null) {
                     hasHandler = true;
-                    throughput -= GTTransferUtils.transferItemsFiltered(handler, handlers.getOrDefault(facing, defaultHandler), getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? filterCover.getItemFilter() : GTUtil.FAVORABLE, throughput);
+                    throughput -= (int) KeyTransfer.transfer(handler, handlers.getOrDefault(facing, defaultHandler), throughput, getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? itemFilter(filterCover.getItemFilter()) : null);
                     if (throughput <= 0) break;
                 }
             }
@@ -195,11 +238,16 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
         }
     }
 
-    public IItemHandler getHandler(@Nullable Direction side, boolean useCoverCapability) {
-        if (isRemote()) return EmptyHandler.INSTANCE;
+    private static AEKeyFilter itemFilter(ItemFilter filter) {
+        return key -> key instanceof AEItemKey itemKey && filter.test(Keys.displayStack(itemKey));
+    }
+
+    @Nullable
+    public IKeyHandler<AEItemKey> getHandler(@Nullable Direction side, boolean useCoverCapability) {
+        if (isRemote()) return null;
         ensureHandlersInitialized();
         checkNetwork();
-        if (this.currentItemPipeNet.get() == null) return EmptyHandler.INSTANCE;
+        if (this.currentItemPipeNet.get() == null) return null;
         ItemNetHandler handler = handlers.getOrDefault(side, defaultHandler);
         if (!useCoverCapability || side == null) return handler;
         CoverBehavior cover = getCoverContainer().getCoverAtSide(side);

@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.common.pipelike.fluid;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.utils.FacingPos;
 
@@ -9,8 +11,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyType;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public final class FluidRoutePath implements IRoutePath<IFluidHandler> {
+public final class FluidRoutePath implements IRoutePath<IKeyHandler<AEFluidKey>> {
 
     @Getter
     private final FluidPipeBlockEntity targetPipe;
@@ -49,12 +52,13 @@ public final class FluidRoutePath implements IRoutePath<IFluidHandler> {
 
     @Override
     @Nullable
-    public IFluidHandler getHandler(Level world) {
-        return targetPipe.blockEntityDirectionCache.getAdjacentFluidHandler(world, getTargetPipePos(), targetFacing).orElse(null);
+    @SuppressWarnings("unchecked")
+    public IKeyHandler<AEFluidKey> getHandler(Level world) {
+        return (IKeyHandler<AEFluidKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyType.fluids());
     }
 
-    public boolean matchesFilters(FluidStack stack) {
-        return filters.test(stack);
+    public boolean matchesFilters(AEFluidKey key) {
+        return filters.test(Keys.displayFluid(key));
     }
 
     public FacingPos toFacingPos() {

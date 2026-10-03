@@ -4,7 +4,9 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.TransferMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
@@ -17,9 +19,8 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -59,7 +60,7 @@ public class FluidRegulatorCover extends PumpCover {
     // ***** Transfer Logic ******//
     //////////////////////////////////////
     @Override
-    protected int doTransferFluidsInternal(ICustomFluidStackHandler source, ICustomFluidStackHandler destination, int platformTransferLimit) {
+    protected int doTransferFluidsInternal(IKeyHandler<AEFluidKey> source, IKeyHandler<AEFluidKey> destination, int platformTransferLimit) {
         return switch (transferMode) {
             case TRANSFER_ANY -> transferAny(source, destination, platformTransferLimit);
             case TRANSFER_EXACT -> transferExact(source, destination, platformTransferLimit);
@@ -67,12 +68,13 @@ public class FluidRegulatorCover extends PumpCover {
         };
     }
 
-    private int transferExact(IFluidHandler source, IFluidHandler destination, int platformTransferLimit) {
+    private int transferExact(IKeyHandler<AEFluidKey> source, IKeyHandler<AEFluidKey> destination, int platformTransferLimit) {
         int fluidLeftToTransfer = platformTransferLimit;
-        for (int slot = 0; slot < source.getTanks(); slot++) {
+        int size = source.size();
+        for (int slot = 0; slot < size; slot++) {
             if (fluidLeftToTransfer <= 0) break;
-            FluidStack sourceFluid = source.getFluidInTank(slot).copy();
-            int supplyAmount = getFilteredFluidAmount(sourceFluid);
+            AEFluidKey key = source.keyAt(slot);
+            int supplyAmount = getFilteredFluidAmount(Keys.displayFluid(key));
             // If the remaining transferrable amount in this operation is not enough to transfer the full stack size,
             // the remaining amount for this operation will be buffered and added to the next operation's maximum.
             if (fluidLeftToTransfer + fluidTransferBuffered < supplyAmount) {
@@ -80,45 +82,29 @@ public class FluidRegulatorCover extends PumpCover {
                 fluidLeftToTransfer = 0;
                 break;
             }
-            if (sourceFluid.isEmpty() || supplyAmount <= 0) continue;
-            if (supplyAmount != sourceFluid.getAmount()) {
-                sourceFluid = sourceFluid.copy();
-                sourceFluid.setAmount(supplyAmount);
-            }
-            FluidStack drained = source.drain(sourceFluid, FluidAction.SIMULATE);
-            if (drained.isEmpty() || drained.getAmount() < supplyAmount) continue;
-            int insertableAmount = destination.fill(drained.copy(), FluidAction.SIMULATE);
-            if (insertableAmount <= 0) continue;
-            drained.setAmount(insertableAmount);
-            drained = source.drain(drained, FluidAction.EXECUTE);
-            if (!drained.isEmpty()) {
-                destination.fill(drained, FluidAction.EXECUTE);
-                fluidLeftToTransfer -= (drained.getAmount() - fluidTransferBuffered);
+            if (key == null || supplyAmount <= 0) continue;
+            if (source.extract(key, supplyAmount, true) < supplyAmount) continue;
+            long moved = KeyTransfer.transferKey(source, destination, key, supplyAmount);
+            if (moved > 0) {
+                fluidLeftToTransfer -= (int) (moved - fluidTransferBuffered);
             }
             fluidTransferBuffered = 0;
         }
         return platformTransferLimit - fluidLeftToTransfer;
     }
 
-    private int keepExact(ICustomFluidStackHandler source, ICustomFluidStackHandler destination, int platformTransferLimit) {
+    private int keepExact(IKeyHandler<AEFluidKey> source, IKeyHandler<AEFluidKey> destination, int platformTransferLimit) {
         int fluidLeftToTransfer = platformTransferLimit;
-        var sourceAmounts = enumerateDistinctFluids(source, TransferDirection.EXTRACT);
-        var destinationAmounts = enumerateDistinctFluids(destination, TransferDirection.INSERT);
-        for (FluidStack fluidStack : sourceAmounts.keySet()) {
+        var sourceAmounts = enumerateDistinctFluids(source);
+        var destinationAmounts = enumerateDistinctFluids(destination);
+        for (AEFluidKey key : sourceAmounts.keySet()) {
             if (fluidLeftToTransfer <= 0) break;
-            int amountToKeep = getFilteredFluidAmount(fluidStack);
-            long amountInDest = destinationAmounts.getOrDefault(fluidStack, 0);
+            int amountToKeep = getFilteredFluidAmount(key.getReadOnlyStack());
+            long amountInDest = destinationAmounts.getLong(key);
             if (amountInDest >= amountToKeep) continue;
-            FluidStack fluidToMove = fluidStack.copy();
-            fluidToMove.setAmount(Math.min(fluidLeftToTransfer, (int) (amountToKeep - amountInDest)));
-            if (fluidToMove.getAmount() <= 0) continue;
-            FluidStack drained = source.drain(fluidToMove, FluidAction.SIMULATE);
-            int fillableAmount = destination.fill(drained, FluidAction.SIMULATE);
-            if (fillableAmount <= 0) continue;
-            fluidToMove.setAmount(Math.min(fluidToMove.getAmount(), fillableAmount));
-            drained = source.drain(fluidToMove, FluidAction.EXECUTE);
-            int movedAmount = destination.fill(drained, FluidAction.EXECUTE);
-            fluidLeftToTransfer -= movedAmount;
+            long toMove = Math.min(fluidLeftToTransfer, amountToKeep - amountInDest);
+            if (toMove <= 0) continue;
+            fluidLeftToTransfer -= (int) KeyTransfer.transferKey(source, destination, key, toMove);
         }
         return platformTransferLimit - fluidLeftToTransfer;
     }

@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
-import com.gregtechceu.gtceu.api.recipe.ingredient.IntCircuitIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.Circuits;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.uiwidgets.circuit.CircuitSelector;
 import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
@@ -39,23 +39,23 @@ public class IntCircuitBehaviour implements IItemUIFactory, IAddInformation {
     }
 
     public static void setCircuitConfiguration(ItemStack itemStack, int configuration) {
-        itemStack.getOrCreateTag().putInt(IntCircuitIngredient.Configuration, Math.max(0, configuration));
+        itemStack.getOrCreateTag().putInt(Circuits.CONFIGURATION, Math.max(0, configuration));
     }
 
     public static int getCircuitConfiguration(ItemStack itemStack) {
-        if (!itemStack.is(IntCircuitIngredient.PROGRAMMED_CIRCUIT)) return 0;
+        if (!itemStack.is(Circuits.item())) return 0;
         var tagCompound = itemStack.getTag();
-        if (tagCompound != null && tagCompound.tags.get(IntCircuitIngredient.Configuration) instanceof IntTag intTag) {
+        if (tagCompound != null && tagCompound.tags.get(Circuits.CONFIGURATION) instanceof IntTag intTag) {
             return intTag.getAsInt();
         }
         return 0;
     }
 
     public static boolean isIntegratedCircuit(ItemStack itemStack) {
-        boolean isCircuit = itemStack.is(IntCircuitIngredient.PROGRAMMED_CIRCUIT);
+        boolean isCircuit = itemStack.is(Circuits.item());
         if (isCircuit && itemStack.getTag() == null) {
             var compound = new CompoundTag();
-            compound.putInt(IntCircuitIngredient.Configuration, 0);
+            compound.putInt(Circuits.CONFIGURATION, 0);
             itemStack.setTag(compound);
         }
         return isCircuit;

@@ -128,10 +128,12 @@ public final class UITheme {
             .add(UIStates.CHECKED, OreSprites.SWITCH_ON)
             .add(UIStates.HOVERED, SWITCH_OFF_HOVER)
             .build(OreSprites.SWITCH_OFF);
-    public static final StateTexture SEGMENT_SELECTED = StateTexture.builder()
+    private static final StateTexture SEGMENT_SELECTED_GREEN = StateTexture.builder()
             .add(UIStates.PRESSED, OreSprites.BTN_PRESSED_SMALL_GREEN)
             .add(UIStates.HOVERED, OreSprites.BTN_HOVER_SMALL_GREEN)
             .build(OreSprites.BTN_DEFAULT_SMALL_GREEN);
+    private static StateTexture segmentSelected = SEGMENT_SELECTED_GREEN;
+    public static final StateTexture SEGMENT_SELECTED = StateTexture.dynamic(() -> segmentSelected);
     /** 滚动条轨道、滑块。 */
     private static IGuiTexture scrollTrack = OreSprites.SLOT_BRIGHT;
     public static final IGuiTexture SCROLL_TRACK = dynamic(() -> scrollTrack);
@@ -205,6 +207,11 @@ public final class UITheme {
         TAB_HOVER_FILL = color(colors, "tab_hover_fill");
         TAB_PRESSED_FILL = color(colors, "tab_pressed_fill");
         SEGMENT_HOVER = color(colors, "segment_hover");
+        int segmentTint = color(colors, "segment_selected_tint");
+        segmentSelected = segmentTint == 0 ? SEGMENT_SELECTED_GREEN : StateTexture.builder()
+                .add(UIStates.PRESSED, OreSprites.BTN_PRESSED_SMALL.tinted(multiply(segmentTint, OreSprites.PRESSED_TINT)))
+                .add(UIStates.HOVERED, OreSprites.BTN_HOVER_SMALL.tinted(segmentTint))
+                .build(OreSprites.BTN_DEFAULT_SMALL.tinted(segmentTint));
         STATUS_ONLINE = color(colors, "status_online");
         STATUS_OFFLINE = color(colors, "status_offline");
         STATUS_WARNING = color(colors, "status_warning");
@@ -225,6 +232,32 @@ public final class UITheme {
         CANVAS_MINIMAP_VIEWPORT = color(colors, "canvas_minimap_viewport");
         CANVAS_ITEM_BLOCK = color(colors, "canvas_item_block");
         SLOT_HOVER_OVERLAY = color(colors, "slot_hover_overlay");
+        MAP_ORBIT = color(colors, "map_orbit");
+        MAP_ORBIT_FAR = color(colors, "map_orbit_far");
+        MAP_LABEL = color(colors, "map_label");
+        MAP_LABEL_DIM = color(colors, "map_label_dim");
+        MAP_CURRENT = color(colors, "map_current");
+        MAP_REALM = color(colors, "map_realm");
+        MAP_SKY_TOP = color(colors, "map_sky_top");
+        MAP_SKY_BOTTOM = color(colors, "map_sky_bottom");
+        MAP_SPRITE_OUTLINE = color(colors, "map_sprite_outline");
+        MAP_HOVER_FRAME = color(colors, "map_hover_frame");
+        MAP_PLATE = color(colors, "map_plate");
+        MAP_PLATE_EDGE = color(colors, "map_plate_edge");
+        MAP_LINK_IDLE = color(colors, "map_link_idle");
+        MAP_LINK_LOW = color(colors, "map_link_low");
+        MAP_LINK_MID = color(colors, "map_link_mid");
+        MAP_LINK_HIGH = color(colors, "map_link_high");
+        MAP_LINK_CORE = color(colors, "map_link_core");
+        MAP_LINK_DIM = color(colors, "map_link_dim");
+        MAP_SPARK = color(colors, "map_spark");
+        MAP_SPARK_TAIL = color(colors, "map_spark_tail");
+        MAP_GUIDE = color(colors, "map_guide");
+        MAP_GUIDE_HOVER = color(colors, "map_guide_hover");
+        MAP_PATH = color(colors, "map_path");
+        MAP_SATURATED = color(colors, "map_saturated");
+        MAP_NET_UP = color(colors, "map_net_up");
+        MAP_NET_DOWN = color(colors, "map_net_down");
 
         OreSprites.setTexture(textures.atlas());
         statusIcons = textures.statusIcons();
@@ -546,6 +579,32 @@ public final class UITheme {
     public static int CANVAS_ITEM_BLOCK = 0xFF8B8B8B;
     /** 槽位类格子的悬停蒙层（与原版物品槽一致，画在物品之上、只写颜色不写透明度）。 */
     public static int SLOT_HOVER_OVERLAY = 0x80FFFFFF;
+    public static int MAP_ORBIT = 0xFF2C3354;
+    public static int MAP_ORBIT_FAR = 0xFF1E2238;
+    public static int MAP_LABEL = 0xFFE0E0E0;
+    public static int MAP_LABEL_DIM = 0xFFA0A0A0;
+    public static int MAP_CURRENT = 0xFF55FFFF;
+    public static int MAP_REALM = 0xFFB48CFF;
+    public static int MAP_SKY_TOP = 0xFF080A14;
+    public static int MAP_SKY_BOTTOM = 0xFF0B0E1E;
+    public static int MAP_SPRITE_OUTLINE = 0xFF05070F;
+    public static int MAP_HOVER_FRAME = 0xA0FFFFFF;
+    public static int MAP_PLATE = 0xC0050816;
+    public static int MAP_PLATE_EDGE = 0xFF2F4378;
+    public static int MAP_LINK_IDLE = 0xFF2A4C7A;
+    public static int MAP_LINK_LOW = 0xFF3C7FC0;
+    public static int MAP_LINK_MID = 0xFF4FA6F0;
+    public static int MAP_LINK_HIGH = 0xFF7FD4FF;
+    public static int MAP_LINK_CORE = 0xFFD8F4FF;
+    public static int MAP_LINK_DIM = 0xFF1E3554;
+    public static int MAP_SPARK = 0xFFF2FDFF;
+    public static int MAP_SPARK_TAIL = 0xFF7FD4FF;
+    public static int MAP_GUIDE = 0x805A6178;
+    public static int MAP_GUIDE_HOVER = 0xFFC8D0E0;
+    public static int MAP_PATH = 0xFFFFD27A;
+    public static int MAP_SATURATED = 0xFFFFC857;
+    public static int MAP_NET_UP = 0xFF55FF55;
+    public static int MAP_NET_DOWN = 0xFFFF9A55;
 
     /**
      * 为暗底写的文字颜色（原版聊天色、GTM 显示屏里的彩色文字）换成在亮底（窗口、状态显示窗）上看得清的颜色，RGB，不含透明度。

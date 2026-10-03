@@ -7,8 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.OreProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidEntryList;
@@ -46,7 +45,7 @@ public class GTOreByProduct {
 
     private static ImmutableList<ItemStack> ALWAYS_MACHINES;
 
-    private final Int2ObjectMap<Content<ItemIngredient>> chances = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<Chance> chances = new Int2ObjectOpenHashMap<>();
     protected final List<ItemEntryList> itemInputs = new ArrayList<>();
     protected final NonNullList<ItemStack> itemOutputs = NonNullList.create();
     protected final List<FluidEntryList> fluidInputs = new ArrayList<>();
@@ -290,16 +289,18 @@ public class GTOreByProduct {
     public void getTooltip(int slotIndex, List<Component> tooltips) {
         if (chances.containsKey(slotIndex)) {
             var entry = chances.get(slotIndex);
-            float chance = 100 * (float) entry.chance / Content.MAX_CHANCE;
-            float boost = entry.tierChanceBoost / 100.0f;
+            float chance = 100 * (float) entry.chance() / ContentList.MAX_CHANCE;
+            float boost = entry.boost() / 100.0f;
             tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_base", chance));
             tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_tier_boost_plus", boost));
         }
     }
 
-    public Content<ItemIngredient> getChance(int slot) {
+    public Chance getChance(int slot) {
         return chances.get(slot);
     }
+
+    public record Chance(int chance, int boost) {}
 
     public boolean hasSifter() {
         return hasSifter;
@@ -337,9 +338,7 @@ public class GTOreByProduct {
     }
 
     private void addChance(int base, int tier) {
-        // this is solely for the chance overlay and tooltip, neither of which care about the ItemStack
-        chances.put(currentSlot - 1,
-                new Content<>(ItemIngredient.EMPTY, base, tier));
+        chances.put(currentSlot - 1, new Chance(base, tier));
     }
 
     // make the code less :weary:

@@ -10,8 +10,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -36,6 +35,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidType;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -51,7 +53,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public static final int INITIAL_TANK_CAPACITY_4X = 2 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_9X = FluidType.BUCKET_VOLUME;
     @SaveToDisk
-    public final NotifiableFluidTank tank;
+    public final NotifiableInventory<AEFluidKey> tank;
     protected final int slots;
     @Nullable
     protected TickableSubscription autoIOSubs;
@@ -60,7 +62,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     protected ISubscription tankSubs;
     @Getter
     @SaveToDisk
-    protected final NotifiableItemStackHandler circuitInventory;
+    protected final NotifiableInventory<AEItemKey> circuitInventory;
     @Getter
     @SaveToDisk(defaultValue = "false")
     @SyncToClient
@@ -84,19 +86,19 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     // ***** Initialization ******//
     //////////////////////////////////////
 
-    protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
-        return new NotifiableFluidTank(this, slots, getTankCapacity(initialCapacity, getTier()), io);
+    protected NotifiableInventory<AEFluidKey> createTank(int initialCapacity, int slots, Object... args) {
+        return NotifiableInventory.fluids(this, slots, getTankCapacity(initialCapacity, getTier()), io);
     }
 
     public static int getTankCapacity(int initialCapacity, int tier) {
         return initialCapacity * (1 << tier);
     }
 
-    protected NotifiableItemStackHandler createCircuitItemHandler(Object... args) {
+    protected NotifiableInventory<AEItemKey> createCircuitItemHandler(Object... args) {
         if (args.length > 0 && args[0] instanceof IO io && io == IO.IN) {
             return CircuitHandler.create(this);
         } else {
-            return NotifiableItemStackHandler.empty(this);
+            return NotifiableInventory.empty(this, AEKeyType.items());
         }
     }
 
@@ -225,8 +227,10 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
                 newMachine.setFrontFacing(this.getFrontFacing());
                 newMachine.setUpwardsFacing(this.getUpwardsFacing());
                 newMachine.setPaintingColor(this.getPaintingColor());
-                for (int i = 0; i < this.tank.getTanks(); i++) {
-                    newMachine.tank.setFluidInTank(i, this.tank.getFluidInTank(i));
+                var from = this.tank.storage;
+                var to = newMachine.tank.storage;
+                for (int i = 0; i < from.size() && i < to.size(); i++) {
+                    to.set(i, from.keyAt(i), from.amountAt(i));
                 }
             }
         }
@@ -254,6 +258,6 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
 
     @Override
     public Widget createUIWidget() {
-        return slots == 1 ? HatchViews.singleTank(tank, io) : HatchViews.page(HatchViews.tanks(tank.getStorages(), io));
+        return slots == 1 ? HatchViews.singleTank(tank, io) : HatchViews.page(HatchViews.tanks(tank.storage, io));
     }
 }

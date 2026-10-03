@@ -15,6 +15,8 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -50,13 +52,13 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Nullable
     protected ICleanroomProvider cleanroom;
     @SaveToDisk
-    public final NotifiableItemStackHandler importItems;
+    public final NotifiableInventory<AEItemKey> importItems;
     @SaveToDisk
-    public final NotifiableItemStackHandler exportItems;
+    public final NotifiableInventory<AEItemKey> exportItems;
     @SaveToDisk
-    public final NotifiableFluidTank importFluids;
+    public final NotifiableInventory<AEFluidKey> importFluids;
     @SaveToDisk
-    public final NotifiableFluidTank exportFluids;
+    public final NotifiableInventory<AEFluidKey> exportFluids;
 
     @Getter
     protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
@@ -106,27 +108,27 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         }
     }
 
-    protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
-        if (handler.storage.size == 0) handler.setAvailable(false);
+    protected NotifiableInventory<AEItemKey> createImportItemHandler(Object... args) {
+        var handler = NotifiableInventory.items(this, getRecipeType().getMaxInputs(ItemRecipeInfo.INSTANCE), IO.IN);
+        if (handler.storage.size() == 0) handler.setAvailable(false);
         return handler;
     }
 
-    protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
-        var handler = new NotifiableItemStackHandler(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
-        if (handler.storage.size == 0) handler.setAvailable(false);
+    protected NotifiableInventory<AEItemKey> createExportItemHandler(Object... args) {
+        var handler = NotifiableInventory.items(this, getRecipeType().getMaxOutputs(ItemRecipeInfo.INSTANCE), IO.OUT);
+        if (handler.storage.size() == 0) handler.setAvailable(false);
         return handler;
     }
 
-    protected NotifiableFluidTank createImportFluidHandler(Object... args) {
-        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxInputs(FluidRecipeInfo.INSTANCE), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
-        if (handler.getStorages().length == 0) handler.setAvailable(false);
+    protected NotifiableInventory<AEFluidKey> createImportFluidHandler(Object... args) {
+        var handler = NotifiableInventory.fluids(this, getRecipeType().getMaxInputs(FluidRecipeInfo.INSTANCE), this.tankScalingFunction.applyAsInt(this.getTier()), IO.IN);
+        if (handler.storage.size() == 0) handler.setAvailable(false);
         return handler;
     }
 
-    protected NotifiableFluidTank createExportFluidHandler(Object... args) {
-        var handler = new NotifiableFluidTank(this, getRecipeType().getMaxOutputs(FluidRecipeInfo.INSTANCE), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
-        if (handler.getStorages().length == 0) handler.setAvailable(false);
+    protected NotifiableInventory<AEFluidKey> createExportFluidHandler(Object... args) {
+        var handler = NotifiableInventory.fluids(this, getRecipeType().getMaxOutputs(FluidRecipeInfo.INSTANCE), this.tankScalingFunction.applyAsInt(this.getTier()), IO.OUT);
+        if (handler.storage.size() == 0) handler.setAvailable(false);
         return handler;
     }
 
@@ -219,16 +221,16 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
 
     @Override
     public boolean hasInputLimitConfig() {
-        return importItems.storage.size > 1;
+        return importItems.storage.size() > 1;
     }
 
     @Override
     public void setInputLimit(boolean inputLimit) {
-        this.importItems.storage.isInputLimited = inputLimit;
+        this.importItems.storage.setUniqueKeys(inputLimit);
     }
 
     @Override
     public boolean isInputLimit() {
-        return this.importItems.storage.isInputLimited;
+        return this.importItems.storage.isUniqueKeys();
     }
 }

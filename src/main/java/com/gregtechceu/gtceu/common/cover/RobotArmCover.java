@@ -4,9 +4,9 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleItemFilter;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.data.TransferMode;
-import com.gregtechceu.gtceu.common.pipelike.item.ItemNetHandler;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -18,9 +18,8 @@ import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -55,11 +54,8 @@ public class RobotArmCover extends ConveyorCover {
     }
 
     @Override
-    protected int doTransferItems(IItemHandler itemHandler, IItemHandler myItemHandler, int maxTransferAmount) {
-        if (io == IO.OUT && itemHandler instanceof ItemNetHandler && transferMode == TransferMode.KEEP_EXACT) {
-            return 0;
-        }
-        if (io == IO.IN && myItemHandler instanceof ItemNetHandler && transferMode == TransferMode.KEEP_EXACT) {
+    protected int doTransferItems(IKeyHandler<AEItemKey> itemHandler, IKeyHandler<AEItemKey> myItemHandler, int maxTransferAmount) {
+        if (transferMode == TransferMode.KEEP_EXACT && coverHolder.holder() instanceof ItemPipeBlockEntity) {
             return 0;
         }
         return switch (transferMode) {
@@ -69,13 +65,13 @@ public class RobotArmCover extends ConveyorCover {
         };
     }
 
-    protected int doTransferExact(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {
+    protected int doTransferExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, int maxTransferAmount) {
         var sourceItemAmount = countInventoryItemsByType(sourceInventory);
-        var iterator = sourceItemAmount.object2ObjectEntrySet().fastIterator();
+        var iterator = sourceItemAmount.reference2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
             TypeItemInfo sourceInfo = iterator.next().getValue();
-            int itemAmount = sourceInfo.totalCount;
-            int itemToMoveAmount = getFilteredItemAmount(sourceInfo.itemStack);
+            long itemAmount = sourceInfo.totalCount;
+            int itemToMoveAmount = getFilteredItemAmount(sourceInfo.key);
             if (itemAmount >= itemToMoveAmount) {
                 sourceInfo.totalCount = itemToMoveAmount;
             } else {
@@ -83,7 +79,7 @@ public class RobotArmCover extends ConveyorCover {
             }
         }
         int itemsTransferred = 0;
-        int maxTotalTransferAmount = maxTransferAmount + itemsTransferBuffered;
+        long maxTotalTransferAmount = (long) maxTransferAmount + itemsTransferBuffered;
         boolean notEnoughTransferRate = false;
         for (TypeItemInfo itemInfo : sourceItemAmount.values()) {
             if (maxTotalTransferAmount >= itemInfo.totalCount) {
@@ -104,15 +100,15 @@ public class RobotArmCover extends ConveyorCover {
         return Math.min(itemsTransferred, maxTransferAmount);
     }
 
-    protected int doKeepExact(IItemHandler sourceInventory, IItemHandler targetInventory, int maxTransferAmount) {
+    protected int doKeepExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, int maxTransferAmount) {
         var targetItemAmounts = countInventoryItemsByMatchSlot(targetInventory);
         var sourceItemAmounts = countInventoryItemsByMatchSlot(sourceInventory);
-        var iterator = sourceItemAmounts.object2ObjectEntrySet().fastIterator();
+        var iterator = sourceItemAmounts.reference2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
             var filteredItem = iterator.next();
             GroupItemInfo sourceInfo = filteredItem.getValue();
-            int itemToKeepAmount = getFilteredItemAmount(sourceInfo.itemStack);
-            int itemAmount = 0;
+            int itemToKeepAmount = getFilteredItemAmount(sourceInfo.key);
+            long itemAmount = 0;
             GroupItemInfo destItemInfo = targetItemAmounts.get(filteredItem.getKey());
             if (destItemInfo != null) {
                 itemAmount = destItemInfo.totalCount;
@@ -126,10 +122,10 @@ public class RobotArmCover extends ConveyorCover {
         return moveInventoryItems(sourceInventory, targetInventory, sourceItemAmounts, maxTransferAmount);
     }
 
-    private int getFilteredItemAmount(ItemStack itemStack) {
+    private int getFilteredItemAmount(AEItemKey key) {
         if (!filterHandler.isFilterPresent()) return globalTransferLimit;
         ItemFilter filter = filterHandler.getFilter();
-        return filter.supportsAmounts() ? filter.testItemCount(itemStack) : globalTransferLimit;
+        return filter.supportsAmounts() ? filter.testItemCount(key.getReadOnlyStack()) : globalTransferLimit;
     }
 
     public int getBuffer() {

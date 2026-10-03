@@ -36,17 +36,17 @@ public final class RecipeSlots {
     private final boolean highPressure;
     private final BiPredicate<Boolean, RecipeInfo> doRenderSlot;
     @Nullable
-    private final ToIntBiFunction<IO, ContentRecipeInfo<?, ?>> recipeCounts;
+    private final ToIntBiFunction<IO, ContentRecipeInfo> recipeCounts;
     @Nullable
-    private final ToIntBiFunction<IO, ContentRecipeInfo<?, ?>> shapeCounts;
+    private final ToIntBiFunction<IO, ContentRecipeInfo> shapeCounts;
 
     RecipeSlots(GTRecipeTypeUI ui, boolean steam, boolean highPressure, BiPredicate<Boolean, RecipeInfo> doRenderSlot) {
         this(ui, steam, highPressure, doRenderSlot, null, null);
     }
 
     RecipeSlots(GTRecipeTypeUI ui, boolean steam, boolean highPressure, BiPredicate<Boolean, RecipeInfo> doRenderSlot,
-                @Nullable ToIntBiFunction<IO, ContentRecipeInfo<?, ?>> recipeCounts,
-                @Nullable ToIntBiFunction<IO, ContentRecipeInfo<?, ?>> shapeCounts) {
+                @Nullable ToIntBiFunction<IO, ContentRecipeInfo> recipeCounts,
+                @Nullable ToIntBiFunction<IO, ContentRecipeInfo> shapeCounts) {
         this.ui = ui;
         this.steam = steam;
         this.highPressure = highPressure;
@@ -72,19 +72,19 @@ public final class RecipeSlots {
     }
 
     /** 该方向要显示槽位的内容种类，按 {@link RecipeInfo#COMPARATOR} 排序；机器界面可以按需滤掉某些种类（如发电机不显示输出）。 */
-    public List<ContentRecipeInfo<?, ?>> capabilities(IO io) {
+    public List<ContentRecipeInfo> capabilities(IO io) {
         return capabilities(io, false);
     }
 
-    public List<ContentRecipeInfo<?, ?>> shapeCapabilities(IO io) {
+    public List<ContentRecipeInfo> shapeCapabilities(IO io) {
         return capabilities(io, true);
     }
 
-    private List<ContentRecipeInfo<?, ?>> capabilities(IO io, boolean shape) {
+    private List<ContentRecipeInfo> capabilities(IO io, boolean shape) {
         var max = io == IO.IN ? recipeType().maxInputs : recipeType().maxOutputs;
-        var result = new ArrayList<ContentRecipeInfo<?, ?>>(max.size());
+        var result = new ArrayList<ContentRecipeInfo>(max.size());
         for (var entry : max.object2IntEntrySet()) {
-            if (entry.getIntValue() > 0 && entry.getKey() instanceof ContentRecipeInfo<?, ?> cap && (shape ? shapeCount(io, cap) : count(io, cap)) > 0) {
+            if (entry.getIntValue() > 0 && entry.getKey() instanceof ContentRecipeInfo cap && (shape ? shapeCount(io, cap) : count(io, cap)) > 0) {
                 result.add(cap);
             }
         }
@@ -92,7 +92,7 @@ public final class RecipeSlots {
     }
 
     /** 该方向、该种类的槽位数（不显示时为 0）。 */
-    public int count(IO io, ContentRecipeInfo<?, ?> cap) {
+    public int count(IO io, ContentRecipeInfo cap) {
         if (!renders(io, cap)) return 0;
         int max = io == IO.IN ? recipeType().getMaxInputs(cap) : recipeType().getMaxOutputs(cap);
         if (recipeCounts == null || !ui.getSlotLayout().fitsRecipe()) return max;
@@ -100,23 +100,23 @@ public final class RecipeSlots {
         return ui.getSlotLayout() == RecipeSlotLayouts.DEFAULT ? count : Math.min(count, max);
     }
 
-    public int shapeCount(IO io, ContentRecipeInfo<?, ?> cap) {
+    public int shapeCount(IO io, ContentRecipeInfo cap) {
         if (!renders(io, cap)) return 0;
         int count = count(io, cap);
         return shapeCounts == null ? count : Math.max(count, shapeCounts.applyAsInt(io, cap));
     }
 
-    private boolean renders(IO io, ContentRecipeInfo<?, ?> cap) {
+    private boolean renders(IO io, ContentRecipeInfo cap) {
         return cap.doRenderSlot && cap.getWidgetClass() != null && doRenderSlot.test(io == IO.OUT, cap);
     }
 
     /** 一个槽位，底图为该种类的标准槽（蒸汽机为蒸汽版物品槽），叠配方类型设置的角标（{@code setSlotOverlay}）。 */
-    public Widget slot(IO io, ContentRecipeInfo<?, ?> cap, int index) {
+    public Widget slot(IO io, ContentRecipeInfo cap, int index) {
         return slot(io, cap, index, ui.getSlotOverlay(io == IO.OUT, cap, index == count(io, cap) - 1));
     }
 
     /** 一个槽位，叠指定角标（专用排布里给个别槽换图标，如蒸馏塔各层的烧杯）。 */
-    public Widget slot(IO io, ContentRecipeInfo<?, ?> cap, int index, @Nullable IGuiTexture overlay) {
+    public Widget slot(IO io, ContentRecipeInfo cap, int index, @Nullable IGuiTexture overlay) {
         var slot = cap.createWidget();
         if (slot == null) throw new IllegalStateException("Recipe info " + cap.name + " has no slot widget");
         slot.setId(cap.slotName(io, index));
@@ -127,7 +127,7 @@ public final class RecipeSlots {
     }
 
     /** 该方向、该种类的全部槽位。 */
-    public List<Widget> slots(IO io, ContentRecipeInfo<?, ?> cap) {
+    public List<Widget> slots(IO io, ContentRecipeInfo cap) {
         int count = count(io, cap);
         var result = new ArrayList<Widget>(count);
         for (int i = 0; i < count; i++) result.add(slot(io, cap, i));

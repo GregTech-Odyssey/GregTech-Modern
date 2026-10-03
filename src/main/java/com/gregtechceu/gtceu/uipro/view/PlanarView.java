@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.IntSupplier;
 
 /**
  * 2D 视图：视口左上角的世界坐标 + 缩放。拖动平移（超过阈值才算拖动），滚轮以鼠标为中心缩放（Shift+滚轮纵向平移），
@@ -47,6 +48,8 @@ public abstract class PlanarView extends Viewport {
     private final List<Consumer<PlanarView>> readyActions = new ArrayList<>(1);
     @Nullable
     private Consumer<PlanarView> initialView;
+    @Nullable
+    private IntSupplier obstructedLeft;
     private boolean viewInitialized;
     private boolean zoomRestored;
     private float defaultScale = 1;
@@ -124,6 +127,11 @@ public abstract class PlanarView extends Viewport {
         return this;
     }
 
+    public PlanarView setObstructedLeft(@Nullable IntSupplier obstructedLeft) {
+        this.obstructedLeft = obstructedLeft;
+        return this;
+    }
+
     public PlanarView setInitialView(Consumer<PlanarView> initialView) {
         this.initialView = initialView;
         return this;
@@ -175,10 +183,23 @@ public abstract class PlanarView extends Viewport {
         return 0;
     }
 
+    protected int obstructedLeft() {
+        return obstructedLeft == null ? 0 : Math.max(0, obstructedLeft.getAsInt());
+    }
+
     public int unobstructedWidth() {
         int vw = viewportWidth();
-        int blocked = obstructedRight();
+        int blocked = Math.max(0, obstructedRight()) + obstructedLeft();
         return blocked <= 0 ? vw : Math.max(vw / 3, vw - blocked);
+    }
+
+    public int unobstructedLeft() {
+        int left = obstructedLeft();
+        return left <= 0 ? 0 : Math.max(0, Math.min(left, viewportWidth() - unobstructedWidth()));
+    }
+
+    private float viewCenterX(float s) {
+        return (unobstructedLeft() + unobstructedWidth() / 2f) / s;
     }
 
     public CanvasRect visibleRect() {
@@ -229,26 +250,38 @@ public abstract class PlanarView extends Viewport {
         });
     }
 
+    public void panBy(float dx, float dy) {
+        if (viewAnimation != null) viewAnimation.cancel();
+        viewAnimation = null;
+        offsetX += dx;
+        offsetY += dy;
+        anchorWorldX += dx;
+        anchorWorldY += dy;
+        clampView();
+        onViewChanged();
+    }
+
     protected void onViewChanged() {}
 
     public void centerOn(float worldX, float worldY, boolean animated) {
-        setView(worldX - unobstructedWidth() / (2 * scale), worldY - viewportHeight() / (2 * scale), scale, animated);
+        setView(worldX - viewCenterX(scale), worldY - viewportHeight() / (2 * scale), scale, animated);
     }
 
     public void focus(CanvasRect rect, boolean animated) {
         float target = Math.min(scale, fitScale(rect.inflate(UISizes.SLOT_SIZE), 0));
-        setView(rect.centerX() - unobstructedWidth() / (2 * target), rect.centerY() - viewportHeight() / (2 * target), target, animated);
+        setView(rect.centerX() - viewCenterX(target), rect.centerY() - viewportHeight() / (2 * target), target, animated);
     }
 
     public void reveal(CanvasRect rect, boolean animated) {
-        float right = offsetX + unobstructedWidth() / scale, bottom = offsetY + viewportHeight() / scale;
-        if (rect.x() >= offsetX && rect.right() <= right && rect.y() >= offsetY && rect.bottom() <= bottom) return;
+        float left = offsetX + unobstructedLeft() / scale;
+        float right = left + unobstructedWidth() / scale, bottom = offsetY + viewportHeight() / scale;
+        if (rect.x() >= left && rect.right() <= right && rect.y() >= offsetY && rect.bottom() <= bottom) return;
         focus(rect, animated);
     }
 
     public void fit(CanvasRect rect, float padding, float maxFitScale, boolean animated) {
         float s = Math.min(maxFitScale, fitScale(rect, padding));
-        setView(rect.centerX() - unobstructedWidth() / (2 * s), rect.centerY() - viewportHeight() / (2 * s), s, animated);
+        setView(rect.centerX() - viewCenterX(s), rect.centerY() - viewportHeight() / (2 * s), s, animated);
     }
 
     public void fitContent(boolean animated) {
@@ -261,16 +294,15 @@ public abstract class PlanarView extends Viewport {
         if (bounds == null) return;
         float s = zoomRestored ? scale : Mth.clamp(defaultScale, minScale(), maxScale);
         float vw = unobstructedWidth() / s, vh = viewportHeight() / s;
-        float x = bounds.width() + 2 * padding / s <= vw ? bounds.centerX() - vw / 2 : bounds.x() - padding / s;
+        float x = bounds.width() + 2 * padding / s <= vw ? bounds.centerX() - viewCenterX(s) : bounds.x() - (unobstructedLeft() + padding) / s;
         float y = bounds.height() + 2 * padding / s <= vh ? bounds.centerY() - vh / 2 : bounds.y() - padding / s;
         setView(x, y, s, animated);
     }
 
     public void zoomBy(float factor, boolean animated) {
         float target = Mth.clamp(scale * factor, minScale(), maxScale);
-        int width = unobstructedWidth();
-        float cx = offsetX + width / (2 * scale), cy = offsetY + viewportHeight() / (2 * scale);
-        setView(cx - width / (2 * target), cy - viewportHeight() / (2 * target), target, animated);
+        float cx = offsetX + viewCenterX(scale), cy = offsetY + viewportHeight() / (2 * scale);
+        setView(cx - viewCenterX(target), cy - viewportHeight() / (2 * target), target, animated);
     }
 
     protected float fitScale(CanvasRect rect, float padding) {

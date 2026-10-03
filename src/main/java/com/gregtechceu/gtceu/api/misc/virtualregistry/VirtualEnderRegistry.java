@@ -25,6 +25,7 @@ public class VirtualEnderRegistry extends SavedData {
 
     public VirtualEnderRegistry(CompoundTag name) {
         readFromNBT(name);
+        setDirty();
     }
 
     public static VirtualEnderRegistry getInstance() {

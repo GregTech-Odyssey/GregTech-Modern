@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 import com.gregtechceu.gtceu.uipro.ElementState;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
+import com.gregtechceu.gtceu.uipro.ITooltipOwner;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.RPC;
@@ -42,7 +43,7 @@ import java.util.function.Supplier;
  * 点击：{@link #setOnServerClick} 只在服务端执行，{@link #setOnClientClick} 只在客户端执行
  * （点击经 {@link com.gregtechceu.gtceu.uipro.data.RPC} 上行，服务端统一校验禁用与限流）；没有服务端的界面（{@link ILocalUI}）里两者都在本端执行。
  */
-public class Button extends ButtonWidget implements ILayoutItem, ElementState.Host<Button>, UIChannel.Host {
+public class Button extends ButtonWidget implements ILayoutItem, ElementState.Host<Button>, UIChannel.Host, ITooltipOwner {
 
     public static final int HEIGHT = UISizes.CONTROL_HEIGHT;
     public static final int WIDTH = UISizes.BUTTON_WIDTH;
@@ -151,6 +152,11 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
     public Button bindClientVariant(Supplier<UITheme.ButtonVariant> variant) {
         this.variant = variant;
         return this;
+    }
+
+    @Override
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return !tooltipTexts.isEmpty() || isDisabled();
     }
 
     @Override

@@ -80,6 +80,12 @@ public class FlowNode extends UIElement {
 
     @Override
     @OnlyIn(Dist.CLIENT)
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return super.hasOwnTooltip(mouseX, mouseY) || detail != null && !detail.getValue().isEmpty();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (detail != null && !detail.getValue().isEmpty() && gui != null && gui.getModularUIGui() != null && isMouseOverElement(mouseX, mouseY) && !IHoverOwner.anyOwns(this, mouseX, mouseY)) {
             gui.getModularUIGui().setHoverTooltip(detail.getValue(), ItemStack.EMPTY, null, null);

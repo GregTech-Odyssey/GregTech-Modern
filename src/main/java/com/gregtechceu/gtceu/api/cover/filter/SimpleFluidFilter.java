@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.RPC;
@@ -22,6 +24,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import lombok.Getter;
 
@@ -123,19 +126,15 @@ public class SimpleFluidFilter implements FluidFilter {
     }
 
     private PhantomFluidSlot matchSlot(int index, SyncValue<Boolean> showAmount) {
-        var tank = new CustomFluidTank(1) {
-
-            @Override
-            public int getCapacity() {
-                return SimpleFluidFilter.this.maxStackSize;
-            }
-        };
-        tank.setFluid(matches[index]);
-        var slot = new AmountSlot(tank, showAmount);
+        var tank = KeyInventory.fluids(1, Math.max(maxStackSize, 1));
+        var match = matches[index];
+        tank.set(0, Keys.fluid(match), match.getAmount());
+        var slot = new AmountSlot(tank, new ForgeFluidAdapter(tank), showAmount);
         slot.xeiPhantom();
         slot.setChangeListener(() -> {
             if (slot.isRemote()) return;
-            matches[index] = tank.getFluidInTank(0);
+            var key = tank.keyAt(0);
+            matches[index] = key == null ? FluidStack.EMPTY : Keys.toFluidStack(key, tank.amountAt(0));
             onUpdated.accept(this);
         });
         return slot;
@@ -143,12 +142,12 @@ public class SimpleFluidFilter implements FluidFilter {
 
     private final class AmountSlot extends PhantomFluidSlot {
 
-        private final CustomFluidTank tank;
+        private final KeyInventory<AEFluidKey> tank;
         private final SyncValue<Boolean> showAmount;
         private final RPC<Integer> scroll;
 
-        private AmountSlot(CustomFluidTank tank, SyncValue<Boolean> showAmount) {
-            super(tank, 0, tank::getFluid, tank::setFluid);
+        private AmountSlot(KeyInventory<AEFluidKey> tank, ForgeFluidAdapter adapter, SyncValue<Boolean> showAmount) {
+            super(adapter, 0, () -> adapter.getFluidInTank(0), fluid -> tank.set(0, Keys.fluid(fluid), fluid.getAmount()));
             this.tank = tank;
             this.showAmount = showAmount;
             this.scroll = addRPC(ByteStreamCodec.INT_CODEC, (player, delta) -> scrollAmount(delta))
@@ -176,14 +175,10 @@ public class SimpleFluidFilter implements FluidFilter {
 
         private void scrollAmount(int delta) {
             if (SimpleFluidFilter.this.maxStackSize <= 1) return;
-            FluidStack fluid = tank.getFluidInTank(0);
-            if (fluid.isEmpty()) return;
-            long amount = Math.min(Math.max((long) fluid.getAmount() + delta, 0), tank.getTankCapacity(0));
-            if (amount <= 0) {
-                tank.setFluidInTank(0, FluidStack.EMPTY);
-            } else {
-                fluid.setAmount((int) amount);
-            }
+            var key = tank.keyAt(0);
+            if (key == null) return;
+            long amount = Math.min(Math.max(tank.amountAt(0) + delta, 0), SimpleFluidFilter.this.maxStackSize);
+            tank.set(0, key, amount);
         }
     }
 

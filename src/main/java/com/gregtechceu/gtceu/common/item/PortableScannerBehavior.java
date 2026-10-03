@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
@@ -39,9 +40,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +48,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
@@ -172,19 +170,19 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                         list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
                     }
                     // Fluid tanks
-                    Optional<IFluidHandler> fluidCap = tileEntity.getCapability(ForgeCapabilities.FLUID_HANDLER).resolve();
-                    if (fluidCap.isPresent()) {
+                    var fluidHandler = machine.getFluidHandlerCap(null, true);
+                    if (fluidHandler != null) {
                         list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        IFluidHandler fluidHandler = fluidCap.get();
                         boolean allTanksEmpty = true;
-                        for (int i = 0; i < fluidHandler.getTanks(); i++) {
-                            FluidStack fluidStack = fluidHandler.getFluidInTank(i);
-                            if (fluidStack.getFluid() == null || fluidStack.isEmpty()) {
+                        for (int i = 0; i < fluidHandler.size(); i++) {
+                            var fluidKey = fluidHandler.keyAt(i);
+                            long fluidAmount = fluidHandler.amountAt(i);
+                            if (fluidKey == null || fluidAmount <= 0) {
                                 continue;
                             }
                             energyCost += 500;
                             allTanksEmpty = false;
-                            list.add(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidStack.getAmount())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.getTankCapacity(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(fluidStack.getTranslationKey()).withStyle(ChatFormatting.GOLD)));
+                            list.add(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidAmount)).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.slotLimit(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(Keys.displayFluid(fluidKey).getTranslationKey()).withStyle(ChatFormatting.GOLD)));
                         }
                         if (allTanksEmpty) {
                             list.add(Component.translatable("behavior.portable_scanner.tanks_empty"));

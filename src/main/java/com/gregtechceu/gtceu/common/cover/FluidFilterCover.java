@@ -7,8 +7,8 @@ import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
-import com.gregtechceu.gtceu.api.transfer.fluid.FluidHandlerDelegate;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerView;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import com.gregtechceu.gtceu.common.cover.data.ManualIOMode;
 import com.gregtechceu.gtceu.common.data.GTItems;
@@ -21,8 +21,8 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -85,11 +85,11 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     @Nullable
-    public ICustomFluidStackHandler getFluidHandlerCap(@Nullable ICustomFluidStackHandler defaultValue) {
+    public IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable IKeyHandler<AEFluidKey> defaultValue) {
         if (defaultValue == null) {
             return null;
         }
-        if (fluidFilterWrapper == null || fluidFilterWrapper.delegate != defaultValue) {
+        if (fluidFilterWrapper == null || fluidFilterWrapper.getDelegate() != defaultValue) {
             this.fluidFilterWrapper = new FilteredFluidHandlerWrapper(defaultValue);
         }
         return fluidFilterWrapper;
@@ -106,24 +106,22 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
         return Form.page().addChildren(modes, UIElement.section().addChild(getFluidFilter().createConfigUI()));
     }
 
-    private class FilteredFluidHandlerWrapper extends FluidHandlerDelegate {
+    private class FilteredFluidHandlerWrapper extends KeyHandlerView<AEFluidKey> {
 
-        public FilteredFluidHandlerWrapper(ICustomFluidStackHandler delegate) {
+        public FilteredFluidHandlerWrapper(IKeyHandler<AEFluidKey> delegate) {
             super(delegate);
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            if ((filterMode == FilterMode.FILTER_EXTRACT) && allowFlow == ManualIOMode.UNFILTERED) return super.fill(resource, action);
-            if (filterMode != FilterMode.FILTER_EXTRACT && getFluidFilter().test(resource)) return super.fill(resource, action);
-            return 0;
+        protected boolean canInsert(AEFluidKey key) {
+            if (filterMode == FilterMode.FILTER_EXTRACT) return allowFlow == ManualIOMode.UNFILTERED;
+            return getFluidFilter().test(key.getReadOnlyStack());
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            if ((filterMode == FilterMode.FILTER_INSERT) && allowFlow == ManualIOMode.UNFILTERED) return super.drain(resource, action);
-            if (filterMode != FilterMode.FILTER_INSERT && getFluidFilter().test(resource)) return super.drain(resource, action);
-            return FluidStack.EMPTY;
+        protected boolean canExtract(AEFluidKey key) {
+            if (filterMode == FilterMode.FILTER_INSERT) return allowFlow == ManualIOMode.UNFILTERED;
+            return getFluidFilter().test(key.getReadOnlyStack());
         }
     }
 }

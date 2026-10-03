@@ -7,8 +7,9 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
@@ -22,6 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +35,13 @@ public class StorageCover extends CoverBehavior implements IUICover {
 
     @SaveToDisk
     @SyncToClient
-    public final CustomItemStackHandler inventory;
+    public final KeyInventory<AEItemKey> inventory;
     private final int SIZE = 18;
 
     public StorageCover(@NotNull CoverDefinition definition, @NotNull ICoverable coverableView,
                         @NotNull Direction attachedSide) {
         super(definition, coverableView, attachedSide);
-        inventory = new SingleCustomItemStackHandler(SIZE);
+        inventory = KeyInventory.items(SIZE, 1, true);
     }
 
     @Override
@@ -47,7 +49,8 @@ public class StorageCover extends CoverBehavior implements IUICover {
     public List<ItemStack> getAdditionalDrops() {
         var list = super.getAdditionalDrops();
         for (int slot = 0; slot < SIZE; slot++) {
-            list.add(inventory.getStackInSlot(slot));
+            var key = inventory.keyAt(slot);
+            if (key != null) list.add(Keys.toStack(key, inventory.amountAt(slot)));
         }
         return list;
     }
@@ -64,7 +67,8 @@ public class StorageCover extends CoverBehavior implements IUICover {
 
     @Override
     public Widget createUIWidget() {
-        return Form.page().layout(l -> l.alignCenter()).addChild(SlotGrid.of(UISizes.SLOTS_PER_ROW, SIZE, i -> ItemSlot.of(inventory, i)));
+        var adapter = new MenuItemAdapter(inventory);
+        return Form.page().layout(l -> l.alignCenter()).addChild(SlotGrid.of(UISizes.SLOTS_PER_ROW, SIZE, i -> ItemSlot.of(adapter, i)));
     }
 
     @Override

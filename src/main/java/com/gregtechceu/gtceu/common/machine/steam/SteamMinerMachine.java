@@ -11,11 +11,11 @@ import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.steam.SteamWorkableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.SteamMinerLogic;
@@ -43,8 +43,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -67,9 +68,9 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     @SyncToClient
     private boolean needsVenting;
     @SaveToDisk
-    public final NotifiableItemStackHandler importItems;
+    public final NotifiableInventory<AEItemKey> importItems;
     @SaveToDisk
-    public final NotifiableItemStackHandler exportItems;
+    public final NotifiableInventory<AEItemKey> exportItems;
     @Getter
     @SaveToDisk
     protected final EnchantmentSlotHandler enchantmentSlot;
@@ -112,16 +113,16 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     @Override
-    protected NotifiableFluidTank createSteamTank(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
+    protected NotifiableInventory<AEFluidKey> createSteamTank(Object... args) {
+        return NotifiableInventory.fluids(this, 1, 16 * FluidType.BUCKET_VOLUME, IO.NONE, IO.IN);
     }
 
-    protected NotifiableItemStackHandler createImportItemHandler(@SuppressWarnings("unused") Object... args) {
-        return new NotifiableItemStackHandler(this, 0, IO.IN);
+    protected NotifiableInventory<AEItemKey> createImportItemHandler(@SuppressWarnings("unused") Object... args) {
+        return NotifiableInventory.items(this, 0, IO.IN);
     }
 
-    protected NotifiableItemStackHandler createExportItemHandler(@SuppressWarnings("unused") Object... args) {
-        return new NotifiableItemStackHandler(this, inventorySize, IO.OUT);
+    protected NotifiableInventory<AEItemKey> createExportItemHandler(@SuppressWarnings("unused") Object... args) {
+        return NotifiableInventory.items(this, inventorySize, IO.OUT);
     }
 
     @Override
@@ -192,10 +193,11 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         group.addWidget(new ImageWidget(0, 0, 105, 75, MachineEra.steam(isHighPressure()).getScreen()));
         group.addWidget(new ComponentPanelWidget(10, 9, this::addDisplayText).setMaxWidthLimit(84));
         group.addWidget(new ComponentPanelWidget(60, 9, this::addDisplayText2).setMaxWidthLimit(84));
+        var exportAdapter = new MenuItemAdapter(exportItems.storage);
         for (int y = 0; y < rowSize; y++) {
             for (int x = 0; x < rowSize; x++) {
                 int index = y * rowSize + x;
-                group.addWidget(new SlotWidget(exportItems, index, 135 - rowSize * 9 + x * 18, 2 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure())));
+                group.addWidget(new SlotWidget(exportAdapter, index, 135 - rowSize * 9 + x * 18, 2 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT_STEAM.get(isHighPressure())));
             }
         }
         // 附魔槽：放附魔书，提供时运 / 效率（精准与时运互斥）
@@ -233,12 +235,15 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     }
 
     private boolean drainSteam(boolean simulate) {
-        long stored = steamTank.getFluidInTank(0).getAmount();
+        long stored = steamTank.storage.amountAt(0);
         // 附魔会抬高耗汽；蒸汽不够时按比例削弱效果，而不是直接停机
         long cost = getRecipeLogic().resolveEnchantmentCost(energyPerTick, stored);
         long resultSteam = stored - cost;
-        if (!this.isVentingBlocked() && resultSteam >= 0L && resultSteam <= steamTank.getTankCapacity(0)) {
-            if (!simulate) steamTank.drainInternal((int) cost, IFluidHandler.FluidAction.EXECUTE);
+        if (!this.isVentingBlocked() && resultSteam >= 0L && resultSteam <= steamTank.storage.slotLimit(0)) {
+            if (!simulate) {
+                var steam = steamTank.storage.keyAt(0);
+                if (steam != null) steamTank.storage.extract(0, steam, cost, false);
+            }
             return true;
         }
         return false;

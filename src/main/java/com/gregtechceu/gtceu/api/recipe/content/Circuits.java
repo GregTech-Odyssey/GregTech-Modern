@@ -1,0 +1,63 @@
+package com.gregtechceu.gtceu.api.recipe.content;
+
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.common.data.GTItems;
+import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
+import appeng.api.stacks.AEItemKey;
+import org.jetbrains.annotations.Nullable;
+
+public final class Circuits {
+
+    public static final int MAX = IntCircuitBehaviour.CIRCUIT_MAX;
+    public static final String CONFIGURATION = "Configuration";
+
+    private static final AEItemKey[] KEYS = new AEItemKey[MAX + 1];
+
+    private Circuits() {}
+
+    public static Item item() {
+        return GTItems.PROGRAMMED_CIRCUIT.get();
+    }
+
+    public static AEItemKey key(int configuration) {
+        var k = KEYS[configuration];
+        if (k == null) {
+            k = AEItemKey.of(IntCircuitBehaviour.stack(configuration));
+            KEYS[configuration] = k;
+        }
+        return k;
+    }
+
+    public static int configOf(@Nullable AEItemKey key) {
+        if (key == null || key.getItem() != item()) return -1;
+        return configOf(key.getTag());
+    }
+
+    public static int configOf(ItemStack stack) {
+        if (stack.getItem() != item()) return -1;
+        return configOf(stack.getTag());
+    }
+
+    public static int configOf(@Nullable CompoundTag tag) {
+        if (tag != null && tag.get(CONFIGURATION) instanceof NumericTag n) return n.getAsInt();
+        return -1;
+    }
+
+    public static void set(KeyInventory<AEItemKey> inventory, int slot, int configuration) {
+        if (configuration < 0) {
+            inventory.set(slot, null, 0);
+        } else {
+            inventory.set(slot, key(configuration), 1);
+        }
+    }
+
+    public static int get(KeyInventory<AEItemKey> inventory, int slot) {
+        return configOf(inventory.keyAt(slot));
+    }
+}

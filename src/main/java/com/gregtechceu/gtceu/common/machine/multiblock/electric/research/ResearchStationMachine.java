@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
 import lombok.Getter;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -107,13 +108,9 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
         if (holder == null) return true;
         holder.setLocked(false);
         holder.setHeldItem(ItemStack.EMPTY);
-        ItemStack outputItem = ItemStack.EMPTY;
         var contents = recipe.itemOutputs;
-        if (!contents.isEmpty()) {
-            outputItem = contents.getFirst().inner.getInnerItemStack();
-        }
-        if (!outputItem.isEmpty()) {
-            holder.setDataItem(outputItem.copyWithCount(1));
+        if (!contents.isEmpty() && contents.outputKey(0) instanceof AEItemKey outputKey) {
+            holder.setDataItem(outputKey.toStack(1));
         }
         return true;
     }

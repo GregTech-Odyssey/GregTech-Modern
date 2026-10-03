@@ -4,13 +4,13 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidEntryList;
 import com.gregtechceu.gtceu.integration.xei.entry.item.ItemEntryList;
 import com.gregtechceu.gtceu.integration.xei.handlers.fluid.CycleFluidEntryHandler;
+import com.gregtechceu.gtceu.integration.xei.handlers.fluid.CycleFluidStackHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemEntryHandler;
+import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
@@ -25,6 +25,7 @@ import it.unimi.dsi.fastutil.booleans.BooleanList;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GTOreByProductWidget extends WidgetGroup {
@@ -138,15 +139,17 @@ public class GTOreByProductWidget extends WidgetGroup {
         }
 
         NonNullList<ItemStack> itemOutputs = recipeWrapper.itemOutputs;
-        CustomItemStackHandler itemOutputsHandler = new CustomItemStackHandler(itemOutputs);
+        List<List<ItemStack>> outputLists = new ArrayList<>(itemOutputs.size());
+        for (var stack : itemOutputs) outputLists.add(List.of(stack));
+        CycleItemStackHandler itemOutputsHandler = new CycleItemStackHandler(outputLists);
         for (int i = 0; i < ITEM_OUTPUT_LOCATIONS.size(); i += 2) {
             int slotIndex = i / 2;
             float xeiChance = 1.0f;
             var chance = recipeWrapper.getChance(i / 2 + itemInputs.size());
             IGuiTexture overlay = null;
             if (chance != null) {
-                xeiChance = (float) chance.chance / Content.MAX_CHANCE;
-                overlay = chance.createOverlay(false, 0, 0, null);
+                xeiChance = (float) chance.chance() / ContentList.MAX_CHANCE;
+                overlay = GTRecipeWidget.contentOverlay(chance.chance(), chance.boost(), -1, 0, 0, null);
             }
             if (itemOutputs.get(slotIndex).isEmpty()) {
                 itemOutputExists.add(false);
@@ -171,7 +174,7 @@ public class GTOreByProductWidget extends WidgetGroup {
         for (int i = 0; i < FLUID_LOCATIONS.size(); i += 2) {
             int slotIndex = i / 2;
             if (!fluidInputs.get(slotIndex).isEmpty()) {
-                var tank = new TankWidget(new CustomFluidTank(fluidInputsHandler.getFluidInTank(slotIndex)),
+                var tank = new TankWidget(new CycleFluidStackHandler(List.of(List.of(fluidInputsHandler.getFluidInTank(slotIndex)))),
                         FLUID_LOCATIONS.getInt(i), FLUID_LOCATIONS.getInt(i + 1), false, false)
                         .setIngredientIO(IngredientIO.INPUT)
                         .setBackground(GuiTextures.FLUID_SLOT)

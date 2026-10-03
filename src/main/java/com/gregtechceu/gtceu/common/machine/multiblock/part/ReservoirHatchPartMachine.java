@@ -2,27 +2,20 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
 
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.NullData;
-
-import java.util.Collections;
+import appeng.api.stacks.AEFluidKey;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
-
-    protected InfiniteWaterTank waterTank;
 
     public static final int FLUID_AMOUNT = 2_000_000_000;
 
@@ -35,19 +28,28 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
     //////////////////////////////////
 
     @Override
-    protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
-        this.waterTank = new InfiniteWaterTank(initialCapacity);
+    protected NotifiableInventory<AEFluidKey> createTank(int initialCapacity, int slots, Object... args) {
+        var storage = KeyInventory.fluids(1, initialCapacity);
+        // start with the full amount
+        storage.set(0, AEFluidKey.of(Fluids.WATER), initialCapacity);
         // allow both importing and exporting from the tank
-        return new NotifiableFluidTank(this, Collections.singletonList(waterTank), io, IO.BOTH);
+        var waterTank = new NotifiableInventory<>(this, storage, io, IO.BOTH);
+        // don't allow external filling
+        waterTank.setFilter(key -> false);
+        return waterTank;
     }
 
     //////////////////////////////////
     // ******** Fill Water ******** //
     //////////////////////////////////
 
+    protected boolean isWaterFull() {
+        return tank.storage.amountAt(0) >= tank.storage.slotLimit();
+    }
+
     @Override
     protected void updateTankSubscription() {
-        if (isWorkingEnabled() && !waterTank.isFull()) {
+        if (isWorkingEnabled() && !isWaterFull()) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();
@@ -58,7 +60,7 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
     @Override
     protected void autoIO() {
         // replace with refilling water tank
-        waterTank.refillWater();
+        if (!isWaterFull()) tank.storage.set(0, AEFluidKey.of(Fluids.WATER), tank.storage.slotLimit());
         updateTankSubscription();
     }
 
@@ -67,46 +69,5 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
     @Override
     public boolean swapIO() {
         return false;
-    }
-
-    protected static class InfiniteWaterTank extends CustomFluidTank {
-
-        private static final CompoundTag EMPTY = new CompoundTag();
-        private static final FluidStack WATER = new FluidStack(Fluids.WATER, Integer.MAX_VALUE);
-
-        public InfiniteWaterTank(int capacity) {
-            super(capacity);
-            // start with the full amount
-            setFluid(new FluidStack(Fluids.WATER, capacity));
-        }
-
-        public void refillWater() {
-            // call super since our overrides don't allow any kind of filling
-            super.fill(WATER, FluidAction.EXECUTE);
-        }
-
-        public boolean isFull() {
-            return getFluidAmount() >= capacity;
-        }
-
-        @Override
-        public boolean supportsFill(int tank) {
-            // don't allow external callers to fill this tank
-            return false;
-        }
-
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            // don't allow external filling
-            return 0;
-        }
-
-        @Override
-        public Data writeData() {
-            return NullData.INSTANCE;
-        }
-
-        @Override
-        public void readData(Data data, int dataVersion) {}
     }
 }

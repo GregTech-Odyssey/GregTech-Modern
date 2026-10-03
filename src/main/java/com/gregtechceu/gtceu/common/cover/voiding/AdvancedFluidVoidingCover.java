@@ -4,7 +4,7 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.cover.filter.SimpleFluidFilter;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.cover.data.BucketMode;
 import com.gregtechceu.gtceu.common.cover.data.VoidingMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
@@ -12,17 +12,16 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
-import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import it.unimi.dsi.fastutil.objects.Object2LongMaps;
+import it.unimi.dsi.fastutil.objects.Reference2LongMaps;
 
 import java.util.List;
 
@@ -51,7 +50,7 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     //////////////////////////////////////////////
     @Override
     protected void doVoidFluids() {
-        ICustomFluidStackHandler fluidHandler = getOwnFluidHandler();
+        IKeyHandler<AEFluidKey> fluidHandler = getOwnFluidHandler();
         if (fluidHandler == null) {
             return;
         }
@@ -61,18 +60,14 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         }
     }
 
-    private void voidOverflow(ICustomFluidStackHandler fluidHandler) {
-        var fluidAmounts = enumerateDistinctFluids(fluidHandler, TransferDirection.EXTRACT);
-        for (var entry : Object2LongMaps.fastIterable(fluidAmounts)) {
-            var stack = entry.getKey();
+    private void voidOverflow(IKeyHandler<AEFluidKey> fluidHandler) {
+        var fluidAmounts = enumerateDistinctFluids(fluidHandler);
+        for (var entry : Reference2LongMaps.fastIterable(fluidAmounts)) {
+            var key = entry.getKey();
             long presentAmount = entry.getLongValue();
-            int targetAmount = getFilteredFluidAmount(stack);
+            int targetAmount = getFilteredFluidAmount(key.getReadOnlyStack());
             if (targetAmount <= 0L || targetAmount > presentAmount) continue;
-            long diff = presentAmount - targetAmount;
-            for (int op : GTMath.split(diff)) {
-                var toDrain = new FluidStack(stack, op);
-                fluidHandler.drain(toDrain, IFluidHandler.FluidAction.EXECUTE);
-            }
+            fluidHandler.extract(key, presentAmount - targetAmount, false);
         }
     }
 

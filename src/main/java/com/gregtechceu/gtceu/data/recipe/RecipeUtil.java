@@ -1,10 +1,8 @@
 package com.gregtechceu.gtceu.data.recipe;
 
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-
 public class RecipeUtil {
 
-    public static int getRatioForDistillery(FluidIngredient fluidInput, FluidIngredient fluidOutput,
+    public static int getRatioForDistillery(long fluidInput, long fluidOutput,
                                             int count) {
         int[] divisors = new int[] { 2, 5, 10, 25, 50 };
         int ratio = -1;
@@ -26,7 +24,7 @@ public class RecipeUtil {
         return Math.max(1, ratio);
     }
 
-    public static boolean isFluidStackDivisibleForDistillery(FluidIngredient fluidStack, int divisor) {
-        return fluidStack.getAmount() % divisor == 0 && fluidStack.getAmount() / divisor >= 25;
+    public static boolean isFluidStackDivisibleForDistillery(long amount, int divisor) {
+        return amount % divisor == 0 && amount / divisor >= 25;
     }
 }

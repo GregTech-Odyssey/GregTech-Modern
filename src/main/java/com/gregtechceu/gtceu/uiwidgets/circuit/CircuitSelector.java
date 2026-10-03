@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.uiwidgets.circuit;
 
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
+import com.gregtechceu.gtceu.api.recipe.content.Circuits;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
@@ -13,7 +16,8 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
+
+import appeng.api.stacks.AEItemKey;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
@@ -39,10 +43,14 @@ public final class CircuitSelector {
 
     private CircuitSelector() {}
 
-    public static UIElement create(ICustomItemStackHandler circuitSlot) {
+    public static UIElement create(NotifiableInventory<AEItemKey> circuitSlot) {
+        return create(circuitSlot.storage);
+    }
+
+    public static UIElement create(KeyInventory<AEItemKey> circuitSlot) {
         var root = UIElement.column(UISizes.SLOT_ROW_WIDTH).layout(l -> l.gapAll(UISizes.SECTION_GAP));
         var clear = Button.glyph("×").setVariant(UITheme.ButtonVariant.DANGER)
-                .setOnServerClick(() -> circuitSlot.setStackInSlot(0, ItemStack.EMPTY));
+                .setOnServerClick(() -> Circuits.set(circuitSlot, 0, -1));
         clear.tooltips(Component.translatable(CLEAR));
         root.addChild(UIElement.row(UISizes.SLOT_SIZE).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter())
                 .addChildren(ItemSlot.display(circuitSlot, 0, null), clear));
@@ -54,9 +62,9 @@ public final class CircuitSelector {
     public static UIElement grid(IntSupplier current, IntConsumer select) {
         var grid = UIElement.column(UISizes.SLOT_ROW_WIDTH);
         var synced = grid.addSyncValue(SyncValue.ofInt(current::getAsInt, -1));
-        for (int rowStart = 0; rowStart <= IntCircuitBehaviour.CIRCUIT_MAX; rowStart += PER_ROW) {
+        for (int rowStart = 0; rowStart <= Circuits.MAX; rowStart += PER_ROW) {
             var row = UIElement.row(UISizes.SLOT_SIZE);
-            for (int n = rowStart; n <= Math.min(IntCircuitBehaviour.CIRCUIT_MAX, rowStart + PER_ROW - 1); n++) {
+            for (int n = rowStart; n <= Math.min(Circuits.MAX, rowStart + PER_ROW - 1); n++) {
                 int circuit = n;
                 var stack = IntCircuitBehaviour.stack(circuit);
                 var cell = SlotButton.of(new ItemStackTexture(stack))
@@ -70,24 +78,23 @@ public final class CircuitSelector {
         return grid;
     }
 
-    private static int currentOf(ICustomItemStackHandler circuitSlot) {
-        var stack = circuitSlot.getStackInSlot(0);
-        return IntCircuitBehaviour.isIntegratedCircuit(stack) ? IntCircuitBehaviour.getCircuitConfiguration(stack) : -1;
+    private static int currentOf(KeyInventory<AEItemKey> circuitSlot) {
+        return Circuits.get(circuitSlot, 0);
     }
 
-    public static boolean isCurrent(ICustomItemStackHandler circuitSlot, int circuit) {
-        var stack = circuitSlot.getStackInSlot(0);
-        return IntCircuitBehaviour.isIntegratedCircuit(stack) && IntCircuitBehaviour.getCircuitConfiguration(stack) == circuit;
+    public static boolean isCurrent(KeyInventory<AEItemKey> circuitSlot, int circuit) {
+        return circuit >= 0 && Circuits.get(circuitSlot, 0) == circuit;
     }
 
     /** 服务端：设为指定编号；已有编程电路时只改编号（保留物品上的其他数据）。 */
-    public static void setCircuit(ICustomItemStackHandler circuitSlot, int circuit) {
-        ItemStack stack = circuitSlot.getStackInSlot(0).copy();
-        if (IntCircuitBehaviour.isIntegratedCircuit(stack)) {
+    public static void setCircuit(KeyInventory<AEItemKey> circuitSlot, int circuit) {
+        var key = circuitSlot.keyAt(0);
+        if (key != null && key.getItem() == Circuits.item() && key.getTag() != null && key.getTag().size() > 1) {
+            var stack = key.toStack();
             IntCircuitBehaviour.setCircuitConfiguration(stack, circuit);
-            circuitSlot.setStackInSlot(0, stack);
+            circuitSlot.set(0, Keys.item(stack), circuitSlot.amountAt(0));
         } else {
-            circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(circuit));
+            Circuits.set(circuitSlot, 0, circuit);
         }
     }
 }

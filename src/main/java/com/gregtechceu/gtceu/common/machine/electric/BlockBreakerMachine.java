@@ -15,10 +15,12 @@ import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
@@ -46,6 +48,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -71,10 +74,10 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
     @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputItems;
     @SaveToDisk
-    protected final NotifiableItemStackHandler cache;
+    protected final NotifiableInventory<AEItemKey> cache;
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler chargerInventory;
+    protected final StackInventory chargerInventory;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
@@ -120,14 +123,14 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
         return efficiencyMultiplier;
     }
 
-    protected CustomItemStackHandler createChargerItemHandler() {
-        var handler = new CustomItemStackHandler();
+    protected StackInventory createChargerItemHandler() {
+        var handler = new StackInventory();
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
 
-    protected NotifiableItemStackHandler createCacheItemHandler() {
-        return new NotifiableItemStackHandler(this, inventorySize, IO.BOTH, IO.OUT);
+    protected NotifiableInventory<AEItemKey> createCacheItemHandler() {
+        return NotifiableInventory.items(this, inventorySize, IO.BOTH, IO.OUT);
     }
 
     @Override
@@ -197,10 +200,12 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
                 if (hardness >= 0.0F && Math.abs(hardness - currentHardness) < 0.5F) {
                     var drops = tryDestroyBlockAndGetDrops(pos);
                     for (ItemStack drop : drops) {
-                        var remainder = tryFillCache(drop);
-                        if (!remainder.isEmpty()) {
+                        var key = Keys.item(drop);
+                        if (key == null) continue;
+                        long remainder = drop.getCount() - cache.storage.insert(key, drop.getCount(), false);
+                        if (remainder > 0) {
                             // ItemEntity 会合并同类并 grow 数量，不能把掉落模板本体交给它
-                            var toDrop = remainder.copy();
+                            var toDrop = drop.copyWithCount((int) remainder);
                             if (getOutputFacingItems() == null) {
                                 Block.popResource(getLevel(), getPos(), toDrop);
                             } else {
@@ -233,14 +238,6 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
         List<ItemStack> drops = dropCache.getTemplate((ServerLevel) getLevel(), state, pos);
         getLevel().destroyBlock(pos, false);
         return drops;
-    }
-
-    private ItemStack tryFillCache(ItemStack stack) {
-        for (int i = 0; i < cache.getSlots(); i++) {
-            if (cache.insertItemInternal(i, stack, true).getCount() == stack.getCount()) continue;
-            return tryFillCache(cache.insertItemInternal(i, stack, false));
-        }
-        return stack;
     }
 
     public boolean drainEnergy(boolean simulate) {
@@ -376,14 +373,17 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
             }
             main.setBackground(GuiTextures.BACKGROUND_INVERSE);
             return main;
-        }, (group, machine) -> WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
-            var index = WidgetUtils.widgetIdIndex(slot);
-            if (index >= 0 && index < machine.cache.getSlots()) {
-                slot.setHandlerSlot(machine.cache, index);
-                slot.setCanTakeItems(true);
-                slot.setCanPutItems(false);
-            }
-        }));
+        }, (group, machine) -> {
+            var adapter = new MenuItemAdapter(machine.cache.storage);
+            WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
+                var index = WidgetUtils.widgetIdIndex(slot);
+                if (index >= 0 && index < machine.cache.storage.size()) {
+                    slot.setHandlerSlot(adapter, index);
+                    slot.setCanTakeItems(true);
+                    slot.setCanPutItems(false);
+                }
+            });
+        });
     }
 
     //////////////////////////////////////

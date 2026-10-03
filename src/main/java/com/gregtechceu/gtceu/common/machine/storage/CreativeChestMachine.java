@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.transfer.key.InfiniteKeySource;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
@@ -23,8 +25,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -49,22 +53,38 @@ public class CreativeChestMachine extends QuantumChestMachine {
         return new InfiniteCache(this);
     }
 
+    @Override
+    protected void loadStored(@Nullable AEItemKey key, long amount) {
+        cache.storage.set(0, key, key == null ? 0 : 1);
+    }
+
     private InteractionResult updateStored(ItemStack item) {
-        stored = item.copyWithCount(1);
-        onItemChanged();
+        var key = Keys.item(item);
+        cache.storage.set(0, key, key == null ? 0 : 1);
         return InteractionResult.SUCCESS;
     }
 
+    private static int parseCycleValue(String value) {
+        if (value.isEmpty()) return -1;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     private void setTicksPerCycle(String value) {
-        if (value.isEmpty()) return;
-        ticksPerCycle = Integer.parseInt(value);
+        int n = parseCycleValue(value);
+        if (n < 1) return;
+        ticksPerCycle = n;
         if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
         onItemChanged();
     }
 
     private void setItemsPerCycle(String value) {
-        if (value.isEmpty()) return;
-        itemsPerCycle = Integer.parseInt(value);
+        int n = parseCycleValue(value);
+        if (n < 1) return;
+        itemsPerCycle = n;
         onItemChanged();
     }
 
@@ -72,6 +92,7 @@ public class CreativeChestMachine extends QuantumChestMachine {
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var heldItem = player.getItemInHand(hand);
         if (hit.getDirection() == getFrontFacing() && !isRemote()) {
+            var stored = getStored();
             // Clear item if empty hand + shift-rclick
             if (heldItem.isEmpty() && player.isCrouching() && !stored.isEmpty()) {
                 return updateStored(ItemStack.EMPTY);
@@ -91,7 +112,7 @@ public class CreativeChestMachine extends QuantumChestMachine {
     @Override
     public Widget createUIWidget() {
         var group = new WidgetGroup(0, 0, 176, 131);
-        group.addWidget(new PhantomSlotWidget(cache, 0, 36, 6).setClearSlotOnRightClick(true).setMaxStackSize(1).setBackgroundTexture(GuiTextures.SLOT).setChangeListener(this::onChanged));
+        group.addWidget(new PhantomSlotWidget(cache.storage, 0, 36, 6).setClearSlotOnRightClick(true).setMaxStackSize(1).setBackgroundTexture(GuiTextures.SLOT).setChangeListener(this::onChanged));
         group.addWidget(new LabelWidget(7, 9, "gtceu.creative.chest.item"));
         group.addWidget(new ImageWidget(7, 48, 154, 14, GuiTextures.DISPLAY));
         group.addWidget(new TextFieldWidget(9, 50, 152, 10, () -> String.valueOf(itemsPerCycle), this::setItemsPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
@@ -105,40 +126,36 @@ public class CreativeChestMachine extends QuantumChestMachine {
 
     private class InfiniteCache extends ItemCache {
 
+        private final InfiniteKeySource<AEItemKey> source = new InfiniteKeySource<>(storage, false);
+
         public InfiniteCache(MetaMachine holder) {
             super(holder);
         }
 
         @Override
-        public ItemStack getStackInSlot(int slot) {
-            return stored;
+        public long slotLimit(int slot) {
+            return source.slotLimit(slot);
         }
 
         @Override
-        public void setStackInSlot(int index, ItemStack stack) {
-            updateStored(stack);
+        public long insert(int slot, AEItemKey key, long amount, boolean simulate) {
+            if (slot != 0 || amount <= 0) return 0;
+            return storage.amountAt(0) > 0 && storage.rawKeyAt(0) == key ? amount : 0;
         }
 
         @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            if (!stored.isEmpty() && ItemStack.isSameItemSameTags(stored, stack)) return ItemStack.EMPTY;
-            return stack;
+        public long extract(int slot, AEItemKey key, long amount, boolean simulate) {
+            return slot == 0 ? source.extract(0, key, amount, simulate) : 0;
         }
 
         @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (!stored.isEmpty()) return stored.copyWithCount(itemsPerCycle);
-            return ItemStack.EMPTY;
+        public long count(AEItemKey key) {
+            return source.count(key);
         }
 
         @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return true;
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return 1;
+        protected long exportLimit() {
+            return itemsPerCycle;
         }
     }
 }

@@ -7,10 +7,11 @@ import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.block.ICoilType;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.recipe.*;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.ExistingSoundEntry;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamLiquidBoilerMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamSolidBoilerMachine;
@@ -32,8 +33,10 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
+
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 
 import static com.lowdragmc.lowdraglib.gui.texture.ProgressTexture.FillDirection.*;
 
@@ -63,16 +66,12 @@ public class GTRecipeTypes {
                     GTRecipeTypes.LARGE_BOILER_RECIPES.copyFrom(builder).duration(duration).save();
                 }
                 var fluids = builder.getFluidInputs();
-                if (!fluids.isEmpty()) {
-                    var fluid = fluids.getFirst().inner.getFluid();
-                    if (fluid != null) SteamLiquidBoilerMachine.FUEL_CACHE.add(fluid);
+                if (fluids.size() > 0 && fluids.ingredient(0).displayKey() instanceof AEFluidKey fluid) {
+                    SteamLiquidBoilerMachine.FUEL_CACHE.add(fluid.getFluid());
                 }
                 var items = builder.getItemInputs();
-                if (!items.isEmpty()) {
-                    var item = items.getFirst().inner.getInnerItemStack();
-                    if (!item.isEmpty()) {
-                        SteamSolidBoilerMachine.FUEL_CACHE.add(item.getItem());
-                    }
+                if (items.size() > 0 && items.ingredient(0).displayKey() instanceof AEItemKey item) {
+                    SteamSolidBoilerMachine.FUEL_CACHE.add(item.getItem());
                 }
             })
             .setSound(GTSoundEntries.FURNACE);
@@ -103,7 +102,7 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARC_FURNACE, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.getFluidInputs().isEmpty()) {
+                if (recipeBuilder.getFluidInputs().size() == 0) {
                     recipeBuilder.inputFluids(GTMaterials.Oxygen.getFluid(recipeBuilder.getDuration()));
                 }
             })
@@ -209,7 +208,7 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_SLICE, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.CUT)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.getFluidInputs().isEmpty()) {
+                if (recipeBuilder.getFluidInputs().size() == 0) {
                     recipeBuilder
                             .copy(GTUtil.getResourceLocation(recipeBuilder.getId() + "_water"))
                             .inputFluids(GTMaterials.Water.getFluid((int) Math.max(4,
@@ -382,7 +381,7 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_CIRCUIT_ASSEMBLER, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ASSEMBLER)
             .onRecipeBuild((recipeBuilder) -> {
-                if (recipeBuilder.getFluidInputs().isEmpty()) {
+                if (recipeBuilder.getFluidInputs().size() == 0) {
                     recipeBuilder.copy(GTUtil.getResourceLocation(recipeBuilder.getId() + "_soldering_alloy"))
                             .inputFluids(GTMaterials.SolderingAlloy
                                     .getFluid(Math.max(1, (GTValues.L / 2) * recipeBuilder.getSolderMultiplier())))
@@ -514,64 +513,61 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_ARROW_MULTIPLE, LEFT_TO_RIGHT)
             .onRecipeBuild((recipeBuilder) -> {
                 if (recipeBuilder.getData().getBoolean(GTRecipeDataKeys.DISABLE_DISTILLERY)) return;
-                if (!recipeBuilder.getFluidOutputs().isEmpty()) {
+                if (recipeBuilder.getFluidOutputs().size() > 0) {
                     long EUt = recipeBuilder.getEut();
-                    var inputContent = recipeBuilder.getFluidInputs().getFirst();
-                    FluidIngredient input = inputContent.inner;
-                    ItemStack outputItem = !recipeBuilder.getItemOutputs().isEmpty() ?
-                            recipeBuilder.getItemOutputs().getFirst().inner.getInnerItemStack() :
-                            ItemStack.EMPTY;
-                    var count = !recipeBuilder.getItemOutputs().isEmpty() ? recipeBuilder.getItemOutputs().getFirst().getIntAmount() : 0;
-                    if (input.isEmpty()) return;
+                    var inputs = recipeBuilder.getFluidInputs();
+                    if (inputs.size() == 0) return;
+                    var input = inputs.ingredient(0);
+                    long inputAmount = inputs.amount(0);
+                    var itemOutputs = recipeBuilder.getItemOutputs();
+                    KeyIngredient outputItem = itemOutputs.size() > 0 ? itemOutputs.ingredient(0) : null;
+                    int count = itemOutputs.size() > 0 ? Keys.saturatedInt(itemOutputs.amount(0)) : 0;
                     var contents = recipeBuilder.getFluidOutputs();
                     for (int i = 0; i < contents.size(); ++i) {
-                        var outputContent = contents.get(i);
-                        var output = outputContent.inner;
-                        if (output.isEmpty()) continue;
+                        var output = contents.ingredient(i);
+                        long outputAmount = contents.amount(i);
+                        if (!(output.displayKey() instanceof AEFluidKey outputFluid)) continue;
                         GTRecipeBuilder builder = DISTILLERY_RECIPES
                                 .recipeBuilder(recipeBuilder.getId().getPath() + "_to_" +
-                                        GTUtil.FLUID_ID.apply(output.getFluid()).getPath())
+                                        GTUtil.FLUID_ID.apply(outputFluid.getFluid()).getPath())
                                 .EUt(Math.max(1, EUt / 4)).circuitMeta(i + 1);
 
-                        int ratio = RecipeUtil.getRatioForDistillery(input, output, count);
+                        int ratio = RecipeUtil.getRatioForDistillery(inputAmount, outputAmount, count);
                         int recipeDuration = (int) (recipeBuilder.getDuration() * 0.5);
                         boolean shouldDivide = ratio != 1;
 
-                        boolean fluidsDivisible = RecipeUtil.isFluidStackDivisibleForDistillery(input, ratio) &&
-                                RecipeUtil.isFluidStackDivisibleForDistillery(output, ratio);
-
-                        FluidIngredient dividedInputFluid = input.copy(Math.max(1, input.amount / ratio));
-                        FluidIngredient dividedOutputFluid = output.copy(Math.max(1, output.amount / ratio));
+                        boolean fluidsDivisible = RecipeUtil.isFluidStackDivisibleForDistillery(inputAmount, ratio) &&
+                                RecipeUtil.isFluidStackDivisibleForDistillery(outputAmount, ratio);
 
                         if (shouldDivide && fluidsDivisible) {
-                            builder.chance(inputContent.chance)
-                                    .tierChanceBoost(inputContent.tierChanceBoost)
-                                    .inputFluids(dividedInputFluid)
-                                    .chance(outputContent.chance)
-                                    .tierChanceBoost(outputContent.tierChanceBoost)
-                                    .outputFluids(dividedOutputFluid)
+                            builder.chance(inputs.chance(0))
+                                    .tierChanceBoost(inputs.boost(0))
+                                    .inputFluids(input, Math.max(1, inputAmount / ratio))
+                                    .chance(contents.chance(i))
+                                    .tierChanceBoost(contents.boost(i))
+                                    .outputFluids(output, Math.max(1, outputAmount / ratio))
                                     .duration(Math.max(1, recipeDuration / ratio));
                         } else if (!shouldDivide) {
-                            if (!outputItem.isEmpty()) {
-                                builder.outputItems(outputItem, count);
+                            if (outputItem != null) {
+                                builder.outputItems(outputItem, (long) count);
                             }
                             builder.addCondition(recipeBuilder.getConditions());
-                            builder.chance(inputContent.chance)
-                                    .tierChanceBoost(inputContent.tierChanceBoost)
-                                    .inputFluids(input)
-                                    .chance(outputContent.chance)
-                                    .tierChanceBoost(outputContent.tierChanceBoost)
-                                    .outputFluids(output)
+                            builder.chance(inputs.chance(0))
+                                    .tierChanceBoost(inputs.boost(0))
+                                    .inputFluids(input, inputAmount)
+                                    .chance(contents.chance(i))
+                                    .tierChanceBoost(contents.boost(i))
+                                    .outputFluids(output, outputAmount)
                                     .duration(recipeDuration)
                                     .save();
                             continue;
                         }
 
-                        if (!outputItem.isEmpty()) {
+                        if (outputItem != null) {
                             boolean itemsDivisible = count % ratio == 0 && fluidsDivisible;
 
                             if (fluidsDivisible && itemsDivisible) {
-                                builder.outputItems(outputItem, count / ratio);
+                                builder.outputItems(outputItem, (long) (count / ratio));
                             }
                         }
                         builder.save();

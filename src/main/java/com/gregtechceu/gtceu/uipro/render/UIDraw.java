@@ -36,16 +36,16 @@ public final class UIDraw {
 
     private UIDraw() {}
 
-    private static VertexConsumer begin(GuiGraphics graphics) {
+    static VertexConsumer begin(GuiGraphics graphics) {
         return graphics.bufferSource().getBuffer(RenderType.gui());
     }
 
-    private static void end(GuiGraphics graphics) {
+    static void end(GuiGraphics graphics) {
         graphics.bufferSource().endBatch(RenderType.gui());
         RenderSystem.enableDepthTest();
     }
 
-    private static void quad(VertexConsumer consumer, Matrix4f matrix, int x1, int y1, int x2, int y2, int color) {
+    static void quad(VertexConsumer consumer, Matrix4f matrix, int x1, int y1, int x2, int y2, int color) {
         if (x1 < x2) {
             int swap = x1;
             x1 = x2;
@@ -87,6 +87,11 @@ public final class UIDraw {
         var consumer = begin(graphics);
         ring(consumer, graphics.pose().last().pose(), x, y, x + width, y + height, color, true);
         end(graphics);
+    }
+
+    public static void pixelLine(GuiGraphics graphics, int x0, int y0, int x1, int y1, int thickness, int color,
+                                 int clipL, int clipT, int clipR, int clipB) {
+        PixelLines.draw(graphics, x0, y0, x1, y1, thickness, color, clipL, clipT, clipR, clipB);
     }
 
     public static void underline(GuiGraphics graphics, int x, int y, int width, int color) {

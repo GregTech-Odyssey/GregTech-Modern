@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -47,7 +48,7 @@ public class CokeOvenMachine extends PrimitiveWorkableMachine implements IUIMach
                 .widget(new SlotWidget(exportItems.storage, 0, 103, 30, true, false)
                         .setBackgroundTexture(
                                 new GuiTextureGroup(GuiTextures.PRIMITIVE_SLOT, GuiTextures.PRIMITIVE_FURNACE_OVERLAY)))
-                .widget(new TankWidget(exportFluids.getStorages()[0], 134, 13, 20, 58, true, false)
+                .widget(new TankWidget(new ForgeFluidAdapter(exportFluids.storage), 0, 134, 13, 20, 58, true, false)
                         .setBackground(GuiTextures.PRIMITIVE_LARGE_FLUID_TANK)
                         .setFillDirection(ProgressTexture.FillDirection.DOWN_TO_UP)
                         .setShowAmountOverlay(false)

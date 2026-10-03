@@ -1,17 +1,18 @@
 package com.gregtechceu.gtceu.api.recipe.handler;
 
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.content.ContentInner;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 
 import net.minecraft.network.chat.Component;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 /**
  * @param isSuccess is action success
  * @param reason    if fail, fail reason
  */
-public record ActionResult(boolean isSuccess, @Nullable Component reason) {
+public record ActionResult(boolean isSuccess, @Nullable Component reason) implements Supplier<Component> {
 
     public final static ActionResult SUCCESS = new ActionResult(true, null);
     public final static ActionResult FAIL_NO_REASON = new ActionResult(false, null);
@@ -61,12 +62,17 @@ public record ActionResult(boolean isSuccess, @Nullable Component reason) {
         return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(key));
     }
 
-    public static <T, C extends ContentInner<T>> ActionResult failInsufficientIn(Content<C> content) {
-        return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(content.getName()));
+    public static ActionResult failInsufficientIn(KeyIngredient ingredient, long amount) {
+        return new ActionResult(false, Component.translatable("gtceu.recipe_logic.insufficient_in").append(": ").append(amount + "× ").append(ingredient.getName()));
     }
 
     public Component reason() {
         if (reason == null) return Component.empty();
         return reason;
+    }
+
+    @Override
+    public Component get() {
+        return reason();
     }
 }

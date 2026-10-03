@@ -12,9 +12,8 @@ import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -27,6 +26,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraftforge.energy.IEnergyStorage;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -56,7 +56,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     private boolean isWorkingEnabled;
     private final int inventorySize;
     @SaveToDisk
-    protected final CustomItemStackHandler chargerInventory;
+    protected final StackInventory chargerInventory;
     @SyncToClient(scheduleUpdate = true)
     private State state;
 
@@ -73,8 +73,14 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
         return new EnergyBatteryTrait((int) args[0]);
     }
 
-    protected CustomItemStackHandler createChargerInventory(Object... args) {
-        var handler = new SingleCustomItemStackHandler(this.inventorySize);
+    protected StackInventory createChargerInventory(Object... args) {
+        var handler = new StackInventory(this.inventorySize) {
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return 1;
+            }
+        };
         handler.setFilter(item -> {
             var electric = GTCapabilityHelper.getElectricItem(item);
             if (electric != null) return electric.getTier() <= getTier();
@@ -84,7 +90,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     }
 
     @Override
-    public @Nullable ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public @Nullable IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         return chargerInventory;
     }
 

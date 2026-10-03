@@ -14,11 +14,12 @@ import com.gregtechceu.gtceu.api.machine.WorkableTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
@@ -50,6 +51,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
@@ -80,7 +82,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     protected boolean allowInputFromOutputSideItems;
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler chargerInventory;
+    protected final StackInventory chargerInventory;
     @Getter
     @SaveToDisk
     protected final EnchantmentSlotHandler enchantmentSlot;
@@ -103,8 +105,8 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         this.enchantmentSlot = new EnchantmentSlotHandler(this);
     }
 
-    protected CustomItemStackHandler createChargerItemHandler(Object... args) {
-        var handler = new CustomItemStackHandler();
+    protected StackInventory createChargerItemHandler(Object... args) {
+        var handler = new StackInventory();
         handler.setFilter(item -> GTCapabilityHelper.getElectricItem(item) != null || (ConfigHolder.INSTANCE.compat.energy.nativeEUToFE && GTCapabilityHelper.getForgeEnergyItem(item) != null));
         return handler;
     }
@@ -115,14 +117,14 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     }
 
     @Override
-    protected NotifiableItemStackHandler createImportItemHandler(Object... args) {
-        return new NotifiableItemStackHandler(this, 0, IO.IN);
+    protected NotifiableInventory<AEItemKey> createImportItemHandler(Object... args) {
+        return NotifiableInventory.items(this, 0, IO.IN);
     }
 
     @Override
-    protected NotifiableItemStackHandler createExportItemHandler(Object... args) {
+    protected NotifiableInventory<AEItemKey> createExportItemHandler(Object... args) {
         if (args.length > 3 && args[args.length - 4] instanceof Integer invSize) {
-            return new NotifiableItemStackHandler(this, invSize, IO.OUT);
+            return NotifiableInventory.items(this, invSize, IO.OUT);
         }
         throw new IllegalArgumentException("MinerMachine need args [inventorySize, fortune, speed, maximumRadius] for initialization");
     }
@@ -285,10 +287,11 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
             group.addWidget(slots);
             return group;
         }, (group, machine) -> {
+            var adapter = new MenuItemAdapter(machine.exportItems.storage);
             WidgetUtils.widgetByIdForEach(group, "^slot_[0-9]+$", SlotWidget.class, slot -> {
                 var index = WidgetUtils.widgetIdIndex(slot);
-                if (index >= 0 && index < machine.exportItems.getSlots()) {
-                    slot.setHandlerSlot(machine.exportItems, index);
+                if (index >= 0 && index < machine.exportItems.storage.size()) {
+                    slot.setHandlerSlot(adapter, index);
                     slot.setCanTakeItems(true);
                     slot.setCanPutItems(false);
                 }

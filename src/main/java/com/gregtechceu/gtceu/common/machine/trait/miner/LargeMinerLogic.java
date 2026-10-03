@@ -3,7 +3,9 @@ package com.gregtechceu.gtceu.common.machine.trait.miner;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
-import com.gregtechceu.gtceu.api.recipe.RecipeHelper;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,6 +15,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
@@ -91,10 +94,13 @@ public class LargeMinerLogic extends MinerLogic {
     protected boolean doPostProcessing(List<ItemStack> blockDrops, BlockState blockState) {
         processingSearchMap.clear();
         return miner.getRecipeType().search(recipe -> {
-            for (var content : RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs, 0)) {
-                var stack = content.inner.getInnerItemStack().copy();
-                stack.setCount((int) Math.min(Integer.MAX_VALUE, content.amount * (ChemicalHelper.getPrefix(stack.getItem()) == TagPrefix.crushed ? 3 : 1)));
-                blockDrops.add(stack);
+            var outputs = recipe.itemOutputs;
+            for (int i = 0, size = outputs.size(); i < size; i++) {
+                int chance = outputs.chance(i);
+                if (chance == 0) continue;
+                long amount = chance == ContentList.MAX_CHANCE ? outputs.amount(i) : ContentRoll.roll(outputs.amount(i), outputs.rollUnit(i), recipe.chanceFunction.getBoostedChance(chance, outputs.boost(i), recipe.tier, recipe.tier), ContentRoll.RNG);
+                if (amount <= 0 || !(outputs.outputKey(i) instanceof AEItemKey key)) continue;
+                blockDrops.add(Keys.toStack(key, Keys.multiply(amount, ChemicalHelper.getPrefix(key.getItem()) == TagPrefix.crushed ? 3 : 1)));
             }
             return !blockDrops.isEmpty();
         }, processingSearchMap, blockState.getBlock().asItem().getDefaultInstance());

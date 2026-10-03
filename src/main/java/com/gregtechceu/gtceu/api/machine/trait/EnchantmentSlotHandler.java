@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Items;
@@ -33,7 +33,7 @@ public class EnchantmentSlotHandler extends MachineTrait {
 
     @Getter
     @SaveToDisk
-    protected final CustomItemStackHandler storage;
+    protected final StackInventory storage;
 
     /** 附魔等级缓存；{@code null} 表示需要重新解析。不持久化。 */
     @Nullable
@@ -45,7 +45,7 @@ public class EnchantmentSlotHandler extends MachineTrait {
 
     public EnchantmentSlotHandler(MetaMachine machine, int slots) {
         super(machine);
-        this.storage = new CustomItemStackHandler(slots);
+        this.storage = new StackInventory(slots);
         this.storage.setFilter(stack -> stack.is(Items.ENCHANTED_BOOK));
         this.storage.setOnContentsChanged(this::onContentsChanged);
     }

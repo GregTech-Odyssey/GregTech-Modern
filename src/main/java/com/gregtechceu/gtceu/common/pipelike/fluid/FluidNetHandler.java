@@ -4,7 +4,8 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
 import com.gregtechceu.gtceu.common.cover.FluidRegulatorCover;
@@ -12,13 +13,13 @@ import com.gregtechceu.gtceu.common.cover.PumpCover;
 import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 
 import net.minecraft.core.Direction;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyType;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class FluidNetHandler implements ICustomFluidStackHandler {
+public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
 
     @Getter
     private FluidPipeNet net;
@@ -41,22 +42,21 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
         simulatedTransfers = pipe.getTransferredFluids();
     }
 
-    public static boolean checkImportCover(CoverBehavior cover, boolean onPipe, FluidStack stack) {
+    public static boolean checkImportCover(CoverBehavior cover, boolean onPipe, AEFluidKey key) {
         if (cover == null) return true;
         if (cover instanceof FluidFilterCover filter) {
-            return (filter.getFilterMode() != FilterMode.FILTER_BOTH && (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) && (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) || filter.getFluidFilter().test(stack);
+            return (filter.getFilterMode() != FilterMode.FILTER_BOTH && (filter.getFilterMode() != FilterMode.FILTER_INSERT || !onPipe) && (filter.getFilterMode() != FilterMode.FILTER_EXTRACT || onPipe)) || filter.getFluidFilter().test(Keys.displayFluid(key));
         }
         return true;
     }
 
-    public int fillFirst(FluidStack stack, boolean simulate) {
-        int amount = stack.getAmount();
-        int total = 0;
+    public long fillFirst(AEFluidKey key, long amount, boolean simulate) {
+        long total = 0;
         var data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
         if (simulate) {
             for (var inv : data.array) {
                 if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
-                int fill = fill(inv, stack, amount, simulate, false);
+                long fill = fill(inv, key, amount, simulate, false);
                 amount -= fill;
                 total += fill;
                 if (amount <= 0) break;
@@ -65,7 +65,7 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
             for (var inv : data) {
                 if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide)
                     continue;
-                int fill = fill(inv, stack, amount, simulate, false);
+                long fill = fill(inv, key, amount, simulate, false);
                 amount -= fill;
                 total += fill;
                 if (amount <= 0) break;
@@ -74,87 +74,83 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
         return total;
     }
 
-    public int fill(FluidRoutePath routePath, FluidStack stack, int amount, boolean simulate, boolean ignoreLimit) {
-        int allowed = ignoreLimit ? amount : checkTransferable(routePath.getProperties().getThroughput(), amount, simulate);
-        if (allowed == 0 || !routePath.matchesFilters(stack)) {
+    public long fill(FluidRoutePath routePath, AEFluidKey key, long amount, boolean simulate, boolean ignoreLimit) {
+        long allowed = ignoreLimit ? amount : checkTransferable(routePath.getProperties().getThroughput(), amount, simulate);
+        if (allowed == 0 || !routePath.matchesFilters(key)) {
             return 0;
         }
-        IFluidHandler neighbourHandler = routePath.getHandler(net.getLevel());
+        IKeyHandler<AEFluidKey> neighbourHandler = routePath.getHandler(net.getLevel());
         if (neighbourHandler == null) return 0;
 
         // Check for FluidRegulatorCover at target pipe endpoint or destination tile
         CoverBehavior pipeCover = routePath.getTargetPipe().getCoverContainer().getCoverAtSide(routePath.getTargetFacing());
         CoverBehavior tileCover = getCoverOnPipeNeighbour(routePath.getTargetPipe(), routePath.getTargetFacing());
         if (pipeCover instanceof FluidRegulatorCover regulator && regulator.getIo() == IO.OUT) {
-            return fillOverFluidRegulator(neighbourHandler, regulator, stack, amount, simulate, allowed, ignoreLimit);
+            return fillOverFluidRegulator(neighbourHandler, regulator, key, amount, simulate, allowed, ignoreLimit);
         }
         if (tileCover instanceof FluidRegulatorCover regulator && regulator.getIo() == IO.IN) {
-            return fillOverFluidRegulator(neighbourHandler, regulator, stack, amount, simulate, allowed, ignoreLimit);
+            return fillOverFluidRegulator(neighbourHandler, regulator, key, amount, simulate, allowed, ignoreLimit);
         }
 
-        return fill(neighbourHandler, stack.copy(), amount, simulate, allowed, ignoreLimit);
+        return fill(neighbourHandler, key, amount, simulate, allowed, ignoreLimit);
     }
 
-    private int fill(IFluidHandler handler, FluidStack stack, int amount, boolean simulate, int allowed, boolean ignoreLimit) {
-        if (amount == allowed) {
-            stack.setAmount(amount);
-            int r = handler.fill(stack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
-            if (!ignoreLimit) transfer(simulate, r);
-            return r;
-        }
-        stack.setAmount(Math.min(allowed, amount));
-        int r = handler.fill(stack, simulate ? FluidAction.SIMULATE : FluidAction.EXECUTE);
-        if (!ignoreLimit) transfer(simulate, r);
+    private long fill(IKeyHandler<AEFluidKey> handler, AEFluidKey key, long amount, boolean simulate, long allowed, boolean ignoreLimit) {
+        long r = handler.insert(key, Math.min(allowed, amount), simulate);
+        if (!ignoreLimit) transfer(simulate, Keys.saturatedInt(r));
         return r;
     }
 
+    @Nullable
     public CoverBehavior getCoverOnNeighbour(Direction handlerFacing) {
         ICoverable coverable = GTCapabilityHelper.getCoverable(pipe.getNeighborBlockEntity(handlerFacing), handlerFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(handlerFacing.getOpposite());
     }
 
+    @Nullable
     private CoverBehavior getCoverOnPipeNeighbour(FluidPipeBlockEntity targetPipe, Direction targetFacing) {
         ICoverable coverable = GTCapabilityHelper.getCoverable(targetPipe.getNeighborBlockEntity(targetFacing), targetFacing.getOpposite());
         if (coverable == null) return null;
         return coverable.getCoverAtSide(targetFacing.getOpposite());
     }
 
-    public static int countFluid(IFluidHandler handler, FluidStack stack) {
-        int count = 0;
-        for (int i = 0; i < handler.getTanks(); i++) {
-            FluidStack inTank = handler.getFluidInTank(i);
-            if (!inTank.isEmpty() && inTank.isFluidEqual(stack)) {
-                count += inTank.getAmount();
+    public static long countFluid(IKeyHandler<AEFluidKey> handler, AEFluidKey key) {
+        long count = 0;
+        int size = handler.size();
+        for (int i = 0; i < size; i++) {
+            long stored = handler.amountAt(i);
+            if (stored > 0 && handler.keyAt(i) == key) {
+                count += stored;
             }
         }
         return count;
     }
 
-    private int fillOverFluidRegulator(IFluidHandler handler, FluidRegulatorCover regulator, FluidStack stack, int amount, boolean simulate, int allowed, boolean ignoreLimit) {
+    private long fillOverFluidRegulator(IKeyHandler<AEFluidKey> handler, FluidRegulatorCover regulator, AEFluidKey key, long amount, boolean simulate, long allowed, boolean ignoreLimit) {
         switch (regulator.getTransferMode()) {
             case KEEP_EXACT:
-                int rate = regulator.getFilteredFluidAmount(stack);
+                int rate = regulator.getFilteredFluidAmount(Keys.displayFluid(key));
                 if (rate <= 0) return 0;
-                int current = countFluid(handler, stack);
-                int deficit = rate - current;
+                long current = countFluid(handler, key);
+                long deficit = rate - current;
                 if (deficit <= 0) return 0;
-                int toFill = Math.min(allowed, Math.min(amount, deficit));
-                return fill(handler, stack.copy(), toFill, simulate, toFill, ignoreLimit);
+                long toFill = Math.min(allowed, Math.min(amount, deficit));
+                return fill(handler, key, toFill, simulate, toFill, ignoreLimit);
             case TRANSFER_EXACT:
-                int exactAmount = regulator.getFilteredFluidAmount(stack);
+                int exactAmount = regulator.getFilteredFluidAmount(Keys.displayFluid(key));
                 if (exactAmount <= 0) return 0;
-                int exact = Math.min(allowed, Math.min(amount, exactAmount));
-                return fill(handler, stack.copy(), exact, simulate, exact, ignoreLimit);
+                long exact = Math.min(allowed, Math.min(amount, exactAmount));
+                return fill(handler, key, exact, simulate, exact, ignoreLimit);
             default:
-                return fill(handler, stack.copy(), amount, simulate, allowed, ignoreLimit);
+                return fill(handler, key, amount, simulate, allowed, ignoreLimit);
         }
     }
 
-    private int checkTransferable(int rate, int amount, boolean simulate) {
+    private int checkTransferable(int rate, long amount, boolean simulate) {
         int max = rate * 20;
-        if (simulate) return Math.max(0, Math.min(max - simulatedTransfers, amount));
-        else return Math.max(0, Math.min(max - pipe.getTransferredFluids(), amount));
+        if (simulate) return (int) Math.max(0, Math.min(max - simulatedTransfers, amount));
+        else return (int) Math.max(0, Math.min(max - pipe.getTransferredFluids(), amount));
     }
 
     private void transfer(boolean simulate, int amount) {
@@ -163,32 +159,55 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
     }
 
     @Override
-    public void setFluidInTank(int tank, FluidStack stack) {}
+    public AEKeyType keyType() {
+        return AEKeyType.fluids();
+    }
 
     @Override
-    public int getTanks() {
+    public int size() {
         return 1;
     }
 
     @Override
-    public @NotNull FluidStack getFluidInTank(int i) {
-        return FluidStack.EMPTY;
+    public @Nullable AEFluidKey keyAt(int slot) {
+        return null;
     }
 
     @Override
-    public int getTankCapacity(int i) {
+    public long amountAt(int slot) {
+        return 0;
+    }
+
+    @Override
+    public long slotLimit(int slot) {
         return Integer.MAX_VALUE;
     }
 
     @Override
-    public boolean isFluidValid(int i, @NotNull FluidStack fluidStack) {
+    public long spaceFor(int slot, AEFluidKey key) {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public long count(AEFluidKey key) {
+        return 0;
+    }
+
+    @Override
+    public boolean isEmpty() {
         return true;
     }
 
     @Override
-    public int fill(FluidStack stack, FluidAction fluidAction) {
-        if (stack.isEmpty()) return 0;
-        if (net == null || pipe == null || pipe.isInValid() || pipe.isBlocked(facing)) {
+    public long insert(int slot, AEFluidKey key, long amount, boolean simulate) {
+        return insert(key, amount, simulate);
+    }
+
+    @Override
+    public long insert(AEFluidKey key, long amount, boolean simulate) {
+        if (amount <= 0 || pipe == null) return 0;
+        pipe.checkNetwork();
+        if (net == null || pipe.isInValid() || pipe.isBlocked(facing)) {
             return 0;
         }
         copyTransferred();
@@ -198,18 +217,17 @@ public final class FluidNetHandler implements ICustomFluidStackHandler {
         boolean tilePump = tileCover instanceof PumpCover;
         // abort if there are two pump
         if (pipePump && tilePump) return 0;
-        if (tileCover != null && !checkImportCover(tileCover, false, stack)) return 0;
-        boolean simulate = fluidAction.simulate();
-        return fillFirst(stack, simulate);
+        if (tileCover != null && !checkImportCover(tileCover, false, key)) return 0;
+        return fillFirst(key, amount, simulate);
     }
 
     @Override
-    public @NotNull FluidStack drain(FluidStack fluidStack, FluidAction fluidAction) {
-        return FluidStack.EMPTY;
+    public long extract(int slot, AEFluidKey key, long amount, boolean simulate) {
+        return 0;
     }
 
     @Override
-    public @NotNull FluidStack drain(int i, FluidAction fluidAction) {
-        return FluidStack.EMPTY;
+    public long extract(AEFluidKey key, long amount, boolean simulate) {
+        return 0;
     }
 }

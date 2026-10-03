@@ -16,12 +16,12 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -42,8 +42,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -374,11 +374,11 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
          *                            decreasing due to passive coolers. Used when the HPCA is running very hot.
          * @return The temperature change, can be positive or negative.
          */
-        public double calculateTemperatureChange(IFluidHandler coolantTank, boolean forceCoolWithActive) {
+        public double calculateTemperatureChange(IKeyHandler<AEFluidKey> coolantTank, boolean forceCoolWithActive) {
             return calculateTemperatureChange(null, coolantTank, forceCoolWithActive);
         }
 
-        private double calculateTemperatureChange(@Nullable HPCAMachine machine, @Nullable IFluidHandler coolantTank,
+        private double calculateTemperatureChange(@Nullable HPCAMachine machine, @Nullable IKeyHandler<AEFluidKey> coolantTank,
                                                   boolean forceCoolWithActive) {
             // calculate temperature increase
             long maxCWUt = Math.max(1, this.maxCWUt); // avoids dividing by 0 and the behavior is no different
@@ -435,13 +435,12 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             return temperatureChange;
         }
 
-        private int drainCoolant(@Nullable HPCAMachine machine, @Nullable IFluidHandler coolantTank, int amount) {
+        private int drainCoolant(@Nullable HPCAMachine machine, @Nullable IKeyHandler<AEFluidKey> coolantTank, int amount) {
             if (machine != null) {
                 return machine.inputCoolant(amount);
             }
             if (coolantTank == null) return 0;
-            return GTTransferUtils.drainFluidAccountNotifiableList(coolantTank, getCoolantStack(amount),
-                    IFluidHandler.FluidAction.EXECUTE).getAmount();
+            return (int) coolantTank.extract(AEFluidKey.of(getCoolant()), amount, false);
         }
 
         /**

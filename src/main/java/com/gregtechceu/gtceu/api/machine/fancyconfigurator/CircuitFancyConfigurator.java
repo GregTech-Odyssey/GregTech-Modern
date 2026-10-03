@@ -3,8 +3,9 @@ package com.gregtechceu.gtceu.api.machine.fancyconfigurator;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyCustomMiddleClickAction;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyCustomMouseWheelAction;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
+import com.gregtechceu.gtceu.api.recipe.content.Circuits;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.uiwidgets.circuit.CircuitSelector;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
@@ -16,7 +17,8 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.item.ItemStack;
+
+import appeng.api.stacks.AEItemKey;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,9 +35,9 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
 
     private static final int NO_CONFIG = -1;
 
-    final CustomItemStackHandler circuitSlot;
+    final KeyInventory<AEItemKey> circuitSlot;
 
-    public CircuitFancyConfigurator(CustomItemStackHandler circuitSlot) {
+    public CircuitFancyConfigurator(KeyInventory<AEItemKey> circuitSlot) {
         this.circuitSlot = circuitSlot;
     }
 
@@ -46,8 +48,8 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
 
     @Override
     public IGuiTexture getIcon() {
-        if (IntCircuitBehaviour.isIntegratedCircuit(circuitSlot.getStackInSlot(0))) {
-            return new ItemStackTexture(circuitSlot.getStackInSlot(0));
+        if (Circuits.get(circuitSlot, 0) >= 0) {
+            return new ItemStackTexture(Keys.displayStack(circuitSlot.keyAt(0)));
         }
         return WidgetIcons.CIRCUIT_NONE;
     }
@@ -58,10 +60,10 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
         if (wheelDelta == 0) return false;
         int nextValue = getNextValue(wheelDelta > 0);
         if (nextValue == NO_CONFIG) {
-            circuitSlot.setStackInSlot(0, ItemStack.EMPTY);
+            Circuits.set(circuitSlot, 0, NO_CONFIG);
             writeClientAction.accept(SET_TO_EMPTY, buf -> {});
         } else {
-            circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(nextValue));
+            Circuits.set(circuitSlot, 0, nextValue);
             writeClientAction.accept(SET_TO_N, buf -> buf.writeVarInt(nextValue));
         }
         return true;
@@ -70,22 +72,22 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
         switch (id) {
-            case SET_TO_ZERO -> circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(0));
-            case SET_TO_EMPTY -> circuitSlot.setStackInSlot(0, ItemStack.EMPTY);
+            case SET_TO_ZERO -> Circuits.set(circuitSlot, 0, 0);
+            case SET_TO_EMPTY -> Circuits.set(circuitSlot, 0, NO_CONFIG);
             case SET_TO_N -> {
                 // 编号来自客户端，越界（伪造包）直接忽略
                 int n = buffer.readVarInt();
-                if (n >= 0 && n <= IntCircuitBehaviour.CIRCUIT_MAX) circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(n));
+                if (n >= 0 && n <= Circuits.MAX) Circuits.set(circuitSlot, 0, n);
             }
         }
     }
 
     @Override
     public void onMiddleClick(BiConsumer<Integer, Consumer<FriendlyByteBuf>> writeClientAction) {
-        if (!circuitSlot.getStackInSlot(0).isEmpty())
-            circuitSlot.setStackInSlot(0, IntCircuitBehaviour.stack(0));
+        if (circuitSlot.amountAt(0) != 0)
+            Circuits.set(circuitSlot, 0, 0);
         else
-            circuitSlot.setStackInSlot(0, ItemStack.EMPTY);
+            Circuits.set(circuitSlot, 0, NO_CONFIG);
         writeClientAction.accept(SET_TO_EMPTY, buf -> {});
     }
 
@@ -105,22 +107,22 @@ public class CircuitFancyConfigurator implements IFancyConfigurator, IFancyCusto
     }
 
     private int getNextValue(boolean increment) {
-        int currentValue = IntCircuitBehaviour.getCircuitConfiguration(circuitSlot.getStackInSlot(0));
+        int currentValue = Circuits.get(circuitSlot, 0);
         if (increment) {
             // if at max, loop around to no circuit
-            if (currentValue == IntCircuitBehaviour.CIRCUIT_MAX) {
+            if (currentValue == Circuits.MAX) {
                 return 0;
             }
             // if at no circuit, skip 0 and return 1
-            if (this.circuitSlot.getStackInSlot(0).isEmpty()) {
+            if (this.circuitSlot.amountAt(0) == 0) {
                 return 1;
             }
             // normal case: increment by 1
             return currentValue + 1;
         } else {
             // if at no circuit, loop around to max
-            if (this.circuitSlot.getStackInSlot(0).isEmpty()) {
-                return IntCircuitBehaviour.CIRCUIT_MAX;
+            if (this.circuitSlot.amountAt(0) == 0) {
+                return Circuits.MAX;
             }
             // if at 1, skip 0 and return no circuit
             if (currentValue == 1) {

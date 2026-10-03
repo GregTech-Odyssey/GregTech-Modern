@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.common.pipelike.item;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipeProperties;
 import com.gregtechceu.gtceu.api.pipenet.IRoutePath;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.utils.FacingPos;
 
@@ -9,8 +11,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public final class ItemRoutePath implements IRoutePath<IItemHandler> {
+public final class ItemRoutePath implements IRoutePath<IKeyHandler<AEItemKey>> {
 
     @Getter
     private final ItemPipeBlockEntity targetPipe;
@@ -49,12 +52,13 @@ public final class ItemRoutePath implements IRoutePath<IItemHandler> {
 
     @Override
     @Nullable
-    public IItemHandler getHandler(Level world) {
-        return targetPipe.blockEntityDirectionCache.getAdjacentItemHandler(world, getTargetPipePos(), targetFacing).orElse(null);
+    @SuppressWarnings("unchecked")
+    public IKeyHandler<AEItemKey> getHandler(Level world) {
+        return (IKeyHandler<AEItemKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyType.items());
     }
 
-    public boolean matchesFilters(ItemStack stack) {
-        return filters.test(stack);
+    public boolean matchesFilters(AEItemKey key) {
+        return filters.test(Keys.displayStack(key));
     }
 
     public FacingPos toFacingPos() {

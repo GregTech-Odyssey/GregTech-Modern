@@ -4,27 +4,25 @@ import com.gregtechceu.gtceu.api.machine.feature.IElectricMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.*;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.info.*;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
-import com.gregtechceu.gtceu.utils.function.ObjLongPredicate;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.function.ObjLongConsumer;
 import java.util.function.Supplier;
 
 /**
@@ -105,28 +103,26 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return getCapabilitiesFlat().getOrDefault(io, Collections.emptyList());
     }
 
-    /** 取某个方向上处理<b>物品</b>的 handler（{@link IRecipeHandler#canHandleItem()} 为 {@code true}）。 */
     @NotNull
     default List<IRecipeHandler> getItemCapabilitiesFlat(IO io) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
         var list = new ArrayList<IRecipeHandler>(all.size());
         for (var handler : all) {
-            if (handler.canHandleItem()) {
+            if (handler.handlesItems()) {
                 list.add(handler);
             }
         }
         return list;
     }
 
-    /** 取某个方向上处理<b>流体</b>的 handler（{@link IRecipeHandler#canHandleFluid()} 为 {@code true}）。 */
     @NotNull
     default List<IRecipeHandler> getFluidCapabilitiesFlat(IO io) {
         var all = getCapabilitiesFlat(io);
         if (all.isEmpty()) return Collections.emptyList();
         var list = new ArrayList<IRecipeHandler>(all.size());
         for (var handler : all) {
-            if (handler.canHandleFluid()) {
+            if (handler.handlesFluids()) {
                 list.add(handler);
             }
         }
@@ -206,21 +202,22 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
      * @return 是否找到
      */
     default boolean findRecipe(GTRecipeType type, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle, GTRecipeDefinition lockedRecipe) {
+        var units = this.getInputUnits();
+        int unitCount = units.size();
         if (lockedRecipe != null) {
-            for (var unit : this.getInputUnits()) {
-                if (canHandle.test(unit, lockedRecipe)) return true;
+            for (int i = 0; i < unitCount; i++) {
+                if (canHandle.test(units.get(i), lockedRecipe)) return true;
             }
         } else {
             if (usePrioritySearch()) return prioritySearch(type, this, canHandle);
             var customRecipeLogic = type.getCustomRecipeLogicRunners();
-            var hasCustomRecipeLogic = !customRecipeLogic.isEmpty();
-            for (var unit : this.getInputUnits()) {
+            int logicCount = customRecipeLogic.size();
+            for (int i = 0; i < unitCount; i++) {
+                var unit = units.get(i);
                 if (unit.findRecipe(type, canHandle)) return true;
-                if (hasCustomRecipeLogic) {
-                    for (var logic : customRecipeLogic) {
-                        var r = logic.createCustomRecipe(this, unit);
-                        if (r != null && canHandle.test(unit, r)) return true;
-                    }
+                for (int j = 0; j < logicCount; j++) {
+                    var r = customRecipeLogic.get(j).createCustomRecipe(this, unit);
+                    if (r != null && canHandle.test(unit, r)) return true;
                 }
             }
         }
@@ -267,7 +264,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     /** {@link #setIdleReason(Supplier)} 的便捷重载，失败时才会展示 {@link ActionResult} 携带的原因。 */
     default void setIdleReason(ActionResult result) {
-        setIdleReason(result::reason);
+        setIdleReason((Supplier<Component>) result);
     }
 
     /**
@@ -326,109 +323,88 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return true;
     }
 
-    /** 模拟整条配方：输入与输出都能塞下才算匹配。不改动任何存储。 */
     default boolean matchRecipe(RecipeHandlerUnit unit, GTRecipe recipe) {
         return matchRecipeInput(unit, recipe) && matchRecipeOutput(recipe);
     }
 
-    /**
-     * 模拟消耗输入。
-     *
-     * <p>
-     * 会把内容列表复制一份再交给 handler——{@code handleRecipe*} 允许就地删除已满足的条目
-     * （见 {@code NotifiableFluidTank#handleRecipeSimulate}），直接用配方本体上的列表会被改坏。
-     * 这里用的是 {@link RecipeHelper#copyContents}，不掷概率，因此 {@code chance == 0}
-     * 的催化剂条目同样要求存在。输入满足后还会询问
-     * {@link com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension#handleInput}。
-     */
     default boolean matchRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        var items = RecipeHelper.copyContents(recipe.itemInputs, 1);
-        var fluids = RecipeHelper.copyContents(recipe.fluidInputs, 1);
-        if (unit.handleRecipeItem(IO.IN, recipe, items, true) && unit.handleRecipeFluid(IO.IN, recipe, fluids, true)) {
-            for (var e : recipe.definition.recipeExtensions) {
-                if (!e.handleInput(this, unit, recipe, true)) return false;
-            }
-            return true;
+        if (!unit.matchInputs(recipe)) return false;
+        for (var e : recipe.definition.recipeExtensions) {
+            if (!e.handleInput(this, unit, recipe, true)) return false;
         }
-        return false;
+        return true;
     }
 
-    /**
-     * 模拟产出。
-     *
-     * <p>
-     * 顺序是：先问 {@link com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension#handleOutput}，
-     * 没有任何物品/流体产出时直接算通过，否则要求<b>同一个</b>输出分组能同时容纳全部物品与流体。
-     * 失败时写入 {@link ActionResult#FAIL_INSUFFICIENT_OUT}。
-     */
     default boolean matchRecipeOutput(GTRecipe recipe) {
         for (var e : recipe.definition.recipeExtensions) {
             if (!e.handleOutput(this, recipe, true)) return false;
         }
-        var items = RecipeHelper.copyContents(recipe.itemOutputs, 1);
-        var fluids = RecipeHelper.copyContents(recipe.fluidOutputs, 1);
-        if (items.isEmpty() && fluids.isEmpty()) return true;
-        for (var unit : getOutputUnits(recipe)) {
-            if (unit.handleRecipeItem(IO.OUT, recipe, items, true) && unit.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
-                return true;
+        if (recipe.itemOutputs.isEmpty() && recipe.fluidOutputs.isEmpty()) return true;
+        var p = PlanScratch.acquire();
+        try {
+            for (var unit : getOutputUnits(recipe)) {
+                if (unit.fitsOutputs(recipe, p, recipe.scale)) return true;
             }
+        } finally {
+            PlanScratch.release();
         }
         setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
-    /**
-     * 真正扣除输入。
-     *
-     * <p>
-     * 与 {@link #matchRecipeInput} 的区别有两点：内容列表先经过
-     * {@link RecipeHelper#copyAndRoll} 按概率掷数——{@code chance == 0} 的条目会被直接丢弃
-     * （催化剂不会被消耗），其余按掷中的倍数放大数量——因此会消耗随机数；
-     * 并且调用的是非模拟分支，会真正改动存储。
-     */
     default boolean handleRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe) {
-        var items = RecipeHelper.copyAndRoll(recipe, recipe.itemInputs);
-        var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidInputs);
-        if (unit.handleRecipeItem(IO.IN, recipe, items, false) && unit.handleRecipeFluid(IO.IN, recipe, fluids, false)) {
-            for (var e : recipe.definition.recipeExtensions) {
-                if (!e.handleInput(this, unit, recipe, false)) return false;
-            }
-            return true;
+        var p = PlanScratch.acquire();
+        try {
+            return handleRecipeInput(unit, recipe, p);
+        } finally {
+            PlanScratch.release();
         }
-        return false;
     }
 
-    /**
-     * 真正产出。
-     *
-     * <p>
-     * 扩展的产出结果会被记下但不中断流程（与 {@link #handleRecipeInput} 的「一票否决」不同），
-     * 最终返回值即扩展的成功与否；没有物品/流体产出时直接返回该结果。
-     */
+    private boolean handleRecipeInput(RecipeHandlerUnit unit, GTRecipe recipe, PlanScratch p) {
+        unit.rollInputs(recipe, p);
+        if (!unit.planInputs(recipe, p, recipe.scale, true)) return false;
+        var extensions = recipe.definition.recipeExtensions;
+        for (var e : extensions) {
+            if (!e.handleInput(this, unit, recipe, true)) return false;
+        }
+        if (!unit.commitFallible(p)) return false;
+        for (var e : extensions) {
+            if (!e.handleInput(this, unit, recipe, false)) {
+                unit.rollbackFallible(p);
+                return false;
+            }
+        }
+        unit.commitArrays(p);
+        unit.onCommitted(recipe);
+        return true;
+    }
+
     default boolean handleRecipeOutput(GTRecipe recipe) {
         var extension = true;
         for (var e : recipe.definition.recipeExtensions) {
             if (!e.handleOutput(this, recipe, false)) extension = false;
         }
-        var items = RecipeHelper.copyAndRoll(recipe, recipe.itemOutputs);
-        var fluids = RecipeHelper.copyAndRoll(recipe, recipe.fluidOutputs);
+        var items = recipe.itemOutputs;
+        var fluids = recipe.fluidOutputs;
         if (items.isEmpty() && fluids.isEmpty()) return extension;
-        for (var handler : getOutputUnits(recipe)) {
-            var item = handler.handleRecipeItem(IO.OUT, recipe, items, false);
-            var fluid = handler.handleRecipeFluid(IO.OUT, recipe, fluids, false);
-            if (item && fluid) return extension;
+        var p = PlanScratch.acquire();
+        try {
+            var itemLeft = p.need(false, items.size());
+            var fluidLeft = p.need(true, fluids.size());
+            RecipeHandlerUnit.rollList(recipe, items, itemLeft);
+            RecipeHandlerUnit.rollList(recipe, fluids, fluidLeft);
+            for (var unit : getOutputUnits(recipe)) {
+                boolean item = unit.insertOutputs(items, itemLeft, false);
+                boolean fluid = unit.insertOutputs(fluids, fluidLeft, true);
+                if (item && fluid) return extension;
+            }
+            return false;
+        } finally {
+            PlanScratch.release();
         }
-        return false;
     }
 
-    /**
-     * 模拟每 tick 的持续消耗：能量与
-     * {@link com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension#handleTick}。
-     *
-     * <p>
-     * {@code recipe.eut > 0} 表示机器耗电，{@code < 0} 表示发电机产电；能量不足时分别写入
-     * 「输入不足（EU）」或 {@link ActionResult#FAIL_INSUFFICIENT_OUT}。
-     */
     default boolean matchTickRecipe(GTRecipe recipe) {
         var eu = recipe.eut;
         if (eu != 0) {
@@ -447,7 +423,6 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return true;
     }
 
-    /** {@link #matchTickRecipe} 的真实执行版本：真正扣电 / 发电，并执行 tick 扩展。 */
     default boolean handleTickRecipe(GTRecipe recipe) {
         var eu = recipe.eut;
         if (eu != 0) {
@@ -466,12 +441,6 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return true;
     }
 
-    /**
-     * 读取输入单元上配置的集成电路编号。
-     *
-     * @param sum {@code true} 时把所有单元上的编号相加；{@code false} 时只取第一个非 0 的编号
-     * @return 编号之和或首个编号；没有配置时返回 {@code 0}
-     */
     default int getCircuit(boolean sum) {
         int circuit = 0;
         for (var handler : getInputUnits()) {
@@ -484,90 +453,37 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return circuit;
     }
 
-    /**
-     * 统计各输入单元里指定流体的总量。
-     *
-     * @param consumable {@code true} 时跳过催化剂类（{@link IRecipeHandler#isNotConsumable()}）单元，
-     *                   即只统计真正会被消耗的那部分
-     * @param fluids     要查询的流体
-     * @return 与 {@code fluids} 一一对应的数量数组
-     */
     default long[] getFluidAmount(boolean consumable, Fluid... fluids) {
         long[] amounts = new long[fluids.length];
         getFluidAmount(consumable, fluids, amounts);
         return amounts;
     }
 
-    /** {@link #getFluidAmount(boolean, Fluid...)} 的免分配版本：结果累加进 {@code amounts}。 */
     default void getFluidAmount(boolean consumable, Fluid[] fluids, long[] amounts) {
         for (var handler : getInputUnits()) {
             handler.getFluidAmount(consumable, fluids, amounts);
         }
     }
 
-    /**
-     * 统计各输入单元里指定物品的总量。
-     *
-     * @param consumable {@code true} 时跳过催化剂类单元
-     * @param items      要查询的物品
-     * @return 与 {@code items} 一一对应的数量数组
-     */
     default long[] getItemAmount(boolean consumable, Item... items) {
         long[] amounts = new long[items.length];
         getItemAmount(consumable, items, amounts);
         return amounts;
     }
 
-    /** {@link #getItemAmount(boolean, Item...)} 的免分配版本：结果累加进 {@code amounts}。 */
     default void getItemAmount(boolean consumable, Item[] items, long[] amounts) {
         for (var handler : getInputUnits()) {
             handler.getItemAmount(consumable, items, amounts);
         }
     }
 
-    /**
-     * 遍历输入单元中的物品。
-     *
-     * @param consumable {@code true} 时跳过催化剂类单元
-     * @param function   回调（物品堆、数量），返回 {@code true} 表示中断
-     * @return 是否被中断
-     */
-    default boolean forEachItems(boolean consumable, ObjLongPredicate<ItemStack> function) {
+    default boolean forEachKey(AEKeyType type, boolean consumable, IRecipeHandler.KeyVisitor visitor) {
         for (var handler : getInputUnits()) {
-            if (handler.forEachItems(consumable, function)) return true;
+            if (handler.forEachKey(type, consumable, visitor)) return true;
         }
         return false;
     }
 
-    /**
-     * 遍历输入单元中的流体。
-     *
-     * @param consumable {@code true} 时跳过催化剂类单元
-     * @param function   回调（流体堆、数量），返回 {@code true} 表示中断
-     * @return 是否被中断
-     */
-    default boolean forEachFluids(boolean consumable, ObjLongPredicate<FluidStack> function) {
-        for (var handler : getInputUnits()) {
-            if (handler.forEachFluids(consumable, function)) return true;
-        }
-        return false;
-    }
-
-    /** {@link #forEachItems} 的不可中断、免分支版本。 */
-    default void fastForEachItems(boolean consumable, ObjLongConsumer<ItemStack> function) {
-        getInputUnits().forEach(h -> h.fastForEachItems(consumable, function));
-    }
-
-    /** {@link #forEachFluids} 的不可中断、免分支版本。 */
-    default void fastForEachFluids(boolean consumable, ObjLongConsumer<FluidStack> function) {
-        getInputUnits().forEach(h -> h.fastForEachFluids(consumable, function));
-    }
-
-    /**
-     * 向机器塞入物品：先模拟一次确认塞得下，再真正塞入。
-     *
-     * @return 是否有某个输入单元接受了这批物品
-     */
     default boolean inputItem(ItemLike item, long amount) {
         for (var handler : getInputUnits()) {
             if (handler.inputItem(item, amount)) return true;
@@ -575,65 +491,41 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    /** {@link #inputItem(ItemLike, long)} 的多个物品堆版本。 */
-    default boolean inputItem(ItemStack... items) {
+    default boolean inputItem(AEItemKey key, long amount) {
         for (var handler : getInputUnits()) {
-            if (handler.inputItem(items)) return true;
+            if (handler.inputItem(key, amount)) return true;
         }
         return false;
     }
 
-    /**
-     * 试算能否产出物品，不改动存储；失败时写入
-     * {@link ActionResult#FAIL_INSUFFICIENT_OUT}。
-     */
     default boolean simulateOutputItem(ItemLike item, long amount) {
-        var contentList = new ArrayList<Content<ItemIngredient>>(1);
-        contentList.add(new Content<>(ItemIngredient.of(item, amount)));
-        for (var handler : getOutputUnits()) {
-            if (handler.handleItem(IO.OUT, contentList, true)) return true;
-        }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
-        return false;
+        return simulateOutput(Keys.item(item), amount);
     }
 
-    /** {@link #simulateOutputItem(ItemLike, long)} 的多个物品堆版本。 */
-    default boolean simulateOutputItem(ItemStack... items) {
-        var contentList = RecipeHandlerUnit.toItemIngredient(items);
-        for (var handler : getOutputUnits()) {
-            if (handler.handleItem(IO.OUT, contentList, true)) return true;
-        }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
-        return false;
-    }
-
-    /** 真正产出物品；失败时写入 {@link ActionResult#FAIL_INSUFFICIENT_OUT}。 */
     default boolean outputItem(ItemLike item, long amount) {
-        var contentList = new ArrayList<Content<ItemIngredient>>(1);
-        contentList.add(new Content<>(ItemIngredient.of(item, amount)));
+        return output(Keys.item(item), amount);
+    }
+
+    default boolean simulateOutput(AEKey key, long amount) {
         for (var handler : getOutputUnits()) {
-            if (handler.handleItem(IO.OUT, contentList, false)) return true;
+            if (handler.output(key, amount, true)) return true;
         }
         setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
-    /** {@link #outputItem(ItemLike, long)} 的多个物品堆版本。 */
-    default boolean outputItem(ItemStack... items) {
-        var contentList = RecipeHandlerUnit.toItemIngredient(items);
+    default boolean output(AEKey key, long amount) {
         for (var handler : getOutputUnits()) {
-            if (handler.handleItem(IO.OUT, contentList, false)) return true;
+            if (handler.output(key, amount, true)) return handler.output(key, amount, false);
         }
         setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;
     }
 
-    /** 机器里是否有该物品（{@code 1} 个即可）。 */
     default boolean matchItem(ItemLike item) {
         return matchItem(item, 1);
     }
 
-    /** 机器里是否有至少 {@code amount} 个该物品。 */
     default boolean matchItem(ItemLike item, long amount) {
         for (var handler : getInputUnits()) {
             if (handler.matchItem(item, amount)) return true;
@@ -641,15 +533,13 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    /** 机器里是否同时具备给定的所有物品堆（各自独立判定）。 */
-    default boolean matchItem(ItemStack... items) {
+    default boolean matchKey(AEKey key, long amount) {
         for (var handler : getInputUnits()) {
-            if (handler.matchItem(items)) return true;
+            if (handler.matchKey(key, amount)) return true;
         }
         return false;
     }
 
-    /** 是否有输入单元配置了指定编号的集成电路。 */
     default boolean matchCircuit(int configuration) {
         for (var handler : getInputUnits()) {
             if (handler.matchCircuit(configuration)) return true;
@@ -657,11 +547,6 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    /**
-     * 向机器注入流体：先模拟一次确认装得下，再真正注入。
-     *
-     * @return 是否有某个输入单元接受了这批流体
-     */
     default boolean inputFluid(Fluid fluid, long amount) {
         for (var handler : getInputUnits()) {
             if (handler.inputFluid(fluid, amount)) return true;
@@ -669,76 +554,28 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
-    /** {@link #inputFluid(Fluid, long)} 的多个流体堆版本。 */
-    default boolean inputFluid(FluidStack... fluids) {
+    default boolean inputFluid(AEFluidKey key, long amount) {
         for (var handler : getInputUnits()) {
-            if (handler.inputFluid(fluids)) return true;
+            if (handler.inputFluid(key, amount)) return true;
         }
         return false;
     }
 
-    /**
-     * 试算能否产流体，不改动存储；失败时写入
-     * {@link ActionResult#FAIL_INSUFFICIENT_OUT}。
-     */
     default boolean simulateOutputFluid(Fluid fluid, long amount) {
-        var contentList = new ArrayList<Content<FluidIngredient>>(1);
-        contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
-        for (var handler : getOutputUnits()) {
-            if (handler.handleFluid(IO.OUT, contentList, true)) return true;
-        }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
-        return false;
+        return simulateOutput(AEFluidKey.of(fluid), amount);
     }
 
-    /** {@link #simulateOutputFluid(Fluid, long)} 的多个流体堆版本。 */
-    default boolean simulateOutputFluid(FluidStack... fluids) {
-        var contentList = RecipeHandlerUnit.toFluidIngredient(fluids);
-        for (var handler : getOutputUnits()) {
-            if (handler.handleFluid(IO.OUT, contentList, true)) return true;
-        }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
-        return false;
-    }
-
-    /** 真正产出流体；失败时写入 {@link ActionResult#FAIL_INSUFFICIENT_OUT}。 */
     default boolean outputFluid(Fluid fluid, long amount) {
-        var contentList = new ArrayList<Content<FluidIngredient>>(1);
-        contentList.add(new Content<>(FluidIngredient.of(fluid, amount)));
-        for (var handler : getOutputUnits()) {
-            if (handler.handleFluid(IO.OUT, contentList, false)) return true;
-        }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
-        return false;
+        return output(AEFluidKey.of(fluid), amount);
     }
 
-    /** {@link #outputFluid(Fluid, long)} 的多个流体堆版本。 */
-    default boolean outputFluid(FluidStack... fluids) {
-        var contentList = RecipeHandlerUnit.toFluidIngredient(fluids);
-        for (var handler : getOutputUnits()) {
-            if (handler.handleFluid(IO.OUT, contentList, false)) return true;
-        }
-        setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
-        return false;
-    }
-
-    /** 机器里是否有该流体（{@code 1} 桶即可）。 */
     default boolean matchFluid(Fluid fluid) {
         return matchFluid(fluid, 1);
     }
 
-    /** 机器里是否有至少 {@code amount} 的该流体。 */
     default boolean matchFluid(Fluid fluid, long amount) {
         for (var handler : getInputUnits()) {
             if (handler.matchFluid(fluid, amount)) return true;
-        }
-        return false;
-    }
-
-    /** 机器里是否同时具备给定的所有流体堆（各自独立判定）。 */
-    default boolean matchFluid(FluidStack... fluids) {
-        for (var handler : getInputUnits()) {
-            if (handler.matchFluid(fluids)) return true;
         }
         return false;
     }

@@ -11,7 +11,7 @@ public class GTRecipeInfos {
     public final static FluidRecipeInfo FLUID = FluidRecipeInfo.INSTANCE;
     public final static EURecipeInfo EU = EURecipeInfo.INSTANCE;
     public final static CWURecipeInfo CWU = CWURecipeInfo.INSTANCE;
-    public final static ContentRecipeInfo<?, ?>[] CONTENT_RECIPE_INFOS;
+    public final static ContentRecipeInfo[] CONTENT_RECIPE_INFOS;
 
     static {
         GTRegistries.RECIPE_INFOS.unfreeze();
@@ -23,7 +23,7 @@ public class GTRecipeInfos {
 
         AddonFinder.getAddons().forEach(IGTAddon::registerRecipeCapabilities);
         GTRegistries.RECIPE_INFOS.freeze();
-        CONTENT_RECIPE_INFOS = GTRegistries.RECIPE_INFOS.values().stream().filter(i -> i instanceof ContentRecipeInfo<?, ?>).toArray(ContentRecipeInfo[]::new);
+        CONTENT_RECIPE_INFOS = GTRegistries.RECIPE_INFOS.values().stream().filter(i -> i instanceof ContentRecipeInfo).toArray(ContentRecipeInfo[]::new);
     }
 
     public static void init() {}

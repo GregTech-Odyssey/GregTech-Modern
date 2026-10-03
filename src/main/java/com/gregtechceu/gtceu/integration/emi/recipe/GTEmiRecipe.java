@@ -3,10 +3,8 @@ package com.gregtechceu.gtceu.integration.emi.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.integration.xei.widgets.GTRecipeWidget;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -24,10 +22,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.wrapper.EmptyHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
 import com.gto.datasynclib.util.ItemStackHashStrategy;
 import dev.emi.emi.EmiPort;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -40,6 +42,7 @@ import dev.emi.emi.api.widget.TankWidget;
 import dev.emi.emi.api.widget.WidgetHolder;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.IntSupplier;
@@ -166,7 +169,7 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
                     SlotWidget slotWidget = null;
                     // Clear the LDLib slots & add EMI slots based on them.
                     if (slot instanceof com.gregtechceu.gtceu.api.gui.widget.SlotWidget slotW) {
-                        slotW.setHandlerSlot(ICustomItemStackHandler.EMPTY, 0);
+                        slotW.setHandlerSlot((IItemHandlerModifiable) EmptyHandler.INSTANCE, 0);
                         slotW.setDrawHoverOverlay(false).setDrawHoverTips(false);
                     } else if (slot instanceof com.gregtechceu.gtceu.api.gui.widget.TankWidget tankW) {
                         tankW.setFluidTank(EmptyFluidHandler.INSTANCE);
@@ -291,37 +294,39 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
     }
 
     protected void collectIngredients(List<EmiIngredient> inputs, List<EmiStack> outputs, List<EmiIngredient> catalysts) {
-        for (var content : recipe.itemInputs) {
-            if (!(content.inner instanceof ItemIngredient ingredient)) continue;
-            float chance = (float) content.chance / Content.MAX_CHANCE;
-            var emiIngredient = getEmiIngredient(ingredient, true).setChance(chance);
-            if (chance > 0) inputs.add(emiIngredient);
-            else catalysts.add(emiIngredient);
-        }
-        for (var content : recipe.fluidInputs) {
-            if (!(content.inner instanceof FluidIngredient ingredient) || ingredient.getFluid() == null) continue;
-            float chance = (float) content.chance / Content.MAX_CHANCE;
-            var emiIngredient = EmiStack.of(ingredient.getFluid(), ingredient.nbt, ingredient.amount).setChance(chance);
-            if (chance > 0) inputs.add(emiIngredient);
-            else catalysts.add(emiIngredient);
-        }
-        for (var content : recipe.itemOutputs) {
-            if (!(content.inner instanceof ItemIngredient ingredient)) continue;
-            outputs.add(getEmiStack(ingredient).setChance((float) content.chance / Content.MAX_CHANCE));
-        }
-        for (var content : recipe.fluidOutputs) {
-            if (!(content.inner instanceof FluidIngredient ingredient) || ingredient.getFluid() == null) continue;
-            outputs.add(EmiStack.of(ingredient.getFluid(), ingredient.nbt, ingredient.amount).setChance((float) content.chance / Content.MAX_CHANCE));
-        }
+        collectInputs(recipe.itemInputs, inputs, catalysts);
+        collectInputs(recipe.fluidInputs, inputs, catalysts);
+        collectOutputs(recipe.itemOutputs, outputs);
+        collectOutputs(recipe.fluidOutputs, outputs);
         if (recipe.recipeType.isScanner()) collectResearchOutputs(outputs);
+    }
+
+    private static void collectInputs(ContentList contents, List<EmiIngredient> inputs, List<EmiIngredient> catalysts) {
+        for (int i = 0; i < contents.size(); i++) {
+            var ingredient = contents.ingredient(i);
+            float chance = (float) contents.chance(i) / ContentList.MAX_CHANCE;
+            var emiIngredient = getEmiIngredient(ingredient, contents.amount(i), true);
+            if (ingredient.isFluid() && emiIngredient.isEmpty()) continue;
+            emiIngredient = emiIngredient.setChance(chance);
+            if (chance > 0) inputs.add(emiIngredient);
+            else catalysts.add(emiIngredient);
+        }
+    }
+
+    private static void collectOutputs(ContentList contents, List<EmiStack> outputs) {
+        for (int i = 0; i < contents.size(); i++) {
+            var stack = getEmiStack(contents.ingredient(i), contents.amount(i));
+            if (stack.isEmpty()) continue;
+            outputs.add(stack.setChance((float) contents.chance(i) / ContentList.MAX_CHANCE));
+        }
     }
 
     private void collectResearchOutputs(List<EmiStack> outputs) {
         ResearchManager.ResearchItem researchData = null;
-        for (var content : recipe.itemOutputs) {
-            var stack = content.inner.getInnerItemStack();
-            if (stack.isEmpty()) continue;
-            researchData = ResearchManager.readResearchId(stack);
+        var itemOutputs = recipe.itemOutputs;
+        for (int i = 0; i < itemOutputs.size(); i++) {
+            if (!(itemOutputs.ingredient(i).displayKey() instanceof AEItemKey key)) continue;
+            researchData = ResearchManager.readResearchId(key.getReadOnlyStack());
             if (researchData != null) break;
         }
         if (researchData == null) return;
@@ -329,10 +334,12 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
         if (possibleRecipes == null) return;
         Set<ItemStack> seen = new ObjectOpenCustomHashSet<>(ItemStackHashStrategy.ITEM);
         for (var possible : possibleRecipes) {
-            if (possible.itemOutputs.isEmpty()) continue;
-            var ingredient = possible.itemOutputs.getFirst().inner;
-            var stack = ingredient.getInnerItemStack();
-            if (!stack.isEmpty() && seen.add(stack)) outputs.add(getEmiStack(ingredient));
+            var possibleOutputs = possible.itemOutputs;
+            if (possibleOutputs.isEmpty()) continue;
+            var ingredient = possibleOutputs.ingredient(0);
+            if (ingredient.displayKey() instanceof AEItemKey key && seen.add(key.getReadOnlyStack())) {
+                outputs.add(getEmiStack(ingredient, possibleOutputs.amount(0)));
+            }
         }
     }
 
@@ -349,28 +356,54 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
         }
     }
 
-    protected static EmiIngredient getEmiIngredient(ItemIngredient ingredient, boolean input) {
-        if (!input) return getEmiStack(ingredient);
-        Ingredient inner = ingredient.inner;
-        ItemStack[] stacks = inner.getItems();
-        if (stacks.length == 0) return EmiStack.EMPTY;
-        if (inner.values.length == 1 && inner.values[0] instanceof Ingredient.TagValue tagValue) {
-            var tag = new TagEmiIngredient(tagValue.tag, ingredient.amount);
-            if (!tag.getEmiStacks().isEmpty() || isEmptyTagPlaceholder(stacks)) return tag;
+    protected static EmiIngredient getEmiIngredient(KeyIngredient ingredient, long amount, boolean input) {
+        if (!input) return getEmiStack(ingredient, amount);
+        switch (ingredient.kind) {
+            case KeyIngredient.EXACT, KeyIngredient.BASE, KeyIngredient.CIRCUIT -> {
+                return keyStack(ingredient.key(), amount);
+            }
+            case KeyIngredient.TAG -> {
+                if (ingredient.tag() != null) {
+                    var tag = new TagEmiIngredient(ingredient.tag(), amount);
+                    var tagStacks = tag.getEmiStacks();
+                    if (tagStacks.size() == 1) return tagStacks.getFirst().copy().setAmount(amount);
+                    if (!tagStacks.isEmpty()) return tag;
+                    var members = ingredient.isItem() ? ingredient.getItems().length : ingredient.getFluids(1).length;
+                    if (members == 0) return tag;
+                }
+                return listOf(ingredient, amount);
+            }
+            default -> {
+                return listOf(ingredient, amount);
+            }
         }
-        if (stacks.length == 1) return stackOf(stacks[0], ingredient.amount);
+    }
+
+    private static EmiIngredient listOf(KeyIngredient ingredient, long amount) {
+        if (ingredient.isFluid()) {
+            FluidStack[] fluids = ingredient.getFluids(1);
+            if (fluids.length == 0) return EmiStack.EMPTY;
+            if (fluids.length == 1) return EmiStack.of(fluids[0].getFluid(), fluids[0].getTag(), amount);
+            var list = new ArrayList<EmiIngredient>(fluids.length);
+            for (var fluid : fluids) list.add(EmiStack.of(fluid.getFluid(), fluid.getTag()));
+            return EmiIngredient.of(list, amount);
+        }
+        ItemStack[] stacks = ingredient.getItems();
+        if (stacks.length == 0) return EmiStack.EMPTY;
+        if (stacks.length == 1) return stackOf(stacks[0], amount);
         var list = new ArrayList<EmiIngredient>(stacks.length);
         for (var stack : stacks) list.add(EmiStack.of(stack));
-        return EmiIngredient.of(list, ingredient.amount);
+        return EmiIngredient.of(list, amount);
     }
 
-    private static boolean isEmptyTagPlaceholder(ItemStack[] stacks) {
-        return stacks.length == 1 && stacks[0].is(Items.BARRIER) && stacks[0].hasCustomHoverName();
+    protected static EmiStack getEmiStack(KeyIngredient ingredient, long amount) {
+        return keyStack(ingredient.displayKey(), amount);
     }
 
-    protected static EmiStack getEmiStack(ItemIngredient ingredient) {
-        ItemStack[] stacks = ingredient.inner.getItems();
-        return stacks.length == 0 ? EmiStack.EMPTY : stackOf(stacks[0], ingredient.amount);
+    private static EmiStack keyStack(@Nullable AEKey key, long amount) {
+        if (key instanceof AEItemKey itemKey) return stackOf(itemKey.getReadOnlyStack(), amount);
+        if (key instanceof AEFluidKey fluidKey) return EmiStack.of(fluidKey.getFluid(), fluidKey.getTag(), amount);
+        return EmiStack.EMPTY;
     }
 
     private static EmiStack stackOf(ItemStack stack, long amount) {

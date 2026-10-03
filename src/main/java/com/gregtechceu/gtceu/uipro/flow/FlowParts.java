@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.uipro.flow;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.Horizontal;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.Level;
@@ -45,7 +47,13 @@ public final class FlowParts {
     }
 
     public static FluidSlot fluidSlot(@Nullable FluidStack stack) {
-        var slot = FluidSlot.of(stack == null ? null : new CustomFluidTank(stack), 0, false, false);
+        ForgeFluidAdapter handler = null;
+        if (stack != null) {
+            var tank = KeyInventory.fluids(1, stack.getAmount());
+            tank.set(0, Keys.fluid(stack), stack.getAmount());
+            handler = new ForgeFluidAdapter(tank);
+        }
+        var slot = FluidSlot.of(handler, 0, false, false);
         slot.setShowAmount(false);
         return slot;
     }

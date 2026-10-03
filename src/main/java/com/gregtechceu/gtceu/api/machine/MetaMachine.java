@@ -16,13 +16,16 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
-import com.gregtechceu.gtceu.api.misc.IOFilteredInvWrapper;
-import com.gregtechceu.gtceu.api.misc.IOFluidHandlerList;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerList;
+import com.gregtechceu.gtceu.api.transfer.key.KeyIOView;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
 import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
 import com.gregtechceu.gtceu.common.item.tool.behavior.ToolModeSwitchBehavior;
@@ -30,7 +33,6 @@ import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import com.gregtechceu.gtceu.core.Iblock;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
-import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -59,10 +61,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
+import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
@@ -75,7 +81,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -112,10 +117,10 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     @Getter
     protected final List<MachineTrait> traits = new ArrayList<>();
 
-    protected final DirectionCache<ICustomItemStackHandler> itemHandlerModifiableCache = DirectionCache.create();
-    protected final DirectionCache<ICustomFluidStackHandler> fluidHandlerModifiableCache = DirectionCache.create();
-    protected final DirectionCache<ICustomItemStackHandler> itemHandlerModifiableCoverCache = DirectionCache.create();
-    protected final DirectionCache<ICustomFluidStackHandler> fluidHandlerModifiableCoverCache = DirectionCache.create();
+    protected final DirectionCache<IKeyHandler<AEItemKey>> itemHandlerModifiableCache = DirectionCache.create();
+    protected final DirectionCache<IKeyHandler<AEFluidKey>> fluidHandlerModifiableCache = DirectionCache.create();
+    protected final DirectionCache<IKeyHandler<AEItemKey>> itemHandlerModifiableCoverCache = DirectionCache.create();
+    protected final DirectionCache<IKeyHandler<AEFluidKey>> fluidHandlerModifiableCoverCache = DirectionCache.create();
 
     public final DirectionCache<LazyOptional<IItemHandler>> itemCapDirectionCache = DirectionCache.create();
     public final DirectionCache<LazyOptional<IFluidHandler>> fluidCapDirectionCache = DirectionCache.create();
@@ -419,7 +424,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         fluidCapDirectionCache.clearCache(LazyOptional::invalidate);
     }
 
-    public void clearInventory(ICustomItemStackHandler inventory) {
+    public void clearInventory(StackInventory inventory) {
         for (int i = 0; i < inventory.getSlots(); i++) {
             ItemStack stackInSlot = inventory.getStackInSlot(i);
             if (!stackInSlot.isEmpty()) {
@@ -427,6 +432,27 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
                 Block.popResource(getLevel(), getPos(), stackInSlot);
             }
         }
+    }
+
+    public void clearInventory(KeyInventory<?> inventory) {
+        if (inventory.keyType() != AEKeyType.items()) return;
+        int size = inventory.size();
+        for (int i = 0; i < size; i++) {
+            long amount = inventory.amountAt(i);
+            if (amount <= 0) continue;
+            var key = (AEItemKey) inventory.rawKeyAt(i);
+            inventory.set(i, null, 0);
+            int max = Math.max(1, key.getMaxStackSize());
+            while (amount > 0) {
+                int n = (int) Math.min(amount, max);
+                Block.popResource(getLevel(), getPos(), key.toStack(n));
+                amount -= n;
+            }
+        }
+    }
+
+    public void clearInventory(NotifiableInventory<?> inventory) {
+        clearInventory(inventory.storage);
     }
 
     public boolean shouldRenderGrid(Player player, BlockPos pos, BlockState state, ItemStack held, Set<GTToolType> toolTypes) {
@@ -651,65 +677,65 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     //////////////////////////////////////
     // ****** Capability ********//
     //////////////////////////////////////
-    public Predicate<ItemStack> getItemCapFilter(@Nullable Direction side, IO io) {
+    @Nullable
+    public AEKeyFilter getKeyCapFilter(@Nullable Direction side, IO io, AEKeyType type) {
         if (side != null) {
             var cover = getCoverContainer().getCoverAtSide(side);
-            if (cover instanceof ItemFilterCover filterCover && filterCover.getFilterMode().filters(io)) {
-                return filterCover.getItemFilter();
+            if (type == AEKeyType.items()) {
+                if (cover instanceof ItemFilterCover filterCover && filterCover.getFilterMode().filters(io)) {
+                    var filter = filterCover.getItemFilter();
+                    return k -> k instanceof AEItemKey itemKey && filter.test(itemKey.getReadOnlyStack());
+                }
+            } else if (cover instanceof FluidFilterCover filterCover && filterCover.getFilterMode().filters(io)) {
+                var filter = filterCover.getFluidFilter();
+                return k -> k instanceof AEFluidKey fluidKey && filter.test(fluidKey.getReadOnlyStack());
             }
         }
-        return GTUtil.FAVORABLE;
+        return null;
     }
 
-    public Predicate<FluidStack> getFluidCapFilter(@Nullable Direction side, IO io) {
-        if (side != null) {
-            var cover = getCoverContainer().getCoverAtSide(side);
-            if (cover instanceof FluidFilterCover filterCover && filterCover.getFilterMode().filters(io)) {
-                return filterCover.getFluidFilter();
+    @SuppressWarnings("unchecked")
+    private <K extends AEKey> List<IKeyHandler<K>> keyTraits(@Nullable Direction side, AEKeyType type) {
+        var list = new ArrayList<IKeyHandler<K>>();
+        for (var trait : traits) {
+            if (trait instanceof ICapabilityTrait capabilityTrait && trait instanceof IKeyHandler<?> handler && handler.keyType() == type && capabilityTrait.hasCapability(side)) {
+                list.add((IKeyHandler<K>) handler);
             }
         }
-        return GTUtil.FAVORABLE;
+        return list;
     }
 
-    public @Nullable ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    private <K extends AEKey> @Nullable IKeyHandler<K> buildKeyCap(@Nullable Direction side, AEKeyType type, boolean outputOnly) {
+        List<IKeyHandler<K>> handlers = keyTraits(side, type);
+        if (handlers.isEmpty()) return null;
+        var inf = getKeyCapFilter(side, IO.IN, type);
+        var outf = getKeyCapFilter(side, IO.OUT, type);
+        IKeyHandler<K> base = handlers.size() == 1 ? handlers.get(0) : new KeyHandlerList<>(type, handlers);
+        if (!outputOnly && inf == null && outf == null) return base;
+        return new KeyIOView<>(base, !outputOnly, true, inf, outf);
+    }
+
+    public @Nullable IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
+        if (cache.has(side)) return cache.get(side);
         return cache.getOrSet(side, () -> {
-            var filteredTraits = GTCapabilityHelper.getCapabilitiesFromTraits(traits, side, ICustomItemStackHandler.class);
-            if (filteredTraits.isEmpty()) return null;
-            ICustomItemStackHandler handlerList = null;
-            IO io = IO.BOTH;
-            var inf = getItemCapFilter(side, IO.IN);
-            var outf = getItemCapFilter(side, IO.OUT);
-            if (side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems()) {
-                io = IO.OUT;
-            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE) {
-                handlerList = filteredTraits.getFirst();
-            }
-            if (handlerList == null) handlerList = new IOFilteredInvWrapper(filteredTraits, io, inf, outf);
-            if (!useCoverCapability || side == null) return handlerList;
+            boolean outputOnly = side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems();
+            IKeyHandler<AEItemKey> handler = buildKeyCap(side, AEKeyType.items(), outputOnly);
+            if (handler == null || !useCoverCapability || side == null) return handler;
             CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
-            return cover != null ? cover.getItemHandlerCap(handlerList) : handlerList;
+            return cover != null ? cover.getItemHandlerCap(handler) : handler;
         });
     }
 
-    public @Nullable ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public @Nullable IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? fluidHandlerModifiableCoverCache : fluidHandlerModifiableCache;
+        if (cache.has(side)) return cache.get(side);
         return cache.getOrSet(side, () -> {
-            var filteredTraits = GTCapabilityHelper.getCapabilitiesFromTraits(traits, side, ICustomFluidStackHandler.class);
-            if (filteredTraits.isEmpty()) return null;
-            ICustomFluidStackHandler handlerList = null;
-            var inf = getFluidCapFilter(side, IO.IN);
-            var outf = getFluidCapFilter(side, IO.OUT);
-            IO io = IO.BOTH;
-            if (side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids()) {
-                io = IO.OUT;
-            } else if (filteredTraits.size() == 1 && inf == GTUtil.FAVORABLE && outf == GTUtil.FAVORABLE && filteredTraits.getFirst() instanceof ICustomFluidStackHandler modifiable) {
-                handlerList = modifiable;
-            }
-            if (handlerList == null) handlerList = new IOFluidHandlerList(filteredTraits, io, inf, outf);
-            if (!useCoverCapability || side == null) return handlerList;
+            boolean outputOnly = side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids();
+            IKeyHandler<AEFluidKey> handler = buildKeyCap(side, AEKeyType.fluids(), outputOnly);
+            if (handler == null || !useCoverCapability || side == null) return handler;
             CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
-            return cover != null ? cover.getFluidHandlerCap(handlerList) : handlerList;
+            return cover != null ? cover.getFluidHandlerCap(handler) : handler;
         });
     }
 
@@ -756,8 +782,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         itemHandlerModifiableCoverCache.remove(side);
         fluidHandlerModifiableCache.remove(side);
         fluidHandlerModifiableCoverCache.remove(side);
-        itemCapDirectionCache.remove(side);
-        fluidCapDirectionCache.remove(side);
+        itemCapDirectionCache.remove(side, LazyOptional::invalidate);
+        fluidCapDirectionCache.remove(side, LazyOptional::invalidate);
     }
 
     public void setOwnerUUID(@Nullable final UUID ownerUUID) {

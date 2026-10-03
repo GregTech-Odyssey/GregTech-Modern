@@ -9,7 +9,8 @@ import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.item.component.IItemHUDProvider;
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
@@ -44,12 +45,13 @@ import java.util.List;
 
 public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider {
 
-    // Map of FluidIngredient -> burn time
-    public static final O2IOpenCacheHashMap<FluidIngredient> FUELS = new O2IOpenCacheHashMap<>();
+    public static final O2IOpenCacheHashMap<Fuel> FUELS = new O2IOpenCacheHashMap<>();
     public static final int tankCapacity = 16000;
 
-    private FluidIngredient currentFuel = FluidIngredient.EMPTY;
-    private FluidIngredient previousFuel = FluidIngredient.EMPTY;
+    @Nullable
+    private Fuel currentFuel;
+    @Nullable
+    private Fuel previousFuel;
     private int burnTimer = 0;
 
     @OnlyIn(Dist.CLIENT)
@@ -104,7 +106,7 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
         if (toggleTimer > 0) toggleTimer--;
         data.putByte("toggleTimer", toggleTimer);
 
-        if (currentFuel.isEmpty())
+        if (currentFuel == null)
             findNewRecipe(stack);
 
         performFlying(player, jetpackEnabled, hoverMode, stack);
@@ -175,45 +177,49 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
 
     @Override
     public boolean canUseEnergy(ItemStack stack, int amount) {
-        if (currentFuel.isEmpty()) return false;
+        var fuel = currentFuel;
+        if (fuel == null) return false;
         if (burnTimer > 0) return true;
         var ret = FluidUtil.getFluidHandler(stack)
                 .map(h -> h.drain(Integer.MAX_VALUE, FluidAction.SIMULATE))
-                .map(drained -> drained.getAmount() >= currentFuel.getAmount())
+                .map(drained -> drained.getAmount() >= fuel.amount())
                 .orElse(Boolean.FALSE);
-        if (!ret) currentFuel = FluidIngredient.EMPTY;
+        if (!ret) currentFuel = null;
         return ret;
     }
 
     @Override
     public void drainEnergy(ItemStack stack, int amount) {
-        if (burnTimer == 0) {
+        var fuel = currentFuel;
+        if (burnTimer == 0 && fuel != null) {
             FluidUtil.getFluidHandler(stack)
-                    .ifPresent(h -> h.drain(currentFuel.getAmount(), FluidAction.EXECUTE));
-            burnTimer = FUELS.getInt(currentFuel);
+                    .ifPresent(h -> h.drain(Keys.saturatedInt(fuel.amount()), FluidAction.EXECUTE));
+            burnTimer = FUELS.getInt(fuel);
         }
         burnTimer -= amount;
     }
 
     @Override
     public boolean hasEnergy(ItemStack stack) {
-        return burnTimer > 0 || !currentFuel.isEmpty();
+        return burnTimer > 0 || currentFuel != null;
     }
 
     public void findNewRecipe(@NotNull ItemStack stack) {
         FluidUtil.getFluidContained(stack).ifPresentOrElse(fluid -> {
-            if (!previousFuel.isEmpty() && previousFuel.test(fluid) &&
-                    fluid.getAmount() >= previousFuel.getAmount()) {
-                currentFuel = previousFuel;
+            var key = Keys.fluidType(fluid);
+            var previous = previousFuel;
+            if (previous != null && previous.ingredient().test(key) &&
+                    fluid.getAmount() >= previous.amount()) {
+                currentFuel = previous;
                 return;
             }
 
             for (var fuel : FUELS.keySet()) {
-                if (fuel.test(fluid) && fluid.getAmount() >= fuel.getAmount()) {
+                if (fuel.ingredient().test(key) && fluid.getAmount() >= fuel.amount()) {
                     previousFuel = currentFuel = fuel;
                 }
             }
-        }, () -> currentFuel = FluidIngredient.EMPTY);
+        }, () -> currentFuel = null);
     }
 
     /*
@@ -259,8 +265,9 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
 
                         @Override
                         public boolean canFillFluidType(FluidStack fluid) {
-                            for (var ingredient : FUELS.keySet()) {
-                                if (ingredient.test(fluid)) return true;
+                            var key = Keys.fluidType(fluid);
+                            for (var fuel : FUELS.keySet()) {
+                                if (fuel.ingredient().test(key)) return true;
                             }
                             return false;
                         }
@@ -286,6 +293,19 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
             state = emergencyHover ? Component.translatable("metaarmor.hud.status.enabled") :
                     Component.translatable("metaarmor.hud.status.disabled");
             tooltipComponents.add(Component.translatable("metaarmor.hud.emergency_hover_mode", state));
+        }
+    }
+
+    public record Fuel(KeyIngredient ingredient, long amount) {
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof Fuel other && ingredient.equals(other.ingredient);
+        }
+
+        @Override
+        public int hashCode() {
+            return ingredient.hashCode();
         }
     }
 }

@@ -19,6 +19,8 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
 
     protected boolean isDirty = true;
 
+    private TaskHandler.ReusableTask notifyTask;
+
     @Getter
     @Setter
     protected int priority;
@@ -56,7 +58,9 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
         if (isDirty) {
             if (!machine.holder.isRemoved() && machine.getLevel() instanceof ServerLevel serverLevel) {
                 isDirty = false;
-                TaskHandler.enqueueTask(serverLevel, this::runNotify, 0);
+                var task = notifyTask;
+                if (task == null) notifyTask = task = new TaskHandler.ReusableTask(this::runNotify);
+                TaskHandler.enqueueTask(serverLevel, task);
             }
         }
     }

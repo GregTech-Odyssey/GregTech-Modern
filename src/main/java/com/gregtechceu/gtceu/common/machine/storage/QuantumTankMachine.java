@@ -20,9 +20,11 @@ import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.*;
 
@@ -48,20 +50,19 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.annotations.Strategy;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.datasynclib.util.FluidStackHashStrategy;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
-import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
-import java.util.function.Predicate;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -69,8 +70,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
 
-    @SuppressWarnings("unused")
-    private static final Hash.Strategy<FluidStack> FLUID_STRATEGY = FluidStackHashStrategy.FLUID;
+    private static final int LOCK_MARKER = 1000;
 
     public static Reference2LongOpenHashMap<MachineDefinition> TANK_CAPACITY = new Reference2LongOpenHashMap<>();
     @Getter
@@ -97,14 +97,13 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @AdditionalHolder
     protected final FluidCache cache;
     @SyncToClient
-    private final CustomFluidTank lockedFluid;
+    private final KeyInventory<AEFluidKey> lockedFluid;
+    @Nullable
+    @SyncToClient
+    protected AEFluidKey storedKey;
     @Getter
     @SyncToClient
-    @Strategy("FLUID_STRATEGY")
-    protected FluidStack stored = FluidStack.EMPTY;
-    @Getter
-    @SyncToClient
-    protected long storedAmount = 0;
+    protected long storedAmount;
     @Nullable
     protected TickableSubscription autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
@@ -115,7 +114,8 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         this.maxAmount = maxAmount;
         this.max = maxAmount;
         this.cache = createCacheFluidHandler(args);
-        this.lockedFluid = new CustomFluidTank(1000);
+        this.lockedFluid = KeyInventory.fluids(1, Long.MAX_VALUE);
+        this.lockedFluid.setOnChanged(this::applyLock);
     }
 
     protected FluidCache createCacheFluidHandler(Object... args) {
@@ -132,11 +132,22 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     protected void onFluidChanged() {
         if (!isRemote()) {
-            cache.stack = null;
-            onChanged();
-            updateAutoOutputSubscription();
-            requestSync();
+            storedKey = cache.storage.keyAt(0);
+            storedAmount = cache.storage.amountAt(0);
+            if (getLevel() != null) {
+                onChanged();
+                updateAutoOutputSubscription();
+                requestSync();
+            }
         }
+    }
+
+    public FluidStack getStored() {
+        return Keys.displayFluid(storedKey);
+    }
+
+    protected void loadStored(@Nullable AEFluidKey key, long amount) {
+        cache.storage.set(0, key, amount);
     }
 
     @Override
@@ -146,27 +157,33 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public boolean saveBreak() {
-        return !stored.isEmpty();
+        return cache.storage.amountAt(0) > 0;
     }
 
     @Override
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
-        if (!forDrop) tag.put("lockedFluid", lockedFluid.writeToNBT(new CompoundTag()));
+        if (!forDrop) {
+            var lockedKey = lockedFluid.keyAt(0);
+            var locked = lockedKey == null ? FluidStack.EMPTY : Keys.toFluidStack(lockedKey, lockedFluid.amountAt(0));
+            tag.put("lockedFluid", locked.writeToNBT(new CompoundTag()));
+        }
+        var key = cache.storage.keyAt(0);
+        var stored = key == null ? FluidStack.EMPTY : Keys.toFluidStack(key, 1000);
         tag.put("stored", stored.writeToNBT(new CompoundTag()));
-        tag.putLong("storedAmount", storedAmount);
+        tag.putLong("storedAmount", cache.storage.amountAt(0));
     }
 
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
         var from = tag.contains("cache") ? tag.getCompound("cache") : tag;
-        this.lockedFluid.readFromNBT(from.getCompound("lockedFluid"));
+        var locked = FluidStack.loadFluidStackFromNBT(from.getCompound("lockedFluid"));
+        lockedFluid.set(0, Keys.fluid(locked), locked.getAmount());
         var stored = FluidStack.loadFluidStackFromNBT(tag.getCompound("stored"));
-        this.stored = new FluidStack(stored, 1000);
-        if (!tag.contains("storedAmount")) this.storedAmount = stored.getAmount();
-        else this.storedAmount = tag.getLong("storedAmount");
-        if (storedAmount == 0 && !stored.isEmpty()) this.storedAmount = stored.getAmount();
+        long storedAmount = tag.contains("storedAmount") ? tag.getLong("storedAmount") : stored.getAmount();
+        if (storedAmount == 0 && !stored.isEmpty()) storedAmount = stored.getAmount();
+        loadStored(Keys.fluidType(stored), storedAmount);
     }
 
     //////////////////////////////////////
@@ -174,13 +191,13 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     //////////////////////////////////////
     @Override
     @Nullable
-    public ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         return null;
     }
 
     @Override
     @Nullable
-    public ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
+    public IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         if (side == getFrontFacing()) {
             return null;
         }
@@ -221,7 +238,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
-        if ((isAutoOutputFluids() && !stored.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputFluids() && cache.storage.amountAt(0) > 0) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -262,7 +279,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         if (hit.getDirection() == getFrontFacing() && !isRemote()) {
-            if (FluidUtil.interactWithFluidHandler(player, hand, cache)) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, new ForgeFluidAdapter(cache))) {
                 return InteractionResult.SUCCESS;
             }
         }
@@ -303,26 +320,32 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     }
 
     public boolean isLocked() {
-        return !lockedFluid.isEmpty();
+        return lockedFluid.amountAt(0) > 0;
     }
 
     protected void setLocked(boolean locked) {
-        if (!stored.isEmpty() && locked) {
-            var copied = new FluidStack(stored, 1000);
-            lockedFluid.setFluid(copied);
+        var key = cache.storage.keyAt(0);
+        if (key != null && locked) {
+            lockedFluid.set(0, key, LOCK_MARKER);
         } else if (!locked) {
-            lockedFluid.setFluid(FluidStack.EMPTY);
+            lockedFluid.set(0, null, 0);
         }
     }
 
     protected void setLocked(FluidStack fluid) {
-        if (fluid.isEmpty()) setLocked(false);
-        else if (stored.isEmpty()) lockedFluid.setFluid(fluid);
-        else if (stored.isFluidEqual(fluid)) setLocked(true);
+        var key = Keys.fluidType(fluid);
+        var stored = cache.storage.keyAt(0);
+        if (key == null) setLocked(false);
+        else if (stored == null) lockedFluid.set(0, key, LOCK_MARKER);
+        else if (stored == key) setLocked(true);
     }
 
     public FluidStack getLockedFluid() {
-        return lockedFluid.getFluid();
+        return Keys.displayFluid(lockedFluid.keyAt(0));
+    }
+
+    private void applyLock() {
+        cache.storage.setLocked(0, lockedFluid.keyAt(0));
     }
 
     //////////////////////////////////////
@@ -332,9 +355,9 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         var group = new WidgetGroup(0, 0, 109, 87);
         group.addWidget(new ImageWidget(4, 4, 101, 55, GuiTextures.DISPLAY))
                 .addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"))
-                .addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatBuckets(storedAmount)).setTextColor(-1).setDropShadow(false))
-                .addWidget(new TankWidget(cache, 0, 87, 23, true, true).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT))
-                .addWidget(new PhantomFluidWidget(lockedFluid, 0, 87, 41, 18, 18, this::getLockedFluid, this::setLocked).setShowAmount(false).setBackground(ColorPattern.T_GRAY.rectTexture()))
+                .addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatBuckets(getStoredAmount())).setTextColor(-1).setDropShadow(false))
+                .addWidget(new TankWidget(new ForgeFluidAdapter(cache), 0, 87, 23, true, true).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT))
+                .addWidget(new PhantomFluidWidget(new ForgeFluidAdapter(lockedFluid), 0, 87, 41, 18, 18, this::getLockedFluid, this::setLocked).setShowAmount(false).setBackground(ColorPattern.T_GRAY.rectTexture()))
                 .addWidget(new ToggleButtonWidget(4, 41, 18, 18, GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_auto_output.tooltip"))
                 .addWidget(new ToggleButtonWidget(22, 41, 18, 18, GuiTextures.BUTTON_LOCK, this::isLocked, this::setLocked).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_lock.tooltip"))
                 .addWidget(new ToggleButtonWidget(40, 41, 18, 18, GuiTextures.BUTTON_VOID, () -> isVoiding, b -> isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_voiding_partial.tooltip"));
@@ -364,106 +387,84 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         return super.sideTips(player, pos, state, toolTypes, side);
     }
 
-    protected class FluidCache extends MachineTrait implements ICustomFluidStackHandler, ICapabilityTrait {
+    protected class FluidCache extends MachineTrait implements IKeyHandler<AEFluidKey>, ICapabilityTrait {
 
-        @SuppressWarnings("unused")
-        private static final Hash.Strategy<FluidStack> FLUID_STRATEGY = FluidStackHashStrategy.FLUID;
-
-        private final Predicate<FluidStack> filter = f -> !isLocked() || getLockedFluid().isFluidEqual(f);
-
-        @Nullable
-        @SyncToClient
-        @Strategy("FLUID_STRATEGY")
-        private FluidStack stack = null;
+        protected final KeyInventory<AEFluidKey> storage = KeyInventory.fluids(1, Long.MAX_VALUE);
 
         public FluidCache(MetaMachine holder) {
             super(holder);
+            storage.setOnChanged(QuantumTankMachine.this::onFluidChanged);
         }
 
         @Override
-        public void setFluidInTank(int tank, FluidStack stack) {
-            stored = ICustomFluidStackHandler.copy(stack, 1);
-            storedAmount = stack.getAmount();
-            onFluidChanged();
+        public AEKeyType keyType() {
+            return AEKeyType.fluids();
         }
 
         @Override
-        public FluidStack getFluidInTank(int tank) {
-            var stack = this.stack;
-            if (stack == null) {
-                this.stack = stack = storedAmount > 0 ? new FluidStack(stored, GTMath.saturatedCast(storedAmount)) : FluidStack.EMPTY;
-            }
-            return stack;
-        }
-
-        @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            long free = isVoiding ? Long.MAX_VALUE : maxAmount - storedAmount;
-            if (free < 1) return 0;
-            long canFill = 0;
-            if ((stored.isEmpty() || stored.isFluidEqual(resource)) && filter.test(resource)) {
-                canFill = Math.min(resource.getAmount(), free);
-            }
-            if (canFill < 1) return 0;
-            if (action.execute()) {
-                if (stored.isEmpty()) stored = new FluidStack(resource, 1000);
-                storedAmount = Math.min(maxAmount, storedAmount + canFill);
-                onFluidChanged();
-            }
-            return (int) canFill;
-        }
-
-        @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            if (stored.isEmpty()) return FluidStack.EMPTY;
-            long toDrain = Math.min(storedAmount, maxDrain);
-            if (toDrain < 1) return FluidStack.EMPTY;
-            var copy = new FluidStack(stored, (int) toDrain);
-            if (action.execute()) {
-                storedAmount -= toDrain;
-                if (storedAmount == 0) stored = FluidStack.EMPTY;
-                onFluidChanged();
-            }
-            return copy;
-        }
-
-        @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (stored.isEmpty()) return FluidStack.EMPTY;
-            long toDrain = Math.min(storedAmount, resource.getAmount());
-            if (toDrain < 1) return FluidStack.EMPTY;
-            if (!resource.isFluidEqual(stored)) return FluidStack.EMPTY;
-            var copy = new FluidStack(stored, (int) toDrain);
-            if (action.execute()) {
-                storedAmount -= toDrain;
-                if (storedAmount == 0) stored = FluidStack.EMPTY;
-                onFluidChanged();
-            }
-            return copy;
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return GTMath.saturatedCast(maxAmount);
-        }
-
-        @Override
-        public int getTanks() {
+        public int size() {
             return 1;
         }
 
         @Override
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return filter.test(stack);
+        public @Nullable AEFluidKey keyAt(int slot) {
+            return storage.keyAt(slot);
+        }
+
+        @Override
+        public long amountAt(int slot) {
+            return storage.amountAt(slot);
+        }
+
+        @Override
+        public long slotLimit(int slot) {
+            return maxAmount;
+        }
+
+        @Override
+        public long insert(int slot, AEFluidKey key, long amount, boolean simulate) {
+            if (slot != 0 || amount <= 0) return 0;
+            var lock = storage.lockedAt(0);
+            if (lock != null && lock != key) return 0;
+            long stored = storage.amountAt(0);
+            if (stored != 0 ? storage.rawKeyAt(0) != key : !storage.acceptsEmpty(0, key)) return 0;
+            long space = maxAmount - stored;
+            long n = space > 0 ? storage.insert(0, key, Math.min(amount, space), simulate) : 0;
+            return isVoiding ? amount : n;
+        }
+
+        @Override
+        public long extract(int slot, AEFluidKey key, long amount, boolean simulate) {
+            return slot == 0 ? storage.extract(0, key, amount, simulate) : 0;
+        }
+
+        @Override
+        public long insert(AEFluidKey key, long amount, boolean simulate) {
+            return insert(0, key, amount, simulate);
+        }
+
+        @Override
+        public long extract(AEFluidKey key, long amount, boolean simulate) {
+            return extract(0, key, amount, simulate);
+        }
+
+        protected long exportLimit() {
+            return Long.MAX_VALUE;
         }
 
         public void exportToNearby(Direction... facings) {
-            if (stored.isEmpty()) return;
+            var key = storage.keyAt(0);
+            if (key == null) return;
             var level = getMachine().getLevel();
             var pos = getMachine().getPos();
             for (Direction facing : facings) {
-                var filter = getMachine().getFluidCapFilter(facing, IO.OUT);
-                holder.blockEntityDirectionCache.getAdjacentFluidHandler(level, pos, facing).ifPresent(adj -> GTTransferUtils.transferFluidsFiltered(this, adj, filter));
+                var filter = getMachine().getKeyCapFilter(facing, IO.OUT, AEKeyType.fluids());
+                if (filter != null && !filter.matches(key)) continue;
+                if (holder.blockEntityDirectionCache.getAdjacentKeyHandler(level, pos, facing, AEKeyType.fluids()) instanceof IKeyHandler<?> target) {
+                    @SuppressWarnings("unchecked")
+                    var to = (IKeyHandler<AEFluidKey>) target;
+                    KeyTransfer.transferKey(this, to, key, exportLimit());
+                }
             }
         }
     }

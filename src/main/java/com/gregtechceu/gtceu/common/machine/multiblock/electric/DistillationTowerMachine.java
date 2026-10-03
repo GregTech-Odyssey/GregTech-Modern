@@ -6,9 +6,9 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
+import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import lombok.Getter;
 
@@ -25,7 +25,7 @@ public class DistillationTowerMachine extends WorkableElectricMultiblockMachine 
     public static final ParamKey LAYERS = ParamKey.of("gtceu.multiblock.distillation_tower.layers", "gtceu.multiblock.distillation_tower.layers.desc");
 
     @Getter
-    private final List<IFluidHandler> fluidOutputs = new ArrayList<>();
+    private final List<RecipeHandlerUnit> fluidOutputs = new ArrayList<>();
 
     @Getter
     private final int yOffset;

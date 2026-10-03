@@ -5,7 +5,9 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
+import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -390,53 +392,33 @@ public class MultiblockDisplayText {
                 int chanceTier = recipeTier + recipe.ocLevel;
                 var function = recipe.definition.chanceFunction;
                 double maxDurationSec = (double) recipe.duration / 20.0;
-                var itemOutputs = recipe.itemOutputs;
-                var fluidOutputs = recipe.fluidOutputs;
-
-                for (var item : itemOutputs) {
-                    var ingredient = item.inner;
-                    var stack = ingredient.getInnerItemStack();
-                    if (stack.isEmpty()) continue;
-                    int count = item.getIntAmount();
-                    double countD = count;
-                    if (item.chance < Content.MAX_CHANCE) {
-                        countD = countD * recipe.parallels *
-                                function.getBoostedChance(item, recipeTier, chanceTier) / Content.MAX_CHANCE;
-                        count = countD < 1 ? 1 : (int) Math.round(countD);
-                    }
-                    if (count < maxDurationSec) {
-                        String key = "gtceu.multiblock.output_line." + (item.chance < Content.MAX_CHANCE ? "2" : "0");
-                        textList.add(Component.translatable(key, stack.getHoverName(), count,
-                                FormattingUtil.formatNumber2Places(maxDurationSec / countD)));
-                    } else {
-                        String key = "gtceu.multiblock.output_line." + (item.chance < Content.MAX_CHANCE ? "3" : "1");
-                        textList.add(Component.translatable(key, stack.getHoverName(), count,
-                                FormattingUtil.formatNumber2Places(countD / maxDurationSec)));
-                    }
-                }
-                for (var fluid : fluidOutputs) {
-                    var ingredient = fluid.inner;
-                    var stack = ingredient.getFluidStack();
-                    if (stack.isEmpty()) continue;
-                    int amount = fluid.getIntAmount();
-                    double amountD = amount;
-                    if (fluid.chance < Content.MAX_CHANCE) {
-                        amountD = amountD * recipe.parallels *
-                                function.getBoostedChance(fluid, recipeTier, chanceTier) / Content.MAX_CHANCE;
-                        amount = amountD < 1 ? 1 : (int) Math.round(amountD);
-                    }
-                    if (amount < maxDurationSec) {
-                        String key = "gtceu.multiblock.output_line." + (fluid.chance < Content.MAX_CHANCE ? "2" : "0");
-                        textList.add(Component.translatable(key, stack.getDisplayName(), amount,
-                                FormattingUtil.formatNumber2Places(maxDurationSec / amountD)));
-                    } else {
-                        String key = "gtceu.multiblock.output_line." + (fluid.chance < Content.MAX_CHANCE ? "3" : "1");
-                        textList.add(Component.translatable(key, stack.getDisplayName(), amount,
-                                FormattingUtil.formatNumber2Places(amountD / maxDurationSec)));
-                    }
-                }
+                addOutputLines(recipe, recipe.itemOutputs, recipeTier, chanceTier, function, maxDurationSec);
+                addOutputLines(recipe, recipe.fluidOutputs, recipeTier, chanceTier, function, maxDurationSec);
             }
             return this;
+        }
+
+        private void addOutputLines(GTRecipe recipe, ContentList list, int recipeTier, int chanceTier, ChanceBoostFunction function, double maxDurationSec) {
+            for (int i = 0; i < list.size(); i++) {
+                int chance = list.chance(i);
+                long effective = list.effective(i, recipe.scale);
+                if (effective <= 0 || chance == 0) continue;
+                var name = list.outputKey(i).getDisplayName();
+                boolean chanced = chance < ContentList.MAX_CHANCE;
+                int count = Keys.saturatedInt(effective);
+                double countD = count;
+                if (chanced) {
+                    countD = countD * function.getBoostedChance(chance, list.boost(i), recipeTier, chanceTier) / ContentList.MAX_CHANCE;
+                    count = countD < 1 ? 1 : (int) Math.round(countD);
+                }
+                if (count < maxDurationSec) {
+                    textList.add(Component.translatable(chanced ? "gtceu.multiblock.output_line.2" : "gtceu.multiblock.output_line.0", name, count,
+                            FormattingUtil.formatNumber2Places(maxDurationSec / countD)));
+                } else {
+                    textList.add(Component.translatable(chanced ? "gtceu.multiblock.output_line.3" : "gtceu.multiblock.output_line.1", name, count,
+                            FormattingUtil.formatNumber2Places(countD / maxDurationSec)));
+                }
+            }
         }
 
         /**

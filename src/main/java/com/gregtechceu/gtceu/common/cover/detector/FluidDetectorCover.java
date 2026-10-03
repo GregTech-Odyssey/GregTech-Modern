@@ -3,11 +3,13 @@ package com.gregtechceu.gtceu.common.cover.detector;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.RedstoneUtil;
 
 import net.minecraft.core.Direction;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+
+import appeng.api.stacks.AEFluidKey;
 
 public class FluidDetectorCover extends DetectorCover {
 
@@ -22,19 +24,17 @@ public class FluidDetectorCover extends DetectorCover {
 
     @Override
     protected void update() {
-        IFluidHandler fluidHandler = getFluidHandler();
+        IKeyHandler<AEFluidKey> fluidHandler = getFluidHandler();
         if (fluidHandler == null)
             return;
 
-        int storedFluid = 0;
-        int fluidCapacity = 0;
+        long storedFluid = 0;
+        long fluidCapacity = 0;
 
-        for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
-            FluidStack content = fluidHandler.getFluidInTank(tank);
-            if (!content.isEmpty())
-                storedFluid += content.getAmount();
-
-            fluidCapacity += fluidHandler.getTankCapacity(tank);
+        int size = fluidHandler.size();
+        for (int tank = 0; tank < size; tank++) {
+            storedFluid = Keys.add(storedFluid, fluidHandler.amountAt(tank));
+            fluidCapacity = Keys.add(fluidCapacity, fluidHandler.slotLimit(tank));
         }
 
         if (fluidCapacity == 0)
@@ -43,7 +43,7 @@ public class FluidDetectorCover extends DetectorCover {
         setRedstoneSignalOutput(RedstoneUtil.computeRedstoneValue(storedFluid, fluidCapacity, isInverted()));
     }
 
-    protected IFluidHandler getFluidHandler() {
-        return GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide);
+    protected IKeyHandler<AEFluidKey> getFluidHandler() {
+        return GTCapabilityHelper.getFluidKeyHandler(coverHolder.holder(), attachedSide);
     }
 }

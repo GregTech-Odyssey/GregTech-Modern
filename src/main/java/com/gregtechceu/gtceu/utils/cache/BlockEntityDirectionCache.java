@@ -1,5 +1,8 @@
 package com.gregtechceu.gtceu.utils.cache;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -9,7 +12,9 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEKeyType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BlockEntityDirectionCache extends DirectionCache<BlockEntity> {
 
@@ -62,5 +67,11 @@ public class BlockEntityDirectionCache extends DirectionCache<BlockEntity> {
 
     public boolean hasAdjacentFluidHandler(Level level, BlockPos pos, Direction facing) {
         return getAdjacentFluidHandler(level, pos, facing).isPresent();
+    }
+
+    public @Nullable IKeyHandler<?> getAdjacentKeyHandler(Level level, BlockPos pos, Direction facing, AEKeyType type) {
+        var blockEntity = getAdjacentBlockEntity(level, pos, facing);
+        if (blockEntity == null) return null;
+        return GTCapabilityHelper.getKeyHandler(blockEntity, facing.getOpposite(), type);
     }
 }

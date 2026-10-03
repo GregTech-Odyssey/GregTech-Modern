@@ -6,15 +6,12 @@ import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.*;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
-import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
+import com.gregtechceu.gtceu.api.recipe.handler.PlanScratch;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
@@ -25,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -147,13 +143,16 @@ public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, IC
         for (var e : recipe.definition.recipeExtensions) {
             if (!e.handleOutput(this, recipe, true)) return false;
         }
-        List<Content<ItemIngredient>> items = canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.itemOutputs, 1);
-        List<Content<FluidIngredient>> fluids = canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE) ? Collections.emptyList() : RecipeHelper.copyContents(recipe.fluidOutputs, 1);
-        if (items.isEmpty() && fluids.isEmpty()) return true;
-        for (var handler : getOutputUnits(recipe)) {
-            if (handler.handleRecipeItem(IO.OUT, recipe, items, true) && handler.handleRecipeFluid(IO.OUT, recipe, fluids, true)) {
-                return true;
+        boolean items = !recipe.itemOutputs.isEmpty() && !canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE);
+        boolean fluids = !recipe.fluidOutputs.isEmpty() && !canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE);
+        if (!items && !fluids) return true;
+        var p = PlanScratch.acquire();
+        try {
+            for (var handler : getOutputUnits(recipe)) {
+                if (handler.fitsOutputs(recipe, p, recipe.scale, items, fluids)) return true;
             }
+        } finally {
+            PlanScratch.release();
         }
         setIdleReason(ActionResult.FAIL_INSUFFICIENT_OUT);
         return false;

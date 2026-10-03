@@ -13,7 +13,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.item.IGTTool;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -74,8 +74,11 @@ public class ChemicalHelper {
                     if (ms != null) return ms;
                 }
             }
-            case ItemIngredient ing -> {
-                return getMaterialInfo(ing.inner);
+            case KeyIngredient ing -> {
+                for (var stack : ing.getItems()) {
+                    var ms = ItemMaterialData.getMaterialInfo(stack.getItem());
+                    if (ms != null) return ms;
+                }
             }
             case null, default -> {
                 return null;

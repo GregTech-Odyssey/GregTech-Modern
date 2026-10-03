@@ -63,6 +63,7 @@ public final class UIStyleManager {
             Map.entry("tab_hover_fill", 0xFFB9B9B9),
             Map.entry("tab_pressed_fill", 0xFFADADAD),
             Map.entry("segment_hover", 0x20000000),
+            Map.entry("segment_selected_tint", 0),
             Map.entry("slot_fill", 0xFF8B8B8B),
             Map.entry("fluid_slot_fill", 0xFF6A6A6A),
             Map.entry("panel_fill", 0xFFBDBDBD),
@@ -122,7 +123,33 @@ public final class UIStyleManager {
             Map.entry("flow_red_mid", 0xFFC24D3E),
             Map.entry("flow_red_dark", 0xFF8F3328),
             Map.entry("button_text", 0xFF222222),
-            Map.entry("button_text_disabled", 0xFF666666));
+            Map.entry("button_text_disabled", 0xFF666666),
+            Map.entry("map_orbit", 0xFF2C3354),
+            Map.entry("map_orbit_far", 0xFF1E2238),
+            Map.entry("map_label", 0xFFE0E0E0),
+            Map.entry("map_label_dim", 0xFFA0A0A0),
+            Map.entry("map_current", 0xFF55FFFF),
+            Map.entry("map_realm", 0xFFB48CFF),
+            Map.entry("map_sky_top", 0xFF080A14),
+            Map.entry("map_sky_bottom", 0xFF0B0E1E),
+            Map.entry("map_sprite_outline", 0xFF05070F),
+            Map.entry("map_hover_frame", 0xA0FFFFFF),
+            Map.entry("map_plate", 0xC0050816),
+            Map.entry("map_plate_edge", 0xFF2F4378),
+            Map.entry("map_link_idle", 0xFF2A4C7A),
+            Map.entry("map_link_low", 0xFF3C7FC0),
+            Map.entry("map_link_mid", 0xFF4FA6F0),
+            Map.entry("map_link_high", 0xFF7FD4FF),
+            Map.entry("map_link_core", 0xFFD8F4FF),
+            Map.entry("map_link_dim", 0xFF1E3554),
+            Map.entry("map_spark", 0xFFF2FDFF),
+            Map.entry("map_spark_tail", 0xFF7FD4FF),
+            Map.entry("map_guide", 0x805A6178),
+            Map.entry("map_guide_hover", 0xFFC8D0E0),
+            Map.entry("map_path", 0xFFFFD27A),
+            Map.entry("map_saturated", 0xFFFFC857),
+            Map.entry("map_net_up", 0xFF55FF55),
+            Map.entry("map_net_down", 0xFFFF9A55));
 
     static final Map<String, String> FALLBACK_KEYS = Map.of(
             "slot_bevel_dark", "bevel_dark",
@@ -300,6 +327,11 @@ public final class UIStyleManager {
 
     public static void popOverride() {
         if (OVERRIDES.poll() != null) applySelected();
+    }
+
+    public static boolean isOverriddenBy(ResourceLocation colorScheme) {
+        var override = OVERRIDES.peek();
+        return override != null && override.colorScheme().equals(colorScheme);
     }
 
     private record StyleOverride(ResourceLocation colorScheme, ResourceLocation texturePack) {}

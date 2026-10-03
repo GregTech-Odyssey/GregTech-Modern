@@ -4,12 +4,15 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -24,13 +27,13 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
     @SuppressWarnings("ConstantValue")
     @Override
     public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
-        List<ItemStack> itemStacks = new ArrayList<>();
+        List<AEItemKey> itemKeys = new ArrayList<>();
         List<FluidStack> fluidStacks = new ArrayList<>();
-        if (!collect(unit, itemStacks, fluidStacks)) return null;
+        if (!collect(unit, itemKeys, fluidStacks)) return null;
 
-        for (var itemStack : itemStacks) {
-            var single = itemStack.copyWithCount(1);
-            var copy = itemStack.copyWithCount(1);
+        for (var itemKey : itemKeys) {
+            var single = Keys.displayStack(itemKey);
+            var copy = itemKey.toStack(1);
             var fluidHandler = FluidUtil.getFluidHandler(copy).orElse(null);
             if (fluidHandler == null) continue;
             // Try to drain first
@@ -64,8 +67,16 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
         return null;
     }
 
-    private static boolean collect(RecipeHandlerUnit rhl, List<ItemStack> itemStacks, List<FluidStack> fluidStacks) {
-        rhl.fastForEach(true, (stack, amount) -> itemStacks.add(stack), (stack, amount) -> fluidStacks.add(stack));
-        return !(itemStacks.isEmpty() || fluidStacks.isEmpty());
+    private static boolean collect(RecipeHandlerUnit rhl, List<AEItemKey> itemKeys, List<FluidStack> fluidStacks) {
+        rhl.forEachKey(AEKeyType.items(), true, (key, amount) -> {
+            if (key instanceof AEItemKey itemKey && amount > 0) itemKeys.add(itemKey);
+            return false;
+        });
+        if (itemKeys.isEmpty()) return false;
+        rhl.forEachKey(AEKeyType.fluids(), true, (key, amount) -> {
+            if (key instanceof AEFluidKey fluidKey && amount > 0) fluidStacks.add(Keys.toFluidStack(fluidKey, amount));
+            return false;
+        });
+        return !fluidStacks.isEmpty();
     }
 }

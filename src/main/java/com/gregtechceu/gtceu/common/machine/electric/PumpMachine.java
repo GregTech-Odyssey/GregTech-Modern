@@ -12,9 +12,11 @@ import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -40,6 +42,7 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -71,7 +74,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     protected boolean autoOutputFluids;
     @SaveToDisk
     @DropSaved
-    protected final NotifiableFluidTank cache;
+    protected final NotifiableInventory<AEFluidKey> cache;
 
     private final TickTimeMonitor pumpMonitor = holder.monitorTick(GTTickTimeMonitors.PUMP, this::update);
     protected TickableSubscription update;
@@ -81,8 +84,8 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
         this.cache = createCacheFluidHandler(args);
     }
 
-    protected NotifiableFluidTank createCacheFluidHandler(Object... args) {
-        return new NotifiableFluidTank(this, 1, 16 * FluidType.BUCKET_VOLUME * Math.max(1, getTier()), IO.NONE, IO.OUT);
+    protected NotifiableInventory<AEFluidKey> createCacheFluidHandler(Object... args) {
+        return NotifiableInventory.fluids(this, 1, 16 * FluidType.BUCKET_VOLUME * Math.max(1, getTier()), IO.NONE, IO.OUT);
     }
 
     @Override
@@ -400,8 +403,9 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
                     if (sourceState.state().getBlock() instanceof LiquidBlock liquidBlock && fluidState.isSource()) {
                         var fluidHandler = new BucketPickupHandlerWrapper(liquidBlock, getLevel(), pos);
                         FluidStack drainStack = fluidHandler.drain(Integer.MAX_VALUE, FluidAction.SIMULATE);
-                        if (!drainStack.isEmpty() && cache.fillInternal(drainStack, FluidAction.SIMULATE) == drainStack.getAmount()) {
-                            cache.fillInternal(drainStack, FluidAction.EXECUTE);
+                        var drainKey = Keys.fluid(drainStack);
+                        if (drainKey != null && cache.storage.insert(drainKey, drainStack.getAmount(), true) == drainStack.getAmount()) {
+                            cache.storage.insert(drainKey, drainStack.getAmount(), false);
                             fluidHandler.drain(drainStack, FluidAction.EXECUTE);
                             getLevel().setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
                             pumped = true;
@@ -488,7 +492,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     //////////////////////////////////////
     @Override
     public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new ImageWidget(7, 16, 81, 55, GuiTextures.DISPLAY)).widget(new LabelWidget(11, 20, "gtceu.gui.fluid_amount")).widget(new LabelWidget(11, 30, () -> cache.getFluidInTank(0).getAmount() + "").setTextColor(-1).setDropShadow(true)).widget(new LabelWidget(6, 6, getBlockState().getBlock().getDescriptionId())).widget(new TankWidget(cache.getStorages()[0], 90, 35, true, true).setBackground(GuiTextures.FLUID_SLOT)).widget(new ToggleButtonWidget(7, 53, 18, 18, GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_auto_output.tooltip")).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 84, true));
+        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new ImageWidget(7, 16, 81, 55, GuiTextures.DISPLAY)).widget(new LabelWidget(11, 20, "gtceu.gui.fluid_amount")).widget(new LabelWidget(11, 30, () -> cache.storage.amountAt(0) + "").setTextColor(-1).setDropShadow(true)).widget(new LabelWidget(6, 6, getBlockState().getBlock().getDescriptionId())).widget(new TankWidget(new ForgeFluidAdapter(cache.storage), 90, 35, true, true).setBackground(GuiTextures.FLUID_SLOT)).widget(new ToggleButtonWidget(7, 53, 18, 18, GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_auto_output.tooltip")).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 84, true));
     }
 
     //////////////////////////////////////

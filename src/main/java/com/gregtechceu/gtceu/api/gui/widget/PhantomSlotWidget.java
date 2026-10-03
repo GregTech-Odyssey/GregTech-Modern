@@ -1,7 +1,14 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyCodecs;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
+import com.gregtechceu.gtceu.uipro.data.RPC;
+import com.gregtechceu.gtceu.uipro.data.UIChannel;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.editor.annotation.ConfigSetter;
@@ -10,10 +17,13 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegister;
 import com.lowdragmc.lowdraglib.gui.editor.annotation.NumberRange;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
+import com.lowdragmc.lowdraglib.side.item.IItemTransfer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.Unit;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
@@ -21,11 +31,16 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.GenericStack;
 import com.google.common.collect.Lists;
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.emi.emi.api.stack.EmiStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
@@ -35,7 +50,12 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
 @LDLRegister(name = "gtm_phantom_item_slot", group = "widget.gtm_container", priority = 50)
-public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget {
+public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget, UIChannel.Host {
+
+    private static final ByteStreamCodec<Drop> DROP_CODEC = ByteStreamCodec.composite(
+            KeyCodecs.GENERIC_STACK_STREAM_CODEC, Drop::stack,
+            ByteStreamCodec.BOOLEAN_CODEC, Drop::shift,
+            Drop::new);
 
     private boolean clearSlotOnRightClick;
 
@@ -44,19 +64,66 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     private int maxStackSize = 64;
 
     private Predicate<ItemStack> validator = GTUtil.FAVORABLE;
+    @Nullable
+    private IItemHandlerModifiable boundHandler;
+    private final UIChannel channel = new UIChannel(this);
+    private final RPC<Drop> dropRequest = channel.addRPC(DROP_CODEC, this::serverDrop)
+            .validate(drop -> drop.stack() != null && drop.stack().what() instanceof AEItemKey && drop.stack().amount() > 0);
+    private final RPC<Unit> clearRequest = channel.addRPC(this::serverClear);
 
     public PhantomSlotWidget() {
         super();
     }
 
-    public PhantomSlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition) {
+    public PhantomSlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
         super(itemHandler, slotIndex, xPosition, yPosition, true, true);
     }
 
-    public PhantomSlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition,
+    public PhantomSlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition,
                              Predicate<ItemStack> validator) {
         super(itemHandler, slotIndex, xPosition, yPosition, true, true);
         this.validator = validator;
+    }
+
+    public PhantomSlotWidget(KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition) {
+        this(new MenuItemAdapter(inventory), slotIndex, xPosition, yPosition);
+    }
+
+    public PhantomSlotWidget(KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition,
+                             Predicate<ItemStack> validator) {
+        this(new MenuItemAdapter(inventory), slotIndex, xPosition, yPosition, validator);
+    }
+
+    public PhantomSlotWidget(StackInventory inventory, int slotIndex, int xPosition, int yPosition) {
+        this(new ForgeStackAdapter(inventory), slotIndex, xPosition, yPosition);
+    }
+
+    public PhantomSlotWidget(StackInventory inventory, int slotIndex, int xPosition, int yPosition,
+                             Predicate<ItemStack> validator) {
+        this(new ForgeStackAdapter(inventory), slotIndex, xPosition, yPosition, validator);
+    }
+
+    @Override
+    public UIChannel getChannel() {
+        return channel;
+    }
+
+    @Override
+    public SlotWidget setHandlerSlot(IItemHandlerModifiable itemHandler, int slotIndex) {
+        this.boundHandler = itemHandler;
+        return super.setHandlerSlot(itemHandler, slotIndex);
+    }
+
+    @Override
+    public SlotWidget setHandlerSlot(IItemTransfer itemHandler, int slotIndex) {
+        this.boundHandler = null;
+        return super.setHandlerSlot(itemHandler, slotIndex);
+    }
+
+    @Override
+    public SlotWidget setContainerSlot(Container inventory, int slotIndex) {
+        this.boundHandler = null;
+        return super.setContainerSlot(inventory, slotIndex);
     }
 
     public PhantomSlotWidget setClearSlotOnRightClick(boolean clearSlotOnRightClick) {
@@ -82,13 +149,19 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     }
 
     @Override
+    public void initWidget() {
+        super.initWidget();
+        channel.prime();
+    }
+
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (slotReference != null && isMouseOverElement(mouseX, mouseY) && gui != null) {
             if (isClientSideWidget && !gui.getModularUIContainer().getCarried().isEmpty()) {
                 slotReference.set(gui.getModularUIContainer().getCarried());
             } else if (button == 1 && clearSlotOnRightClick && !slotReference.getItem().isEmpty()) {
                 slotReference.set(ItemStack.EMPTY);
-                writeClientAction(2, buf -> {});
+                clearRequest.send(Unit.INSTANCE);
             } else {
                 HOVER_SLOT = slotReference;
                 gui.getModularUIGui().superMouseClicked(mouseX, mouseY, button);
@@ -123,17 +196,28 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
         return false;
     }
 
+    @Nullable
+    @OnlyIn(Dist.CLIENT)
+    private static GenericStack phantomOf(Object ingredient) {
+        if (GTCEu.Mods.isEMILoaded() && ingredient instanceof EmiStack emiStack) {
+            Item item = emiStack.getKeyOfType(Item.class);
+            if (item == null) return null;
+            var stack = new ItemStack(item);
+            stack.setTag(emiStack.getNbt());
+            var key = Keys.itemType(stack);
+            return key == null ? null : new GenericStack(key, Math.max(1, emiStack.getAmount()));
+        }
+        if (ingredient instanceof ItemStack stack) {
+            var key = Keys.itemType(stack);
+            return key == null ? null : new GenericStack(key, Math.max(1, stack.getCount()));
+        }
+        return null;
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public List<Target> getPhantomTargets(Object ingredient) {
-        if (GTCEu.Mods.isEMILoaded() && ingredient instanceof EmiStack emiStack) {
-            Item item = emiStack.getKeyOfType(Item.class);
-            if (item != null) {
-                ingredient = new ItemStack(item, (int) emiStack.getAmount());
-                ((ItemStack) ingredient).setTag(emiStack.getNbt());
-            }
-        }
-        if (!(ingredient instanceof ItemStack)) {
+        if (phantomOf(ingredient) == null) {
             return Collections.emptyList();
         }
 
@@ -148,39 +232,69 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
 
             @Override
             public void accept(@NotNull Object ingredient) {
-                if (GTCEu.Mods.isEMILoaded() && ingredient instanceof EmiStack emiStack) {
-                    Item item = emiStack.getKeyOfType(Item.class);
-                    if (item != null) {
-                        ingredient = new ItemStack(item, (int) emiStack.getAmount());
-                        ((ItemStack) ingredient).setTag(emiStack.getNbt());
-                    }
-                }
-                if (slotReference != null && ingredient instanceof ItemStack stack) {
+                var stack = phantomOf(ingredient);
+                if (slotReference != null && stack != null) {
                     long id = Minecraft.getInstance().getWindow().getWindow();
                     boolean shiftDown = InputConstants.isKeyDown(id, GLFW.GLFW_KEY_LEFT_SHIFT);
                     ClickType clickType = shiftDown ? ClickType.QUICK_MOVE : ClickType.PICKUP;
-                    slotClickPhantom(slotReference, 0, clickType, stack);
-                    writeClientAction(1, buffer -> {
-                        buffer.writeItem(stack);
-                        buffer.writeVarInt(0);
-                        buffer.writeBoolean(shiftDown);
-                    });
+                    slotClickPhantom(slotReference, 0, clickType, Keys.toStack((AEItemKey) stack.what(), stack.amount()));
+                    dropRequest.send(new Drop(stack, shiftDown));
                 }
             }
         });
     }
 
+    private static boolean canInteract(@Nullable Player player) {
+        return player == null || !player.isSpectator();
+    }
+
+    private boolean isSlotInRange() {
+        var slot = slotReference;
+        if (slot == null) return false;
+        var handler = boundHandler;
+        int index = slot.getContainerSlot();
+        return handler == null || index >= 0 && index < handler.getSlots();
+    }
+
+    private void serverDrop(@Nullable Player player, Drop drop) {
+        if (!canInteract(player) || !isSlotInRange()) return;
+        var stack = drop.stack();
+        ClickType clickType = drop.shift() ? ClickType.QUICK_MOVE : ClickType.PICKUP;
+        slotClickPhantom(slotReference, 0, clickType, Keys.toStack((AEItemKey) stack.what(), stack.amount()));
+    }
+
+    private void serverClear(@Nullable Player player) {
+        if (!clearSlotOnRightClick || !canInteract(player) || !isSlotInRange()) return;
+        slotReference.set(ItemStack.EMPTY);
+    }
+
     @Override
     public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        if (slotReference != null && id == 1) {
-            ItemStack stackHeld = buffer.readItem();
-            int mouseButton = buffer.readVarInt();
-            boolean shiftKeyDown = buffer.readBoolean();
-            ClickType clickType = shiftKeyDown ? ClickType.QUICK_MOVE : ClickType.PICKUP;
-            slotClickPhantom(slotReference, mouseButton, clickType, stackHeld);
-        } else if (slotReference != null && id == 2) {
-            slotReference.set(ItemStack.EMPTY);
-        }
+        if (!channel.handleClientAction(id, buffer)) super.handleClientAction(id, buffer);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void readUpdateInfo(int id, FriendlyByteBuf buffer) {
+        if (!channel.readUpdateInfo(id, buffer)) super.readUpdateInfo(id, buffer);
+    }
+
+    @Override
+    public void writeInitialData(FriendlyByteBuf buffer) {
+        super.writeInitialData(buffer);
+        channel.writeInitialData(buffer);
+    }
+
+    @Override
+    public void readInitialData(FriendlyByteBuf buffer) {
+        super.readInitialData(buffer);
+        channel.readInitialData(buffer);
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        channel.detectAndSendChanges();
     }
 
     public ItemStack slotClickPhantom(Slot slot, int mouseButton, ClickType clickTypeIn, ItemStack stackHeld) {
@@ -216,7 +330,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
     }
 
     private void adjustPhantomSlot(Slot slot, int mouseButton, ClickType clickTypeIn) {
-        ItemStack stackSlot = slot.getItem();
+        ItemStack stackSlot = slot.getItem().copy();
         int stackSize;
         if (clickTypeIn == ClickType.QUICK_MOVE) {
             stackSize = mouseButton == 0 ? (stackSlot.getCount() + 1) / 2 : stackSlot.getCount() * 2;
@@ -245,10 +359,25 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
         }
         ItemStack phantomStack = stackHeld.copy();
         phantomStack.setCount(Math.min(maxStackSize, stackSize));
-        if (validator.test(phantomStack)) slot.set(phantomStack);
+        if (validator.test(phantomStack) && passesFilter(phantomStack)) slot.set(phantomStack);
+    }
+
+    private boolean passesFilter(ItemStack stack) {
+        if (boundHandler instanceof MenuItemAdapter adapter) {
+            var filter = adapter.getInventory().getFilter();
+            if (filter == null) return true;
+            var key = Keys.itemType(stack);
+            return key != null && filter.matches(key);
+        }
+        if (boundHandler instanceof ForgeStackAdapter adapter) {
+            return adapter.getInventory().getFilter().test(stack);
+        }
+        return true;
     }
 
     public boolean areItemsEqual(ItemStack itemStack1, ItemStack itemStack2) {
         return ItemStack.matches(itemStack1, itemStack2);
     }
+
+    private record Drop(GenericStack stack, boolean shift) {}
 }

@@ -19,6 +19,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -56,7 +57,7 @@ import java.util.function.Consumer;
  * <p>
  * 布局两端都算（控件树两端一致，尺寸可以不同：文字只在客户端测量），服务端的尺寸不影响同步。
  */
-public class UIElement extends WidgetGroup implements ElementState.Host<UIElement>, UIChannel.Host {
+public class UIElement extends WidgetGroup implements ElementState.Host<UIElement>, UIChannel.Host, ITooltipOwner {
 
     private static final Logger LOGGER = LogUtils.getLogger();
     /// 一次布局里"算完、写回后又被标脏"最多重算的次数，超过说明样式在互相震荡
@@ -638,6 +639,28 @@ public class UIElement extends WidgetGroup implements ElementState.Host<UIElemen
     @OnlyIn(Dist.CLIENT)
     public void releasePointer() {
         UIInput.release(this);
+    }
+
+    @Override
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return !tooltipTexts.isEmpty();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected void drawTooltipTexts(int mouseX, int mouseY) {
+        if (tooltipTexts.isEmpty() || gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
+        if (!isTooltipTarget(getHoverElement(mouseX, mouseY), mouseX, mouseY)) return;
+        gui.getModularUIGui().setHoverTooltip(tooltipTexts, ItemStack.EMPTY, null, null);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean isTooltipTarget(@Nullable Widget hovered, int mouseX, int mouseY) {
+        for (Widget current = hovered; current != null; current = current.getParent()) {
+            if (current == this) return true;
+            if (!(current instanceof ITooltipOwner owner) || owner.hasOwnTooltip(mouseX, mouseY)) return false;
+        }
+        return false;
     }
 
     protected final void listenUIClose() {

@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.uiwidgets.recipe;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
+import com.gregtechceu.gtceu.integration.xei.handlers.fluid.CycleFluidStackHandler;
 import com.gregtechceu.gtceu.integration.xei.handlers.item.CycleItemStackHandler;
 import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
@@ -40,7 +40,7 @@ public final class RecipeDisplaySlots {
 
     /** 显示一种流体的槽（不显示数量）。 */
     public static FluidSlot fluid(FluidStack stack, IngredientIO io) {
-        var slot = FluidSlot.of(new CustomFluidTank(stack), 0, false, false);
+        var slot = FluidSlot.of(new CycleFluidStackHandler(List.of(List.of(stack))), 0, false, false);
         slot.setShowAmount(false);
         slot.setIngredientIO(io);
         return slot;

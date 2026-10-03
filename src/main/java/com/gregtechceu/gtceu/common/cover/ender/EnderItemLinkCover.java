@@ -10,15 +10,18 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualItemStorage;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -37,6 +40,7 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
     @SaveToDisk
     @SyncToClient
     protected FilterHandler<ItemStack, ItemFilter> filterHandler;
+    private final AEKeyFilter itemKeyFilter = key -> this.filterHandler.test(((AEItemKey) key).getReadOnlyStack());
 
     public EnderItemLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
@@ -74,17 +78,15 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
 
     @Override
     protected void transfer() {
-        IItemHandler ownHandler = getOwnItemHandler();
+        IKeyHandler<AEItemKey> ownHandler = getOwnItemHandler();
         if (ownHandler == null) return;
         switch (io) {
-            case IN -> GTTransferUtils.transferItemsFiltered(ownHandler, storage.getHandler(),
-                    filterHandler.getFilter(), 64);
-            case OUT -> GTTransferUtils.transferItemsFiltered(storage.getHandler(), ownHandler,
-                    filterHandler.getFilter(), 64);
+            case IN -> KeyTransfer.transfer(ownHandler, storage.getHandler(), 64, itemKeyFilter);
+            case OUT -> KeyTransfer.transfer(storage.getHandler(), ownHandler, 64, itemKeyFilter);
         }
     }
 
-    public @Nullable IItemHandler getOwnItemHandler() {
+    public @Nullable IKeyHandler<AEItemKey> getOwnItemHandler() {
         return coverHolder.getItemHandlerCap(attachedSide, false);
     }
 
@@ -96,17 +98,18 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
             return stack.isEmpty() ? Component.translatable("cover.ender_link.ui.empty") : stack.getHoverName();
         }).bindIcon(() -> visible.getAsBoolean() ? storedStack() : ItemStack.EMPTY);
         panel.addLine("cover.ender_link.ui.count", () -> visible.getAsBoolean() ?
-                Component.literal(FormattingUtil.formatNumbers(storedStack().getCount())) : EnderLinkUI.NO_VALUE);
+                Component.literal(FormattingUtil.formatNumbers(getEntry().getHandler().amountAt(0))) : EnderLinkUI.NO_VALUE);
     }
 
     private ItemStack storedStack() {
-        return getEntry().getHandler().getStackInSlot(0);
+        return Keys.displayStack(getEntry().getHandler().keyAt(0));
     }
 
     @Override
     protected Component describeEntry(VirtualItemStorage entry) {
-        var stack = entry.getHandler().getStackInSlot(0);
-        if (stack.isEmpty()) return Component.translatable("cover.ender_link.ui.empty");
-        return stack.getHoverName().copy().append(" ×" + FormattingUtil.formatNumbers(stack.getCount()));
+        var handler = entry.getHandler();
+        var key = handler.keyAt(0);
+        if (key == null) return Component.translatable("cover.ender_link.ui.empty");
+        return Keys.displayStack(key).getHoverName().copy().append(" ×" + FormattingUtil.formatNumbers(handler.amountAt(0)));
     }
 }

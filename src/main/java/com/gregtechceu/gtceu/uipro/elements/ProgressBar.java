@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.uipro.IHoverOwner;
 import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
+import com.gregtechceu.gtceu.uipro.render.UIClip;
 import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.render.UILayers;
 import com.gregtechceu.gtceu.uipro.render.UIPixels;
@@ -44,6 +45,7 @@ import java.util.function.Supplier;
 public class ProgressBar extends UIElement implements IHoverOwner {
 
     public static final int HEIGHT = UISizes.PROGRESS_BAR_HEIGHT;
+    private static final int TEXT_ON_LIGHT_FILL = 0xFF202020, TEXT_ON_DARK_FILL = 0xFFFFFFFF;
 
     /**
      * 一条进度。
@@ -301,12 +303,35 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             UIDraw.progressBonus(graphics, x, y, h, filled, bonus, fill);
         }
         if (labelText == null) labelText = label.getString();
-        UIText.drawLabelValue(graphics, x, y, w, h, labelText, valueText(value), value.isComplete() ? UITheme.STATUS_TEXT_GOOD : UITheme.TEXT);
+        drawText(graphics, x, y, w, h, filled, value, fill);
         if (hasTooltip()) {
             int ix = infoIconX();
             var icon = infoTone().icon();
             if (icon != null) icon.draw(graphics, 0, 0, UIPixels.center(ix, h, CalloutBubble.ICON), UIPixels.center(y, h, CalloutBubble.ICON), CalloutBubble.ICON, CalloutBubble.ICON);
         }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void drawText(GuiGraphics graphics, int x, int y, int w, int h, int filled, Progress value, int fill) {
+        String shown = valueText(value);
+        int valueColor = value.isComplete() ? UITheme.STATUS_TEXT_GOOD : UITheme.TEXT;
+        if (filled <= 0) {
+            UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, valueColor);
+            return;
+        }
+        int split = x + 1 + filled;
+        int onFill = textOn(fill);
+        UIClip.push(graphics, x, y, split - x, h);
+        UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, onFill, value.isComplete() ? UITheme.STATUS_TEXT_GOOD : onFill);
+        UIClip.pop(graphics);
+        UIClip.push(graphics, split, y, x + w - split, h);
+        UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, valueColor);
+        UIClip.pop(graphics);
+    }
+
+    private static int textOn(int fill) {
+        int r = fill >> 16 & 0xFF, g = fill >> 8 & 0xFF, b = fill & 0xFF;
+        return r * 299 + g * 587 + b * 114 > 140_000 ? TEXT_ON_LIGHT_FILL : TEXT_ON_DARK_FILL;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -393,6 +418,15 @@ public class ProgressBar extends UIElement implements IHoverOwner {
     public boolean ownsHover(int mouseX, int mouseY) {
         if (isMouseOverElement(mouseX, mouseY)) return true;
         return bubbleShown && mouseX >= bubbleMinX && mouseX < bubbleMaxX && mouseY >= bubbleMinY && mouseY < bubbleMaxY;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        if (super.hasOwnTooltip(mouseX, mouseY) || bubbleShown || hasTooltip() && isOverInfoIcon(mouseX, mouseY)) return true;
+        if (detail != null && !detail.getValue().getString().isEmpty()) return true;
+        var font = Minecraft.getInstance().font;
+        return font.width(label.getString()) + font.width(valueText(progress.getValue())) + 3 * UISizes.TEXT_PADDING > trackWidth();
     }
 
     @Override

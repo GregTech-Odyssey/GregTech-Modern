@@ -5,9 +5,8 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -17,8 +16,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.biome.Biome.Precipitation;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyType;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
@@ -31,7 +31,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
 
     private int biomeModifier = 0;
     private int hatchModifier = 0;
-    private NotifiableFluidTank fluidTank;
+    private NotifiableInventory<AEFluidKey> fluidTank;
     private TickableSubscription produceWaterSubscription;
 
     public PrimitivePumpMachine(MetaMachineBlockEntity holder) {
@@ -49,10 +49,12 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
         for (var part : getWorkableParts()) {
             var handlerList = part.getHandlerUnit();
             if (!handlerList.isValid(IO.OUT)) continue;
-            var fluidTanks = handlerList.getCapabilities(FluidRecipeInfo.INSTANCE, NotifiableFluidTank.class);
-            if (!fluidTanks.isEmpty()) {
-                fluidTank = fluidTanks.getFirst();
-                long tankCapacity = fluidTank.getTankCapacity(0);
+            for (var handler : handlerList.fluidHandlers) {
+                if (!(handler instanceof NotifiableInventory<?> inventory) || inventory.keyType() != AEKeyType.fluids()) continue;
+                @SuppressWarnings("unchecked")
+                var tank = (NotifiableInventory<AEFluidKey>) inventory;
+                fluidTank = tank;
+                long tankCapacity = tank.storage.slotLimit();
                 if (tankCapacity == FluidType.BUCKET_VOLUME) {
                     hatchModifier = 1;
                 } else if (tankCapacity == FluidType.BUCKET_VOLUME * 8) {
@@ -90,7 +92,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
             } else if (biomeModifier > 0) {
                 if (fluidTank == null) initializeTank();
                 if (fluidTank != null) {
-                    fluidTank.fillInternal(GTMaterials.Water.getFluid(getFluidProduction()), IFluidHandler.FluidAction.EXECUTE);
+                    fluidTank.storage.insert(AEFluidKey.of(GTMaterials.Water.getFluid()), getFluidProduction(), false);
                 }
             }
         }

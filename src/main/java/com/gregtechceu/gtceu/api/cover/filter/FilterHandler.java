@@ -4,8 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.SingleCustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.SwitchedContent;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -47,7 +46,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     @Nullable
     private F filter;
     @Nullable
-    private CustomItemStackHandler filterSlot;
+    private StackInventory filterSlot;
     @NotNull
     private Consumer<F> onFilterLoaded = filter -> {};
     @NotNull
@@ -129,10 +128,21 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     ///////////////////////////////////////
     // ***** FILTER HANDLING ******//
     ///////////////////////////////////////
-    private CustomItemStackHandler getFilterSlot() {
+    private StackInventory getFilterSlot() {
         if (this.filterSlot == null) {
             hasValidFilterItem();
-            this.filterSlot = new SingleCustomItemStackHandler(this.filterItem);
+            this.filterSlot = new StackInventory(this.filterItem) {
+
+                @Override
+                public int getSlotLimit(int slot) {
+                    return 1;
+                }
+
+                @Override
+                protected int getStackLimit(int slot, @NotNull ItemStack stack) {
+                    return 1;
+                }
+            };
             this.filterSlot.setFilter(this::canInsertFilterItem);
         }
         return this.filterSlot;

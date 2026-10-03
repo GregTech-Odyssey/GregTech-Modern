@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -10,6 +10,8 @@ import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fluids.FluidType;
+
+import appeng.api.stacks.AEFluidKey;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -29,9 +31,9 @@ public class SteamHatchPartMachine extends FluidHatchPartMachine {
     }
 
     @Override
-    protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
+    protected NotifiableInventory<AEFluidKey> createTank(int initialCapacity, int slots, Object... args) {
         return super.createTank(initialCapacity, slots)
-                .setFilter(fluidStack -> fluidStack.getFluid() == GTMaterials.Steam.getFluid());
+                .setFilter(key -> key instanceof AEFluidKey fluidKey && fluidKey.getFluid() == GTMaterials.Steam.getFluid());
     }
 
     @Override

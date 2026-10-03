@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
@@ -16,6 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fluids.FluidType;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +29,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
     public static final int INITIAL_TANK_CAPACITY = 16 * FluidType.BUCKET_VOLUME;
 
     @SaveToDisk
-    public final NotifiableFluidTank tank;
+    public final NotifiableInventory<AEFluidKey> tank;
 
     @Nullable
     protected ISubscription tankSubs;
@@ -55,8 +56,8 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         return getTier() * getTier();
     }
 
-    protected NotifiableFluidTank createTank(int initialCapacity, int slots, Object... args) {
-        return new NotifiableFluidTank(this, slots, getTankCapacity(initialCapacity, getTier()), io);
+    protected NotifiableInventory<AEFluidKey> createTank(int initialCapacity, int slots, Object... args) {
+        return NotifiableInventory.fluids(this, slots, getTankCapacity(initialCapacity, getTier()), io);
     }
 
     @Override
@@ -152,8 +153,10 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
             if (newHolder.getMetaMachine() instanceof DualHatchPartMachine newMachine) {
                 newMachine.setFrontFacing(this.getFrontFacing());
                 newMachine.setUpwardsFacing(this.getUpwardsFacing());
-                for (int i = 0; i < this.tank.getTanks(); i++) {
-                    newMachine.tank.setFluidInTank(i, this.tank.getFluidInTank(i));
+                var from = this.tank.storage;
+                var to = newMachine.tank.storage;
+                for (int i = 0; i < from.size() && i < to.size(); i++) {
+                    to.set(i, from.keyAt(i), from.amountAt(i));
                 }
             }
         }
@@ -166,6 +169,6 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
     @Override
     public Widget createUIWidget() {
-        return HatchViews.page(HatchViews.dual(getInventory().storage, tank.getStorages(), io));
+        return HatchViews.page(HatchViews.dual(getInventory().storage, tank.storage, io));
     }
 }

@@ -36,6 +36,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
+modId = "ae2"
+mandatory = true
+versionRange = "[15.2610.3,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
 modId = "configuration"
 mandatory = true
 embedded = true

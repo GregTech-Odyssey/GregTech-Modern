@@ -3,9 +3,8 @@ package com.gregtechceu.gtceu.uiwidgets.recipe;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
-import com.gregtechceu.gtceu.api.recipe.content.Content;
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
-import com.gregtechceu.gtceu.api.recipe.ingredient.ItemIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
@@ -29,6 +28,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.stack.EmiStackInteraction;
@@ -59,7 +60,7 @@ public class RecipeIOList extends UIElement {
     private static final int SLOT = 18;
     private static final int TOP = 4;
     private static final int SECTION_GAP = 3;
-    private static final int FULL_CHANCE = Content.MAX_CHANCE;
+    private static final int FULL_CHANCE = ContentList.MAX_CHANCE;
 
     public record Entry(boolean output, ItemStack item, FluidStack fluid, long amount, int chance, boolean blocked) {
 
@@ -176,10 +177,10 @@ public class RecipeIOList extends UIElement {
             return cached;
         }
         var list = new ArrayList<Entry>(recipe.itemInputs.size() + recipe.fluidInputs.size() + recipe.itemOutputs.size() + recipe.fluidOutputs.size());
-        addItems(list, false, recipe.itemInputs);
-        addFluids(list, false, recipe.fluidInputs, 0);
-        addItems(list, true, recipe.itemOutputs);
-        addFluids(list, true, recipe.fluidOutputs, blocked);
+        addItems(list, false, recipe.itemInputs, recipe.scale);
+        addFluids(list, false, recipe.fluidInputs, recipe.scale, 0);
+        addItems(list, true, recipe.itemOutputs, recipe.scale);
+        addFluids(list, true, recipe.fluidOutputs, recipe.scale, blocked);
         cached = new Snapshot(recipe.duration, list);
         return cached;
     }
@@ -193,18 +194,19 @@ public class RecipeIOList extends UIElement {
         return mask;
     }
 
-    private static void addItems(List<Entry> list, boolean output, List<Content<ItemIngredient>> contents) {
-        for (var content : contents) {
-            var stack = content.inner.getInnerItemStack();
-            if (!stack.isEmpty()) list.add(new Entry(output, stack, FluidStack.EMPTY, content.amount, content.chance, false));
+    private static void addItems(List<Entry> list, boolean output, ContentList contents, long scale) {
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.ingredient(i).displayKey() instanceof AEItemKey key) {
+                list.add(new Entry(output, Keys.displayStack(key), FluidStack.EMPTY, contents.effective(i, scale), contents.chance(i), false));
+            }
         }
     }
 
-    private static void addFluids(List<Entry> list, boolean output, List<Content<FluidIngredient>> contents, long blocked) {
+    private static void addFluids(List<Entry> list, boolean output, ContentList contents, long scale, long blocked) {
         for (int i = 0; i < contents.size(); i++) {
-            var content = contents.get(i);
-            var stack = content.inner.getFluidStack();
-            if (!stack.isEmpty()) list.add(new Entry(output, ItemStack.EMPTY, stack, content.amount, content.chance, i < Long.SIZE && (blocked >>> i & 1) != 0));
+            if (contents.ingredient(i).displayKey() instanceof AEFluidKey key) {
+                list.add(new Entry(output, ItemStack.EMPTY, Keys.displayFluid(key), contents.effective(i, scale), contents.chance(i), i < Long.SIZE && (blocked >>> i & 1) != 0));
+            }
         }
     }
 

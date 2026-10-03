@@ -1,9 +1,11 @@
 package com.gregtechceu.gtceu.uiwidgets.inventory;
 
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableFluidTank;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.IconToggle;
@@ -23,6 +25,9 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import org.jetbrains.annotations.Nullable;
@@ -115,39 +120,41 @@ public final class HatchViews {
 
     // ==================== 槽位网格 ====================
 
-    public static Widget items(CustomItemStackHandler storage, IO io) {
-        return scrollIfTall(itemGrid(storage, io, null), SlotGrid.squareRows(storage.getSlots()));
+    public static Widget items(KeyInventory<AEItemKey> storage, IO io) {
+        return scrollIfTall(itemGrid(storage, io, null), SlotGrid.squareRows(storage.size()));
     }
 
     /** 换了槽底图的物品网格（蒸汽部件用铜/钢色槽，与蒸汽界面皮肤一致）。 */
-    public static Widget items(CustomItemStackHandler storage, IO io, IGuiTexture slotTexture) {
-        return scrollIfTall(itemGrid(storage, io, slotTexture), SlotGrid.squareRows(storage.getSlots()));
+    public static Widget items(KeyInventory<AEItemKey> storage, IO io, IGuiTexture slotTexture) {
+        return scrollIfTall(itemGrid(storage, io, slotTexture), SlotGrid.squareRows(storage.size()));
     }
 
-    public static Widget tanks(CustomFluidTank[] tanks, IO io) {
-        return scrollIfTall(SlotGrid.square(tanks.length, tankSlot(tanks, io)), SlotGrid.squareRows(tanks.length));
+    public static Widget tanks(KeyInventory<AEFluidKey> tanks, IO io) {
+        return scrollIfTall(SlotGrid.square(tanks.size(), tankSlot(tanks, io)), SlotGrid.squareRows(tanks.size()));
     }
 
     /** 物品网格右边一列流体槽，两者顶端对齐；任一边超过 {@link #MAX_GRID_ROWS} 行时一起滚动。 */
-    public static Widget dual(CustomItemStackHandler storage, CustomFluidTank[] tanks, IO io) {
+    public static Widget dual(KeyInventory<AEItemKey> storage, KeyInventory<AEFluidKey> tanks, IO io) {
         var column = UIElement.column(UISizes.SLOT_SIZE);
         var slot = tankSlot(tanks, io);
-        for (int i = 0; i < tanks.length; i++) column.addChild(slot.apply(i));
+        for (int i = 0; i < tanks.size(); i++) column.addChild(slot.apply(i));
         var content = new UIElement().layout(l -> l.row().gapAll(UISizes.SECTION_GAP).alignItems(AlignItems.START))
                 .addChildren(itemGrid(storage, io, null), column);
-        return scrollIfTall(content, Math.max(SlotGrid.squareRows(storage.getSlots()), tanks.length));
+        return scrollIfTall(content, Math.max(SlotGrid.squareRows(storage.size()), tanks.size()));
     }
 
-    private static UIElement itemGrid(CustomItemStackHandler storage, IO io, @Nullable IGuiTexture slotTexture) {
-        return SlotGrid.square(storage.getSlots(), i -> {
-            var slot = ItemSlot.of(storage, i, true, io.support(IO.IN));
+    private static UIElement itemGrid(KeyInventory<AEItemKey> storage, IO io, @Nullable IGuiTexture slotTexture) {
+        var adapter = new MenuItemAdapter(storage);
+        return SlotGrid.square(storage.size(), i -> {
+            var slot = ItemSlot.of(adapter, i, true, io.support(IO.IN));
             if (slotTexture != null) slot.setBackgroundTexture(slotTexture);
             return slot;
         });
     }
 
-    private static IntFunction<Widget> tankSlot(CustomFluidTank[] tanks, IO io) {
-        return i -> FluidSlot.of(tanks[i], 0, true, io.support(IO.IN));
+    private static IntFunction<Widget> tankSlot(KeyInventory<AEFluidKey> tanks, IO io) {
+        var adapter = new ForgeFluidAdapter(tanks);
+        return i -> FluidSlot.of(adapter, i, true, io.support(IO.IN));
     }
 
     /** 超过 {@link #MAX_GRID_ROWS} 行的内容放进滚动区：宽度随内容（加滚动条），高度最多这么多行。 */
@@ -162,7 +169,7 @@ public final class HatchViews {
     // ==================== 单储罐 ====================
 
     /** 只有一个储罐的仓：操作区是流体槽（输出仓另有锁定开关和锁定流体槽），显示区是流体、储量（输出仓另有锁定流体）。 */
-    public static UIElement singleTank(NotifiableFluidTank tank, IO io) {
+    public static UIElement singleTank(NotifiableInventory<AEFluidKey> tank, IO io) {
         return page(tankOperation(tank, io), tankStatus(tank, io));
     }
 
@@ -170,34 +177,37 @@ public final class HatchViews {
      * 单储罐的操作区：流体槽；输出仓（{@code io} 为 OUT）在右边另起一组锁定开关和锁定流体槽，
      * 锁定后只接受锁定的流体。储罐有流体时不能改锁定流体（与原 GTM 界面一致），锁定槽显示为禁用并说明原因。
      */
-    public static UIElement tankOperation(NotifiableFluidTank tank, IO io) {
-        var storage = tank.getStorages()[0];
-        var slot = FluidSlot.of(storage, 0, true, io.support(IO.IN));
+    public static UIElement tankOperation(NotifiableInventory<AEFluidKey> tank, IO io) {
+        var storage = tank.storage;
+        var slot = FluidSlot.of(new ForgeFluidAdapter(storage), 0, true, io.support(IO.IN));
         if (io != IO.OUT) return operations(slot);
-        var locked = tank.getLockedFluid();
         var lockToggle = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, tank::isLocked, tank::setLocked).onOffTooltips(LOCK_ON, LOCK_OFF);
-        var lockSlot = PhantomFluidSlot.of(locked, 0, locked::getFluid, fluid -> {
+        var lockSlot = PhantomFluidSlot.of(null, 0, () -> lockedFluid(tank), fluid -> {
             // 服务端再判一次：储罐有流体时不能改
-            if (!storage.getFluid().isEmpty()) return;
+            if (!storage.isEmpty()) return;
             if (fluid == null || fluid.isEmpty()) tank.setLocked(false);
             else {
                 // 已锁定时 setLocked(true, …) 不会换流体，先解锁
                 if (tank.isLocked()) tank.setLocked(false);
-                tank.setLocked(true, fluid);
+                tank.setLocked(true, Keys.fluid(fluid));
             }
-        }).disabled(() -> !storage.getFluid().isEmpty(), LOCK_NEED_EMPTY).xeiPhantom();
+        }).disabled(() -> !storage.isEmpty(), LOCK_NEED_EMPTY).xeiPhantom();
         return operations(slot, group(lockToggle, lockSlot));
     }
 
+    private static FluidStack lockedFluid(NotifiableInventory<AEFluidKey> tank) {
+        AEKey key = tank.getLockedKey();
+        return key instanceof AEFluidKey fluidKey ? fluidKey.getReadOnlyStack() : FluidStack.EMPTY;
+    }
+
     /** 单储罐的显示区：流体、储量；输出仓另有锁定流体。 */
-    public static StatusPanel tankStatus(NotifiableFluidTank tank, IO io) {
-        var storage = tank.getStorages()[0];
+    public static StatusPanel tankStatus(NotifiableInventory<AEFluidKey> tank, IO io) {
+        var storage = tank.storage;
         var status = new StatusPanel();
-        status.addLine(FLUID, new FluidName(storage::getFluid, EMPTY));
+        status.addLine(FLUID, new FluidName(() -> Keys.displayFluid(storage.keyAt(0)), EMPTY));
         status.addLine(AMOUNT, new AmountText(storage));
         if (io == IO.OUT) {
-            var locked = tank.getLockedFluid();
-            status.addLine(LOCKED, new FluidName(() -> tank.isLocked() ? locked.getFluid() : FluidStack.EMPTY, NOT_LOCKED));
+            status.addLine(LOCKED, new FluidName(() -> lockedFluid(tank), NOT_LOCKED));
         }
         return status;
     }
@@ -230,17 +240,17 @@ public final class HatchViews {
     /** 储量"数量 / 容量 mB"。数量和容量不变时复用上次的文字。 */
     private static final class AmountText implements Supplier<Component> {
 
-        private final CustomFluidTank storage;
+        private final KeyInventory<AEFluidKey> storage;
         private long amount = -1, capacity = -1;
         private Component text = Component.empty();
 
-        private AmountText(CustomFluidTank storage) {
+        private AmountText(KeyInventory<AEFluidKey> storage) {
             this.storage = storage;
         }
 
         @Override
         public Component get() {
-            long currentAmount = storage.getFluidAmount(), currentCapacity = storage.getCapacity();
+            long currentAmount = storage.amountAt(0), currentCapacity = storage.slotLimit(0);
             if (currentAmount != amount || currentCapacity != capacity) {
                 amount = currentAmount;
                 capacity = currentCapacity;

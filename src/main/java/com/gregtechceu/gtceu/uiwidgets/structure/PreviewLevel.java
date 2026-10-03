@@ -29,7 +29,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -57,37 +56,71 @@ final class PreviewLevel extends DummyWorld {
     }
 
     void setBlocks(Long2ObjectOpenHashMap<BlockState> states) {
+        setBlocks(states, null);
+    }
+
+    void setBlocks(Long2ObjectOpenHashMap<BlockState> states, @Nullable Long2ObjectOpenHashMap<StructureScene.PartOwner> owners) {
         states = connectShapes(connectShapes(states));
         var entities = new Long2ObjectOpenHashMap<BlockEntity>();
-        var parts = new ReferenceOpenHashSet<IMultiPart>();
+        var parts = new Long2ObjectOpenHashMap<IMultiPart>();
+        var controllers = new Long2ObjectOpenHashMap<IMultiController>();
         IMultiController controller = null;
         for (var it = states.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
-            var state = entry.getValue();
-            if (!state.hasBlockEntity() || !(state.getBlock() instanceof EntityBlock block)) continue;
-            var pos = BlockPos.of(entry.getLongKey());
-            try {
-                var entity = block.newBlockEntity(pos, state);
-                if (entity == null) continue;
-                entity.setLevel(this);
-                entities.put(entry.getLongKey(), entity);
-                if (entity instanceof MetaMachineBlockEntity metaMachineBlock) {
-                    if (metaMachineBlock.metaMachine instanceof IMultiController multiController) {
-                        controller = multiController;
-                        controller.setFormed();
-                    } else if (metaMachineBlock.metaMachine instanceof IMultiPart multiPart) {
-                        parts.add(multiPart);
-                    }
+            var entity = createEntity(entry.getLongKey(), entry.getValue());
+            if (entity == null) continue;
+            entities.put(entry.getLongKey(), entity);
+            if (entity instanceof MetaMachineBlockEntity metaMachineBlock) {
+                if (metaMachineBlock.metaMachine instanceof IMultiController multiController) {
+                    controller = multiController;
+                    controller.setFormed();
+                    controllers.put(entry.getLongKey(), multiController);
+                } else if (metaMachineBlock.metaMachine instanceof IMultiPart multiPart) {
+                    parts.put(entry.getLongKey(), multiPart);
                 }
-            } catch (Throwable t) {
-                GTCEu.LOGGER.warn("structure preview failed to create block entity for {}", state, t);
             }
         }
-        if (controller != null) {
+        if (owners != null) {
+            for (var it = parts.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+                var entry = it.next();
+                var owner = owners.get(entry.getLongKey());
+                if (owner == null) continue;
+                var found = controllers.get(owner.controller());
+                if (found == null) {
+                    found = hiddenController(owner);
+                    if (found == null) continue;
+                    controllers.put(owner.controller(), found);
+                }
+                entry.getValue().addedToController(found);
+            }
+        } else if (controller != null) {
             var finalController = controller;
-            parts.forEach(entry -> entry.addedToController(finalController));
+            parts.values().forEach(entry -> entry.addedToController(finalController));
         }
         view = new View(this, states, entities, ALL_LAYERS);
+    }
+
+    @Nullable
+    private BlockEntity createEntity(long key, BlockState state) {
+        if (!state.hasBlockEntity() || !(state.getBlock() instanceof EntityBlock block)) return null;
+        try {
+            var entity = block.newBlockEntity(BlockPos.of(key), state);
+            if (entity != null) entity.setLevel(this);
+            return entity;
+        } catch (Throwable t) {
+            GTCEu.LOGGER.warn("structure preview failed to create block entity for {}", state, t);
+            return null;
+        }
+    }
+
+    @Nullable
+    private IMultiController hiddenController(StructureScene.PartOwner owner) {
+        if (createEntity(owner.controller(), owner.state()) instanceof MetaMachineBlockEntity entity &&
+                entity.metaMachine instanceof IMultiController multiController) {
+            multiController.setFormed();
+            return multiController;
+        }
+        return null;
     }
 
     private Long2ObjectOpenHashMap<BlockState> connectShapes(Long2ObjectOpenHashMap<BlockState> states) {

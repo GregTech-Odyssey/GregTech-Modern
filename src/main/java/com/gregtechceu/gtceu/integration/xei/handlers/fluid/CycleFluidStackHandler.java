@@ -1,16 +1,16 @@
 package com.gregtechceu.gtceu.integration.xei.handlers.fluid;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
 import com.gregtechceu.gtceu.integration.xei.entry.fluid.FluidStackList;
 
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CycleFluidStackHandler implements ICustomFluidStackHandler {
+public class CycleFluidStackHandler implements IFluidHandler {
 
     private final List<FluidStackList> stacks;
 
@@ -35,7 +35,6 @@ public class CycleFluidStackHandler implements ICustomFluidStackHandler {
                 FluidStack.EMPTY;
     }
 
-    @Override
     public void setFluidInTank(int tank, @NotNull FluidStack fluidStack) {
         if (tank >= 0 && tank < this.stacks.size()) {
             this.stacks.set(tank, FluidStackList.of(fluidStack));
@@ -57,11 +56,6 @@ public class CycleFluidStackHandler implements ICustomFluidStackHandler {
         return 0;
     }
 
-    @Override
-    public boolean supportsFill(int tank) {
-        return false;
-    }
-
     @NotNull
     @Override
     public FluidStack drain(FluidStack resource, FluidAction action) {
@@ -71,11 +65,6 @@ public class CycleFluidStackHandler implements ICustomFluidStackHandler {
     @Override
     public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
         return FluidStack.EMPTY;
-    }
-
-    @Override
-    public boolean supportsDrain(int tank) {
-        return false;
     }
 
     public FluidStackList getStackList(int i) {

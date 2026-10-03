@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.BlockableSlotWidget;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -13,8 +14,13 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableItemStackHandler;
+import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
+import com.gregtechceu.gtceu.api.machine.trait.NotifiableContentHandler;
+import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
@@ -33,8 +39,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +56,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class RotorHolderPartMachine extends WorkableTieredPartMachine implements IMachineLife, IRotorHolderMachine, IInteractedMachine {
 
     @SaveToDisk
-    public final NotifiableItemStackHandler inventory;
+    public final RotorInventory inventory;
     @Getter
     public final int maxRotorHolderSpeed;
     @Getter
@@ -66,7 +75,8 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
 
     public RotorHolderPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier);
-        this.inventory = new NotifiableItemStackHandler(this, 1, IO.NONE, IO.BOTH).setFilter(i -> TurbineRotorBehaviour.getBehaviour(i) != null);
+        this.inventory = new RotorInventory(this);
+        this.inventory.storage.setFilter(i -> TurbineRotorBehaviour.getBehaviour(i) != null);
         this.maxRotorHolderSpeed = 2000 + 1000 * tier;
     }
 
@@ -139,7 +149,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
 
     @Override
     public boolean hasRotor() {
-        return inventory.getStackInSlot(0) != ItemStack.EMPTY;
+        return inventory.storage.getStackInSlot(0) != ItemStack.EMPTY;
     }
 
     protected void updateRotorSubscription() {
@@ -195,12 +205,12 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
 
     @Override
     public ItemStack getRotorStack() {
-        return inventory.getStackInSlot(0);
+        return inventory.storage.getStackInSlot(0);
     }
 
     @Override
     public void setRotorStack(ItemStack rotorStack) {
-        inventory.setStackInSlot(0, rotorStack);
+        inventory.storage.setStackInSlot(0, rotorStack);
         inventory.notifyListeners();
     }
 
@@ -223,5 +233,60 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
         container.setBackground(GuiTextures.BACKGROUND_INVERSE);
         group.addWidget(container);
         return group;
+    }
+
+    public static class RotorInventory extends NotifiableContentHandler implements IRecipeHandler, ICapabilityTrait, IKeyHandler<AEItemKey> {
+
+        @SaveToDisk
+        public final StackInventory storage;
+
+        public RotorInventory(MetaMachine machine) {
+            super(machine, IO.NONE);
+            this.storage = new StackInventory(1);
+            storage.setOnContentsChanged(this::onContentsChanged);
+        }
+
+        @Override
+        public void fillSearchMap(@NotNull GTRecipeType type, @NotNull IntLongMap map) {}
+
+        @Override
+        public boolean updateEmpty() {
+            return storage.isEmpty();
+        }
+
+        @Override
+        public AEKeyType keyType() {
+            return AEKeyType.items();
+        }
+
+        @Override
+        public int size() {
+            return storage.size;
+        }
+
+        @Override
+        public @Nullable AEItemKey keyAt(int slot) {
+            return storage.keyAt(slot);
+        }
+
+        @Override
+        public long amountAt(int slot) {
+            return storage.amountAt(slot);
+        }
+
+        @Override
+        public long slotLimit(int slot) {
+            return storage.slotLimit(slot);
+        }
+
+        @Override
+        public long insert(int slot, AEItemKey key, long amount, boolean simulate) {
+            return canCapInput() ? storage.insert(slot, key, amount, simulate) : 0;
+        }
+
+        @Override
+        public long extract(int slot, AEItemKey key, long amount, boolean simulate) {
+            return canCapOutput() ? storage.extract(slot, key, amount, simulate) : 0;
+        }
     }
 }

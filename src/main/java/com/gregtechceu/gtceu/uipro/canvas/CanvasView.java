@@ -240,7 +240,8 @@ public class CanvasView extends PlanarView {
         int maxH = Mth.clamp(vh / 3, UISizes.CANVAS_MINIMAP_MIN_HEIGHT, UISizes.CANVAS_MINIMAP_MAX_HEIGHT);
         float s = Math.min(maxW / Math.max(1, bounds.width()), maxH / Math.max(1, bounds.height()));
         int w = Math.max(8, Math.round(bounds.width() * s)) + 2, h = Math.max(8, Math.round(bounds.height() * s)) + 2;
-        int right = viewportX() + unobstructedWidth() - (unobstructedWidth() < vw ? 0 : UISizes.CANVAS_MINIMAP_MARGIN);
+        int clearRight = unobstructedLeft() + unobstructedWidth();
+        int right = viewportX() + clearRight - (clearRight < vw ? 0 : UISizes.CANVAS_MINIMAP_MARGIN);
         minimap[0] = right - w;
         minimap[1] = viewportY() + UISizes.CANVAS_MINIMAP_MARGIN;
         minimap[2] = w;
@@ -303,6 +304,11 @@ public class CanvasView extends PlanarView {
     public CanvasItem itemAt(double mouseX, double mouseY) {
         if (!isInViewport(mouseX, mouseY) || isOverChild(mouseX, mouseY) || isOverMinimap(mouseX, mouseY) || isOverGrip(mouseX, mouseY)) return null;
         return pick(toWorldX(mouseX), toWorldY(mouseY));
+    }
+
+    @Override
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        return super.hasOwnTooltip(mouseX, mouseY) || hovered != null;
     }
 
     @Nullable

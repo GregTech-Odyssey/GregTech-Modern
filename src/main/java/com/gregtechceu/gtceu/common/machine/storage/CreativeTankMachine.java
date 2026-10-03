@@ -5,7 +5,9 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.transfer.fluid.CustomFluidTank;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.InfiniteKeySource;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
@@ -25,12 +27,15 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.items.ItemHandlerHelper;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @Getter
 public class CreativeTankMachine extends QuantumTankMachine {
+
+    private static final int CONFIG_AMOUNT = 1000;
 
     @SaveToDisk(defaultValue = "1000")
     @DropSaved
@@ -52,22 +57,38 @@ public class CreativeTankMachine extends QuantumTankMachine {
         return (long) Math.ceil(1.0 * mBPerCycle / ticksPerCycle);
     }
 
+    @Override
+    protected void loadStored(@Nullable AEFluidKey key, long amount) {
+        cache.storage.set(0, key, key == null ? 0 : CONFIG_AMOUNT);
+    }
+
     private InteractionResult updateStored(FluidStack fluid) {
-        stored = new FluidStack(fluid, 1000);
-        onFluidChanged();
+        var key = Keys.fluidType(fluid);
+        cache.storage.set(0, key, key == null ? 0 : CONFIG_AMOUNT);
         return InteractionResult.SUCCESS;
     }
 
+    private static int parseCycleValue(String value) {
+        if (value.isEmpty()) return -1;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     private void setTicksPerCycle(String value) {
-        if (value.isEmpty()) return;
-        ticksPerCycle = Integer.parseInt(value);
+        int n = parseCycleValue(value);
+        if (n < 1) return;
+        ticksPerCycle = n;
         if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
         onFluidChanged();
     }
 
     private void setmBPerCycle(String value) {
-        if (value.isEmpty()) return;
-        mBPerCycle = Integer.parseInt(value);
+        int n = parseCycleValue(value);
+        if (n < 1) return;
+        mBPerCycle = n;
         onFluidChanged();
     }
 
@@ -75,19 +96,20 @@ public class CreativeTankMachine extends QuantumTankMachine {
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         var heldItem = player.getItemInHand(hand);
         if (hit.getDirection() == getFrontFacing() && !isRemote()) {
+            var stored = cache.storage.keyAt(0);
             // Clear fluid if empty + shift-rclick
             if (heldItem.isEmpty()) {
-                if (player.isCrouching() && !stored.isEmpty()) {
+                if (player.isCrouching() && stored != null) {
                     return updateStored(FluidStack.EMPTY);
                 }
                 return InteractionResult.PASS;
             }
             // If no fluid set and held-item has fluid, set fluid
-            if (stored.isEmpty()) {
+            if (stored == null) {
                 return FluidUtil.getFluidContained(heldItem).map(this::updateStored).orElse(InteractionResult.PASS);
             }
             // Need to make a fake source to fully fill held-item since our cache only allows mbPerTick extraction
-            CustomFluidTank source = new CustomFluidTank(new FluidStack(stored, Integer.MAX_VALUE));
+            var source = new ForgeFluidAdapter(new InfiniteKeySource<>(cache.storage, false));
             ItemStack result = FluidUtil.tryFillContainer(heldItem, source, Integer.MAX_VALUE, player, true).getResult();
             if (!result.isEmpty() && heldItem.getCount() > 1) {
                 ItemHandlerHelper.giveItemToPlayer(player, result);
@@ -107,7 +129,7 @@ public class CreativeTankMachine extends QuantumTankMachine {
     @Override
     public WidgetGroup createUIWidget() {
         var group = new WidgetGroup(0, 0, 176, 131);
-        group.addWidget(new PhantomFluidWidget(cache, 0, 36, 6, 18, 18, this::getStored, this::updateStored).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT));
+        group.addWidget(new PhantomFluidWidget(new ForgeFluidAdapter(cache.storage), 0, 36, 6, 18, 18, this::getStored, this::updateStored).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT));
         group.addWidget(new LabelWidget(7, 9, "gtceu.creative.tank.fluid"));
         group.addWidget(new ImageWidget(7, 45, 154, 14, GuiTextures.DISPLAY));
         group.addWidget(new TextFieldWidget(9, 47, 152, 10, () -> String.valueOf(mBPerCycle), this::setmBPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
@@ -121,44 +143,36 @@ public class CreativeTankMachine extends QuantumTankMachine {
 
     private class InfiniteCache extends FluidCache {
 
+        private final InfiniteKeySource<AEFluidKey> source = new InfiniteKeySource<>(storage, false);
+
         public InfiniteCache(MetaMachine holder) {
             super(holder);
         }
 
         @Override
-        @NotNull
-        public FluidStack getFluidInTank(int tank) {
-            return stored;
+        public long slotLimit(int slot) {
+            return source.slotLimit(slot);
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
-            if (!stored.isEmpty() && stored.isFluidEqual(resource)) return resource.getAmount();
-            return 0;
+        public long insert(int slot, AEFluidKey key, long amount, boolean simulate) {
+            if (slot != 0 || amount <= 0) return 0;
+            return storage.amountAt(0) > 0 && storage.rawKeyAt(0) == key ? amount : 0;
         }
 
         @Override
-        @NotNull
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            if (!stored.isEmpty()) return new FluidStack(stored, mBPerCycle);
-            return FluidStack.EMPTY;
+        public long extract(int slot, AEFluidKey key, long amount, boolean simulate) {
+            return slot == 0 ? source.extract(0, key, amount, simulate) : 0;
         }
 
         @Override
-        @NotNull
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            if (!stored.isEmpty() && stored.isFluidEqual(resource)) return new FluidStack(resource, mBPerCycle);
-            return FluidStack.EMPTY;
+        public long count(AEFluidKey key) {
+            return source.count(key);
         }
 
         @Override
-        public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
-            return true;
-        }
-
-        @Override
-        public int getTankCapacity(int tank) {
-            return 1000;
+        protected long exportLimit() {
+            return mBPerCycle;
         }
     }
 }

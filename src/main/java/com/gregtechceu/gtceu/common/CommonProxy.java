@@ -23,9 +23,9 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualTank;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.ChanceLogic;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.transfer.key.KeyCodecs;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
 import com.gregtechceu.gtceu.common.data.materials.GTFoods;
@@ -126,7 +126,6 @@ public class CommonProxy {
         GTFoods.init();
         GTItems.init();
         GTDimensionMarkers.init();
-        ChanceLogic.init();
         WaypointManager.init();
 
         GregTechDatagen.init();
@@ -205,6 +204,7 @@ public class CommonProxy {
     }
 
     private static void initDataSync() {
+        KeyCodecs.register();
         DataSyncCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
         DataSyncCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.dataCodec());
         DataSyncCodec.register(GTRecipe.class, GTRecipe.STREAM_CODEC, GTRecipe.DATA_CODEC);

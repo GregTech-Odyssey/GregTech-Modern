@@ -7,8 +7,7 @@ import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
@@ -29,6 +28,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
 import com.google.common.collect.ImmutableList;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.datastream.data.Data;
@@ -56,6 +57,8 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
 
     void notifyNeighborsUpdate();
 
+    default void invalidateCapabilities() {}
+
     void scheduleNeighborShapeUpdate();
 
     boolean canPlaceCoverOnSide(CoverDefinition definition, Direction side);
@@ -66,9 +69,9 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
 
     boolean shouldRenderBackSide();
 
-    ICustomItemStackHandler getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability);
+    IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability);
 
-    ICustomFluidStackHandler getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability);
+    IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability);
 
     /**
      * Its an internal method, you should never call it yourself.

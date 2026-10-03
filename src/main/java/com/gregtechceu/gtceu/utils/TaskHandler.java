@@ -55,6 +55,10 @@ public class TaskHandler {
         ((ILevel) level).gtceu$getTaskHandler().enqueueTask(task, delay);
     }
 
+    public static void enqueueTask(Level level, ReusableTask task) {
+        ((ILevel) level).gtceu$getTaskHandler().enqueueReusable(task);
+    }
+
     public static TickableSubscription enqueueTick(Level level, @Nullable TickableSubscription subscription, BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
         return ((ILevel) level).gtceu$getTaskHandler().enqueueTick(subscription, isRemove, runnable, cycle, delay);
     }
@@ -101,8 +105,14 @@ public class TaskHandler {
             } else {
                 if (task.stillSubscribed) {
                     if (task.task) {
-                        task.runnable.run();
-                        it.remove();
+                        if (task instanceof ReusableTask reusable) {
+                            it.remove();
+                            reusable.queued = false;
+                            task.runnable.run();
+                        } else {
+                            task.runnable.run();
+                            it.remove();
+                        }
                     } else if (tickCount >= task.lastTick) {
                         if (task.remove.getAsBoolean()) {
                             task.stillSubscribed = false;
@@ -113,6 +123,7 @@ public class TaskHandler {
                     }
                 } else {
                     it.remove();
+                    if (task instanceof ReusableTask reusable) reusable.queued = false;
                 }
             }
         }
@@ -124,16 +135,31 @@ public class TaskHandler {
 
     public void unsubscribe() {
         synchronized (this) {
-            waitingTasks.forEach(TickableSubscription::unsubscribe);
-            waitingTasks.clear();
+            cancelAll(waitingTasks);
         }
-        tasks.forEach(TickableSubscription::unsubscribe);
-        tasks.clear();
+        cancelAll(tasks);
+    }
+
+    private static void cancelAll(CustomLinkedQueue<TaskRunnableEntry> queue) {
+        TaskRunnableEntry entry;
+        while ((entry = queue.pollFirst()) != null) {
+            entry.unsubscribe();
+            if (entry instanceof ReusableTask reusable) reusable.queued = false;
+        }
     }
 
     public void enqueueTask(Runnable task, int delay) {
         var entry = new TaskRunnableEntry(task, TaskRunnableEntry.FALSE, true, delay);
         synchronized (this) {
+            waitingTasks.addLast(entry);
+        }
+    }
+
+    private void enqueueReusable(ReusableTask entry) {
+        synchronized (this) {
+            if (entry.queued) return;
+            entry.queued = true;
+            entry.stillSubscribed = true;
             waitingTasks.addLast(entry);
         }
     }
@@ -220,7 +246,16 @@ public class TaskHandler {
         }
     }
 
-    private static final class TaskRunnableEntry extends TickableSubscription implements CustomLinkedQueue.LinkNode<TaskRunnableEntry> {
+    public static final class ReusableTask extends TaskRunnableEntry {
+
+        private volatile boolean queued;
+
+        public ReusableTask(Runnable runnable) {
+            super(runnable, TaskRunnableEntry.FALSE, true, 0);
+        }
+    }
+
+    private static class TaskRunnableEntry extends TickableSubscription implements CustomLinkedQueue.LinkNode<TaskRunnableEntry> {
 
         private static final BooleanSupplier FALSE = () -> false;
 

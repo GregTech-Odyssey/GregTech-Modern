@@ -21,6 +21,16 @@ public class DirectionCache<T> {
     private Object any;
     private final Object[] array = new Object[6];
 
+    public boolean has(@Nullable Direction direction) {
+        return getCache(direction) != null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public @Nullable T get(@Nullable Direction direction) {
+        var cache = getCache(direction);
+        return cache == null || cache == NULL ? null : (T) cache;
+    }
+
     public T getOrSet(@Nullable Direction direction, @NotNull Supplier<T> supplier) {
         var cache = getCache(direction);
         if (cache == null) {
@@ -50,6 +60,13 @@ public class DirectionCache<T> {
 
     public void remove(@Nullable Direction direction) {
         setCache(direction, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void remove(@Nullable Direction direction, @NotNull Consumer<? super T> onRemove) {
+        var old = getCache(direction);
+        setCache(direction, null);
+        if (old != null && old != NULL) onRemove.accept((T) old);
     }
 
     public void clearCache() {

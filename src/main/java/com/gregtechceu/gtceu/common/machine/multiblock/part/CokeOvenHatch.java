@@ -4,8 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
-import com.gregtechceu.gtceu.api.machine.trait.FluidTankProxyTrait;
-import com.gregtechceu.gtceu.api.machine.trait.ItemHandlerProxyTrait;
+import com.gregtechceu.gtceu.api.machine.trait.InventoryProxyTrait;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
@@ -21,6 +20,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -29,8 +31,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CokeOvenHatch extends MultiblockPartMachine {
 
-    public final ItemHandlerProxyTrait inputInventory, outputInventory;
-    public final FluidTankProxyTrait tank;
+    public final InventoryProxyTrait<AEItemKey> inputInventory, outputInventory;
+    public final InventoryProxyTrait<AEFluidKey> tank;
     @Nullable
     protected TickableSubscription autoIOSubs;
     protected final TickTimeMonitor autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoIO);
@@ -39,9 +41,9 @@ public class CokeOvenHatch extends MultiblockPartMachine {
 
     public CokeOvenHatch(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
-        this.inputInventory = new ItemHandlerProxyTrait(this, IO.IN);
-        this.outputInventory = new ItemHandlerProxyTrait(this, IO.OUT);
-        this.tank = new FluidTankProxyTrait(this, IO.BOTH);
+        this.inputInventory = new InventoryProxyTrait<>(this, AEKeyType.items(), IO.IN);
+        this.outputInventory = new InventoryProxyTrait<>(this, AEKeyType.items(), IO.OUT);
+        this.tank = new InventoryProxyTrait<>(this, AEKeyType.fluids(), IO.BOTH);
     }
 
     //////////////////////////////////////

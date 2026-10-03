@@ -1,13 +1,16 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -15,12 +18,16 @@ import java.util.function.Supplier;
 
 public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
 
-    private static final int SCROLL_ACTION_ID = 0x0001_0001;
+    private static final int MAX_SCROLL_DELTA = 1_000_000;
 
-    public ScrollablePhantomFluidWidget(@Nullable ICustomFluidStackHandler fluidTank, int tank, int x, int y, int width,
+    private final RPC<Integer> scrollRequest;
+
+    public ScrollablePhantomFluidWidget(@Nullable IFluidHandler fluidTank, int tank, int x, int y, int width,
                                         int height, Supplier<FluidStack> phantomFluidGetter,
                                         Consumer<FluidStack> phantomFluidSetter) {
         super(fluidTank, tank, x, y, width, height, phantomFluidGetter, phantomFluidSetter);
+        this.scrollRequest = addRPC(ByteStreamCodec.INT_CODEC, (player, delta) -> handleScrollAction(delta))
+                .validate(delta -> delta >= -MAX_SCROLL_DELTA && delta <= MAX_SCROLL_DELTA);
     }
 
     @Override
@@ -30,7 +37,7 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
             return false;
 
         var delta = getModifiedChangeAmount((wheelDelta > 0) ? 1 : -1);
-        writeClientAction(SCROLL_ACTION_ID, buf -> buf.writeInt(delta));
+        scrollRequest.send(delta);
 
         return true;
     }
@@ -48,28 +55,15 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
         return amount;
     }
 
-    @Override
-    public void handleClientAction(int id, FriendlyByteBuf buffer) {
-        if (id == SCROLL_ACTION_ID) {
-            handleScrollAction(buffer.readInt());
-        } else {
-            super.handleClientAction(id, buffer);
-        }
-
-        detectAndSendChanges();
-    }
-
     private void handleScrollAction(int delta) {
-        ICustomFluidStackHandler fluidTank = (ICustomFluidStackHandler) getFluidTank();
-        if (fluidTank == null)
+        if (!(getFluidTank() instanceof ForgeFluidAdapter adapter) || !(adapter.getHandler() instanceof KeyInventory<?> inventory) || tank >= inventory.size())
             return;
 
-        FluidStack fluid = fluidTank.getFluidInTank(tank);
-        if (fluid.isEmpty()) return;
+        var key = inventory.keyAt(tank);
+        if (key == null) return;
 
-        fluid.setAmount(Math.min(Math.max(fluid.getAmount() + delta, 0), fluidTank.getTankCapacity(tank)));
-        if (fluid.getAmount() <= 0L) {
-            fluidTank.setFluidInTank(tank, FluidStack.EMPTY);
-        }
+        long amount = Math.min(Math.max(inventory.amountAt(tank) + delta, 0L), inventory.slotLimit(tank));
+        inventory.set(tank, key, amount);
+        detectAndSendChanges();
     }
 }

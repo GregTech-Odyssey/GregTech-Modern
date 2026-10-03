@@ -124,7 +124,7 @@ public class GTRecipeTypeUI {
         return (long) itemInputs << 48 | (long) fluidInputs << 32 | (long) itemOutputs << 16 | fluidOutputs;
     }
 
-    private static int unpack(long counts, IO io, ContentRecipeInfo<?, ?> cap) {
+    private static int unpack(long counts, IO io, ContentRecipeInfo cap) {
         int shift;
         if (cap == ItemRecipeInfo.INSTANCE) shift = io == IO.IN ? 48 : 16;
         else if (cap == FluidRecipeInfo.INSTANCE) shift = io == IO.IN ? 32 : 0;
@@ -204,12 +204,12 @@ public class GTRecipeTypeUI {
         for (var capabilityEntry : holder.storages().rowMap().entrySet()) {
             IO io = capabilityEntry.getKey();
             for (var storagesEntry : capabilityEntry.getValue().entrySet()) {
-                if (!(storagesEntry.getKey() instanceof ContentRecipeInfo<?, ?> cap)) continue;
+                if (!(storagesEntry.getKey() instanceof ContentRecipeInfo cap)) continue;
                 var widgetClass = cap.getWidgetClass();
                 if (widgetClass == null) continue;
                 Object storage = storagesEntry.getValue();
                 WidgetUtils.indexedWidgetForEach(template, cap.slotName(io), widgetClass,
-                        (widget, index) -> cap.applyWidgetInfo(widget, index, isJEI, io, holder, recipeType, null, null, storage, 0, 0));
+                        (widget, index) -> cap.applyWidgetInfo(widget, index, isJEI, io, holder, recipeType, null, null, -1, storage, 0, 0));
             }
         }
     }

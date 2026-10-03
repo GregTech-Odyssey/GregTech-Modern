@@ -10,15 +10,19 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEnderRegistry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.entries.VirtualTank;
-import com.gregtechceu.gtceu.api.transfer.fluid.ICustomFluidStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.GTTransferUtils;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKey;
+import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -38,6 +42,7 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
     @SaveToDisk
     @SyncToClient
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
+    private final AEKeyFilter fluidKeyFilter = this::matchesFilter;
 
     public EnderFluidLinkCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
@@ -73,7 +78,7 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
     }
 
     @Nullable
-    protected ICustomFluidStackHandler getOwnFluidHandler() {
+    protected IKeyHandler<AEFluidKey> getOwnFluidHandler() {
         return coverHolder.getFluidHandlerCap(attachedSide, false);
     }
 
@@ -82,29 +87,34 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
         var ownFluidHandler = getOwnFluidHandler();
         if (ownFluidHandler == null) return;
         switch (io) {
-            case IN -> GTTransferUtils.transferFluidsFiltered(ownFluidHandler, visualTank.getFluidTank(), filterHandler.getFilter(), VirtualTank.DEFAULT_CAPACITY);
-            case OUT -> GTTransferUtils.transferFluidsFiltered(visualTank.getFluidTank(), ownFluidHandler, filterHandler.getFilter(), VirtualTank.DEFAULT_CAPACITY);
+            case IN -> KeyTransfer.transfer(ownFluidHandler, visualTank.getFluidTank(), VirtualTank.DEFAULT_CAPACITY, fluidKeyFilter);
+            case OUT -> KeyTransfer.transfer(visualTank.getFluidTank(), ownFluidHandler, VirtualTank.DEFAULT_CAPACITY, fluidKeyFilter);
         }
     }
 
     @Override
     protected void addEntryStatus(StatusPanel panel, BooleanSupplier visible) {
-        panel.addLine("cover.ender_link.ui.fluid", () -> visible.getAsBoolean() ? fluidName(getEntry().getFluidTank().getFluid()) : EnderLinkUI.NO_VALUE);
+        panel.addLine("cover.ender_link.ui.fluid", () -> visible.getAsBoolean() ? fluidName(Keys.displayFluid(getEntry().getFluidTank().keyAt(0))) : EnderLinkUI.NO_VALUE);
         panel.addLine("cover.ender_link.ui.amount", () -> {
             if (!visible.getAsBoolean()) return EnderLinkUI.NO_VALUE;
             var tank = getEntry().getFluidTank();
-            return Component.literal(FormattingUtil.formatNumbers(tank.getFluidAmount()) + " / " + FormattingUtil.formatNumbers(tank.getCapacity()) + " mB");
+            return Component.literal(FormattingUtil.formatNumbers(tank.amountAt(0)) + " / " + FormattingUtil.formatNumbers(tank.slotLimit(0)) + " mB");
         });
     }
 
     @Override
     protected Component describeEntry(VirtualTank entry) {
-        var fluid = entry.getFluidTank().getFluid();
-        if (fluid.isEmpty()) return Component.translatable("cover.ender_link.ui.empty");
-        return fluid.getDisplayName().copy().append(" " + FormattingUtil.formatNumbers(fluid.getAmount()) + " mB");
+        var tank = entry.getFluidTank();
+        var key = tank.keyAt(0);
+        if (key == null) return Component.translatable("cover.ender_link.ui.empty");
+        return key.getDisplayName().copy().append(" " + FormattingUtil.formatNumbers(tank.amountAt(0)) + " mB");
     }
 
     private static Component fluidName(FluidStack fluid) {
         return fluid.isEmpty() ? Component.translatable("cover.ender_link.ui.empty") : fluid.getDisplayName();
+    }
+
+    private boolean matchesFilter(AEKey key) {
+        return key instanceof AEFluidKey k && filterHandler.test(k.getReadOnlyStack());
     }
 }

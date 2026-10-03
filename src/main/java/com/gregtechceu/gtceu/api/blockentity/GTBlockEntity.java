@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -48,6 +49,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     private boolean changed;
     private boolean neighborChanged;
+    private TaskHandler.ReusableTask changedTask;
 
     public final long longPos;
 
@@ -183,11 +185,18 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         if (changed) return;
         if (level instanceof ServerLevel serverLevel) {
             changed = true;
-            TaskHandler.enqueueTask(serverLevel, () -> {
-                serverLevel.blockEntityChanged(worldPosition);
-                changed = false;
-            }, 0);
+            var task = changedTask;
+            if (task == null) changedTask = task = new TaskHandler.ReusableTask(this::markChunkUnsaved);
+            TaskHandler.enqueueTask(serverLevel, task);
         }
+    }
+
+    private void markChunkUnsaved() {
+        if (level instanceof ServerLevel serverLevel) {
+            var c = serverLevel.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(worldPosition.getX()), SectionPos.blockToSectionCoord(worldPosition.getZ()));
+            if (c != null) c.setUnsaved(true);
+        }
+        changed = false;
     }
 
     @Override

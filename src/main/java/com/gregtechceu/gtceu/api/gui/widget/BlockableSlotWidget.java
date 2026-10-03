@@ -1,13 +1,16 @@
 package com.gregtechceu.gtceu.api.gui.widget;
 
-import com.gregtechceu.gtceu.api.transfer.item.ICustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.Container;
+import net.minecraftforge.items.IItemHandlerModifiable;
 
+import appeng.api.stacks.AEItemKey;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,14 +28,32 @@ public class BlockableSlotWidget extends SlotWidget {
         super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
     }
 
-    public BlockableSlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition,
+    public BlockableSlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition,
                                boolean canTakeItems, boolean canPutItems) {
         super(itemHandler, slotIndex, xPosition, yPosition, canTakeItems,
                 canPutItems);
     }
 
-    public BlockableSlotWidget(ICustomItemStackHandler itemHandler, int slotIndex, int xPosition, int yPosition) {
+    public BlockableSlotWidget(IItemHandlerModifiable itemHandler, int slotIndex, int xPosition, int yPosition) {
         super(itemHandler, slotIndex, xPosition, yPosition);
+    }
+
+    public BlockableSlotWidget(KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition,
+                               boolean canTakeItems, boolean canPutItems) {
+        super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
+    }
+
+    public BlockableSlotWidget(KeyInventory<AEItemKey> inventory, int slotIndex, int xPosition, int yPosition) {
+        super(inventory, slotIndex, xPosition, yPosition);
+    }
+
+    public BlockableSlotWidget(StackInventory inventory, int slotIndex, int xPosition, int yPosition,
+                               boolean canTakeItems, boolean canPutItems) {
+        super(inventory, slotIndex, xPosition, yPosition, canTakeItems, canPutItems);
+    }
+
+    public BlockableSlotWidget(StackInventory inventory, int slotIndex, int xPosition, int yPosition) {
+        super(inventory, slotIndex, xPosition, yPosition);
     }
 
     public BlockableSlotWidget(Container inventory, int slotIndex, int xPosition, int yPosition) {

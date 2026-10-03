@@ -2,11 +2,17 @@ package com.gregtechceu.gtceu.api.misc.virtualregistry.entries;
 
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
-import com.gregtechceu.gtceu.api.transfer.item.CustomItemStackHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.datastream.codec.DataCodec;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.util.DataCodecs;
@@ -38,7 +44,7 @@ public class VirtualItemStorage extends VirtualEntry {
 
     @NotNull
     @Getter
-    private final CustomItemStackHandler handler;
+    private final KeyInventory<AEItemKey> handler;
 
     protected static final String ITEM_KEY = "items";
 
@@ -47,7 +53,7 @@ public class VirtualItemStorage extends VirtualEntry {
     }
 
     public VirtualItemStorage(int slots) {
-        handler = new CustomItemStackHandler(slots);
+        handler = KeyInventory.items(slots);
     }
 
     @Override
@@ -64,14 +70,26 @@ public class VirtualItemStorage extends VirtualEntry {
     @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = super.serializeNBT();
-        tag.put(ITEM_KEY, handler.serializeNBT());
+        tag.put(ITEM_KEY, new ByteArrayTag(handler.writeData().writeToBytes()));
         return tag;
     }
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
         super.deserializeNBT(nbt);
-        handler.deserializeNBT(nbt.get(ITEM_KEY));
+        var items = nbt.get(ITEM_KEY);
+        if (items instanceof ByteArrayTag bytes) {
+            handler.readData(Data.readData(bytes.getAsByteArray()), GTDataFixer.VERSION);
+        } else if (items instanceof CompoundTag legacy) {
+            handler.clear();
+            var list = legacy.getList("Items", Tag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                var itemTag = list.getCompound(i);
+                int slot = itemTag.getInt("Slot");
+                var stack = ItemStack.of(itemTag);
+                if (slot >= 0 && slot < handler.size() && !stack.isEmpty()) handler.set(slot, Keys.item(stack), stack.getCount());
+            }
+        }
     }
 
     @Override
@@ -80,9 +98,6 @@ public class VirtualItemStorage extends VirtualEntry {
     }
 
     public boolean isEmpty() {
-        for (int i = 0; i < handler.getSlots(); i++) {
-            if (!handler.getStackInSlot(i).isEmpty()) return false;
-        }
-        return true;
+        return handler.isEmpty();
     }
 }

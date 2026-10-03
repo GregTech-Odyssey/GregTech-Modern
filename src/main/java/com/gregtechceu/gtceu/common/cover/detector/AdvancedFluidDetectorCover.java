@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandlers;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
+import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
@@ -19,8 +21,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -71,12 +73,15 @@ public class AdvancedFluidDetectorCover extends FluidDetectorCover implements IU
     @Override
     protected void update() {
         FluidFilter filter = filterHandler.getFilter();
-        IFluidHandler fluidHandler = getFluidHandler();
+        IKeyHandler<AEFluidKey> fluidHandler = getFluidHandler();
         if (fluidHandler == null) return;
         long storedFluid = 0;
-        for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
-            FluidStack content = fluidHandler.getFluidInTank(tank);
-            if (!content.isEmpty() && filter.test(content)) storedFluid += content.getAmount();
+        int size = fluidHandler.size();
+        for (int tank = 0; tank < size; tank++) {
+            long amount = fluidHandler.amountAt(tank);
+            if (amount <= 0) continue;
+            var key = fluidHandler.keyAt(tank);
+            if (key != null && filter.test(key.getReadOnlyStack())) storedFluid = Keys.add(storedFluid, amount);
         }
         if (isLatched) {
             setRedstoneSignalOutput(computeLatchedRedstoneBetweenValues(storedFluid, maxValue, minValue, isInverted(), redstoneSignalOutput));

@@ -238,6 +238,22 @@ public class StatusLine extends UIElement {
 
     @Override
     @OnlyIn(Dist.CLIENT)
+    public boolean hasOwnTooltip(int mouseX, int mouseY) {
+        if (super.hasOwnTooltip(mouseX, mouseY) || iconAt(mouseX, mouseY) != null || isClickable() && clickHint != null) return true;
+        return detail != null && !detail.getValue().getString().isEmpty() || overflows();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean overflows() {
+        var font = Minecraft.getInstance().font;
+        String labelText = label.getString(), valueText = shownValue().getString();
+        int lampSpace = (getLevel().hasLamp() ? LAMP_SIZE + LAMP_GAP : 0) + (iconX == Integer.MIN_VALUE ? 0 : ICON_SIZE + ICON_GAP);
+        int gap = labelText.isEmpty() ? 0 : UISizes.TEXT_PADDING;
+        return font.width(labelText) + gap + lampSpace + font.width(valueText) > getSizeWidth();
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
     public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
         // 图标上显示物品提示；否则固定说明优先，其次服务端下发的说明（可点击时末尾加上点击说明）；都没有且文字被截断时，悬停显示全文
@@ -256,12 +272,8 @@ public class StatusLine extends UIElement {
             gui.getModularUIGui().setHoverTooltip(lines, ItemStack.EMPTY, null, null);
             return;
         }
-        var font = Minecraft.getInstance().font;
-        String labelText = label.getString(), valueText = shownValue().getString();
-        int lampSpace = (getLevel().hasLamp() ? LAMP_SIZE + LAMP_GAP : 0) + (iconX == Integer.MIN_VALUE ? 0 : ICON_SIZE + ICON_GAP);
-        int gap = labelText.isEmpty() ? 0 : UISizes.TEXT_PADDING;
-        if (font.width(labelText) + gap + lampSpace + font.width(valueText) > getSizeWidth()) {
-            var full = labelText.isEmpty() ? shownValue() : label.copy().append(" ").append(shownValue());
+        if (overflows()) {
+            var full = label.getString().isEmpty() ? shownValue() : label.copy().append(" ").append(shownValue());
             gui.getModularUIGui().setHoverTooltip(List.of(full), ItemStack.EMPTY, null, null);
         }
     }

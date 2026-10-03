@@ -1,7 +1,8 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
-import com.gregtechceu.gtceu.api.recipe.ingredient.FluidIngredient;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
+
+import net.minecraftforge.fluids.FluidStack;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -166,24 +167,24 @@ public class BlastProperty implements IMaterialProperty {
 
     public enum GasTier {
 
-        LOW(() -> FluidIngredient.of(GTMaterials.Nitrogen.getFluid(1000))),
-        MID(() -> FluidIngredient.of(GTMaterials.Helium.getFluid(100))),
-        HIGH(() -> FluidIngredient.of(GTMaterials.Argon.getFluid(100))),
-        HIGHER(() -> FluidIngredient.of(GTMaterials.Neon.getFluid(100))),
-        HIGHEST(() -> FluidIngredient.of(GTMaterials.Krypton.getFluid(100)));
+        LOW(() -> GTMaterials.Nitrogen.getFluid(1000)),
+        MID(() -> GTMaterials.Helium.getFluid(100)),
+        HIGH(() -> GTMaterials.Argon.getFluid(100)),
+        HIGHER(() -> GTMaterials.Neon.getFluid(100)),
+        HIGHEST(() -> GTMaterials.Krypton.getFluid(100));
 
-        private Supplier<FluidIngredient> fluid;
+        private Supplier<FluidStack> fluid;
 
-        GasTier(Supplier<FluidIngredient> fluid) {
+        GasTier(Supplier<FluidStack> fluid) {
             this.fluid = Suppliers.memoize(fluid);
         }
 
-        public void setFluid(Supplier<FluidIngredient> fluid) {
+        public void setFluid(Supplier<FluidStack> fluid) {
             this.fluid = Suppliers.memoize(fluid);
         }
 
-        public FluidIngredient getFluid() {
-            return fluid.get();
+        public FluidStack getFluid() {
+            return fluid.get().copy();
         }
     }
 
