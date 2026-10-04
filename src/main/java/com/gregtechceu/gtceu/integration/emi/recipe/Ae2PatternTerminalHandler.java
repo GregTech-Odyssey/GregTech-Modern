@@ -99,7 +99,7 @@ public class Ae2PatternTerminalHandler<T extends PatternEncodingTermMenu> implem
                 if (minecraft.player != null && minecraft.player.containerMenu == menu) encode.accept(Ae2PatternBuilder.inputs(model));
                 minecraft.setScreen(target);
             }, navigator::close, new PatternBuilderPanel.Footer(PatternBuilderPanel.TITLE, PatternBuilderPanel.WRITE, PatternBuilderPanel.INCLUDE,
-                    PatternBuilderPanel.CANNOT_WRITE, true, false, navigator::close));
+                    PatternBuilderPanel.CANNOT_WRITE, true, false, navigator::close, true));
         });
     }
 

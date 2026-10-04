@@ -1822,6 +1822,16 @@ public class LangHandler {
         provider.add("gtceu.pattern_builder.cancel", "Cancel");
         provider.add("gtceu.pattern_builder.cannot_write", "Nothing to write, or more inputs than the pattern can hold");
         provider.add("gtceu.pattern_builder.open_hint", "Left click: open the pattern builder, pick blocks and hatches, then write");
+        provider.add("gtceu.pattern_builder.no_hatches.on", "No Hatches: On");
+        provider.add("gtceu.pattern_builder.no_hatches.off", "No Hatches: Off");
+        provider.add("gtceu.pattern_builder.no_hatches.desc", "When on, hatch counts default to 0 each time this panel opens; they can still be changed");
+        provider.add("gtceu.structure_preview.favorite", "Add to or remove from EMI favorites");
+        provider.add("gtceu.structure_preview.tree", "Add to Craft Tree");
+        provider.add("gtceu.structure_tree.title", "Add to Craft Tree: %s");
+        provider.add("gtceu.structure_tree.confirm", "Add");
+        provider.add("gtceu.structure_tree.include", "Include in craft tree");
+        provider.add("gtceu.structure_tree.blocked", "Nothing selected, or more blocks than the structure can hold");
+        provider.add("gtceu.structure_tree.category", "Build Multiblock Structure");
         // 新式 UI 框架（uipro）
         provider.add("gtceu.uipro.confirm.armed", "Click again to confirm");
         provider.add("gtceu.uipro.disabled", "Operation not allowed");

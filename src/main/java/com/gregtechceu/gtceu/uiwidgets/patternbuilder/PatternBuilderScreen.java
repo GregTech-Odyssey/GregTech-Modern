@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.uiwidgets.patternbuilder;
 
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
+import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -16,11 +17,13 @@ import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUIGuiContainer;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
+import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.utils.Position;
 import com.lowdragmc.lowdraglib.utils.Size;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -31,6 +34,7 @@ import net.minecraftforge.client.ForgeHooksClient;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -169,6 +173,7 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
             if (next instanceof PatternBuilderPanel builder) {
                 builder.setPopupSlot(this);
                 configurators.attachConfigurators(new SortConfigurator(builder));
+                if (builder.hasHatchToggle()) configurators.attachConfigurators(new NoHatchesConfigurator(builder));
                 configurators.setVisible(true);
             } else {
                 configurators.setVisible(false);
@@ -263,6 +268,35 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
                 case CRAFTABLE -> SORT_CRAFTABLE;
                 case NONE -> SORT_NONE;
             }), () -> panel.getSort().ordinal(), index -> panel.setSort(SORTS[index])).layout(l -> l.width(WIDTH));
+        }
+    }
+
+    private record NoHatchesConfigurator(PatternBuilderPanel panel) implements IFancyConfiguratorButton {
+
+        @Override
+        public IGuiTexture getIcon() {
+            return PatternBuilderPanel.isNoHatches() ? WidgetIcons.NO_HATCHES_ON : WidgetIcons.NO_HATCHES_OFF;
+        }
+
+        @Override
+        public List<Component> getTooltips() {
+            return List.of(Component.translatable(PatternBuilderPanel.isNoHatches() ? PatternBuilderPanel.NO_HATCHES_ON : PatternBuilderPanel.NO_HATCHES_OFF),
+                    Component.translatable(PatternBuilderPanel.NO_HATCHES_DESC).withStyle(ChatFormatting.GRAY));
+        }
+
+        @Override
+        public void onClick(ClickData clickData) {
+            panel.setNoHatches(!PatternBuilderPanel.isNoHatches());
+        }
+
+        @Override
+        public boolean isPersistent() {
+            return true;
+        }
+
+        @Override
+        public boolean isLatched() {
+            return PatternBuilderPanel.isNoHatches();
         }
     }
 }

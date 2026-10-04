@@ -208,6 +208,12 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
         widgets.add(new ModularForegroundRenderWidget(modular));
     }
 
+    @Override
+    public void addTempWidgets(WidgetHolder widgets) {
+        frame = GTRecipeWidget.PageFrame.COMPACT;
+        super.addTempWidgets(widgets);
+    }
+
     protected GTRecipeWidget.PageFrame frameFor(WidgetHolder widgets) {
         return sizes.frameFor(widgets);
     }

@@ -12,7 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 public final class WidgetIcons {
 
     /// 行数必须与图集高度一致；加图标时加一行并改这里
-    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 44);
+    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 45);
 
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
@@ -125,6 +125,8 @@ public final class WidgetIcons {
     public static final IGuiTexture FAVORITE_ON = ATLAS.icon(41, 1);
     public static final IGuiTexture PART_CELLS_OFF = ATLAS.icon(43, 0);
     public static final IGuiTexture PART_CELLS_ON = ATLAS.icon(43, 1);
+    public static final IGuiTexture NO_HATCHES_OFF = ATLAS.icon(44, 0);
+    public static final IGuiTexture NO_HATCHES_ON = ATLAS.icon(44, 1);
 
     private WidgetIcons() {}
 }

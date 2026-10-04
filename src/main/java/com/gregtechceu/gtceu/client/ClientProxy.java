@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.common.data.GTBlockEntities;
 import com.gregtechceu.gtceu.common.data.GTEntityTypes;
 import com.gregtechceu.gtceu.common.data.GTParticleTypes;
 import com.gregtechceu.gtceu.common.entity.GTBoat;
+import com.gregtechceu.gtceu.integration.emi.multipage.MultiblockEmiActions;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.integration.map.cache.client.GTClientCache;
 import com.gregtechceu.gtceu.integration.map.layer.Layers;
@@ -59,6 +60,7 @@ public class ClientProxy extends CommonProxy {
             Layers.registerLayer(OreRenderLayer::new, "ore_veins");
             Layers.registerLayer(FluidRenderLayer::new, "bedrock_fluids");
             Layers.registerLayer(com.gregtechceu.gtceu.integration.map.layer.builtin.BedrockOreRenderLayer::new, "bedrock_ore_veins");
+            if (GTCEu.Mods.isEMILoaded()) MultiblockEmiActions.register();
         }
     }
 

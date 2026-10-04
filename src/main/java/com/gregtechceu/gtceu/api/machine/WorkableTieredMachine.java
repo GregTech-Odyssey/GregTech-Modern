@@ -46,6 +46,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
     @SaveToDisk(defaultValue = "0")
+    @SyncToClient
     protected int activeRecipeType;
     @Getter
     protected final Int2IntFunction tankScalingFunction;
@@ -205,7 +206,9 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
             getRecipeLogic().updateTickSubscription();
+            requestSync();
         }
+        this.activeRecipeType = activeRecipeType;
     }
 
     @Nullable

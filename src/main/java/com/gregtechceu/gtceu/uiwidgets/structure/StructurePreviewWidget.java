@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uiwidgets.structure;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.uipro.ILocalUI;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
@@ -12,6 +13,7 @@ import com.gregtechceu.gtceu.uipro.view.scene.SceneView;
 
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.utils.Size;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,6 +22,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.style.TaffyPosition;
+
+import java.util.Collections;
+import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public final class StructurePreviewWidget extends UIElement implements ILocalUI {
@@ -40,6 +45,11 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
     }
 
     public StructurePreviewWidget(MultiblockMachineDefinition definition, Structure structure, int width, int height, Runnable openFull) {
+        this(definition, structure, width, height, openFull, Collections.emptyList());
+    }
+
+    public StructurePreviewWidget(MultiblockMachineDefinition definition, Structure structure, int width, int height, Runnable openFull,
+                                  List<? extends Widget> actions) {
         this.definition = definition;
         this.structure = structure;
         setClientSideWidget();
@@ -62,8 +72,14 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
         }.layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(TITLE_INSET).top(TITLE_INSET)).addChild(title));
         stage.addChild(InfoIcon.of(Level.NORMAL, SceneView.controlTips().toArray(Component[]::new))
                 .layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(TITLE_INSET).top(TITLE_INSET)));
-        var open = Button.translatable(width, StructurePreviewScreen.OPEN).setOnClientClick(openFull);
-        addChildren(stage, open);
+        if (actions.isEmpty()) {
+            addChildren(stage, Button.translatable(width, StructurePreviewScreen.OPEN).setOnClientClick(openFull));
+        } else {
+            var row = UIElement.centeredRow(Button.HEIGHT).layout(l -> l.width(width));
+            for (var action : actions) row.addChild(action);
+            row.addChild(Button.translatable(LayoutStyle.AUTO, StructurePreviewScreen.OPEN).layout(l -> l.flex(1)).setOnClientClick(openFull));
+            addChildren(stage, row);
+        }
     }
 
     @Override

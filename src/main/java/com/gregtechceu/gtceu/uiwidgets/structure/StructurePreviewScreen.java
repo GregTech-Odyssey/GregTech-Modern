@@ -54,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -98,6 +99,19 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
     public record Action(String labelKey, Consumer<Context> run) {}
 
+    @FunctionalInterface
+    public interface ActionProvider {
+
+        @Nullable
+        Action create(MultiblockMachineDefinition definition, @Nullable Screen previous);
+    }
+
+    private static final List<ActionProvider> PROVIDERS = new ArrayList<>();
+
+    public static void addActionProvider(ActionProvider provider) {
+        PROVIDERS.add(provider);
+    }
+
     private final Runnable onBack;
     private final Host host;
 
@@ -115,9 +129,15 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             if (minecraft.player == null) return;
             var previous = minecraft.screen;
             Runnable onBack = back != null ? back.apply(previous) : () -> minecraft.setScreen(previous);
+            var all = new ArrayList<Action>(PROVIDERS.size() + actions.length);
+            for (var provider : PROVIDERS) {
+                var action = provider.create(definition, previous);
+                if (action != null) all.add(action);
+            }
+            Collections.addAll(all, actions);
             var window = minecraft.getWindow();
             int width = window.getGuiScaledWidth(), height = window.getGuiScaledHeight();
-            var host = new Host(definition, structure, width, height, actions, onBack);
+            var host = new Host(definition, structure, width, height, all.toArray(Action[]::new), onBack);
             var ui = new ModularUI(width, height, IUIHolder.EMPTY, minecraft.player).widget(host);
             var screen = new StructurePreviewScreen(host, ui, onBack);
             host.onClose = screen::closePreview;

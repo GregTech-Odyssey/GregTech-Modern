@@ -16,12 +16,16 @@ public class MultiblockInfoEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
     public final MultiblockMachineDefinition definition;
 
     public MultiblockInfoEmiRecipe(MultiblockMachineDefinition definition) {
-        super(() -> {
-            var structure = definition.displayStructure();
-            return structure != null ? new StructurePreviewWidget(definition, structure, () -> StructurePreviewTrigger.open(definition, structure)) :
-                    new WidgetGroup(0, 0, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT);
-        });
+        super(() -> new WidgetGroup(0, 0, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT));
         this.definition = definition;
+        widget = this::createWidget;
+    }
+
+    private WidgetGroup createWidget() {
+        var structure = definition.displayStructure();
+        if (structure == null) return new WidgetGroup(0, 0, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT);
+        return new StructurePreviewWidget(definition, structure, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT,
+                () -> StructurePreviewTrigger.open(definition, structure), MultiblockEmiActions.of(this, definition));
     }
 
     @Override

@@ -68,6 +68,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected GTRecipeType[] availableRecipeTypesCache;
     @Getter
     @SaveToDisk(defaultValue = "0")
+    @SyncToClient
     protected int activeRecipeType;
 
     protected boolean recipeLogicAvailable;
@@ -386,6 +387,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         if (this.activeRecipeType != activeRecipeType) {
             getRecipeLogic().markLastRecipeDirty();
             getRecipeLogic().updateTickSubscription();
+            requestSync();
         }
         this.activeRecipeType = activeRecipeType;
     }

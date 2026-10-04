@@ -515,6 +515,13 @@ public final class PatternBuilderModel {
         reallocate();
     }
 
+    public void clearHatches() {
+        for (var role : roles) {
+            for (var candidate : role.original) candidate.selected = 0;
+        }
+        reallocate();
+    }
+
     private static void distribute(List<Candidate> pool, int amount) {
         int favorite = Math.max(PatternFavorites.preferred(pool, candidate -> candidate.stack.getItem()), 0);
         var item = pool.get(favorite).stack.getItem();

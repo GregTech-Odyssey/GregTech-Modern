@@ -59,11 +59,20 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     public static final String EXTRAS = "gtceu.pattern_builder.extras";
     public static final String FAVORITE = "gtceu.pattern_builder.favorite";
     public static final String TOTAL = "gtceu.pattern_builder.total";
+    public static final String NO_HATCHES_ON = "gtceu.pattern_builder.no_hatches.on";
+    public static final String NO_HATCHES_OFF = "gtceu.pattern_builder.no_hatches.off";
+    public static final String NO_HATCHES_DESC = "gtceu.pattern_builder.no_hatches.desc";
+    private static final String NO_HATCHES_PREFERENCE = "pattern_builder.no_hatches";
 
     public record Footer(String titleKey, String confirmKey, String includeKey, String blockedKey, boolean showInputs, boolean requireComplete,
-                         @Nullable Runnable back) {
+                         @Nullable Runnable back, boolean hatchToggle) {
 
-        public static final Footer ENCODE = new Footer(TITLE, WRITE, INCLUDE, CANNOT_WRITE, true, false, null);
+        public static final Footer ENCODE = new Footer(TITLE, WRITE, INCLUDE, CANNOT_WRITE, true, false, null, true);
+
+        public Footer(String titleKey, String confirmKey, String includeKey, String blockedKey, boolean showInputs, boolean requireComplete,
+                      @Nullable Runnable back) {
+            this(titleKey, confirmKey, includeKey, blockedKey, showInputs, requireComplete, back, false);
+        }
     }
 
     private static final int COUNT_FIELD_WIDTH = 2 * UISizes.VALUE_WIDTH + 3 * UISizes.GAP + UISizes.SECTION_GAP;
@@ -114,6 +123,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         this.footer = footer;
         this.sort = UIPreferences.get(SORT_PREFERENCE, PatternBuilderModel.Sort.STOCK);
         model.sort(sort);
+        if (footer.hatchToggle() && isNoHatches()) model.clearHatches();
         setClientSideWidget();
         layout(l -> l.column().gapAll(UISizes.SECTION_GAP).paddingAll(UISizes.POPUP_PADDING).paddingBottom(UISizes.POPUP_PADDING_BOTTOM));
         setBackground(UITheme.WINDOW);
@@ -175,6 +185,21 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     public boolean canWrite() {
         int inputs = model.getInputs().size();
         return inputs > 0 && (!footer.showInputs() || inputs <= inputLimit) && !model.hasOverflow() && (!footer.requireComplete() || model.isComplete());
+    }
+
+    public boolean hasHatchToggle() {
+        return footer.hatchToggle();
+    }
+
+    public static boolean isNoHatches() {
+        return Boolean.parseBoolean(UIPreferences.get(NO_HATCHES_PREFERENCE, "false"));
+    }
+
+    public void setNoHatches(boolean noHatches) {
+        UIPreferences.put(NO_HATCHES_PREFERENCE, String.valueOf(noHatches));
+        if (noHatches) model.clearHatches();
+        else model.selectMinimum();
+        popups.rebuild();
     }
 
     public PatternBuilderModel.Sort getSort() {
