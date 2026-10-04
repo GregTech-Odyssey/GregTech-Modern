@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.common.block.LampBlock;
 import com.gregtechceu.gtceu.common.block.StoneBlockType;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
@@ -825,12 +824,12 @@ public class MachineRecipeLoader {
                 .inputItems(NEUTRON_REFLECTOR.asStack(2)).inputItems(CustomTags.LuV_CIRCUITS, 4)
                 .inputItems(pipeSmallFluid, Naquadah, 4).inputItems(plate, Europium, 4)
                 .inputFluids(VanadiumGallium, GTValues.L * 4).outputItems(GTBlocks.FUSION_COIL.asStack())
-                .duration(100).cleanroom(CleanroomType.CLEANROOM).addMaterialInfo(true, true)
+                .duration(100).cleanroom(1).addMaterialInfo(true, true)
                 .save();
         ASSEMBLER_RECIPES.recipeBuilder("fusion_glass").EUt(VA[LuV])
                 .inputItems(GTBlocks.CASING_LAMINATED_GLASS.asStack()).inputItems(plate, Naquadah, 4)
                 .inputItems(NEUTRON_REFLECTOR.asStack(4)).outputItems(GTBlocks.FUSION_GLASS.asStack(2))
-                .inputFluids(Polybenzimidazole, GTValues.L).duration(50).cleanroom(CleanroomType.CLEANROOM)
+                .inputFluids(Polybenzimidazole, GTValues.L).duration(50).cleanroom(1)
                 .addMaterialInfo(true, true).save();
         ASSEMBLER_RECIPES.recipeBuilder("fusion_casing").EUt(VA[LuV]).inputItems(GTBlocks.MACHINE_CASING_LuV.asStack())
                 .inputItems(GTBlocks.SUPERCONDUCTING_COIL.asStack()).inputItems(NEUTRON_REFLECTOR)
@@ -838,20 +837,20 @@ public class MachineRecipeLoader {
                 .inputFluids(Polybenzimidazole, GTValues.L)
                 .outputItems(GTBlocks.FUSION_CASING.asStack(ConfigHolder.INSTANCE.recipes.casingsPerCraft))
                 .addMaterialInfo(true, true)
-                .duration(100).cleanroom(CleanroomType.CLEANROOM).save();
+                .duration(100).cleanroom(1).save();
         ASSEMBLER_RECIPES.recipeBuilder("fusion_casing_mk2").EUt(VA[ZPM])
                 .inputItems(GTBlocks.MACHINE_CASING_ZPM.asStack()).inputItems(GTBlocks.FUSION_COIL.asStack())
                 .inputItems(VOLTAGE_COIL_ZPM.asStack(2)).inputItems(FIELD_GENERATOR_LuV).inputItems(plate, Europium, 6)
                 .inputFluids(Polybenzimidazole, GTValues.L * 2)
                 .outputItems(GTBlocks.FUSION_CASING_MK2.asStack(ConfigHolder.INSTANCE.recipes.casingsPerCraft))
-                .duration(100).cleanroom(CleanroomType.CLEANROOM)
+                .duration(100).cleanroom(1)
                 .addMaterialInfo(true, true).save();
         ASSEMBLER_RECIPES.recipeBuilder("fusion_casing_mk3").EUt(VA[UV])
                 .inputItems(GTBlocks.MACHINE_CASING_UV.asStack()).inputItems(GTBlocks.FUSION_COIL.asStack())
                 .inputItems(VOLTAGE_COIL_UV.asStack(2)).inputItems(FIELD_GENERATOR_ZPM).inputItems(plate, Americium, 6)
                 .inputFluids(Polybenzimidazole, GTValues.L * 4)
                 .outputItems(GTBlocks.FUSION_CASING_MK3.asStack(ConfigHolder.INSTANCE.recipes.casingsPerCraft))
-                .duration(100).cleanroom(CleanroomType.CLEANROOM)
+                .duration(100).cleanroom(1)
                 .addMaterialInfo(true, true).save();
 
         ASSEMBLER_RECIPES.recipeBuilder("casing_steel_turbine").EUt(16).inputItems(plate, Magnalium, 6)

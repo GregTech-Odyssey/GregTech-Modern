@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.block.ICoilType;
-import com.gregtechceu.gtceu.api.block.IFilterType;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -234,8 +233,8 @@ public class Predicates {
             for (var entry : GTCEuAPI.CLEANROOM_FILTERS.entrySet()) {
                 if (blockState.is(entry.getValue().get())) {
                     var stats = entry.getKey();
-                    var currentCoil = blockWorldState.getMatchContext().getOrPut(DataKey.FILTER_TYPE, stats);
-                    if (!currentCoil.equals(stats)) {
+                    var orPut = blockWorldState.getMatchContext().getOrPut(DataKey.FILTER_TYPE, stats);
+                    if (!orPut.equals(stats)) {
                         blockWorldState.setError(new PatternStringError("gtceu.multiblock.pattern.error.filters"));
                         return false;
                     }
@@ -310,7 +309,7 @@ public class Predicates {
         public static final DataComponentKey<LongSet> ACTIVE_BLOCKS = DataComponentKey.create("ActiveBlocks", DataComponentKey.longSetBuilder(LongOpenHashBigSet::new));
         public static final DataComponentKey<LongSet> RENDER_MASK = DataComponentKey.create("RenderMask", DataComponentKey.longSetBuilder(LongOpenHashBigSet::new));
         public static final DataComponentKey<ICoilType> COIL_TYPE = DataComponentKey.createNoCodec("CoilType");
-        public static final DataComponentKey<IFilterType> FILTER_TYPE = DataComponentKey.createNoCodec("FilterType");
+        public static final DataComponentKey<Integer> FILTER_TYPE = DataComponentKey.createNoCodec("FilterType");
         public static final DataComponentKey<Reference2IntOpenHashMap<IBatteryData>> BATTERY_DATA = DataComponentKey.create("BatteryData", DataComponentKey.reference2IntMapBuilder(Reference2IntOpenHashMap::new));
     }
 }

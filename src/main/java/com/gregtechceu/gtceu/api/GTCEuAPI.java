@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
 import com.gregtechceu.gtceu.api.block.ICoilType;
-import com.gregtechceu.gtceu.api.block.IFilterType;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.common.block.BatteryBlock;
 import com.gregtechceu.gtceu.common.block.CoilBlock;
@@ -13,6 +12,8 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.world.level.block.Block;
 
+import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -31,7 +32,7 @@ public class GTCEuAPI {
     private static boolean highTier;
     private static boolean highTierInitialized;
     public static final Map<ICoilType, Supplier<CoilBlock>> HEATING_COILS = new Reference2ReferenceOpenHashMap<>();
-    public static final Map<IFilterType, Supplier<Block>> CLEANROOM_FILTERS = new Reference2ReferenceOpenHashMap<>();
+    public static final Int2ReferenceMap<Supplier<Block>> CLEANROOM_FILTERS = new Int2ReferenceOpenHashMap<>();
     public static final Map<IBatteryData, Supplier<BatteryBlock>> PSS_BATTERIES = new Reference2ReferenceOpenHashMap<>();
 
     /**

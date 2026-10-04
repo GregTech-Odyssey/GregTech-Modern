@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
@@ -845,8 +844,8 @@ public class GTRecipeBuilder {
     // ******* CONDITIONS ********//
 
     /// ///////////////////////////////////
-    public GTRecipeBuilder cleanroom(CleanroomType cleanroomType) {
-        return addCondition(CleanroomCondition.get(cleanroomType));
+    public GTRecipeBuilder cleanroom(int cleanroomTier) {
+        return addCondition(CleanroomCondition.get(cleanroomTier));
     }
 
     public GTRecipeBuilder dimension(ResourceLocation dimension, boolean reverse) {

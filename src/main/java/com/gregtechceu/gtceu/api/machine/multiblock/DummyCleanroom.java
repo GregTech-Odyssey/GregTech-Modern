@@ -2,26 +2,21 @@ package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
 
 public final class DummyCleanroom implements ICleanroomProvider {
 
-    private final boolean allowsAllTypes;
-    private final Collection<CleanroomType> allowedTypes;
+    private final int allowedTier;
+    public static final DummyCleanroom ALL_TYPES = new DummyCleanroom(Integer.MAX_VALUE);
 
     /**
-     * Create a Dummy Cleanroom that provides specific types
+     * Create a Dummy Cleanroom that provides specific tiers
      * 
-     * @param types the types to provide
+     * @param tier the tier to provide
      */
     @NotNull
-    public static DummyCleanroom createForTypes(@NotNull Collection<CleanroomType> types) {
-        return new DummyCleanroom(types, false);
+    public static DummyCleanroom create(int tier) {
+        return new DummyCleanroom(tier);
     }
 
     /**
@@ -29,12 +24,11 @@ public final class DummyCleanroom implements ICleanroomProvider {
      */
     @NotNull
     public static DummyCleanroom createForAllTypes() {
-        return new DummyCleanroom(Collections.emptyList(), true);
+        return new DummyCleanroom(Integer.MAX_VALUE);
     }
 
-    private DummyCleanroom(@NotNull Collection<CleanroomType> allowedTypes, boolean allowsAllTypes) {
-        this.allowedTypes = allowedTypes;
-        this.allowsAllTypes = allowsAllTypes;
+    private DummyCleanroom(int tier) {
+        this.allowedTier = tier;
     }
 
     @Override
@@ -43,7 +37,7 @@ public final class DummyCleanroom implements ICleanroomProvider {
     }
 
     @Override
-    public Set<CleanroomType> getTypes() {
-        return allowsAllTypes ? CleanroomType.getAllTypes() : new ReferenceOpenHashSet<>(allowedTypes);
+    public int getCleanroomTier() {
+        return allowedTier;
     }
 }

@@ -1,23 +1,22 @@
 package com.gregtechceu.gtceu.common.block;
 
 import com.gregtechceu.gtceu.api.block.IFilterType;
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 public enum CleanroomFilterType implements IFilterType {
 
-    FILTER_CASING("filter_casing", CleanroomType.CLEANROOM),
-    FILTER_CASING_STERILE("sterilizing_filter_casing", CleanroomType.STERILE_CLEANROOM);
+    FILTER_CASING("filter_casing", 1),
+    FILTER_CASING_STERILE("sterilizing_filter_casing", 2);
 
     private final String name;
     @Getter
-    private final CleanroomType cleanroomType;
+    private final int cleanroomTier;
 
-    CleanroomFilterType(String name, CleanroomType cleanroomType) {
+    CleanroomFilterType(String name, int cleanroomTier) {
         this.name = name;
-        this.cleanroomType = cleanroomType;
+        this.cleanroomTier = cleanroomTier;
     }
 
     @NotNull

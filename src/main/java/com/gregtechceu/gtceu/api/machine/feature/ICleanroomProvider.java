@@ -1,8 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.feature;
 
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
-
-import java.util.Set;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 /**
  * Implement this interface in order to make a Machine into a block that provides a Cleanroom to other blocks
@@ -10,12 +9,16 @@ import java.util.Set;
 public interface ICleanroomProvider {
 
     /**
-     * @return a {@link Set} of {@link CleanroomType} which the cleanroom provides
+     * @return max tier of cleanroom that this machine can provide
      */
-    Set<CleanroomType> getTypes();
+    int getCleanroomTier();
 
     /**
      * @return whether the cleanroom is currently clean
      */
     boolean isClean();
+
+    static MutableComponent getCleanroomTooltip(int tier) {
+        return Component.translatable("gtceu.recipe.cleanroom." + tier);
+    }
 }

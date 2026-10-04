@@ -567,7 +567,7 @@ public class GTBlocks {
                 .register();
     }
 
-    private static BlockEntry<Block> createCleanroomFilter(IFilterType filterType) {
+    public static BlockEntry<Block> createCleanroomFilter(IFilterType filterType) {
         var filterBlock = REGISTRATE.block(filterType.getSerializedName(), Block::new)
                 .initialProperties(() -> Blocks.IRON_BLOCK)
                 .properties(properties -> properties.strength(2.0f, 8.0f).sound(SoundType.METAL)
@@ -578,7 +578,7 @@ public class GTBlocks {
                 .item(BlockItem::new)
                 .build()
                 .register();
-        GTCEuAPI.CLEANROOM_FILTERS.put(filterType, filterBlock);
+        GTCEuAPI.CLEANROOM_FILTERS.put(filterType.getCleanroomTier(), filterBlock);
         return filterBlock;
     }
 

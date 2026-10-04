@@ -396,6 +396,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     public void setCleanroom(@Nullable final ICleanroomProvider cleanroom) {
+        if (cleanroom != null && this.cleanroom != null && this.cleanroom.getCleanroomTier() >= cleanroom.getCleanroomTier()) {
+            return;
+        }
         this.cleanroom = cleanroom;
         getRecipeLogic().markLastRecipeDirty();
         getRecipeLogic().updateTickSubscription();

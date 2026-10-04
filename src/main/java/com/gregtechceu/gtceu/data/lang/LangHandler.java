@@ -1120,8 +1120,8 @@ public class LangHandler {
         provider.add("gtceu.recipe.cleanroom", "Requires %s");
         provider.add("gtceu.recipe.environmental_hazard.reverse", "§cArea must be free of %s");
         provider.add("gtceu.recipe.environmental_hazard", "§cArea must have %s");
-        provider.add("gtceu.recipe.cleanroom.display_name", "Cleanroom");
-        provider.add("gtceu.recipe.cleanroom_sterile.display_name", "Sterile Cleanroom");
+        provider.add("gtceu.recipe.cleanroom.1", "Cleanroom");
+        provider.add("gtceu.recipe.cleanroom.2", "Sterile Cleanroom");
         provider.add("gtceu.recipe.research", "Requires Research");
         provider.add("gtceu.recipe.scan_for_research", "Scan for Assembly Line");
         provider.add("gtceu.recipe.computation_per_tick", "Min. Computation: %s CWU/t");

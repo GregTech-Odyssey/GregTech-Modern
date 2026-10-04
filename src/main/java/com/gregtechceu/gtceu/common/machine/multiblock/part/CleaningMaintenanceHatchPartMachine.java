@@ -4,19 +4,15 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICleanroomReceiver;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.DummyCleanroom;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import lombok.Getter;
 
-import java.util.Collections;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import static com.gregtechceu.gtceu.api.GTValues.UHV;
-import static com.gregtechceu.gtceu.api.GTValues.UV;
+import static com.gregtechceu.gtceu.api.GTValues.*;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -25,12 +21,12 @@ public class CleaningMaintenanceHatchPartMachine extends AutoMaintenanceHatchPar
     // must come after the static block
     private final ICleanroomProvider DUMMY_CLEANROOM;
     @Getter
-    private final CleanroomType cleanroomType;
+    private final int cleanroomTier;
 
-    public CleaningMaintenanceHatchPartMachine(MetaMachineBlockEntity metaTileEntityId, CleanroomType cleanroomType) {
+    public CleaningMaintenanceHatchPartMachine(MetaMachineBlockEntity metaTileEntityId, int cleanroomTier) {
         super(metaTileEntityId);
-        this.cleanroomType = cleanroomType;
-        DUMMY_CLEANROOM = DummyCleanroom.createForTypes(Collections.singletonList(cleanroomType));
+        this.cleanroomTier = cleanroomTier;
+        DUMMY_CLEANROOM = DummyCleanroom.create(cleanroomTier);
     }
 
     @Override
@@ -51,6 +47,6 @@ public class CleaningMaintenanceHatchPartMachine extends AutoMaintenanceHatchPar
 
     @Override
     public int getTier() {
-        return cleanroomType == CleanroomType.CLEANROOM ? UV : UHV;
+        return cleanroomTier + ZPM;
     }
 }

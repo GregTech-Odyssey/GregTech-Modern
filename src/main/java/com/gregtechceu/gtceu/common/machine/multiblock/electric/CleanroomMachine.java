@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -57,6 +56,7 @@ import com.gto.datasynclib.datastream.DataComponentKey;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import it.unimi.dsi.fastutil.objects.ReferenceSets;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -124,8 +124,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     private int fDist = 0;
     @SaveToDisk
     private int hDist = 0;
-    @Nullable
-    private CleanroomType cleanroomType = null;
+    @Getter
+    private int cleanroomTier = 0;
     @SaveToDisk
     private int cleanAmount;
     // runtime
@@ -166,11 +166,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         updateStructureDimensions();
         initializeAbilities();
         var filterType = getMultiblockState().getMatchContext().get(Predicates.DataKey.FILTER_TYPE);
-        if (filterType != null) {
-            this.cleanroomType = filterType.getCleanroomType();
-        } else {
-            this.cleanroomType = CleanroomType.CLEANROOM;
-        }
+        this.cleanroomTier = Objects.requireNonNullElse(filterType, 0);
         // bind cleanroom
         if (cleanroomReceivers != null) {
             this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(null));
@@ -352,8 +348,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
                 String voltageName = GTValues.VNF[GTUtil.getFloorTierByVoltage(maxVoltage)];
                 textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick", maxVoltage, voltageName));
             }
-            if (cleanroomType != null) {
-                textList.add(Component.translatable(cleanroomType.getTranslationKey()));
+            if (cleanroomTier > 0) {
+                textList.add(ICleanroomProvider.getCleanroomTooltip(cleanroomTier));
             }
             MultiblockDisplayText.builder(textList, true, false).addReasonLines(recipeLogic);
             if (isWorkingEnabled() && isActive()) {
@@ -371,11 +367,6 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             Component tooltip = Component.translatable("gtceu.multiblock.invalid_structure.tooltip").withStyle(ChatFormatting.GRAY);
             textList.add(Component.translatable("gtceu.multiblock.invalid_structure").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip))));
         }
-    }
-
-    @Override
-    public Set<CleanroomType> getTypes() {
-        return this.cleanroomType == null ? Collections.emptySet() : Set.of(this.cleanroomType);
     }
 
     /**

@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.data.recipe.misc;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials.Color;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
-import com.gregtechceu.gtceu.api.machine.multiblock.CleanroomType;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
@@ -71,20 +70,20 @@ public class CircuitRecipes {
         CUTTER_RECIPES.recipeBuilder("cut_phosphorus_boule")
                 .inputItems(PHOSPHORUS_BOULE)
                 .outputItems(PHOSPHORUS_WAFER, 32)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(800).EUt(VA[HV]).save();
 
         CUTTER_RECIPES.recipeBuilder("cut_naquadah_boule")
                 .inputItems(NAQUADAH_BOULE)
                 .outputItems(NAQUADAH_WAFER, 64)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(1600).EUt(VA[EV]).save();
 
         CUTTER_RECIPES.recipeBuilder("cut_neutronium_boule")
                 .inputItems(NEUTRONIUM_BOULE)
                 .outputItems(NEUTRONIUM_WAFER, 64)
                 .outputItems(NEUTRONIUM_WAFER, 32)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(2400).EUt(VA[IV]).save();
 
         // Wafer engraving
@@ -92,129 +91,129 @@ public class CircuitRecipes {
                 .notConsumable(lens, Color.Red).outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ilc_phosphorus").duration(500).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Red)
-                .outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER, 4).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ilc_naquadah").duration(200).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Red)
-                .outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER, 8).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER, 8).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ilc_neutronium").duration(50).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Red)
-                .outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER, 16).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER, 16).cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ram_silicon").duration(900).EUt(VA[MV]).inputItems(SILICON_WAFER)
                 .notConsumable(lens, Color.Green).outputItems(RANDOM_ACCESS_MEMORY_WAFER).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ram_phosphorus").duration(500).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Green)
-                .outputItems(RANDOM_ACCESS_MEMORY_WAFER, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(RANDOM_ACCESS_MEMORY_WAFER, 4).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ram_naquadah").duration(200).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Green).outputItems(RANDOM_ACCESS_MEMORY_WAFER, 8)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ram_neutronium").duration(50).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Green)
-                .outputItems(RANDOM_ACCESS_MEMORY_WAFER, 16).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(RANDOM_ACCESS_MEMORY_WAFER, 16).cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_cpu_silicon").duration(900).EUt(VA[MV]).inputItems(SILICON_WAFER)
                 .notConsumable(lens, Color.LightBlue).outputItems(CENTRAL_PROCESSING_UNIT_WAFER).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_cpu_phosphorus").duration(500).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.LightBlue)
-                .outputItems(CENTRAL_PROCESSING_UNIT_WAFER, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(CENTRAL_PROCESSING_UNIT_WAFER, 4).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_cpu_naquadah").duration(200).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.LightBlue)
-                .outputItems(CENTRAL_PROCESSING_UNIT_WAFER, 8).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(CENTRAL_PROCESSING_UNIT_WAFER, 8).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_cpu_neutronium").duration(50).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.LightBlue)
-                .outputItems(CENTRAL_PROCESSING_UNIT_WAFER, 16).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(CENTRAL_PROCESSING_UNIT_WAFER, 16).cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ulpic_silicon").duration(900).EUt(VA[MV])
                 .inputItems(SILICON_WAFER).notConsumable(lens, Color.Blue)
                 .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ulpic_phosphorus").duration(500).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Blue)
-                .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 4).cleanroom(CleanroomType.CLEANROOM)
+                .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 4).cleanroom(1)
                 .save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ulpic_naquadah").duration(200).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Blue)
-                .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 8).cleanroom(CleanroomType.CLEANROOM)
+                .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 8).cleanroom(1)
                 .save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ulpic_neutronium").duration(50).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Blue)
-                .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 16).cleanroom(CleanroomType.CLEANROOM)
+                .outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 16).cleanroom(1)
                 .save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_lpic_silicon").duration(900).EUt(VA[MV]).inputItems(SILICON_WAFER)
                 .notConsumable(lens, Color.Orange).outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_lpic_phosphorus").duration(500).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Orange)
-                .outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 4).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_lpic_naquadah").duration(200).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Orange)
-                .outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 8).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 8).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_lpic_neutronium").duration(50).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Orange)
-                .outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 16).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER, 16).cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ssoc_silicon").duration(900).EUt(VA[MV]).inputItems(SILICON_WAFER)
                 .notConsumable(lens, Color.Cyan).outputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ssoc_phosphorus").duration(500).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Cyan)
-                .outputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER, 4).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ssoc_naquadah").duration(200).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Cyan).outputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER, 8)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_ssoc_neutronium").duration(50).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Cyan)
-                .outputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER, 16).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER, 16).cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_nand_phosphorus").duration(900).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Gray).outputItems(NAND_MEMORY_CHIP_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_nand_naquadah").duration(500).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Gray).outputItems(NAND_MEMORY_CHIP_WAFER, 4)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_nand_neutronium").duration(200).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Gray).outputItems(NAND_MEMORY_CHIP_WAFER, 8)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_nor_phosphorus").duration(900).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Pink).outputItems(NOR_MEMORY_CHIP_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_nor_naquadah").duration(500).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Pink).outputItems(NOR_MEMORY_CHIP_WAFER, 4)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_nor_neutronium").duration(200).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Pink).outputItems(NOR_MEMORY_CHIP_WAFER, 8)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_pic_phosphorus").duration(900).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Brown)
-                .outputItems(POWER_INTEGRATED_CIRCUIT_WAFER).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(POWER_INTEGRATED_CIRCUIT_WAFER).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_pic_naquadah").duration(500).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Brown)
-                .outputItems(POWER_INTEGRATED_CIRCUIT_WAFER, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(POWER_INTEGRATED_CIRCUIT_WAFER, 4).cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_pic_neutronium").duration(200).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Brown)
-                .outputItems(POWER_INTEGRATED_CIRCUIT_WAFER, 8).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(POWER_INTEGRATED_CIRCUIT_WAFER, 8).cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_soc_phosphorus").duration(900).EUt(VA[HV])
                 .inputItems(PHOSPHORUS_WAFER).notConsumable(lens, Color.Yellow).outputItems(SYSTEM_ON_CHIP_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_soc_naquadah").duration(500).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Yellow).outputItems(SYSTEM_ON_CHIP_WAFER, 4)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_soc_neutronium").duration(200).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Yellow).outputItems(SYSTEM_ON_CHIP_WAFER, 8)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_asoc_naquadah").duration(900).EUt(VA[EV])
                 .inputItems(NAQUADAH_WAFER).notConsumable(lens, Color.Purple).outputItems(ADVANCED_SYSTEM_ON_CHIP_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_asoc_neutronium").duration(500).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Purple)
-                .outputItems(ADVANCED_SYSTEM_ON_CHIP_WAFER, 2).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(ADVANCED_SYSTEM_ON_CHIP_WAFER, 2).cleanroom(1).save();
 
         // Can replace this with a Quantum Star/Eye Lens if desired
         LASER_ENGRAVER_RECIPES.recipeBuilder("engrave_hasoc_neutronium").duration(900).EUt(VA[IV])
                 .inputItems(NEUTRONIUM_WAFER).notConsumable(lens, Color.Black).outputItems(HIGHLY_ADVANCED_SOC_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
 
         // Wafer chemical refining recipes
         CHEMICAL_RECIPES.recipeBuilder("hpic_wafer")
@@ -222,7 +221,7 @@ public class CircuitRecipes {
                 .inputItems(dust, IndiumGalliumPhosphide, 2)
                 .inputFluids(VanadiumGallium.getFluid(L * 2))
                 .outputItems(HIGH_POWER_INTEGRATED_CIRCUIT_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(1200).EUt(VA[IV]).save();
 
         CHEMICAL_RECIPES.recipeBuilder("uhpic_wafer")
@@ -230,7 +229,7 @@ public class CircuitRecipes {
                 .inputItems(dust, IndiumGalliumPhosphide, 8)
                 .inputFluids(Naquadah.getFluid(L * 4))
                 .outputItems(ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(1200).EUt(VA[LuV]).save();
 
         CHEMICAL_RECIPES.recipeBuilder("nano_cpu_wafer")
@@ -238,7 +237,7 @@ public class CircuitRecipes {
                 .inputItems(CARBON_FIBERS, 16)
                 .inputFluids(Glowstone.getFluid(L * 4))
                 .outputItems(NANO_CENTRAL_PROCESSING_UNIT_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(1200).EUt(VA[EV]).save();
 
         CHEMICAL_RECIPES.recipeBuilder("qbit_cpu_wafer_quantum_eye")
@@ -246,7 +245,7 @@ public class CircuitRecipes {
                 .inputItems(QUANTUM_EYE, 2)
                 .inputFluids(GalliumArsenide.getFluid(L * 2))
                 .outputItems(QUBIT_CENTRAL_PROCESSING_UNIT_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(900).EUt(VA[EV]).save();
 
         CHEMICAL_RECIPES.recipeBuilder("qbit_cpu_wafer_radon")
@@ -254,49 +253,49 @@ public class CircuitRecipes {
                 .inputItems(dust, IndiumGalliumPhosphide)
                 .inputFluids(Radon.getFluid(50))
                 .outputItems(QUBIT_CENTRAL_PROCESSING_UNIT_WAFER)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(1200).EUt(VA[EV]).save();
 
         // Wafer cutting
         CUTTER_RECIPES.recipeBuilder("cut_hasoc").duration(900).EUt(VA[IV]).inputItems(HIGHLY_ADVANCED_SOC_WAFER)
-                .outputItems(HIGHLY_ADVANCED_SOC, 6).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(HIGHLY_ADVANCED_SOC, 6).cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_asoc").duration(900).EUt(VA[EV]).inputItems(ADVANCED_SYSTEM_ON_CHIP_WAFER)
-                .outputItems(ADVANCED_SYSTEM_ON_CHIP, 6).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(ADVANCED_SYSTEM_ON_CHIP, 6).cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_soc").duration(900).EUt(VA[HV]).inputItems(SYSTEM_ON_CHIP_WAFER)
-                .outputItems(SYSTEM_ON_CHIP, 6).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(SYSTEM_ON_CHIP, 6).cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_ssoc").duration(900).EUt(64).inputItems(SIMPLE_SYSTEM_ON_CHIP_WAFER)
                 .outputItems(SIMPLE_SYSTEM_ON_CHIP, 6).save();
         CUTTER_RECIPES.recipeBuilder("cut_ram").duration(900).EUt(96).inputItems(RANDOM_ACCESS_MEMORY_WAFER)
                 .outputItems(RANDOM_ACCESS_MEMORY, 32).save();
         CUTTER_RECIPES.recipeBuilder("cut_qbit_cpu").duration(900).EUt(VA[EV])
                 .inputItems(QUBIT_CENTRAL_PROCESSING_UNIT_WAFER).outputItems(QUBIT_CENTRAL_PROCESSING_UNIT, 4)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_ulpic").duration(900).EUt(VA[MV])
                 .inputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT_WAFER).outputItems(ULTRA_LOW_POWER_INTEGRATED_CIRCUIT, 6)
                 .save();
         CUTTER_RECIPES.recipeBuilder("cut_lpic").duration(900).EUt(VA[HV])
                 .inputItems(LOW_POWER_INTEGRATED_CIRCUIT_WAFER).outputItems(LOW_POWER_INTEGRATED_CIRCUIT, 4)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_pic").duration(900).EUt(VA[EV]).inputItems(POWER_INTEGRATED_CIRCUIT_WAFER)
-                .outputItems(POWER_INTEGRATED_CIRCUIT, 4).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(POWER_INTEGRATED_CIRCUIT, 4).cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_hpic").duration(900).EUt(VA[IV])
                 .inputItems(HIGH_POWER_INTEGRATED_CIRCUIT_WAFER).outputItems(HIGH_POWER_INTEGRATED_CIRCUIT, 2)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_uhpic").duration(900).EUt(VA[LuV])
                 .inputItems(ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT_WAFER)
                 .outputItems(ULTRA_HIGH_POWER_INTEGRATED_CIRCUIT, 2)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_nor").duration(900).EUt(192).inputItems(NOR_MEMORY_CHIP_WAFER)
-                .outputItems(NOR_MEMORY_CHIP, 16).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(NOR_MEMORY_CHIP, 16).cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_nand").duration(900).EUt(192).inputItems(NAND_MEMORY_CHIP_WAFER)
-                .outputItems(NAND_MEMORY_CHIP, 32).cleanroom(CleanroomType.CLEANROOM).save();
+                .outputItems(NAND_MEMORY_CHIP, 32).cleanroom(1).save();
         CUTTER_RECIPES.recipeBuilder("cut_cpu").duration(900).EUt(VA[MV]).inputItems(CENTRAL_PROCESSING_UNIT_WAFER)
                 .outputItems(CENTRAL_PROCESSING_UNIT, 8).save();
         CUTTER_RECIPES.recipeBuilder("cut_ilc").duration(900).EUt(64).inputItems(INTEGRATED_LOGIC_CIRCUIT_WAFER)
                 .outputItems(INTEGRATED_LOGIC_CIRCUIT, 8).save();
         CUTTER_RECIPES.recipeBuilder("cut_nano_cpu").duration(900).EUt(VA[HV])
                 .inputItems(NANO_CENTRAL_PROCESSING_UNIT_WAFER).outputItems(NANO_CENTRAL_PROCESSING_UNIT, 8)
-                .cleanroom(CleanroomType.CLEANROOM).save();
+                .cleanroom(1).save();
     }
 
     private static void componentRecipes() {
@@ -674,28 +673,28 @@ public class CircuitRecipes {
                 .inputItems(ENGRAVED_CRYSTAL_CHIP)
                 .notConsumable(lens, Color.Lime)
                 .outputItems(CRYSTAL_CENTRAL_PROCESSING_UNIT)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(100).EUt(10000).save();
 
         LASER_ENGRAVER_RECIPES.recipeBuilder("crystal_soc")
                 .inputItems(CRYSTAL_CENTRAL_PROCESSING_UNIT)
                 .notConsumable(lens, Color.Blue)
                 .outputItems(CRYSTAL_SYSTEM_ON_CHIP)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(100).EUt(40000).save();
 
         AUTOCLAVE_RECIPES.recipeBuilder("raw_crystal_chip_emerald")
                 .inputItems(gemExquisite, Emerald)
                 .inputFluids(Europium.getFluid(L / 9))
                 .chancedOutput(RAW_CRYSTAL_CHIP.asStack(), 1000, 2000)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(12000).EUt(320).save();
 
         AUTOCLAVE_RECIPES.recipeBuilder("raw_crystal_chip_olivine")
                 .inputItems(gemExquisite, Olivine)
                 .inputFluids(Europium.getFluid(L / 9))
                 .chancedOutput(RAW_CRYSTAL_CHIP.asStack(), 1000, 2000)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(12000).EUt(320).save();
 
         FORGE_HAMMER_RECIPES.recipeBuilder("raw_crystal_chip_part")
@@ -707,21 +706,21 @@ public class CircuitRecipes {
                 .inputItems(RAW_CRYSTAL_CHIP_PART)
                 .inputFluids(Europium.getFluid(L / 9))
                 .outputItems(RAW_CRYSTAL_CHIP)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(12000).EUt(VA[HV]).save();
 
         AUTOCLAVE_RECIPES.recipeBuilder("raw_crystal_chip_from_part_mutagen")
                 .inputItems(RAW_CRYSTAL_CHIP_PART)
                 .inputFluids(Mutagen.getFluid(250))
                 .chancedOutput(RAW_CRYSTAL_CHIP.asStack(), 8000, 250)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(12000).EUt(VA[HV]).save();
 
         AUTOCLAVE_RECIPES.recipeBuilder("raw_crystal_chip_from_part_bacterial_sludge")
                 .inputItems(RAW_CRYSTAL_CHIP_PART)
                 .inputFluids(BacterialSludge.getFluid(250))
                 .chancedOutput(RAW_CRYSTAL_CHIP.asStack(), 8000, 250)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(12000).EUt(VA[HV]).save();
 
         BLAST_RECIPES.recipeBuilder("engraved_crystal_chip_from_emerald")
@@ -913,7 +912,7 @@ public class CircuitRecipes {
                 .inputItems(foil, AnnealedCopper, 12)
                 .inputFluids(SodiumPersulfate.getFluid(2000))
                 .outputItems(EXTREME_CIRCUIT_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CHEMICAL_RECIPES.recipeBuilder("extreme_circuit_board_iron3").duration(1200).EUt(VA[LV])
@@ -921,7 +920,7 @@ public class CircuitRecipes {
                 .inputItems(foil, AnnealedCopper, 12)
                 .inputFluids(Iron3Chloride.getFluid(1000))
                 .outputItems(EXTREME_CIRCUIT_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // Multi-Layer Fiber Reinforced Epoxy Board
@@ -930,7 +929,7 @@ public class CircuitRecipes {
                 .inputItems(foil, Palladium, 8)
                 .inputFluids(SulfuricAcid.getFluid(500))
                 .outputItems(MULTILAYER_FIBER_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // Elite Circuit Board
@@ -939,7 +938,7 @@ public class CircuitRecipes {
                 .inputItems(foil, Platinum, 8)
                 .inputFluids(SodiumPersulfate.getFluid(4000))
                 .outputItems(ELITE_CIRCUIT_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CHEMICAL_RECIPES.recipeBuilder("elite_circuit_board_iron3").duration(1500).EUt(VA[MV])
@@ -947,7 +946,7 @@ public class CircuitRecipes {
                 .inputItems(foil, Platinum, 8)
                 .inputFluids(Iron3Chloride.getFluid(2000))
                 .outputItems(ELITE_CIRCUIT_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // Wetware Board
@@ -973,7 +972,7 @@ public class CircuitRecipes {
                 .inputItems(foil, NiobiumTitanium, 16)
                 .inputFluids(SterileGrowthMedium.getFluid(4000))
                 .outputItems(WETWARE_BOARD, 16)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CHEMICAL_RECIPES.recipeBuilder("wetware_circuit_board_persulfate").duration(1800).EUt(VA[HV])
@@ -981,7 +980,7 @@ public class CircuitRecipes {
                 .inputItems(foil, NiobiumTitanium, 32)
                 .inputFluids(SodiumPersulfate.getFluid(10000))
                 .outputItems(WETWARE_CIRCUIT_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CHEMICAL_RECIPES.recipeBuilder("wetware_circuit_board_iron3").duration(1800).EUt(VA[HV])
@@ -989,7 +988,7 @@ public class CircuitRecipes {
                 .inputItems(foil, NiobiumTitanium, 32)
                 .inputFluids(Iron3Chloride.getFluid(5000))
                 .outputItems(WETWARE_CIRCUIT_BOARD)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
     }
 
@@ -1105,7 +1104,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Copper, 2)
                 .inputItems(bolt, Tin, 2)
                 .outputItems(MICROPROCESSOR_LV, ConfigHolder.INSTANCE.recipes.harderCircuitRecipes ? 3 : 6)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // T3: Processor ===============================================================================================
@@ -1128,7 +1127,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, RedAlloy, 4)
                 .inputItems(bolt, AnnealedCopper, 4)
                 .outputItems(PROCESSOR_MV, outputAmount * 2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // HV
@@ -1153,7 +1152,7 @@ public class CircuitRecipes {
                 .inputItems(bolt, BlueAlloy, 16)
                 .outputItems(WORKSTATION_EV)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // IV
@@ -1166,7 +1165,7 @@ public class CircuitRecipes {
                 .inputItems(wireGtSingle, AnnealedCopper, 16)
                 .outputItems(MAINFRAME_IV)
                 .solderMultiplier(4)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("mainframe_iv_asmd").EUt(VA[HV]).duration(400)
@@ -1178,7 +1177,7 @@ public class CircuitRecipes {
                 .inputItems(wireGtSingle, AnnealedCopper, 16)
                 .outputItems(MAINFRAME_IV)
                 .solderMultiplier(4)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // T4: Nano ====================================================================================================
@@ -1192,7 +1191,7 @@ public class CircuitRecipes {
                 .inputItems(SMD_TRANSISTOR, 8)
                 .inputItems(wireFine, Electrum, 8)
                 .outputItems(NANO_PROCESSOR_HV, outputAmount)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("nano_processor_hv_asmd").EUt(600).duration(100)
@@ -1203,7 +1202,7 @@ public class CircuitRecipes {
                 .inputItems(ADVANCED_SMD_TRANSISTOR, 2)
                 .inputItems(wireFine, Electrum, 8)
                 .outputItems(NANO_PROCESSOR_HV, outputAmount)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // HV SoC
@@ -1213,7 +1212,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Electrum, 4)
                 .inputItems(bolt, Platinum, 4)
                 .outputItems(NANO_PROCESSOR_HV, outputAmount * 2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // EV
@@ -1226,7 +1225,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Electrum, 16)
                 .outputItems(NANO_PROCESSOR_ASSEMBLY_EV, 2)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("nano_processor_assembly_ev_asmd").EUt(600).duration(200)
@@ -1238,7 +1237,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Electrum, 16)
                 .outputItems(NANO_PROCESSOR_ASSEMBLY_EV, 2)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // IV
@@ -1251,7 +1250,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Electrum, 16)
                 .outputItems(NANO_COMPUTER_IV)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("nano_computer_iv_asmd").EUt(600).duration(200)
@@ -1263,7 +1262,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Electrum, 16)
                 .outputItems(NANO_COMPUTER_IV)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // LuV
@@ -1276,7 +1275,7 @@ public class CircuitRecipes {
                 .inputItems(wireGtSingle, AnnealedCopper, 32)
                 .outputItems(NANO_MAINFRAME_LuV)
                 .solderMultiplier(4)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("nano_mainframe_luv_asmd").EUt(VA[EV]).duration(400)
@@ -1288,7 +1287,7 @@ public class CircuitRecipes {
                 .inputItems(wireGtSingle, AnnealedCopper, 32)
                 .outputItems(NANO_MAINFRAME_LuV)
                 .solderMultiplier(4)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // T5: Quantum =================================================================================================
@@ -1302,7 +1301,7 @@ public class CircuitRecipes {
                 .inputItems(SMD_TRANSISTOR, 12)
                 .inputItems(wireFine, Platinum, 12)
                 .outputItems(QUANTUM_PROCESSOR_EV, outputAmount)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("quantum_processor_ev_asmd").EUt(2400).duration(100)
@@ -1313,7 +1312,7 @@ public class CircuitRecipes {
                 .inputItems(ADVANCED_SMD_TRANSISTOR, 3)
                 .inputItems(wireFine, Platinum, 12)
                 .outputItems(QUANTUM_PROCESSOR_EV, outputAmount)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // EV SoC
@@ -1323,7 +1322,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Platinum, 12)
                 .inputItems(bolt, NiobiumTitanium, 8)
                 .outputItems(QUANTUM_PROCESSOR_EV, outputAmount * 2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // IV
@@ -1336,7 +1335,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Platinum, 16)
                 .outputItems(QUANTUM_ASSEMBLY_IV, 2)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("quantum_assembly_iv_asmd").EUt(2400).duration(200)
@@ -1348,7 +1347,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Platinum, 16)
                 .outputItems(QUANTUM_ASSEMBLY_IV, 2)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // LuV
@@ -1361,7 +1360,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Platinum, 32)
                 .outputItems(QUANTUM_COMPUTER_LuV)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("quantum_computer_luv_asmd").EUt(2400).duration(200)
@@ -1373,7 +1372,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Platinum, 32)
                 .outputItems(QUANTUM_COMPUTER_LuV)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // ZPM
@@ -1386,7 +1385,7 @@ public class CircuitRecipes {
                 .inputItems(wireGtSingle, AnnealedCopper, 48)
                 .solderMultiplier(4)
                 .outputItems(QUANTUM_MAINFRAME_ZPM)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         CIRCUIT_ASSEMBLER_RECIPES.recipeBuilder("quantum_mainframe_zpm_asmd").EUt(VA[IV]).duration(400)
@@ -1398,7 +1397,7 @@ public class CircuitRecipes {
                 .inputItems(wireGtSingle, AnnealedCopper, 48)
                 .solderMultiplier(4)
                 .outputItems(QUANTUM_MAINFRAME_ZPM)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // T6: Crystal =================================================================================================
@@ -1412,7 +1411,7 @@ public class CircuitRecipes {
                 .inputItems(ADVANCED_SMD_TRANSISTOR, 6)
                 .inputItems(wireFine, NiobiumTitanium, 8)
                 .outputItems(CRYSTAL_PROCESSOR_IV, outputAmount)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // IV SoC
@@ -1422,7 +1421,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, NiobiumTitanium, 8)
                 .inputItems(bolt, YttriumBariumCuprate, 8)
                 .outputItems(CRYSTAL_PROCESSOR_IV, outputAmount * 2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // LuV
@@ -1435,7 +1434,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, NiobiumTitanium, 16)
                 .outputItems(CRYSTAL_ASSEMBLY_LuV, 2)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // ZPM
@@ -1448,7 +1447,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, NiobiumTitanium, 32)
                 .solderMultiplier(2)
                 .outputItems(CRYSTAL_COMPUTER_ZPM)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // UV
@@ -1480,7 +1479,7 @@ public class CircuitRecipes {
                 .inputItems(bolt, HSSE, 8)
                 .inputFluids(SterileGrowthMedium.getFluid(250))
                 .outputItems(NEURO_PROCESSOR)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // LuV
@@ -1492,7 +1491,7 @@ public class CircuitRecipes {
                 .inputItems(ADVANCED_SMD_TRANSISTOR, 8)
                 .inputItems(wireFine, YttriumBariumCuprate, 8)
                 .outputItems(WETWARE_PROCESSOR_LuV, outputAmount)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // SoC LuV
@@ -1502,7 +1501,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, YttriumBariumCuprate, 8)
                 .inputItems(bolt, Naquadah, 8)
                 .outputItems(WETWARE_PROCESSOR_LuV, outputAmount * 2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // ZPM
@@ -1515,7 +1514,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, YttriumBariumCuprate, 16)
                 .solderMultiplier(2)
                 .outputItems(WETWARE_PROCESSOR_ASSEMBLY_ZPM, 2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .save();
 
         // UV
@@ -1569,7 +1568,7 @@ public class CircuitRecipes {
                 .inputItems(plate, Polyethylene, 4)
                 .outputItems(TOOL_DATA_STICK)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(400).EUt(90).save();
 
         // Data Orb
@@ -1582,7 +1581,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, Platinum, 32)
                 .outputItems(TOOL_DATA_ORB)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.CLEANROOM)
+                .cleanroom(1)
                 .duration(400).EUt(1200).save();
 
         // Data Module
@@ -1595,7 +1594,7 @@ public class CircuitRecipes {
                 .inputItems(wireFine, YttriumBariumCuprate, 32)
                 .outputItems(TOOL_DATA_MODULE)
                 .solderMultiplier(2)
-                .cleanroom(CleanroomType.STERILE_CLEANROOM)
+                .cleanroom(2)
                 .duration(400).EUt(38400).save();
     }
 }
