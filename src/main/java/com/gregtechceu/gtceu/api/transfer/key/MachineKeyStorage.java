@@ -24,6 +24,7 @@ public final class MachineKeyStorage implements KeyTypedStorage {
     private final IKeyHandler<AEItemKey> items;
     private final IKeyHandler<AEFluidKey> fluids;
     private final Component description;
+    private KeyCounter availableStacksCache;
 
     public MachineKeyStorage(IKeyHandler<AEItemKey> items, IKeyHandler<AEFluidKey> fluids, Component description) {
         this.items = items;
@@ -75,6 +76,19 @@ public final class MachineKeyStorage implements KeyTypedStorage {
     public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
         items.getAvailableStacks(out, extractableOnly);
         fluids.getAvailableStacks(out, extractableOnly);
+    }
+
+    @Override
+    public KeyCounter getAvailableStacks() {
+        var out = availableStacksCache;
+        if (out == null) {
+            out = availableStacksCache = new KeyCounter();
+        } else {
+            out.clear();
+        }
+        items.getAvailableStacks(out);
+        fluids.getAvailableStacks(out);
+        return out;
     }
 
     @Override

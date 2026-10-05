@@ -55,7 +55,7 @@ public final class CircuitIngredient implements KeyIngredient {
 
     @Override
     public boolean test(AEKey k) {
-        return k instanceof AEItemKey ik && ik.uid == Circuits.uid() && Circuits.configOf(ik.getTag()) == config;
+        return k instanceof AEItemKey ik && ik.uid == Circuits.uid() && (Circuits.key(config) == ik || Circuits.configOf(ik.getTag()) == config);
     }
 
     @Override

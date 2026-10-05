@@ -50,10 +50,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.*;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -448,6 +445,11 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         @Override
         public long extract(AEFluidKey key, long amount, boolean simulate) {
             return extract(0, key, amount, simulate);
+        }
+
+        @Override
+        public KeyCounter getAvailableStacks() {
+            return storage.getAvailableStacks();
         }
 
         protected long exportLimit() {

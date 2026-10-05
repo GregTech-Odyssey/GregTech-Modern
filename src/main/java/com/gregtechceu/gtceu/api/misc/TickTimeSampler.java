@@ -9,8 +9,9 @@ package com.gregtechceu.gtceu.api.misc;
  * 结构检查这类不是订阅任务、甚至不是方块实体的路径用它）。
  *
  * <p>
- * 平均的分母不是样本条数，而是这些样本跨越的游戏刻数（本次调用刻 - 上次调用刻），也就是「按刻摊销」；只有被查看
- * （{@link #getAverageTickTimeMicros()}）时才采样。
+ * 平均的分母不是样本条数，而是这些样本跨越的游戏刻数（本次调用刻 - 上次调用刻），也就是「按刻摊销」；默认只有被查看
+ * （{@link #getAverageTickTimeMicros()}）时才采样，{@link #alwaysRecord()} 可以让它没人看也一直记录（多方块结构
+ * 检查这种自己就在后台跑的路径用）。
  *
  * <p>
  * {@code tickTimeSum / tickTimeTicks / lastAverageTickTimeMicros / viewed} 是 {@code volatile} 的：写入方可能
@@ -48,6 +49,8 @@ public final class TickTimeSampler {
 
     /** 采样器特有的：{@link #getAverageTickTimeMicros()} 拿不到游戏刻，先把「有人在看」记下来，插点时再续期。 */
     private volatile boolean viewed;
+    /** 采样器特有的：不需要「有人在看」也记录，见 {@link #alwaysRecord()}。 */
+    private volatile boolean alwaysRecord;
     /** 采样器特有的：这次测量的刻与开始时刻（纳秒）。 */
     private int pendingTick = Integer.MIN_VALUE;
     private long startNanos;
@@ -65,11 +68,23 @@ public final class TickTimeSampler {
     }
 
     /**
+     * 不需要「有人在看」也一直记录：自己开窗、也不会因为没人看而停采。
+     *
+     * <p>
+     * 给「自己就在后台跑」的路径用（例如多方块结构检查：异步两秒一次，等玩家打开 Jade 再开窗的话，看到的永远是
+     * 上一次甚至 0）。
+     */
+    public TickTimeSampler alwaysRecord() {
+        alwaysRecord = true;
+        return this;
+    }
+
+    /**
      * 最近一轮窗口的平均每刻耗时（微秒）。
      *
      * <p>
      * 调用即代表「现在有人在看」：下一次 {@link #insertStart(int)} 会续期观察时间，没人看超过
-     * {@link #tickTimeWindow} 刻后自动停采。还没采到样本时返回 0。
+     * {@link #tickTimeWindow} 刻后自动停采（开了 {@link #alwaysRecord()} 就不受影响）。还没采到样本时返回 0。
      */
     public long getAverageTickTimeMicros() {
         viewed = true;
@@ -80,18 +95,24 @@ public final class TickTimeSampler {
      * 插入一个开始点，可以多次调用（例如一个游戏刻里分几段测）。
      *
      * <p>
-     * 同一个刻里重复插开始只按第一次算；距上次被查看超过 {@link #tickTimeWindow} 刻就当作没人看，直接不测。
+     * 同一个刻里重复插开始只按第一次算；没开 {@link #alwaysRecord()} 时，距上次被查看超过
+     * {@link #tickTimeWindow} 刻就当作没人看，直接不测。
      *
      * @param tick 当前游戏刻
      */
     public void insertStart(int tick) {
-        if (viewed) {
-            viewed = false;
-            tickTimeLastViewed = tick;
-        }
-        if (!tickTimeMonitored) {
-            if (tickTimeLastViewed == Integer.MIN_VALUE || tick - tickTimeLastViewed >= tickTimeWindow) return;
-            startMonitoring(tick);
+        if (alwaysRecord) {
+            // 没人看也要记录：自己开窗
+            if (!tickTimeMonitored) startMonitoring(tick);
+        } else {
+            if (viewed) {
+                viewed = false;
+                tickTimeLastViewed = tick;
+            }
+            if (!tickTimeMonitored) {
+                if (tickTimeLastViewed == Integer.MIN_VALUE || tick - tickTimeLastViewed >= tickTimeWindow) return;
+                startMonitoring(tick);
+            }
         }
         if (pendingTick == tick) return;
         pendingTick = tick;
@@ -105,7 +126,7 @@ public final class TickTimeSampler {
         int tick = pendingTick;
         pendingTick = Integer.MIN_VALUE;
         recordTickTime(tick, (System.nanoTime() - startNanos) / 1000L);
-        if (tickTimeLastMeasured - tickTimeLastViewed >= tickTimeWindow) {
+        if (!alwaysRecord && tickTimeLastMeasured - tickTimeLastViewed >= tickTimeWindow) {
             // 玩家已经这么多刻没看了
             tickTimeMonitored = false;
         }

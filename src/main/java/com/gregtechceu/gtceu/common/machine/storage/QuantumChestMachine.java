@@ -50,10 +50,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.*;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -528,6 +525,11 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         @Override
         public long extract(AEItemKey key, long amount, boolean simulate) {
             return extract(0, key, amount, simulate);
+        }
+
+        @Override
+        public KeyCounter getAvailableStacks() {
+            return storage.getAvailableStacks();
         }
 
         protected long exportLimit() {

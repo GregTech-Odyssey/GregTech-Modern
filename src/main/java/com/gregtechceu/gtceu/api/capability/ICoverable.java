@@ -304,7 +304,6 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
         return null;
     }
 
-    @SuppressWarnings("unused")
     default Data serializeCoverData(CoverBehavior coverBehavior) {
         var uid = new ListData();
         uid.add(GTRegistries.COVERS.dataCodec(), coverBehavior.coverDefinition);
@@ -312,7 +311,6 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
         return uid;
     }
 
-    @SuppressWarnings("unused")
     default CoverBehavior deserializeCoverData(Data data, int dataVersion) {
         var list = data.getList();
         var definition = GTRegistries.COVERS.dataCodec().decode(list.getFirst(), dataVersion);
@@ -323,13 +321,11 @@ public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHo
         throw new RuntimeException();
     }
 
-    @SuppressWarnings("unused")
     default void serializeCoverBuffer(FriendlyByteBuf buf, CoverBehavior coverBehavior) {
         GTRegistries.COVERS.streamCodec().encode(buf, coverBehavior.coverDefinition);
         buf.writeEnum(coverBehavior.attachedSide);
     }
 
-    @SuppressWarnings("unused")
     default CoverBehavior deserializeCoverBuffer(FriendlyByteBuf buf) {
         var definition = GTRegistries.COVERS.streamCodec().decode(buf);
         return definition.createCoverBehavior(this, buf.readEnum(Direction.class));

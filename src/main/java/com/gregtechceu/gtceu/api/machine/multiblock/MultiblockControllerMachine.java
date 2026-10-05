@@ -80,9 +80,13 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
      *
      * <p>
      * 窗口取 200 刻而不是默认 40：异步检查是每 2 秒（40 刻）一次，窗口太短会每次都在开 / 停之间来回跳。
+     *
+     * <p>
+     * 开了 {@link TickTimeSampler#alwaysRecord()}：检查是后台自己跑的（没人看也在跑），等玩家打开 Jade 再开窗的话，
+     * 看到的永远是上一次甚至 0；一直记录才能随时看到最新的值。
      */
     @Getter
-    protected final TickTimeSampler structureCheckSampler = new TickTimeSampler(200);
+    protected final TickTimeSampler structureCheckSampler = new TickTimeSampler(200).alwaysRecord();
 
     /**
      * Cache for rendering highlight boxes on client side.
@@ -139,7 +143,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         return multiblockState;
     }
 
-    @SuppressWarnings("unused")
     protected void onPartsUpdated(BlockPos[] newValue, BlockPos[] oldValue) {
         var list = new ArrayList<IMultiPart>();
         for (var pos : newValue) {
@@ -151,7 +154,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         parts = list.toArray(new IMultiPart[0]);
     }
 
-    @SuppressWarnings("unused")
     protected void onFormedUpdated(boolean newValue, boolean oldValue) {
         if (newValue) {
             onStructureFormedClient();

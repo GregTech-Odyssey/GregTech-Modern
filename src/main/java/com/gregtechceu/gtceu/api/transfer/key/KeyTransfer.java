@@ -1,7 +1,10 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
+import appeng.api.config.Actionable;
+import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.AEKeyFilter;
+import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyTransfer {
@@ -14,9 +17,19 @@ public final class KeyTransfer {
 
     public static <K extends AEKey> long transfer(IKeyHandler<K> from, IKeyHandler<K> to, long maxAmount, @Nullable AEKeyFilter filter) {
         long left = maxAmount;
-        int size = from.size();
-        for (int i = 0; i < size && left > 0; i++) {
-            left -= transferSlot(from, i, to, left, filter);
+        if (from instanceof MEStorageKeyView<?> meStorageKeyView) {
+            var meStorage = meStorageKeyView.getStorage();
+            for (var stack : meStorage.getAvailableStacks()) {
+                var key = stack.getKey();
+                if (filter != null && !filter.matches(key)) return 0;
+                left -= transferKey(meStorage, to, key, Math.min(left, stack.getLongValue()));
+                if (left < 1) break;
+            }
+        } else {
+            int size = from.size();
+            for (int i = 0; i < size && left > 0; i++) {
+                left -= transferSlot(from, i, to, left, filter);
+            }
         }
         return maxAmount - left;
     }
@@ -53,5 +66,15 @@ public final class KeyTransfer {
         long inserted = to.insert(key, extracted, false);
         if (inserted < extracted) from.unrestricted().insert(key, extracted - inserted, false);
         return inserted;
+    }
+
+    private static long transferKey(MEStorage from, MEStorage to, AEKey key, long amount) {
+        long accept = to.insert(key, amount, Actionable.SIMULATE, IActionSource.empty());
+        if (accept <= 0) return 0;
+        long want = from.extract(key, accept, Actionable.SIMULATE, IActionSource.empty());
+        if (want <= 0) return 0;
+        long extracted = from.extract(key, want, Actionable.MODULATE, IActionSource.empty());
+        if (extracted <= 0) return 0;
+        return to.insert(key, extracted, Actionable.MODULATE, IActionSource.empty());
     }
 }

@@ -152,7 +152,7 @@ public final class ContentList {
 
     private static boolean concrete(KeyIngredient ing) {
         Object o = ing;
-        return o instanceof AEKey || o instanceof DefaultedItemBase || o instanceof CircuitIngredient;
+        return o instanceof AEKey || o instanceof CircuitIngredient;
     }
 
     private static int specificity(KeyIngredient ing) {

@@ -9,14 +9,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyIntMap;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.AEKeyTypes;
-import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.*;
 import appeng.api.storage.AEKeyFilter;
+import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.data.ByteArrayData;
@@ -62,8 +57,11 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     @Nullable
     private AEKey[] locked;
     private Runnable onChanged = GTUtil.NOOP;
+    private boolean isEmpty;
+    private boolean emptyChanged = true;
     private int version;
     private int high;
+    private final AvailableStacksCache availableStacksCache;
 
     private KeyInventory(AEKeyType type, int size, long slotLimit, boolean stackLimited, boolean growable) {
         this.type = type;
@@ -73,6 +71,8 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         this.slotLimit = slotLimit;
         this.stackLimited = stackLimited;
         this.growable = growable;
+        this.availableStacksCache = new MEStorage.AvailableStacksCache(this::getAvailableStacks);
+        this.availableStacksCache.setTickUpdate(false);
     }
 
     public static KeyInventory<AEItemKey> items(int slots) {
@@ -530,6 +530,8 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         version++;
         changed = true;
         onChanged.run();
+        availableStacksCache.markAsDirty();
+        emptyChanged = true;
     }
 
     @Override
@@ -557,6 +559,11 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     @Override
+    public KeyCounter getAvailableStacks() {
+        return this.availableStacksCache.getAvailableStacksCache();
+    }
+
+    @Override
     public boolean containsAny(Set<AEKey> primaryKeys) {
         var a = amounts;
         var k = keys;
@@ -569,8 +576,18 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     @Override
     public boolean isEmpty() {
+        if (emptyChanged) {
+            emptyChanged = false;
+            isEmpty = updateEmpty();
+        }
+        return isEmpty;
+    }
+
+    private boolean updateEmpty() {
         for (long a : amounts) {
-            if (a != 0) return false;
+            if (a != 0) {
+                return false;
+            }
         }
         return true;
     }
@@ -634,6 +651,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         markAll();
         version++;
         onChanged.run();
+        availableStacksCache.markAsDirty();
     }
 
     @Override

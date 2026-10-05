@@ -333,6 +333,13 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
         if (!extractableOnly || canCapOutput()) getAvailableStacks(out);
     }
 
+    @Override
+    public KeyCounter getAvailableStacks() {
+        var plain = readStorage();
+        if (plain != null) return plain.getAvailableStacks();
+        return IKeyHandler.super.getAvailableStacks();
+    }
+
     public NotifiableInventory<K> setAvailable(boolean available) {
         this.isAvailable = available;
         return this;

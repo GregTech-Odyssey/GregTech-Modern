@@ -144,8 +144,7 @@ public interface KeyIngredient {
     }
 
     static KeyIngredient item(ItemLike itemLike) {
-        var key = AEItemKey.of(itemLike);
-        return key.hasTag() ? new DefaultedItemBase(key) : exact(key);
+        return exact(AEItemKey.of(itemLike, null));
     }
 
     static KeyIngredient fluid(Fluid fluid) {
@@ -220,7 +219,6 @@ public interface KeyIngredient {
         if (o instanceof ItemTagIngredient t) return k instanceof AEItemKey ik && ik.item.builtInRegistryHolder().is(t.tag);
         if (o instanceof FluidTagIngredient t) return k instanceof AEFluidKey fk && fk.fluid.is(t.tag);
         if (o instanceof CircuitIngredient c) return uid == Circuits.uid() && Circuits.configOf(((AEItemKey) k).getTag()) == c.config;
-        if (o instanceof DefaultedItemBase d) return uid == d.key.uid;
         return ing.test(k);
     }
 
@@ -229,7 +227,6 @@ public interface KeyIngredient {
         if (o instanceof AEItemKey ik) return ik.hasTag() ? ik.matches(stack) : stack.getItem() == ik.item;
         if (o instanceof ItemTagIngredient t) return stack.is(t.tag);
         if (o instanceof CircuitIngredient c) return Circuits.configOf(stack) == c.config;
-        if (o instanceof DefaultedItemBase d) return stack.getItem() == d.key.item;
         if (o instanceof UnionIngredient u) return u.matches(stack.getItem());
         if (o instanceof PredicateIngredient p) return p.ingredient.test(stack);
         var k = AEItemKey.of(stack);

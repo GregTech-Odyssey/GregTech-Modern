@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.Util;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -17,6 +18,8 @@ import net.minecraftforge.items.IItemHandler;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyCounter;
+import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.data.Data;
@@ -42,6 +45,18 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     public boolean isInputLimited;
     public final ItemStack[] stacks;
     public final int size;
+    private final AvailableStacksCache availableStacksCache = Util.make(() -> {
+        var availableStacksCache = new MEStorage.AvailableStacksCache(out -> {
+            var inventory = this;
+            var s = inventory.size();
+            for (int i = 0; i < s; i++) {
+                long a = inventory.amountAt(i);
+                if (a > 0) out.add(inventory.keyAt(i), a);
+            }
+        });
+        availableStacksCache.setTickUpdate(false);
+        return availableStacksCache;
+    });
 
     public StackInventory() {
         this(1);
@@ -234,12 +249,14 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     public void onContentsChanged(int slot) {
         onContentsChanged.run();
         changed = true;
+        availableStacksCache.markAsDirty();
     }
 
     public void clear() {
         Arrays.fill(stacks, ItemStack.EMPTY);
         onContentsChanged.run();
         changed = true;
+        availableStacksCache.markAsDirty();
     }
 
     @Override
@@ -271,6 +288,16 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
             }
         }
         return false;
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out) {
+        out.addAll(this.availableStacksCache.getAvailableStacksCache());
+    }
+
+    @Override
+    public KeyCounter getAvailableStacks() {
+        return this.availableStacksCache.getAvailableStacksCache();
     }
 
     @Override

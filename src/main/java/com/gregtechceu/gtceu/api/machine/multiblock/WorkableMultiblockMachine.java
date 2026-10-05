@@ -187,7 +187,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         legacyVoidingMode = null;
     }
 
-    @SuppressWarnings("unused")
     protected void onActiveBlocksUpdate(LongSet newValue, LongSet oldValue) {
         activeState = ActiveBlock.State.UNKNOWN;
         if (newValue.isEmpty()) {

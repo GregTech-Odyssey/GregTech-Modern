@@ -21,10 +21,11 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     private int lastMember;
     @Nullable
     private IKeyHandler<K> unrestricted;
+    private KeyCounter availableStacksCache;
 
     @SuppressWarnings("unchecked")
     public KeyHandlerList(AEKeyType type, List<? extends IKeyHandler<K>> handlers) {
-        this(type, (IKeyHandler<K>[]) handlers.toArray(new IKeyHandler[0]));
+        this(type, handlers.toArray(new IKeyHandler[0]));
     }
 
     @SafeVarargs
@@ -204,6 +205,18 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     @Override
     public void getAvailableStacks(KeyCounter out) {
         for (var h : handlers) h.getAvailableStacks(out);
+    }
+
+    @Override
+    public KeyCounter getAvailableStacks() {
+        var out = availableStacksCache;
+        if (out == null) {
+            out = availableStacksCache = new KeyCounter();
+        } else {
+            out.clear();
+        }
+        for (var h : handlers) h.getAvailableStacks(out);
+        return out;
     }
 
     @Override

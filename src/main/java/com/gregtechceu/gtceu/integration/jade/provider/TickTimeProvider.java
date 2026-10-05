@@ -69,30 +69,35 @@ public class TickTimeProvider implements IBlockComponentProvider, IServerDataPro
         if (tag.isEmpty() && structureMicros <= 0.0D) return;
         var keys = tag.getAllKeys();
 
-        // 只有一条（一个命名监控，或者只有结构检查）：直接显示，不用折叠，也不重复给总计
-        if (keys.size() + (structureMicros > 0.0D ? 1 : 0) <= 1) {
+        // 只有结构检查（这个方块实体没注册任何命名监控）：直接显示它，不然没别的可看
+        if (keys.isEmpty()) {
             if (structureMicros > 0.0D) {
                 addLine(tooltip, Component.translatable("gtceu.top.tick_time.structure_check"), structureMicros);
-            } else {
-                String key = keys.iterator().next();
-                addLine(tooltip, name(Integer.parseInt(key)), tag.getFloat(key));
             }
             return;
         }
 
-        // 多条：平时只给总耗时（各条平均值的和，客户端直接算），明细按 Shift 展开
+        // 只有一条命名监控、也没有结构检查：直接显示，不用折叠
+        if (keys.size() == 1 && structureMicros <= 0.0D) {
+            String key = keys.iterator().next();
+            addLine(tooltip, name(Integer.parseInt(key)), tag.getFloat(key));
+            return;
+        }
+
+        // 多条：平时只给总耗时（各条平均值的和，客户端直接算），明细按 Shift 展开。
+        // 结构检查是一次性的（成型后一直停在最后一次的值），所以不进总计，只在明细里露一下。
         boolean showDetails = blockAccessor.getPlayer().isShiftKeyDown();
         if (showDetails) {
             for (String key : keys) {
                 addLine(tooltip, name(Integer.parseInt(key)), tag.getFloat(key));
             }
+            if (structureMicros > 0.0D) {
+                addLine(tooltip, Component.translatable("gtceu.top.tick_time.structure_check"), structureMicros);
+            }
         }
-        double total = structureMicros;
+        double total = 0.0D;
         for (String key : keys) {
             total += tag.getFloat(key);
-        }
-        if (structureMicros > 0.0D) {
-            addLine(tooltip, Component.translatable("gtceu.top.tick_time.structure_check"), structureMicros);
         }
         addLine(tooltip, Component.translatable("gtceu.top.tick_time.total"), total);
         if (!showDetails) {

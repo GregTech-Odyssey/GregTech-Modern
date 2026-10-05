@@ -163,6 +163,11 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public KeyCounter getAvailableStacks() {
+        return delegate.getAvailableStacks();
+    }
+
+    @Override
     public boolean containsAny(Set<AEKey> primaryKeys) {
         return delegate.containsAny(primaryKeys);
     }

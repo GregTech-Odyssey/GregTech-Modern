@@ -119,6 +119,13 @@ public class InventoryProxyTrait<K extends AEKey> extends MachineTrait implement
     }
 
     @Override
+    public KeyCounter getAvailableStacks() {
+        var p = proxy;
+        if (p != null) return p.getAvailableStacks();
+        return KeyCounter.empty();
+    }
+
+    @Override
     public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
         var p = proxy;
         if (p != null && (!extractableOnly || canCapOutput())) p.getAvailableStacks(out, extractableOnly);

@@ -54,7 +54,6 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     protected boolean isActive;
 
     @Nullable
-    @SyncToClient
     protected Component idleReason = null;
 
     @Setter

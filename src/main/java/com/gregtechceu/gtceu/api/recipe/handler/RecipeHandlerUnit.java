@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.recipe.content.CircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.Circuits;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
-import com.gregtechceu.gtceu.api.recipe.content.DefaultedItemBase;
 import com.gregtechceu.gtceu.api.recipe.content.FluidTagIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.ItemTagIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
@@ -316,7 +315,7 @@ public class RecipeHandlerUnit {
         p.begin(slots);
     }
 
-    private static boolean planInputList(PlanScratch p, ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, int[] offsets, AEKeyType type, @Nullable long[] needs, byte fluidFlag, long scale, boolean emptyRecipe) {
+    private static boolean planInputList(PlanScratch p, ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, int[] offsets, AEKeyType type, long @Nullable [] needs, byte fluidFlag, long scale, boolean emptyRecipe) {
         int n = list.size();
         if (n == 0) return true;
         int memberCount = members.length;
@@ -353,7 +352,6 @@ public class RecipeHandlerUnit {
         if (o instanceof ItemTagIngredient t) return reserveItemTag(p, member, offset, inv, t.tag, entry, need, flags);
         if (o instanceof FluidTagIngredient t) return reserveFluidTag(p, member, offset, inv, t.tag, entry, need, flags);
         if (o instanceof CircuitIngredient c) return reserveCircuit(p, member, offset, inv, c.config, entry, need, flags);
-        if (o instanceof DefaultedItemBase d) return reserveUid(p, member, offset, inv, d.key.uid, entry, need, flags);
         return reserveTest(p, member, offset, inv, ing, entry, need, flags);
     }
 
@@ -434,7 +432,6 @@ public class RecipeHandlerUnit {
         if (o instanceof ItemTagIngredient t) return sumItemTag(inv, t.tag, stop);
         if (o instanceof FluidTagIngredient t) return sumFluidTag(inv, t.tag, stop);
         if (o instanceof CircuitIngredient c) return sumCircuit(inv, c.config, stop);
-        if (o instanceof DefaultedItemBase d) return sumUid(inv, d.key.uid, stop);
         return sumTest(inv, ing, stop);
     }
 

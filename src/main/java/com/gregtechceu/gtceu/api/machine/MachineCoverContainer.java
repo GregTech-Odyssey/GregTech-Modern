@@ -45,7 +45,6 @@ public final class MachineCoverContainer implements ICoverable {
         this.machine = machine;
     }
 
-    @SuppressWarnings("unused")
     private void onCoverSet(CoverBehavior newValue, CoverBehavior oldValue) {
         if (newValue != oldValue && (newValue == null || oldValue == null)) {
             scheduleUpdate(LogicalSide.CLIENT);

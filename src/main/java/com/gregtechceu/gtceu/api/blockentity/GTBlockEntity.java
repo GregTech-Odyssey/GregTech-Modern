@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -192,10 +191,8 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     }
 
     private void markChunkUnsaved() {
-        if (level instanceof ServerLevel serverLevel) {
-            var c = serverLevel.getChunkSource().getChunkNow(SectionPos.blockToSectionCoord(worldPosition.getX()), SectionPos.blockToSectionCoord(worldPosition.getZ()));
-            if (c != null) c.setUnsaved(true);
-        }
+        var c = getChunk();
+        if (c != null) c.setUnsaved(true);
         changed = false;
     }
 

@@ -14,7 +14,7 @@ public abstract class NotifiableContentHandler extends NotifiableRecipeHandlerTr
     public final IO handlerIO;
 
     protected boolean isEmpty;
-    protected boolean emptyChanged;
+    protected boolean emptyChanged = true;
     protected boolean searchMapChanged = true;
     private int searchGeneration;
     private int searchMapVersion;
