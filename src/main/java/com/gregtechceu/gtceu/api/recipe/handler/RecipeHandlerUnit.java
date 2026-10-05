@@ -401,7 +401,7 @@ public class RecipeHandlerUnit {
         long got = 0;
         for (int s = 0; s < size && got < need; s++) {
             long a = inv.amountAt(s);
-            if (a > 0 && inv.uidAt(s) == uid && Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)).getTag()) == config) got += take(p, member, offset + s, s, a, need - got, entry, flags);
+            if (a > 0 && inv.uidAt(s) == uid && Circuits.key(config) == inv.rawKeyAt(s)) got += take(p, member, offset + s, s, a, need - got, entry, flags);
         }
         return got;
     }
@@ -493,7 +493,7 @@ public class RecipeHandlerUnit {
         long sum = 0;
         for (int s = 0; s < size; s++) {
             long a = inv.amountAt(s);
-            if (a > 0 && inv.uidAt(s) == uid && Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)).getTag()) == config) {
+            if (a > 0 && inv.uidAt(s) == uid && Circuits.key(config) == inv.rawKeyAt(s)) {
                 sum = Keys.add(sum, a);
                 if (sum >= stop) break;
             }
@@ -1126,7 +1126,7 @@ public class RecipeHandlerUnit {
             int size = inv.size();
             for (int s = 0; s < size; s++) {
                 if (inv.amountAt(s) <= 0 || inv.uidAt(s) != circuitUid) continue;
-                int c = Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)).getTag());
+                int c = Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)));
                 if (wanted >= 0) {
                     if (c == wanted) return c;
                     continue;

@@ -218,7 +218,7 @@ public interface KeyIngredient {
         if (o instanceof AEFluidKey fk) return fk.hasTag() ? k == fk : uid == fk.uid;
         if (o instanceof ItemTagIngredient t) return k instanceof AEItemKey ik && ik.item.builtInRegistryHolder().is(t.tag);
         if (o instanceof FluidTagIngredient t) return k instanceof AEFluidKey fk && fk.fluid.is(t.tag);
-        if (o instanceof CircuitIngredient c) return uid == Circuits.uid() && Circuits.configOf(((AEItemKey) k).getTag()) == c.config;
+        if (o instanceof CircuitIngredient c) return uid == Circuits.uid() && Circuits.key(c.config) == k;
         return ing.test(k);
     }
 

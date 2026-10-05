@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyIntMap;
 import appeng.hooks.IUnique;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,14 +19,22 @@ public final class Circuits {
     public static final int MAX = IntCircuitBehaviour.CIRCUIT_MAX;
     public static final String CONFIGURATION = "Configuration";
 
-    private static final AEItemKey[] KEYS = new AEItemKey[MAX + 1];
-
     private Circuits() {}
 
     private static final class Registered {
 
-        static final Item ITEM = GTItems.PROGRAMMED_CIRCUIT.get();
-        static final int UID = IUnique.getUid(ITEM);
+        private static final AEItemKey[] KEYS = new AEItemKey[MAX + 1];
+        private static final AEKeyIntMap<AEItemKey> CONFIGURATIONS = new AEKeyIntMap<>(MAX * 2);
+        private static final Item ITEM = GTItems.PROGRAMMED_CIRCUIT.get();
+        private static final int UID = IUnique.getUid(ITEM);
+
+        static {
+            for (int i = 0; i < MAX; i++) {
+                var k = AEItemKey.of(IntCircuitBehaviour.stack(i));
+                KEYS[i] = k;
+                CONFIGURATIONS.put(k, i);
+            }
+        }
     }
 
     public static Item item() {
@@ -37,17 +46,12 @@ public final class Circuits {
     }
 
     public static AEItemKey key(int configuration) {
-        var k = KEYS[configuration];
-        if (k == null) {
-            k = AEItemKey.of(IntCircuitBehaviour.stack(configuration));
-            KEYS[configuration] = k;
-        }
-        return k;
+        return Registered.KEYS[configuration];
     }
 
     public static int configOf(@Nullable AEItemKey key) {
         if (key == null || key.uid != Registered.UID) return -1;
-        return configOf(key.getTag());
+        return Registered.CONFIGURATIONS.getInt(key);
     }
 
     public static int configOf(ItemStack stack) {
