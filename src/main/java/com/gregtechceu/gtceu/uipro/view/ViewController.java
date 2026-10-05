@@ -6,6 +6,12 @@ public interface ViewController {
         return true;
     }
 
+    default boolean isZoomLocked() {
+        return false;
+    }
+
+    default void setZoomLocked(boolean locked) {}
+
     boolean canZoomIn();
 
     boolean canZoomOut();

@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.BlockDropCache;
@@ -452,7 +451,7 @@ public class MinerLogic extends RecipeLogic {
         amounts.clear();
         for (int i = 0, n = drops.size(); i < n; i++) {
             var stack = drops.get(i);
-            var key = Keys.item(stack);
+            var key = AEItemKey.of(stack);
             if (key == null) continue;
             int index = keys.indexOf(key);
             if (index < 0) {

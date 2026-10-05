@@ -236,7 +236,7 @@ public final class GTRecipe {
     }
 
     public long maxModifier() {
-        long max = ParallelLogic.MAX_PARALLEL / Math.max(1, scale);
+        long max = ParallelLogic.MAX_PARALLEL / scale;
         long m = maxScalable();
         if (m > 1) max /= m;
         return Math.max(1, max);

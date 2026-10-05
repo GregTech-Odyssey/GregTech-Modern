@@ -13,7 +13,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ public final class ItemRoutePath implements IRoutePath<IKeyHandler<AEItemKey>> {
     @Nullable
     @SuppressWarnings("unchecked")
     public IKeyHandler<AEItemKey> getHandler(Level world) {
-        return (IKeyHandler<AEItemKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyType.items());
+        return (IKeyHandler<AEItemKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT);
     }
 
     public boolean matchesFilters(AEItemKey key) {

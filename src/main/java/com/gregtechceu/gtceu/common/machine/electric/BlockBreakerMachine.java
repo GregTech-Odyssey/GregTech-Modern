@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -49,6 +48,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -200,7 +201,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
                 if (hardness >= 0.0F && Math.abs(hardness - currentHardness) < 0.5F) {
                     var drops = tryDestroyBlockAndGetDrops(pos);
                     for (ItemStack drop : drops) {
-                        var key = Keys.item(drop);
+                        var key = AEItemKey.of(drop);
                         if (key == null) continue;
                         long remainder = drop.getCount() - cache.storage.insert(key, drop.getCount(), false);
                         if (remainder > 0) {
@@ -275,7 +276,7 @@ public class BlockBreakerMachine extends TieredEnergyMachine implements IAutoOut
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
+        if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
             autoOutputSubs = null;

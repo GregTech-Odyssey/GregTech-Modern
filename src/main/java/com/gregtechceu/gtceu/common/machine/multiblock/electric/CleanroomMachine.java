@@ -37,6 +37,9 @@ import com.gregtechceu.gtceu.common.machine.multiblock.primitive.PrimitivePumpMa
 import com.gregtechceu.gtceu.common.machine.trait.CleanroomLogic;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
+import com.gregtechceu.gtceu.uipro.Level;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -105,6 +108,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     public static final int CLEAN_AMOUNT_THRESHOLD = 95;
     public static final int MIN_CLEAN_AMOUNT = 0;
+    public static final String LANG_CLEANLINESS = "gtceu.gui.multiblock.cleanliness";
+    public static final String LANG_CLEAN_PER_CYCLE = "gtceu.gui.multiblock.clean_per_cycle";
     public static final int MIN_RADIUS = 2;
     public static final int MIN_DEPTH = 4;
     public static final int MAX_RADIUS = 7;
@@ -338,6 +343,19 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             case PrimitivePumpMachine ignored -> true;
             default -> false;
         };
+    }
+
+    @Override
+    protected long getScreenEnergyRate(boolean generator) {
+        return recipeLogic.isWorking() ? getRecipeLogic().getEnergyPerTick() : 0;
+    }
+
+    @Override
+    public void addScreenReadouts(MultiblockPage page) {
+        page.addLine(LANG_CLEANLINESS, MultiblockPage.percentText(() -> cleanAmount))
+                .bindLevel(() -> isClean() ? Level.NORMAL : Level.WARNING);
+        page.addLine(LANG_CLEAN_PER_CYCLE, MultiblockPage.cached(() -> ((long) getRecipeLogic().getCleanAmountChange() << 32) | (getRecipeLogic().getDuration() & 0xFFFFFFFFL),
+                v -> Component.literal(String.format("%+d%% / %s s", (int) (v >> 32), FormattingUtil.formatNumber2Places((int) v / 20.0)))));
     }
 
     @Override

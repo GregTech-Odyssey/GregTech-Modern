@@ -51,6 +51,10 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
 
     public static final O2OOpenCacheHashMap<ResourceLocation, GTRecipeDefinition> RECIPES = new O2OOpenCacheHashMap<>(4096);
 
+    private static final RecipeCondition[] NO_CONDITIONS = new RecipeCondition[0];
+    private static final RecipeExtension[] NO_EXTENSIONS = new RecipeExtension[0];
+    private static final RecipeModifier[] NO_MODIFIERS = new RecipeModifier[0];
+
     public static final ByteStreamCodec<GTRecipeDefinition> STREAM_CODEC = new ByteStreamCodec<>() {
 
         @Override
@@ -175,10 +179,10 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
         this.itemOutputs = itemOutputs;
         this.fluidInputs = fluidInputs;
         this.fluidOutputs = fluidOutputs;
-        this.conditions = conditions.toArray(new RecipeCondition[0]);
-        this.recipeExtensions = recipeExtensions.toArray(new RecipeExtension[0]);
-        this.recipeModifiers = recipeModifiers.toArray(new RecipeModifier[0]);
-        this.tickRecipeExtensions = tickRecipeExtensions.toArray(new RecipeExtension[0]);
+        this.conditions = conditions.toArray(NO_CONDITIONS);
+        this.recipeExtensions = recipeExtensions.toArray(NO_EXTENSIONS);
+        this.recipeModifiers = recipeModifiers.toArray(NO_MODIFIERS);
+        this.tickRecipeExtensions = tickRecipeExtensions.toArray(NO_EXTENSIONS);
         this.data = data;
         this.chanceFunction = chanceFunction;
         this.eut = eut;

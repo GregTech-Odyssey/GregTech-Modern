@@ -207,7 +207,7 @@ public final class MultiblockPage {
     private void addProgressBar() {
         var logic = machine.getRecipeLogic();
         addBar(PROGRESS, UITheme::barProgress,
-                () -> logic.isIdle() || logic.getLastRecipe() == null ? ProgressBar.Progress.EMPTY : new ProgressBar.Progress(logic.getProgress(), logic.getDuration(), 0)).ticks();
+                () -> logic.isIdle() || logic.getDuration() <= 0 || logic.getLastRecipe() == null && !logic.isWorking() ? ProgressBar.Progress.EMPTY : new ProgressBar.Progress(logic.getProgress(), logic.getDuration(), 0)).ticks();
     }
 
     public static Supplier<Component> numberText(LongSupplier value, String unit) {

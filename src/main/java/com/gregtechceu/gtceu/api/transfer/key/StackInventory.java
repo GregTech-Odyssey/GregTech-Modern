@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeItemSource;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -10,9 +12,11 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.items.IItemHandler;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.data.Data;
@@ -30,7 +34,7 @@ import java.util.function.Predicate;
  * 会原地改 NBT 的单件物品槽（电池、工具、催化剂、器官等），内部保留活体 ItemStack，存档格式与旧 CustomItemStackHandler 一致。
  * 对内以 {@link IKeyHandler} 视图参与传输与配方，对外菜单与 Forge 能力直接读写活体栈。
  */
-public class StackInventory extends AbstractDataSerializable implements IKeyHandler<AEItemKey> {
+public class StackInventory extends AbstractDataSerializable implements IKeyHandler<AEItemKey>, ForgeItemSource {
 
     protected Runnable onContentsChanged = GTUtil.NOOP;
     @SuppressWarnings("unchecked")
@@ -77,8 +81,13 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     }
 
     @Override
+    public IItemHandler forgeItemHandler() {
+        return new ForgeStackAdapter(this);
+    }
+
+    @Override
     public AEKeyType keyType() {
-        return AEKeyType.items();
+        return AEKeyTypes.ITEMS;
     }
 
     @Override
@@ -93,7 +102,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
 
     @Override
     public @Nullable AEItemKey keyAt(int slot) {
-        return Keys.item(stacks[slot]);
+        return AEItemKey.of(stacks[slot]);
     }
 
     @Override
@@ -110,7 +119,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     public long insert(int slot, AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
         ItemStack existing = stacks[slot];
-        if (!existing.isEmpty() && Keys.itemType(existing) != key) return 0;
+        if (!existing.isEmpty() && AEItemKey.of(existing) != key) return 0;
         var template = key.getReadOnlyStack();
         if (!isItemValid(slot, template)) return 0;
         int limit = getStackLimit(slot, template) - existing.getCount();
@@ -131,7 +140,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     public long extract(int slot, AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
         ItemStack existing = stacks[slot];
-        if (existing.isEmpty() || Keys.itemType(existing) != key) return 0;
+        if (existing.isEmpty() || AEItemKey.of(existing) != key) return 0;
         return extract(slot, existing, amount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) amount, simulate);
     }
 

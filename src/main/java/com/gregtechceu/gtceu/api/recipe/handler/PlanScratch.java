@@ -1,8 +1,7 @@
 package com.gregtechceu.gtceu.api.recipe.handler;
 
-import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
-
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 
 import java.util.Arrays;
 
@@ -23,8 +22,6 @@ public final class PlanScratch {
     private int[] stamp = new int[64];
     private int epoch = 1;
 
-    KeyInventory<?>[] itemStores = new KeyInventory<?>[8];
-    KeyInventory<?>[] fluidStores = new KeyInventory<?>[8];
     int[] touched = new int[16];
     int[] itemOffsets = new int[8];
     int[] fluidOffsets = new int[8];
@@ -39,14 +36,15 @@ public final class PlanScratch {
     byte[] logFlags = new byte[32];
     int logSize;
 
-    boolean overlap;
     long[] outLeft = new long[16];
     long[] itemNeed = new long[16];
     long[] fluidNeed = new long[16];
 
+    private OverlapParallel overlap;
+
     private PlanScratch() {}
 
-    private static volatile Pool last;
+    private static Pool last;
 
     public static PlanScratch acquire() {
         return pool().acquire();
@@ -134,12 +132,10 @@ public final class PlanScratch {
         if (items > itemOffsets.length) {
             itemOffsets = new int[items * 2];
             itemVersions = new int[items * 2];
-            itemStores = new KeyInventory<?>[items * 2];
         }
         if (fluids > fluidOffsets.length) {
             fluidOffsets = new int[fluids * 2];
             fluidVersions = new int[fluids * 2];
-            fluidStores = new KeyInventory<?>[fluids * 2];
         }
         if (items + fluids > touched.length) touched = new int[(items + fluids) * 2];
     }
@@ -156,6 +152,12 @@ public final class PlanScratch {
     long[] outLeft(int size) {
         if (outLeft.length < size) outLeft = new long[Math.max(size, outLeft.length * 2)];
         return outLeft;
+    }
+
+    OverlapParallel overlap() {
+        var o = overlap;
+        if (o == null) overlap = o = new OverlapParallel();
+        return o;
     }
 
     void log(int member, int slot, int entry, long amount, byte flags) {
@@ -177,7 +179,7 @@ public final class PlanScratch {
     }
 
     public void logCustom(int member, int token, int entry, long amount, AEKeyType type, boolean consume, boolean output) {
-        byte flags = (byte) ((consume ? FLAG_CONSUME : 0) | (type == AEKeyType.fluids() ? FLAG_FLUID : 0) | (output ? FLAG_OUTPUT : 0));
+        byte flags = (byte) ((consume ? FLAG_CONSUME : 0) | (type == AEKeyTypes.FLUIDS ? FLAG_FLUID : 0) | (output ? FLAG_OUTPUT : 0));
         log(member, token, entry, amount, flags);
     }
 

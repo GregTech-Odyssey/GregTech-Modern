@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
@@ -45,7 +44,7 @@ import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datastream.data.Data;
-import it.unimi.dsi.fastutil.objects.Object2LongLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,7 +101,7 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
     }
 
     private static void sortInventory(KeyInventory<AEItemKey> storage) {
-        var totals = new Object2LongLinkedOpenHashMap<AEItemKey>();
+        var totals = new Reference2LongLinkedOpenHashMap<AEItemKey>();
         int size = storage.size();
         for (int i = 0; i < size; i++) {
             var key = storage.keyAt(i);
@@ -182,7 +181,7 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
                 int slot = itemTag.getInt("Slot");
                 if (slot >= 0 && slot < storage.size()) {
                     var item = ItemStack.of(itemTag);
-                    storage.set(slot, Keys.item(item), item.getCount());
+                    storage.set(slot, AEItemKey.of(item), item.getCount());
                 }
             }
         }

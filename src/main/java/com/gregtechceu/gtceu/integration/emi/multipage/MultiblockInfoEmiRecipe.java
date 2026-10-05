@@ -9,6 +9,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
+import dev.emi.emi.api.widget.WidgetHolder;
 import org.jetbrains.annotations.Nullable;
 
 public class MultiblockInfoEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
@@ -26,6 +27,12 @@ public class MultiblockInfoEmiRecipe extends ModularEmiRecipe<WidgetGroup> {
         if (structure == null) return new WidgetGroup(0, 0, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT);
         return new StructurePreviewWidget(definition, structure, StructurePreviewWidget.WIDTH, StructurePreviewWidget.HEIGHT,
                 () -> StructurePreviewTrigger.open(definition, structure), MultiblockEmiActions.of(this, definition));
+    }
+
+    @Override
+    public void addWidgets(WidgetHolder widgets) {
+        super.addWidgets(widgets);
+        MultiblockEmiActions.blockFavoriteKey(widgets);
     }
 
     @Override

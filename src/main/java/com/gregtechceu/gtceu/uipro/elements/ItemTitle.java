@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.UIIngredient;
 import com.gregtechceu.gtceu.uipro.data.SyncItem;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -54,7 +55,7 @@ public class ItemTitle extends UIElement {
         @Override
         public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
             var stack = item.getValue().stack();
-            if (isMouseOverElement(mouseX, mouseY) && !stack.isEmpty()) return stack;
+            if (isMouseOverElement(mouseX, mouseY) && !stack.isEmpty()) return UIIngredient.of(stack);
             return super.getXEIIngredientOverMouse(mouseX, mouseY);
         }
 

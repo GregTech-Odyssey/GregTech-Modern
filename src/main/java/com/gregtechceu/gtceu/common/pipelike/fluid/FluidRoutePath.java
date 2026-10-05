@@ -13,7 +13,8 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ public final class FluidRoutePath implements IRoutePath<IKeyHandler<AEFluidKey>>
     @Nullable
     @SuppressWarnings("unchecked")
     public IKeyHandler<AEFluidKey> getHandler(Level world) {
-        return (IKeyHandler<AEFluidKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyType.fluids());
+        return (IKeyHandler<AEFluidKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyTypes.FLUIDS, StorageAccess.INSERT);
     }
 
     public boolean matchesFilters(AEFluidKey key) {

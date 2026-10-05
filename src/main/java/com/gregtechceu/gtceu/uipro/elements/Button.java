@@ -57,6 +57,8 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
     private Supplier<String> clientText;
     @Nullable
     private final IGuiTexture icon;
+    @Nullable
+    private Supplier<IGuiTexture> clientIcon;
     private final ElementState state = new ElementState(this, this);
     private Supplier<UITheme.ButtonVariant> variant = () -> UITheme.ButtonVariant.DEFAULT;
     @Nullable
@@ -121,6 +123,11 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
 
     public Button bindClientText(Supplier<String> text) {
         this.clientText = text;
+        return this;
+    }
+
+    public Button bindClientIcon(Supplier<IGuiTexture> icon) {
+        this.clientIcon = icon;
         return this;
     }
 
@@ -211,9 +218,10 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
         variant.get().texture().draw(graphics, states, x, y, w, h);
         // 内容画在底部台阶以上的区域
         int faceHeight = h - UISizes.BUTTON_LIP_HEIGHT;
-        if (icon != null) {
+        var shownIcon = clientIcon != null ? clientIcon.get() : icon;
+        if (shownIcon != null) {
             int size = Math.min(w, faceHeight) - 4;
-            icon.draw(graphics, mouseX, mouseY, UIPixels.center(x, w, size), UIPixels.center(y, faceHeight, size), size, size);
+            shownIcon.draw(graphics, mouseX, mouseY, UIPixels.center(x, w, size), UIPixels.center(y, faceHeight, size), size, size);
         }
         var label = clientText == null ? getDisplayText() : null;
         if (clientText != null || label != null) {

@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +35,7 @@ public enum ArcFurnaceLogic implements GTRecipeType.ICustomRecipeLogic {
     @Override
     public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
         AtomicReference<GTRecipeDefinition> recipe = new AtomicReference<>();
-        if (unit.forEachKey(AEKeyType.items(), true, (key, amount) -> {
+        if (unit.forEachKey(AEKeyTypes.ITEMS, true, (key, amount) -> {
             if (!(key instanceof AEItemKey itemKey) || amount <= 0) return false;
             recipe.set(search(Keys.displayStack(itemKey)));
             return recipe.get() != null;

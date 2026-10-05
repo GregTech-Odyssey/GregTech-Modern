@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.uiwidgets.recipe;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.UIIngredient;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.render.UIText;
@@ -31,8 +31,6 @@ import net.minecraftforge.fluids.FluidStack;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
-import dev.emi.emi.api.stack.EmiStack;
-import dev.emi.emi.api.stack.EmiStackInteraction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -367,8 +365,7 @@ public class RecipeIOList extends UIElement {
     public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
         var row = rowAt(mouseX, mouseY);
         if (row == null || row.entry == null) return super.getXEIIngredientOverMouse(mouseX, mouseY);
-        if (!row.entry.isFluid()) return row.entry.item;
-        if (!GTCEu.Mods.isEMILoaded()) return null;
-        return new EmiStackInteraction(EmiStack.of(row.entry.fluid.getFluid(), row.entry.fluid.getTag(), row.entry.amount), null, false);
+        var entry = row.entry;
+        return UIIngredient.of(entry.isFluid() ? AEFluidKey.of(entry.fluid) : AEItemKey.of(entry.item), entry.amount);
     }
 }

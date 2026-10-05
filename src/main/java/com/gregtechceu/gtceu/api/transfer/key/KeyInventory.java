@@ -12,7 +12,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyIntMap;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
@@ -22,12 +25,12 @@ import com.gto.datasynclib.datastream.data.IntData;
 import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.datastream.data.NullData;
 import com.gto.datasynclib.util.DataCodecs;
-import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * 物品/流体的唯一物资存储：每槽一个 key 与一个 long 数量，空槽以数量为 0 判定（key 可残留）。
@@ -50,10 +53,10 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     private Object[] views;
     @Nullable
     private Object viewOwner;
-    private long slotLimit;
+    private final long slotLimit;
     private boolean uniqueKeys;
     @Nullable
-    private Reference2IntOpenHashMap<AEKey> index;
+    private AEKeyIntMap<AEKey> index;
     @Nullable
     private AEKeyFilter filter;
     @Nullable
@@ -73,15 +76,15 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     public static KeyInventory<AEItemKey> items(int slots) {
-        return new KeyInventory<>(AEKeyType.items(), slots, 64, true, false);
+        return new KeyInventory<>(AEKeyTypes.ITEMS, slots, 64, true, false);
     }
 
     public static KeyInventory<AEItemKey> items(int slots, long slotLimit, boolean stackLimited) {
-        return new KeyInventory<>(AEKeyType.items(), slots, slotLimit, stackLimited, false);
+        return new KeyInventory<>(AEKeyTypes.ITEMS, slots, slotLimit, stackLimited, false);
     }
 
     public static KeyInventory<AEFluidKey> fluids(int tanks, long capacity) {
-        return new KeyInventory<>(AEKeyType.fluids(), tanks, capacity, false, false);
+        return new KeyInventory<>(AEKeyTypes.FLUIDS, tanks, capacity, false, false);
     }
 
     public static <T extends AEKey> KeyInventory<T> growable(AEKeyType type, int initial, long slotLimit) {
@@ -116,6 +119,13 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         return amounts[slot];
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> R readSlot(int slot, int index, SlotReader<? super K, R> reader) {
+        long amount = amounts[slot];
+        return reader.read(index, amount == 0 ? null : (K) keys[slot], amount);
+    }
+
     public int uidAt(int slot) {
         return uids[slot];
     }
@@ -132,10 +142,6 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     public long slotLimit() {
         return slotLimit;
-    }
-
-    public void setSlotLimit(long slotLimit) {
-        this.slotLimit = slotLimit;
     }
 
     public boolean isStackLimited() {
@@ -212,11 +218,19 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     @Override
     public long insert(int slot, K key, long amount, boolean simulate) {
+        return insertAt(slot, key, amount, simulate, true);
+    }
+
+    public long insertExplicit(int slot, K key, long amount, boolean simulate) {
+        return insertAt(slot, key, amount, simulate, false);
+    }
+
+    private long insertAt(int slot, K key, long amount, boolean simulate, boolean unique) {
         if (amount <= 0) return 0;
         long stored = amounts[slot];
         if (stored != 0) {
             if (keys[slot] != key) return 0;
-        } else if (!acceptsEmpty(slot, key)) {
+        } else if (!(unique ? acceptsEmpty(slot, key) : acceptsEmptyNoUnique(slot, key))) {
             return 0;
         }
         long space = limitFor(key) - stored;
@@ -326,7 +340,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     public long extract(K key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
         long left = amount;
-        if (uniqueKeys) {
+        if (uniqueKeys && index != null) {
             int s = indexOf(key);
             if (s >= 0) {
                 long stored = amounts[s];
@@ -363,10 +377,18 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     @Override
     public long spaceFor(int slot, K key) {
+        return spaceAt(slot, key, true);
+    }
+
+    public long spaceForExplicit(int slot, K key) {
+        return spaceAt(slot, key, false);
+    }
+
+    private long spaceAt(int slot, K key, boolean unique) {
         long stored = amounts[slot];
         if (stored != 0) {
             if (keys[slot] != key) return 0;
-        } else if (!acceptsEmpty(slot, key)) {
+        } else if (!(unique ? acceptsEmpty(slot, key) : acceptsEmptyNoUnique(slot, key))) {
             return 0;
         }
         long space = limitFor(key) - stored;
@@ -375,7 +397,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     @Override
     public long count(K key) {
-        if (uniqueKeys) {
+        if (uniqueKeys && index != null) {
             int s = indexOf(key);
             return s >= 0 ? amounts[s] : 0;
         }
@@ -446,7 +468,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     private void rebuildIndex() {
         if (uniqueKeys && (growable || keys.length >= INDEX_THRESHOLD)) {
-            var idx = new Reference2IntOpenHashMap<AEKey>(keys.length);
+            var idx = new AEKeyIntMap<>(keys.length);
             idx.defaultReturnValue(-1);
             for (int i = 0; i < keys.length; i++) {
                 if (amounts[i] != 0) idx.put(keys[i], i);
@@ -458,7 +480,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     public void set(int slot, @Nullable AEKey key, long amount) {
-        if (key == null || amount <= 0) {
+        if (key == null || amount <= 0 || key.getType() != type) {
             amounts[slot] = 0;
             if (slot + 1 == high) trimHigh();
         } else {
@@ -511,6 +533,41 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     @Override
+    public void getAvailableStacks(KeyCounter out) {
+        var a = amounts;
+        int h = high;
+        if (out.isEmpty()) {
+            int filled = 0;
+            for (int i = 0; i < h; i++) {
+                if (a[i] > 0) filled++;
+            }
+            if (filled == 0) return;
+            out.ensureCapacity(filled);
+        }
+        var k = keys;
+        for (int i = 0; i < h; i++) {
+            long amount = a[i];
+            if (amount > 0) out.add(k[i], amount);
+        }
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
+        getAvailableStacks(out);
+    }
+
+    @Override
+    public boolean containsAny(Set<AEKey> primaryKeys) {
+        var a = amounts;
+        var k = keys;
+        int h = high;
+        for (int i = 0; i < h; i++) {
+            if (a[i] > 0 && primaryKeys.contains(k[i].dropSecondary())) return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean isEmpty() {
         for (long a : amounts) {
             if (a != 0) return false;
@@ -530,7 +587,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         int n = Math.min(other.keys.length, keys.length);
         int h = 0;
         for (int i = 0; i < n; i++) {
-            if (other.amounts[i] > 0) {
+            if (other.amounts[i] > 0 && other.keys[i].getType() == type) {
                 writeKey(i, other.keys[i]);
                 amounts[i] = other.amounts[i];
                 h = i + 1;
@@ -582,8 +639,8 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     @Override
     public Data writeData() {
         int count = 0;
-        for (int i = 0; i < keys.length; i++) {
-            if (amounts[i] > 0 && keys[i].getType() == type) count++;
+        for (long a : amounts) {
+            if (a > 0) count++;
         }
         if (count == 0 && !uniqueKeys) return NullData.INSTANCE;
         return new ByteArrayData(KeyInventoryCodec.encode(this, MAGIC | FLAG_COMPACT | (uniqueKeys ? FLAG_UNIQUE : 0), count));

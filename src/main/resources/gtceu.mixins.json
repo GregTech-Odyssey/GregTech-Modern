@@ -21,6 +21,7 @@
     "xaeroworldmap.WorldMapSessionMixin"
   ],
   "mixins": [
+    "AEKeyIngredientMixin",
     "ldlib.ModularUIContainerMixin",
     "ldlib.ModularUIContainerFaultMixin",
     "ldlib.UIFactoryFaultMixin",
@@ -28,6 +29,7 @@
     "ldlib.ModularUIBudgetMixin",
     "ldlib.WidgetGroupRoutingMixin",
     "BlockBehaviourAccessor",
+    "BlockEntityMixin",
     "BlockMixin",
     "BlockPropertiesAccessor",
     "ChunkGeneratorMixin",

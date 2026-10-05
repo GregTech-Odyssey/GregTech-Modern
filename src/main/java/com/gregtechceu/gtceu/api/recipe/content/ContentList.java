@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import appeng.api.stacks.AEKey;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.ListData;
+import com.gto.fastcollection.cache.CustomHashInterner;
+import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ import java.util.List;
 
 /**
  * 不可变的配方内容表（按声明顺序保存，SoA），数量为单份数量，运行期倍率由 GTRecipe.scale 提供；
- * 默认概率、加成、规划顺序与掷骰单位数组在相同长度间共享。
+ * 默认概率、加成、规划顺序与掷骰单位数组在相同长度间共享，可能重叠的消耗型条目分组驻留在规划顺序数组尾部。
  */
 public final class ContentList {
 
@@ -35,7 +37,11 @@ public final class ContentList {
         }
     }
 
-    public static final ContentList EMPTY = new ContentList(new KeyIngredient[0], new long[0], FULL_CHANCES[0], ZERO_BOOSTS[0], new long[0]);
+    private static final byte ACTIVE_OUTPUT = 1, DISTINCT_OUTPUT_KEYS = 2, OVERLAP = 4;
+    private static final int MAX_OVERLAP = 64;
+    private static final CustomHashInterner<int[]> LAYOUTS = new CustomHashInterner<>(IntArrays.HASH_STRATEGY);
+
+    public static final ContentList EMPTY = new ContentList(new KeyIngredient[0], new long[0], FULL_CHANCES[0], ZERO_BOOSTS[0], new long[0], IDENTITY[0], (byte) 0);
 
     final KeyIngredient[] ingredients;
     final long[] amounts;
@@ -44,20 +50,37 @@ public final class ContentList {
     final long[] rollUnits;
     final int[] planOrder;
     final long maxScalable;
+    private final byte flags;
 
-    private ContentList(KeyIngredient[] ingredients, long[] amounts, int[] chances, int[] boosts, long[] rollUnits) {
+    private ContentList(KeyIngredient[] ingredients, long[] amounts, int[] chances, int[] boosts, long[] rollUnits, int[] planOrder, byte flags) {
         this.ingredients = ingredients;
         this.amounts = amounts;
         this.chances = chances;
         this.boosts = boosts;
         this.rollUnits = rollUnits;
+        this.planOrder = planOrder;
+        this.flags = flags;
         int n = ingredients.length;
         long max = 0;
         for (int i = 0; i < n; i++) {
             if (chances[i] > 0 && amounts[i] > max) max = amounts[i];
         }
         this.maxScalable = max;
-        this.planOrder = order(ingredients);
+    }
+
+    private static byte outputShape(KeyIngredient[] ingredients, long[] amounts, int[] chances) {
+        int n = ingredients.length;
+        boolean active = false;
+        for (int i = 0; i < n; i++) {
+            if (chances[i] == 0 || amounts[i] <= 0) continue;
+            active = true;
+            var key = ingredients[i].key();
+            if (key == null) return ACTIVE_OUTPUT;
+            for (int j = 0; j < i; j++) {
+                if (chances[j] != 0 && amounts[j] > 0 && ingredients[j].key() == key) return ACTIVE_OUTPUT;
+            }
+        }
+        return active ? (byte) (ACTIVE_OUTPUT | DISTINCT_OUTPUT_KEYS) : 0;
     }
 
     private static int[] order(KeyIngredient[] ingredients) {
@@ -65,7 +88,7 @@ public final class ContentList {
         boolean identity = true;
         int seenLoose = -1;
         for (int i = 0; i < n; i++) {
-            int rank = rank(ingredients[i].kind);
+            int rank = rank(ingredients[i].kind());
             if (rank < seenLoose) {
                 identity = false;
                 break;
@@ -77,7 +100,7 @@ public final class ContentList {
         int p = 0;
         for (int r = 0; r <= 2; r++) {
             for (int i = 0; i < n; i++) {
-                if (rank(ingredients[i].kind) == r) o[p++] = i;
+                if (rank(ingredients[i].kind()) == r) o[p++] = i;
             }
         }
         return o;
@@ -89,6 +112,83 @@ public final class ContentList {
             case KeyIngredient.PREDICATE -> 2;
             default -> 0;
         };
+    }
+
+    private static int[] plan(KeyIngredient[] ingredients, int[] chances) {
+        int n = ingredients.length;
+        int[] root = null;
+        for (int i = 1; i < n; i++) {
+            if (chances[i] == 0) continue;
+            var a = ingredients[i];
+            for (int j = 0; j < i; j++) {
+                if (chances[j] == 0) continue;
+                if (root != null && find(root, i) == find(root, j)) continue;
+                if (!mayOverlap(a, ingredients[j])) continue;
+                if (root == null) root = identityOf(n);
+                root[find(root, i)] = find(root, j);
+            }
+        }
+        return root == null ? order(ingredients) : layout(ingredients, root);
+    }
+
+    private static int find(int[] root, int i) {
+        while (root[i] != i) {
+            root[i] = root[root[i]];
+            i = root[i];
+        }
+        return i;
+    }
+
+    private static boolean mayOverlap(KeyIngredient a, KeyIngredient b) {
+        if (a.getType() != b.getType()) return false;
+        if (!concrete(a) || !concrete(b)) return true;
+        boolean ca = a instanceof CircuitIngredient, cb = b instanceof CircuitIngredient;
+        if (ca || cb) return a == b || ca != cb;
+        var ka = a.key();
+        var kb = b.key();
+        if (a.kind() == KeyIngredient.EXACT && b.kind() == KeyIngredient.EXACT) return ka == kb;
+        return ka.getUid() == kb.getUid();
+    }
+
+    private static boolean concrete(KeyIngredient ing) {
+        Object o = ing;
+        return o instanceof AEKey || o instanceof DefaultedItemBase || o instanceof CircuitIngredient;
+    }
+
+    private static int specificity(KeyIngredient ing) {
+        if (ing instanceof FluidTagNbtIngredient) return 1;
+        return switch (ing.kind()) {
+            case KeyIngredient.EXACT, KeyIngredient.CIRCUIT -> 0;
+            case KeyIngredient.BASE -> 2;
+            case KeyIngredient.TAG -> 3;
+            default -> 4;
+        };
+    }
+
+    private static int[] layout(KeyIngredient[] ingredients, int[] root) {
+        int n = ingredients.length;
+        int[] layout = new int[2 * n + 1];
+        int p = 0;
+        for (int r = 0; r <= 4; r++) {
+            for (int i = 0; i < n; i++) {
+                if (specificity(ingredients[i]) == r) layout[p++] = i;
+            }
+        }
+        int[] size = new int[n];
+        for (int i = 0; i < n; i++) size[find(root, i)]++;
+        boolean[] grouped = new boolean[n];
+        int k = 0;
+        for (int i = 0; i < n && k < MAX_OVERLAP; i++) {
+            if (size[find(root, i)] < 2) continue;
+            grouped[i] = true;
+            layout[n + 1 + k++] = i;
+        }
+        layout[n] = k;
+        p = n + 1 + k;
+        for (int i = 0; i < n; i++) {
+            if (!grouped[i]) layout[p++] = i;
+        }
+        return LAYOUTS.intern(layout);
     }
 
     private static int[] identityOf(int n) {
@@ -116,7 +216,10 @@ public final class ContentList {
             if (chances[i] != MAX_CHANCE) full = false;
             if (boosts[i] != 0) zero = false;
         }
-        return new ContentList(ingredients, amounts, full ? fullChances(n) : chances, zero ? zeroBoosts(n) : boosts, rollUnits == null || Arrays.equals(rollUnits, amounts) ? amounts : rollUnits);
+        int[] plan = plan(ingredients, chances);
+        byte flags = outputShape(ingredients, amounts, chances);
+        if (plan.length > n) flags |= OVERLAP;
+        return new ContentList(ingredients, amounts, full ? fullChances(n) : chances, zero ? zeroBoosts(n) : boosts, rollUnits == null || Arrays.equals(rollUnits, amounts) ? amounts : rollUnits, plan, flags);
     }
 
     public int size() {
@@ -152,11 +255,37 @@ public final class ContentList {
     }
 
     public AEKey outputKey(int i) {
-        return ingredients[i].outputKey();
+        var ing = ingredients[i];
+        return ing instanceof AEKey k ? k : ing.outputKey();
+    }
+
+    public boolean hasActiveOutput() {
+        return (flags & ACTIVE_OUTPUT) != 0;
+    }
+
+    public boolean distinctOutputKeys() {
+        return (flags & DISTINCT_OUTPUT_KEYS) != 0;
     }
 
     public int[] planOrder() {
         return planOrder;
+    }
+
+    public boolean hasOverlap() {
+        return (flags & OVERLAP) != 0;
+    }
+
+    public int overlapCount() {
+        return planOrder[ingredients.length];
+    }
+
+    public int overlapEntry(int j) {
+        return planOrder[ingredients.length + 1 + j];
+    }
+
+    public int separateEntry(int j) {
+        int n = ingredients.length;
+        return planOrder[n + 1 + planOrder[n] + j];
     }
 
     public long maxScalable() {
@@ -173,20 +302,21 @@ public final class ContentList {
         int n = ingredients.length;
         long[] a = new long[n];
         for (int i = 0; i < n; i++) a[i] = effective(i, scale);
-        return new ContentList(ingredients, a, chances, boosts, rollUnits);
+        return new ContentList(ingredients, a, chances, boosts, rollUnits, planOrder, flags);
     }
 
     public ContentList withAmount(int i, long amount) {
         long[] a = amounts.clone();
         a[i] = amount;
-        if (rollUnits == amounts) return new ContentList(ingredients, a, chances, boosts, a);
+        byte shape = (byte) (outputShape(ingredients, a, chances) | flags & OVERLAP);
+        if (rollUnits == amounts) return new ContentList(ingredients, a, chances, boosts, a, planOrder, shape);
         long old = amounts[i];
         long unit = rollUnits[i];
         long scaled = unit == old ? amount : old > 0 && amount % old == 0 ? Keys.multiply(unit, amount / old) : unit;
-        if (scaled == unit) return new ContentList(ingredients, a, chances, boosts, rollUnits);
+        if (scaled == unit) return new ContentList(ingredients, a, chances, boosts, rollUnits, planOrder, shape);
         long[] u = rollUnits.clone();
         u[i] = scaled;
-        return new ContentList(ingredients, a, chances, boosts, u);
+        return new ContentList(ingredients, a, chances, boosts, u, planOrder, shape);
     }
 
     public ContentList trimFirst(int n) {

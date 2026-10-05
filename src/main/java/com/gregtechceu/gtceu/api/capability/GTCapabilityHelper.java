@@ -17,27 +17,24 @@ import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidView;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeItemView;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTarget;
 import com.gregtechceu.gtceu.utils.LazyOptionalUtil;
-import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
+import appeng.api.storage.StorageTargetResolver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,44 +71,24 @@ public class GTCapabilityHelper {
     }
 
     @Nullable
-    public static IFluidHandler getFluidHandler(BlockEntity blockEntity, @Nullable Direction side) {
-        return getBlockEntityCapability(ForgeCapabilities.FLUID_HANDLER, blockEntity, side);
-    }
-
-    @Nullable
-    public static IItemHandler getItemHandler(BlockEntity blockEntity, @Nullable Direction side) {
-        return getBlockEntityCapability(ForgeCapabilities.ITEM_HANDLER, blockEntity, side);
-    }
-
-    @Nullable
-    public static IKeyHandler<?> getKeyHandler(BlockEntity blockEntity, @Nullable Direction side, AEKeyType type) {
-        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
-            var machine = machineBlockEntity.getMetaMachine();
-            return type == AEKeyType.items() ? machine.getItemHandlerCap(side, true) : machine.getFluidHandlerCap(side, true);
-        }
-        if (type == AEKeyType.items()) {
-            var handler = getItemHandler(blockEntity, side);
-            return handler == null ? null : ForgeItemView.of(handler);
-        }
-        var handler = getFluidHandler(blockEntity, side);
-        return handler == null ? null : ForgeFluidView.of(handler);
+    public static IKeyHandler<?> getKeyHandler(BlockEntity blockEntity, @Nullable Direction side, AEKeyType type, StorageAccess access) {
+        return KeyTarget.resolve(blockEntity, side, type, access);
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
-    public static IKeyHandler<AEItemKey> getItemKeyHandler(BlockEntity blockEntity, @Nullable Direction side) {
-        return (IKeyHandler<AEItemKey>) getKeyHandler(blockEntity, side, AEKeyType.items());
+    public static IKeyHandler<AEItemKey> getItemKeyHandler(BlockEntity blockEntity, @Nullable Direction side, StorageAccess access) {
+        return (IKeyHandler<AEItemKey>) KeyTarget.resolve(blockEntity, side, AEKeyTypes.ITEMS, access);
     }
 
     @Nullable
     @SuppressWarnings("unchecked")
-    public static IKeyHandler<AEFluidKey> getFluidKeyHandler(BlockEntity blockEntity, @Nullable Direction side) {
-        return (IKeyHandler<AEFluidKey>) getKeyHandler(blockEntity, side, AEKeyType.fluids());
+    public static IKeyHandler<AEFluidKey> getFluidKeyHandler(BlockEntity blockEntity, @Nullable Direction side, StorageAccess access) {
+        return (IKeyHandler<AEFluidKey>) KeyTarget.resolve(blockEntity, side, AEKeyTypes.FLUIDS, access);
     }
 
-    @Nullable
-    public static IKeyHandler<?> getAdjacentKeyHandler(BlockEntityDirectionCache cache, Level level, BlockPos pos, Direction facing, AEKeyType type) {
-        return cache.getAdjacentKeyHandler(level, pos, facing, type);
+    public static boolean hasTarget(BlockEntity blockEntity, @Nullable Direction side, AEKeyType type, StorageAccess access) {
+        return new StorageTargetResolver().resolve(blockEntity, side, type, access) != StorageTargetResolver.Tier.NONE;
     }
 
     @Nullable

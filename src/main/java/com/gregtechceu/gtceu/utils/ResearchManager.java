@@ -20,7 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ObjectFunction;
@@ -127,7 +127,7 @@ public final class ResearchManager {
             long[] amounts = new long[2];
             int slots = 0;
             for (var handler : unit.itemHandlers) {
-                var inv = handler.storage(AEKeyType.items());
+                var inv = handler.storage(AEKeyTypes.ITEMS);
                 if (inv == null) continue;
                 for (int i = 0; i < inv.size() && slots < 2; i++, slots++) {
                     keys[slots] = inv.keyAt(i);

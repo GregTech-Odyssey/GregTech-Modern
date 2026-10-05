@@ -45,6 +45,15 @@ public record CoverPlaceBehavior(CoverDefinition coverDefinition) implements IIn
         return InteractionResult.PASS;
     }
 
+    @Nullable
+    public static CoverDefinition getCoverDefinition(ItemStack itemStack) {
+        if (!(itemStack.getItem() instanceof IComponentItem componentItem)) return null;
+        for (IItemComponent component : componentItem.getComponents()) {
+            if (component instanceof CoverPlaceBehavior(CoverDefinition definition)) return definition;
+        }
+        return null;
+    }
+
     public static boolean isCoverBehaviorItem(ItemStack itemStack, @Nullable BooleanSupplier hasCoverSupplier,
                                               @Nullable Predicate<CoverDefinition> canPlaceCover) {
         Item item = itemStack.getItem();

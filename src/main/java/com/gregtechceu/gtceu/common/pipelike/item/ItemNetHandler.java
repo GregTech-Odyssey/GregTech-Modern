@@ -21,6 +21,7 @@ import net.minecraft.core.Direction;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -64,7 +65,7 @@ public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
 
     @Override
     public long insert(AEItemKey key, long amount, boolean simulate) {
-        if (amount <= 0 || pipe == null) return 0;
+        if (amount <= 0) return 0;
         pipe.checkNetwork();
         if (net == null || pipe.isInValid() || pipe.isBlocked(facing)) {
             return 0;
@@ -322,7 +323,6 @@ public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
             long stored = handler.amountAt(i);
             if (stored <= 0) continue;
             AEItemKey slot = handler.keyAt(i);
-            if (slot == null) continue;
             if (ignoreNBT && slot.getItem() != key.getItem()) continue;
             else if (slot != key) continue;
             if (filter.test(Keys.displayStack(slot))) {
@@ -345,7 +345,7 @@ public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
 
     @Override
     public AEKeyType keyType() {
-        return AEKeyType.items();
+        return AEKeyTypes.ITEMS;
     }
 
     @Override

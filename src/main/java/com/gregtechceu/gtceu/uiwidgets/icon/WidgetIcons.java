@@ -89,6 +89,8 @@ public final class WidgetIcons {
     public static final IGuiTexture FILTER_BOTH = ATLAS.pixelIcon(24, 2);
     public static final IGuiTexture ACCESS_PUBLIC = ATLAS.pixelIcon(25, 0);
     public static final IGuiTexture ACCESS_PRIVATE = ATLAS.pixelIcon(25, 1);
+    public static final IGuiTexture VIEW_UNLOCKED = ATLAS.icon(25, 0);
+    public static final IGuiTexture VIEW_LOCKED = ATLAS.icon(25, 1);
     public static final IGuiTexture FILTER_SLOT = ATLAS.pixelIcon(26);
 
     public static final IGuiTexture STATUS_INFO = new WidgetIconAtlas(GTCEu.id("textures/gui/uipro/status_icons.png"), 1).pixelIcon(0);

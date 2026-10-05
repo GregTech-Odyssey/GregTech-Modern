@@ -17,7 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,8 +96,9 @@ public final class RecipeDiagnoser {
         Arrays.fill(outputIssues, RecipeIssue.IDLE);
         this.outputDetails = new ArrayList<>(Collections.nCopies(outputs, Collections.emptyList()));
         this.collector = (key, amount) -> {
+            int uid = key.getUid();
             for (int i = 0; i < inputs.length; i++) {
-                if (inputs[i].test(key)) {
+                if (KeyIngredient.accepts(inputs[i], uid, key)) {
                     scratch[i] = Keys.add(scratch[i], amount);
                     return false;
                 }
@@ -127,7 +128,10 @@ public final class RecipeDiagnoser {
     }
 
     public int findInput(FluidStack fluid) {
-        for (int i = 0; i < inputs.length; i++) if (inputs[i].test(fluid)) return i;
+        var key = Keys.fluidType(fluid);
+        if (key == null) return -1;
+        int uid = key.uid;
+        for (int i = 0; i < inputs.length; i++) if (KeyIngredient.accepts(inputs[i], uid, key)) return i;
         return -1;
     }
 
@@ -228,7 +232,7 @@ public final class RecipeDiagnoser {
                 if (unit.fluidHandlers.length == 0) continue;
                 inputHatch = true;
                 Arrays.fill(scratch, 0);
-                unit.forEachKey(AEKeyType.fluids(), true, collector);
+                unit.forEachKey(AEKeyTypes.FLUIDS, true, collector);
                 int satisfied = 0;
                 for (int i = 0; i < need.length; i++) if (scratch[i] >= need[i]) satisfied++;
                 if (satisfied > best) {

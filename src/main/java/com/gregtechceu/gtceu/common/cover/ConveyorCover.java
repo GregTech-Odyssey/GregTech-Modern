@@ -34,7 +34,7 @@ import net.minecraft.world.level.block.Block;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -83,6 +83,13 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
     protected final AEKeyFilter itemKeyFilter = this::matchesFilter;
+    @Nullable
+    private Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo> typeInfos;
+    @Nullable
+    private Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> groupInfosA;
+    @Nullable
+    private Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> groupInfosB;
+    private boolean groupFlip;
 
     public ConveyorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -113,7 +120,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     @Nullable
     @SuppressWarnings("unchecked")
     protected IKeyHandler<AEItemKey> getAdjacentItemHandler() {
-        return (IKeyHandler<AEItemKey>) coverHolder.getBlockEntityDirectionCache().getAdjacentKeyHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide, AEKeyType.items());
+        return (IKeyHandler<AEItemKey>) coverHolder.getBlockEntityDirectionCache().getAdjacentKeyHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide, AEKeyTypes.ITEMS, io.neighbourAccess());
     }
 
     //////////////////////////////////////
@@ -245,7 +252,7 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         for (int i = 0; i < size; i++) {
             if (sourceInventory.amountAt(i) <= 0) continue;
             AEItemKey key = sourceInventory.keyAt(i);
-            if (key == null || !itemKeyFilter.matches(key)) continue;
+            if (!itemKeyFilter.matches(key)) continue;
             GroupItemInfo itemInfo = itemInfos.get(key);
             if (itemInfo == null) continue;
             long transferred = KeyTransfer.transferSlot(sourceInventory, i, targetInventory,
@@ -268,13 +275,15 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     protected Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo> countInventoryItemsByType(IKeyHandler<AEItemKey> inventory) {
-        var result = new Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo>();
+        var result = typeInfos;
+        if (result == null) typeInfos = result = new Reference2ObjectLinkedOpenHashMap<>();
+        else result.clear();
         int size = inventory.size();
         for (int srcIndex = 0; srcIndex < size; srcIndex++) {
             long amount = inventory.amountAt(srcIndex);
             if (amount <= 0) continue;
             AEItemKey key = inventory.keyAt(srcIndex);
-            if (key == null || !itemKeyFilter.matches(key)) continue;
+            if (!itemKeyFilter.matches(key)) continue;
             var itemInfo = result.get(key);
             if (itemInfo == null) {
                 itemInfo = new TypeItemInfo(key, new IntArrayList(), 0);
@@ -287,13 +296,20 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     }
 
     protected Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> countInventoryItemsByMatchSlot(IKeyHandler<AEItemKey> inventory) {
-        var result = new Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo>();
+        var result = (groupFlip = !groupFlip) ? groupInfosA : groupInfosB;
+        if (result == null) {
+            result = new Reference2ObjectLinkedOpenHashMap<>();
+            if (groupFlip) groupInfosA = result;
+            else groupInfosB = result;
+        } else {
+            result.clear();
+        }
         int size = inventory.size();
         for (int srcIndex = 0; srcIndex < size; srcIndex++) {
             long amount = inventory.amountAt(srcIndex);
             if (amount <= 0) continue;
             AEItemKey key = inventory.keyAt(srcIndex);
-            if (key == null || !itemKeyFilter.matches(key)) continue;
+            if (!itemKeyFilter.matches(key)) continue;
             var itemInfo = result.get(key);
             if (itemInfo == null) {
                 itemInfo = new GroupItemInfo(key, 0);

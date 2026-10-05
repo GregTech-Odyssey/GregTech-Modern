@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.filter.ItemFilter;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipeProperties;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeItemAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeAdapters;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
@@ -29,16 +29,22 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.AEKeyFilter;
+import appeng.api.storage.MEStorage;
+import appeng.api.storage.MEStorageHost;
+import appeng.api.storage.StorageAccess;
+import appeng.capabilities.Capabilities;
 import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.EnumMap;
 
-public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeProperties> {
+public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, ItemPipeProperties> implements MEStorageHost {
 
     private WeakReference<ItemPipeNet> currentItemPipeNet = new WeakReference<>(null);
     private final EnumMap<Direction, ItemNetHandler> handlers = new EnumMap<>(Direction.class);
@@ -47,6 +53,11 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
     private ItemNetHandler defaultHandler;
     @SuppressWarnings("unchecked")
     private final LazyOptional<IItemHandler>[] capabilityCache = new LazyOptional[6];
+    @SuppressWarnings("unchecked")
+    private final LazyOptional<MEStorage>[] storageCache = new LazyOptional[6];
+    @SuppressWarnings("unchecked")
+    private final IKeyHandler<AEItemKey>[] exposed = new IKeyHandler[6];
+    private int storageEpoch;
     private int transferredItems = 0;
     private long timer = 0;
 
@@ -71,6 +82,9 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
             }
             return LazyOptional.empty();
         }
+        if (cap == Capabilities.STORAGE) {
+            return side != null && isConnected(side) ? getStorageCapability(side).cast() : LazyOptional.empty();
+        }
         return super.getCapability(cap, side);
     }
 
@@ -81,22 +95,64 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
         ensureHandlersInitialized();
         checkNetwork();
         if (this.currentItemPipeNet.get() == null) return LazyOptional.of(() -> EmptyHandler.INSTANCE);
-        var handler = getHandler(side, true);
+        var handler = exposedHandler(side);
         if (handler == null) return LazyOptional.empty();
-        var adapter = new ForgeItemAdapter(handler);
+        var adapter = ForgeAdapters.items(handler);
         cached = LazyOptional.of(() -> adapter);
         capabilityCache[side.ordinal()] = cached;
         return cached;
     }
 
+    private LazyOptional<MEStorage> getStorageCapability(Direction side) {
+        var cached = storageCache[side.ordinal()];
+        if (cached != null) return cached;
+        var handler = exposedHandler(side);
+        if (handler == null) return LazyOptional.empty();
+        cached = LazyOptional.of(() -> handler);
+        storageCache[side.ordinal()] = cached;
+        return cached;
+    }
+
+    private @Nullable IKeyHandler<AEItemKey> exposedHandler(Direction side) {
+        int i = side.ordinal();
+        var handler = exposed[i];
+        if (handler == null) exposed[i] = handler = getHandler(side, true);
+        return handler;
+    }
+
+    @Override
+    public @Nullable MEStorage getMEStorage(@Nullable Direction side) {
+        return side != null && isConnected(side) ? exposedHandler(side) : null;
+    }
+
+    @Override
+    public int storageEpoch() {
+        return storageEpoch;
+    }
+
+    @Override
+    public void onJoinedNet() {
+        invalidateCapabilityCache();
+        if (level != null) level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+    }
+
+    @Override
     public void invalidateCapabilityCache() {
-        for (int i = 0; i < capabilityCache.length; i++) {
+        storageEpoch = storageEpoch + 1 & Integer.MAX_VALUE;
+        Arrays.fill(exposed, null);
+        for (int i = 0; i < 6; i++) {
             var cached = capabilityCache[i];
             if (cached != null) {
                 capabilityCache[i] = null;
                 cached.invalidate();
             }
+            var storage = storageCache[i];
+            if (storage != null) {
+                storageCache[i] = null;
+                storage.invalidate();
+            }
         }
+        BlockEntityWatch.changed(this);
     }
 
     @Override
@@ -223,7 +279,8 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
             if (facing != blockedSide && isConnected(facing)) {
                 var be = getNeighborBlockEntity(facing);
                 if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
-                var handler = GTCapabilityHelper.getItemKeyHandler(be, facing.getOpposite());
+                @SuppressWarnings("unchecked")
+                var handler = (IKeyHandler<AEItemKey>) blockEntityDirectionCache.getAdjacentKeyHandler(be, facing, AEKeyTypes.ITEMS, StorageAccess.EXTRACT);
                 if (handler != null) {
                     hasHandler = true;
                     throughput -= (int) KeyTransfer.transfer(handler, handlers.getOrDefault(facing, defaultHandler), throughput, getCoverContainer().getCoverAtSide(facing) instanceof ItemFilterCover filterCover ? itemFilter(filterCover.getItemFilter()) : null);

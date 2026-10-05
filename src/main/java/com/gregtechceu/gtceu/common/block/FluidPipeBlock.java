@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.block;
 
 import com.gregtechceu.gtceu.api.block.MaterialPipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
@@ -20,8 +21,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -78,7 +80,6 @@ public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipePr
     @Override
     public boolean canPipeConnectToBlock(PipeBlockEntity<FluidPipeType, FluidPipeProperties> selfTile, Direction side,
                                          @Nullable BlockEntity tile) {
-        return tile != null &&
-                tile.getCapability(ForgeCapabilities.FLUID_HANDLER, side.getOpposite()).isPresent();
+        return tile != null && GTCapabilityHelper.hasTarget(tile, side.getOpposite(), AEKeyTypes.FLUIDS, StorageAccess.INSERT);
     }
 }

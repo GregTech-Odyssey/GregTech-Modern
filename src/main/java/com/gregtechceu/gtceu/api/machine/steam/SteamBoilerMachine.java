@@ -60,6 +60,8 @@ import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidUtil;
 
 import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -153,7 +155,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     protected void updateAutoOutputSubscription() {
-        if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction))) {
+        if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -162,7 +164,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     protected void autoOutput() {
-        steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).filter(direction -> holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), direction)).toArray(Direction[]::new));
+        steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).filter(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT)).toArray(Direction[]::new));
         updateAutoOutputSubscription();
     }
 

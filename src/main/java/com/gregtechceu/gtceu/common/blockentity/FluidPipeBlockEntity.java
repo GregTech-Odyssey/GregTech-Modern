@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeAdapters;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
@@ -28,20 +28,31 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.EmptyFluidHandler;
 
 import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.AEKeyFilter;
+import appeng.api.storage.MEStorage;
+import appeng.api.storage.MEStorageHost;
+import appeng.api.storage.StorageAccess;
+import appeng.capabilities.Capabilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.EnumMap;
 
-public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPipeProperties> {
+public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, FluidPipeProperties> implements MEStorageHost {
 
     private WeakReference<FluidPipeNet> currentFluidPipeNet = new WeakReference<>(null);
     private final EnumMap<Direction, FluidNetHandler> handlers = new EnumMap<>(Direction.class);
     private FluidNetHandler defaultHandler;
     @SuppressWarnings("unchecked")
     private final LazyOptional<IFluidHandler>[] capabilityCache = new LazyOptional[6];
+    @SuppressWarnings("unchecked")
+    private final LazyOptional<MEStorage>[] storageCache = new LazyOptional[6];
+    @SuppressWarnings("unchecked")
+    private final IKeyHandler<AEFluidKey>[] exposed = new IKeyHandler[6];
+    private int storageEpoch;
     private int transferredFluids = 0;
     private long timer = 0;
 
@@ -66,6 +77,9 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
             }
             return LazyOptional.empty();
         }
+        if (cap == Capabilities.STORAGE) {
+            return side != null && isConnected(side) ? getStorageCapability(side).cast() : LazyOptional.empty();
+        }
         return super.getCapability(cap, side);
     }
 
@@ -76,22 +90,64 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
         ensureHandlersInitialized();
         checkNetwork();
         if (this.currentFluidPipeNet.get() == null) return LazyOptional.of(() -> EmptyFluidHandler.INSTANCE);
-        var handler = getHandler(side, true);
+        var handler = exposedHandler(side);
         if (handler == null) return LazyOptional.empty();
-        var adapter = new ForgeFluidAdapter(handler);
+        var adapter = ForgeAdapters.fluids(handler);
         cached = LazyOptional.of(() -> adapter);
         capabilityCache[side.ordinal()] = cached;
         return cached;
     }
 
+    private LazyOptional<MEStorage> getStorageCapability(Direction side) {
+        var cached = storageCache[side.ordinal()];
+        if (cached != null) return cached;
+        var handler = exposedHandler(side);
+        if (handler == null) return LazyOptional.empty();
+        cached = LazyOptional.of(() -> handler);
+        storageCache[side.ordinal()] = cached;
+        return cached;
+    }
+
+    private @Nullable IKeyHandler<AEFluidKey> exposedHandler(Direction side) {
+        int i = side.ordinal();
+        var handler = exposed[i];
+        if (handler == null) exposed[i] = handler = getHandler(side, true);
+        return handler;
+    }
+
+    @Override
+    public @Nullable MEStorage getMEStorage(@Nullable Direction side) {
+        return side != null && isConnected(side) ? exposedHandler(side) : null;
+    }
+
+    @Override
+    public int storageEpoch() {
+        return storageEpoch;
+    }
+
+    @Override
+    public void onJoinedNet() {
+        invalidateCapabilityCache();
+        if (level != null) level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+    }
+
+    @Override
     public void invalidateCapabilityCache() {
-        for (int i = 0; i < capabilityCache.length; i++) {
+        storageEpoch = storageEpoch + 1 & Integer.MAX_VALUE;
+        Arrays.fill(exposed, null);
+        for (int i = 0; i < 6; i++) {
             var cached = capabilityCache[i];
             if (cached != null) {
                 capabilityCache[i] = null;
                 cached.invalidate();
             }
+            var storage = storageCache[i];
+            if (storage != null) {
+                storageCache[i] = null;
+                storage.invalidate();
+            }
         }
+        BlockEntityWatch.changed(this);
     }
 
     @Override
@@ -218,7 +274,8 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
             if (facing != blockedSide && isConnected(facing)) {
                 var be = getNeighborBlockEntity(facing);
                 if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
-                var handler = GTCapabilityHelper.getFluidKeyHandler(be, facing.getOpposite());
+                @SuppressWarnings("unchecked")
+                var handler = (IKeyHandler<AEFluidKey>) blockEntityDirectionCache.getAdjacentKeyHandler(be, facing, AEKeyTypes.FLUIDS, StorageAccess.EXTRACT);
                 if (handler != null) {
                     hasHandler = true;
                     throughput -= (int) KeyTransfer.transfer(handler, handlers.getOrDefault(facing, defaultHandler), throughput, getCoverContainer().getCoverAtSide(facing) instanceof FluidFilterCover filterCover ? fluidFilter(filterCover.getFluidFilter()) : null);

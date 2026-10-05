@@ -14,7 +14,6 @@ public final class ContentRoll {
     public static long roll(long effective, long unit, int boosted, RandomSource rng) {
         if (effective <= 0 || boosted <= 0) return 0;
         if (boosted >= ContentList.MAX_CHANCE) return effective;
-        if (unit <= 0) unit = 1;
         long q = effective / unit;
         long r = effective - q * unit;
         long frac = r == 0 ? 0 : (long) ((double) r * boosted / unit);

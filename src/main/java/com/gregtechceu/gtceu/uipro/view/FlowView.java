@@ -138,7 +138,7 @@ public class FlowView extends PlanarView {
 
     @Override
     public void fitView() {
-        if (!isAllowZoom()) return;
+        if (!canZoom()) return;
         int w = content.getSizeWidth(), h = content.getSizeHeight();
         float target = Math.min(1, Math.min((maxWidth - 2) / (float) Math.max(1, w), (maxHeight - 2) / (float) Math.max(1, h)));
         setView(0, 0, Mth.clamp(target, MIN_ZOOM, MAX_ZOOM), false);
@@ -146,7 +146,7 @@ public class FlowView extends PlanarView {
 
     @Override
     public void zoomStep(int direction) {
-        if (!isAllowZoom() || direction == 0) return;
+        if (!canZoom() || direction == 0) return;
         float target = Mth.clamp(steppedScale(direction), MIN_ZOOM, MAX_ZOOM);
         setView(offsetX, offsetY, target, false);
     }

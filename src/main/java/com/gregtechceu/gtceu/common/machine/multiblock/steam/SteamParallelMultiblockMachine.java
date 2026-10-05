@@ -37,7 +37,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 
 import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,7 +95,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             for (var hl : handlers) {
                 if (!hl.isValid(IO.IN)) continue;
                 for (var fluidHandler : hl.fluidHandlers) {
-                    if (!(fluidHandler instanceof NotifiableInventory<?> inventory) || inventory.keyType() != AEKeyType.fluids()) continue;
+                    if (!(fluidHandler instanceof NotifiableInventory<?> inventory) || inventory.keyType() != AEKeyTypes.FLUIDS) continue;
                     @SuppressWarnings("unchecked")
                     var steamTank = (NotifiableInventory<AEFluidKey>) inventory;
                     energyContainer = new SteamEnergyContainer(getConversionRate(), steamTank);

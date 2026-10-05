@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.cover;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
@@ -9,9 +8,9 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+
+import appeng.api.stacks.AEFluidKey;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -27,7 +26,7 @@ public class InfiniteWaterCover extends CoverBehavior {
 
     @Override
     public boolean canAttach() {
-        return super.canAttach() && GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide) != null;
+        return super.canAttach() && coverHolder.getFluidHandlerCap(attachedSide, false) != null;
     }
 
     @Override
@@ -45,9 +44,9 @@ public class InfiniteWaterCover extends CoverBehavior {
     }
 
     public void update() {
-        var handler = GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide);
+        var handler = coverHolder.getFluidHandlerCap(attachedSide, false);
         if (handler != null) {
-            handler.fill(new FluidStack(Fluids.WATER, 16 * FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
+            handler.insert(AEFluidKey.of(Fluids.WATER), 16L * FluidType.BUCKET_VOLUME, false);
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.cover.detector;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
@@ -46,6 +45,6 @@ public class ItemDetectorCover extends DetectorCover {
     }
 
     protected IKeyHandler<AEItemKey> getItemHandler() {
-        return GTCapabilityHelper.getItemKeyHandler(coverHolder.holder(), attachedSide);
+        return coverHolder.getItemHandlerCap(attachedSide, false);
     }
 }

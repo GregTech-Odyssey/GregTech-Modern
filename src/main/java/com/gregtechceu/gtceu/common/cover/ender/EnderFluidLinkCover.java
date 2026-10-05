@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.cover.ender;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.filter.FilterHandler;
@@ -64,7 +63,7 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
 
     @Override
     public boolean canAttach() {
-        return super.canAttach() && GTCapabilityHelper.getFluidHandler(coverHolder.holder(), attachedSide) != null;
+        return super.canAttach() && getOwnFluidHandler() != null;
     }
 
     @Override

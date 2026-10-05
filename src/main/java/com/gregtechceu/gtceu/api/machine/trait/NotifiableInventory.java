@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IFilteredHandler;
@@ -17,7 +16,10 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.AEKeyFilter;
+import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.recipesearch.IntLongMap;
@@ -86,7 +88,7 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
         this.persistedStorage = storage;
         this.capabilityIO = capabilityIO;
         storage.setOnChanged(this::onContentsChanged);
-        if (storage.keyType() == AEKeyType.fluids()) {
+        if (storage.keyType() == AEKeyTypes.FLUIDS) {
             legacyTanks = KeyInventory.fluids(Math.max(1, storage.size()), Long.MAX_VALUE);
             legacyLock = KeyInventory.fluids(1, Long.MAX_VALUE);
         }
@@ -115,7 +117,7 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
     }
 
     public static <T extends AEKey> NotifiableInventory<T> empty(MetaMachine machine, AEKeyType type) {
-        var storage = type == AEKeyType.fluids() ? KeyInventory.fluids(0, 0) : KeyInventory.items(0);
+        var storage = type == AEKeyTypes.FLUIDS ? KeyInventory.fluids(0, 0) : KeyInventory.items(0);
         @SuppressWarnings("unchecked")
         var inv = new NotifiableInventory<>(machine, (KeyInventory<T>) storage, IO.NONE, IO.NONE);
         return inv.setAvailable(false);
@@ -216,28 +218,32 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
         return storage.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     public void exportToNearby(@NotNull Direction... facings) {
         if (isEmpty()) return;
-        var level = getMachine().getLevel();
-        var pos = getMachine().getPos();
+        var m = getMachine();
+        var level = m.getLevel();
+        var pos = m.getPos();
+        var cache = m.holder.blockEntityDirectionCache;
+        var inv = storage;
+        var type = inv.keyType();
         for (Direction facing : facings) {
-            var target = GTCapabilityHelper.getAdjacentKeyHandler(machine.holder.blockEntityDirectionCache, level, pos, facing, storage.keyType());
-            if (target == null) continue;
-            @SuppressWarnings("unchecked")
-            var to = (IKeyHandler<K>) target;
-            KeyTransfer.transfer(this.storage, to, Long.MAX_VALUE, getMachine().getKeyCapFilter(facing, IO.OUT, storage.keyType()));
+            var target = cache.getAdjacentKeyHandler(level, pos, facing, type, StorageAccess.INSERT);
+            if (target != null) KeyTransfer.transfer(inv, (IKeyHandler<K>) target, Long.MAX_VALUE, m.getKeyCapFilter(facing, IO.OUT, type));
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void importFromNearby(@NotNull Direction... facings) {
-        var level = getMachine().getLevel();
-        var pos = getMachine().getPos();
+        var m = getMachine();
+        var level = m.getLevel();
+        var pos = m.getPos();
+        var cache = m.holder.blockEntityDirectionCache;
+        var inv = storage;
+        var type = inv.keyType();
         for (Direction facing : facings) {
-            var source = GTCapabilityHelper.getAdjacentKeyHandler(machine.holder.blockEntityDirectionCache, level, pos, facing, storage.keyType());
-            if (source == null) continue;
-            @SuppressWarnings("unchecked")
-            var from = (IKeyHandler<K>) source;
-            KeyTransfer.transfer(from, this.storage, Long.MAX_VALUE, getMachine().getKeyCapFilter(facing, IO.IN, storage.keyType()));
+            var source = cache.getAdjacentKeyHandler(level, pos, facing, type, StorageAccess.EXTRACT);
+            if (source != null) KeyTransfer.transfer((IKeyHandler<K>) source, inv, Long.MAX_VALUE, m.getKeyCapFilter(facing, IO.IN, type));
         }
     }
 
@@ -313,6 +319,18 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
     @Override
     public long extract(K key, long amount, boolean simulate) {
         return canCapOutput() ? storage.extract(key, amount, simulate) : 0;
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out) {
+        var plain = readStorage();
+        if (plain != null) plain.getAvailableStacks(out);
+        else IKeyHandler.super.getAvailableStacks(out);
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
+        if (!extractableOnly || canCapOutput()) getAvailableStacks(out);
     }
 
     public NotifiableInventory<K> setAvailable(boolean available) {

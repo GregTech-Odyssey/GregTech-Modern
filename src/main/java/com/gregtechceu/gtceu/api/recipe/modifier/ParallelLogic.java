@@ -95,10 +95,12 @@ public final class ParallelLogic {
             parallel = extension.getParallel(holder, unit, recipe, parallel);
             if (parallel == 0) return 0;
         }
-        boolean voidItems = holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE);
-        boolean voidFluids = holder instanceof IVoidable voidable && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE);
-        boolean needItems = !recipe.itemOutputs.isEmpty() && !voidItems;
-        boolean needFluids = !recipe.fluidOutputs.isEmpty() && !voidFluids;
+        boolean needItems = !recipe.itemOutputs.isEmpty();
+        boolean needFluids = !recipe.fluidOutputs.isEmpty();
+        if (holder instanceof IVoidable voidable) {
+            if (needItems && voidable.canVoidRecipeOutputs(ItemRecipeInfo.INSTANCE)) needItems = false;
+            if (needFluids && voidable.canVoidRecipeOutputs(FluidRecipeInfo.INSTANCE)) needFluids = false;
+        }
         if (needItems || needFluids) {
             parallel = getOutputParallelAmount(holder.getOutputUnits(recipe), recipe, parallel, needItems, needFluids);
             if (parallel == 0) {

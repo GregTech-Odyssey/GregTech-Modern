@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.key.InfiniteKeySource;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
@@ -59,7 +58,7 @@ public class CreativeChestMachine extends QuantumChestMachine {
     }
 
     private InteractionResult updateStored(ItemStack item) {
-        var key = Keys.item(item);
+        var key = AEItemKey.of(item);
         cache.storage.set(0, key, key == null ? 0 : 1);
         return InteractionResult.SUCCESS;
     }

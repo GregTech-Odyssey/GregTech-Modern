@@ -6,11 +6,6 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.trait.NotifiableStackInventory;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeItemAdapter;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
-import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
@@ -30,8 +25,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
 
+import appeng.api.storage.MEStorage;
+import appeng.api.storage.MEStorageHost;
+import appeng.capabilities.Capabilities;
 import com.gto.datasynclib.FieldDataManager;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +39,7 @@ import snownee.jade.api.config.IPluginConfig;
 
 import java.util.Set;
 
-public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHighlight, IPaintable, IWailaDisplayProvider {
+public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHighlight, IPaintable, IWailaDisplayProvider, MEStorageHost {
 
     @Getter
     public final MetaMachine metaMachine;
@@ -107,28 +104,20 @@ public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHi
 
     @Nullable
     public static <T> LazyOptional<T> getCapability(MetaMachine machine, @NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            if (machine.itemCapDirectionCache.getCache(side) instanceof LazyOptional<?> cached) return cached.cast();
-            return machine.itemCapDirectionCache.getOrSet(side, () -> {
-                var handler = machine.getItemHandlerCap(side, true);
-                if (handler != null) {
-                    IItemHandler adapter = handler instanceof StackInventory stacks ? new ForgeStackAdapter(stacks) : handler instanceof NotifiableStackInventory n ? new ForgeStackAdapter(n.storage, n::canCapInput, n::canCapOutput) : new ForgeItemAdapter(handler);
-                    return LazyOptional.of(() -> adapter);
-                }
-                return LazyOptional.empty();
-            }).cast();
-        } else if (cap == ForgeCapabilities.FLUID_HANDLER) {
-            if (machine.fluidCapDirectionCache.getCache(side) instanceof LazyOptional<?> cached) return cached.cast();
-            return machine.fluidCapDirectionCache.getOrSet(side, () -> {
-                var handler = machine.getFluidHandlerCap(side, true);
-                if (handler != null) {
-                    var adapter = new ForgeFluidAdapter(handler);
-                    return LazyOptional.of(() -> adapter);
-                }
-                return LazyOptional.empty();
-            }).cast();
-        }
+        if (cap == ForgeCapabilities.ITEM_HANDLER) return machine.getItemCapability(side).cast();
+        if (cap == ForgeCapabilities.FLUID_HANDLER) return machine.getFluidCapability(side).cast();
+        if (cap == Capabilities.STORAGE) return machine.getStorageCapability(side).cast();
         return machine.getCapability(cap, side);
+    }
+
+    @Override
+    public @Nullable MEStorage getMEStorage(@Nullable Direction side) {
+        return metaMachine.getExposedStorage(side);
+    }
+
+    @Override
+    public int storageEpoch() {
+        return metaMachine.storageEpoch();
     }
 
     /**

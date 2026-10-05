@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.PlanScratch;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -152,7 +153,7 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
             var inputSlot = machineInputs.get(i);
             long need = list.isConsumable(i) ? list.effective(i, recipe.scale) : list.amount(i);
             long stored = inputSlot.amountAt(0);
-            if (stored < need || stored == 0 || !list.ingredient(i).test(inputSlot.uidAt(0), inputSlot.rawKeyAt(0))) {
+            if (stored < need || stored == 0 || !KeyIngredient.accepts(list.ingredient(i), inputSlot.uidAt(0), inputSlot.rawKeyAt(0))) {
                 return false;
             }
             if (simulate) continue;

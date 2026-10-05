@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.uiwidgets.circuit;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.content.Circuits;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.item.IntCircuitBehaviour;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
@@ -92,7 +91,7 @@ public final class CircuitSelector {
         if (key != null && key.getItem() == Circuits.item() && key.getTag() != null && key.getTag().size() > 1) {
             var stack = key.toStack();
             IntCircuitBehaviour.setCircuitConfiguration(stack, circuit);
-            circuitSlot.set(0, Keys.item(stack), circuitSlot.amountAt(0));
+            circuitSlot.set(0, AEItemKey.of(stack), circuitSlot.amountAt(0));
         } else {
             Circuits.set(circuitSlot, 0, circuit);
         }

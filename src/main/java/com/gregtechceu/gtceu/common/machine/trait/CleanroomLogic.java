@@ -97,6 +97,10 @@ public class CleanroomLogic extends RecipeLogic {
     }
 
     protected void adjustCleanAmount(boolean declined) {
+        machine.adjustCleanAmount(getCleanAmountPerCycle(declined));
+    }
+
+    public int getCleanAmountPerCycle(boolean declined) {
         // range from 5 - ~44 % per cycle instead of the 5 - 70% it was previously
         int amountToClean = BASE_CLEAN_AMOUNT + (3 * (getTierDifference() + 1));
         if (declined) amountToClean *= -1;
@@ -104,15 +108,22 @@ public class CleanroomLogic extends RecipeLogic {
         if (maintenanceMachine != null) {
             amountToClean -= maintenanceMachine.getNumMaintenanceProblems();
         }
-        machine.adjustCleanAmount(amountToClean);
+        return amountToClean;
+    }
+
+    public int getCleanAmountChange() {
+        return duration > 0 ? getCleanAmountPerCycle(!isWorking()) : 0;
+    }
+
+    public long getEnergyPerTick() {
+        // clamp to max for VA indexing
+        var tier = Mth.clamp(machine.getTier(), GTValues.ULV, GTValues.MAX);
+        // use 3/16th an amp when fully clean otherwise 15/16th an amp during cleaning
+        return machine.isClean() ? Math.max(8, (3 * GTValues.V[tier] / 16)) : GTValues.VA[tier];
     }
 
     protected boolean consumeEnergy() {
-        var cleanroom = machine;
-        // clamp to max for VA indexing
-        var tier = Mth.clamp(cleanroom.getTier(), GTValues.ULV, GTValues.MAX);
-        // use 3/16th an amp when fully clean otherwise 15/16th an amp during cleaning
-        long energyToDrain = cleanroom.isClean() ? Math.max(8, (3 * GTValues.V[tier] / 16)) : GTValues.VA[tier];
+        long energyToDrain = getEnergyPerTick();
         if (energyContainer != null) {
             long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
             if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {

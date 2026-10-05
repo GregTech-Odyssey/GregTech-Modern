@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fluids.FluidType;
 
 import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import org.jetbrains.annotations.Nullable;
 
@@ -96,8 +97,8 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         var level = getLevel();
         boolean canIO = isWorkingEnabled() && (io == IO.OUT && (!tank.isEmpty() || !getInventory().isEmpty()) || io == IO.IN);
         if (canIO && level != null) {
-            this.hasItemHandler = holder.blockEntityDirectionCache.hasAdjacentItemHandler(level, getPos(), getFrontFacing());
-            this.hasFluidHandler = holder.blockEntityDirectionCache.hasAdjacentFluidHandler(level, getPos(), getFrontFacing());
+            this.hasItemHandler = holder.blockEntityDirectionCache.hasAdjacentTarget(level, getPos(), getFrontFacing(), AEKeyTypes.ITEMS, io.neighbourAccess());
+            this.hasFluidHandler = holder.blockEntityDirectionCache.hasAdjacentTarget(level, getPos(), getFrontFacing(), AEKeyTypes.FLUIDS, io.neighbourAccess());
         } else {
             this.hasItemHandler = false;
             this.hasFluidHandler = false;

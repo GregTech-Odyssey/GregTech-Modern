@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
+import appeng.hooks.IUnique;
 import org.jetbrains.annotations.Nullable;
 
 public final class Circuits {
@@ -21,8 +22,18 @@ public final class Circuits {
 
     private Circuits() {}
 
+    private static final class Registered {
+
+        static final Item ITEM = GTItems.PROGRAMMED_CIRCUIT.get();
+        static final int UID = IUnique.getUid(ITEM);
+    }
+
     public static Item item() {
-        return GTItems.PROGRAMMED_CIRCUIT.get();
+        return Registered.ITEM;
+    }
+
+    public static int uid() {
+        return Registered.UID;
     }
 
     public static AEItemKey key(int configuration) {
@@ -35,17 +46,20 @@ public final class Circuits {
     }
 
     public static int configOf(@Nullable AEItemKey key) {
-        if (key == null || key.getItem() != item()) return -1;
+        if (key == null || key.uid != Registered.UID) return -1;
         return configOf(key.getTag());
     }
 
     public static int configOf(ItemStack stack) {
-        if (stack.getItem() != item()) return -1;
+        if (stack.getItem() != Registered.ITEM) return -1;
         return configOf(stack.getTag());
     }
 
     public static int configOf(@Nullable CompoundTag tag) {
-        if (tag != null && tag.get(CONFIGURATION) instanceof NumericTag n) return n.getAsInt();
+        if (tag != null && tag.get(CONFIGURATION) instanceof NumericTag n) {
+            int c = n.getAsInt();
+            if (c >= 0 && c <= MAX) return c;
+        }
         return -1;
     }
 

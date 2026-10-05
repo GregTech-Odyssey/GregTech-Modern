@@ -1,10 +1,15 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
+import appeng.api.config.Actionable;
+import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.KeyCounter;
+import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Set;
 
 public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
 
@@ -73,6 +78,16 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public boolean supportsKeyType(AEKeyType type) {
+        return type == this.type;
+    }
+
+    @Override
+    public @Nullable MEStorage forKeyType(AEKeyType type) {
+        return type == this.type ? this : null;
+    }
+
+    @Override
     public boolean fixedSize() {
         return offsets != null;
     }
@@ -93,8 +108,6 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     private long locate(int slot) {
         int[] off = offsets;
         if (off != null) {
-            if (slot >= total) return -1;
-            if (slot < 0) return off.length > 1 ? slot & 0xFFFFFFFFL : -1;
             int m = lastMember;
             if (slot < off[m] || slot >= off[m + 1]) {
                 int lo = 0;
@@ -133,6 +146,12 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public <R> R readSlot(int slot, int index, SlotReader<? super K, R> reader) {
+        long loc = locate(slot);
+        return loc < 0 ? reader.read(index, null, 0) : handlers[(int) (loc >>> 32)].readSlot((int) loc, index, reader);
+    }
+
+    @Override
     public long slotLimit(int slot) {
         long loc = locate(slot);
         return loc < 0 ? 0 : handlers[(int) (loc >>> 32)].slotLimit((int) loc);
@@ -168,5 +187,43 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
             left -= h.extract(key, left, simulate);
         }
         return amount - left;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
+        return amount > 0 && what.getType() == type ? insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public long extract(AEKey what, long amount, Actionable mode, IActionSource source) {
+        return amount > 0 && what.getType() == type ? extract((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out) {
+        for (var h : handlers) h.getAvailableStacks(out);
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
+        for (var h : handlers) h.getAvailableStacks(out, extractableOnly);
+    }
+
+    @Override
+    public boolean containsAny(Set<AEKey> primaryKeys) {
+        for (var h : handlers) {
+            if (h.containsAny(primaryKeys)) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (var h : handlers) {
+            if (!h.isEmpty()) return false;
+        }
+        return true;
     }
 }

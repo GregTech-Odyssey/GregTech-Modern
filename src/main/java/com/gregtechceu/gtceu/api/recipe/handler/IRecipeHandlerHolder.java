@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.info.*;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -499,11 +498,11 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
     }
 
     default boolean simulateOutputItem(ItemLike item, long amount) {
-        return simulateOutput(Keys.item(item), amount);
+        return simulateOutput(AEItemKey.of(item), amount);
     }
 
     default boolean outputItem(ItemLike item, long amount) {
-        return output(Keys.item(item), amount);
+        return output(AEItemKey.of(item), amount);
     }
 
     default boolean simulateOutput(AEKey key, long amount) {

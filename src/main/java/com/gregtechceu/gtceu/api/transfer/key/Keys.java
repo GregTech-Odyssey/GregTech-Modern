@@ -1,8 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
-import net.minecraft.world.item.Item;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -13,42 +12,25 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 public final class Keys {
 
     private Keys() {}
 
-    private static final ConcurrentHashMap<Item, AEItemKey> DEPLETABLE = new ConcurrentHashMap<>();
-
-    public static @Nullable AEItemKey item(ItemStack stack) {
-        if (stack.getCount() <= 0) return null;
-        return AEItemKey.of(stack);
-    }
-
-    public static @Nullable AEItemKey itemType(ItemStack stack) {
-        return AEItemKey.of(stack);
-    }
-
-    public static AEItemKey item(ItemLike itemLike) {
-        Item item = itemLike.asItem();
-        if (!item.canBeDepleted()) return AEItemKey.of(item);
-        return DEPLETABLE.computeIfAbsent(item, i -> AEItemKey.of(new ItemStack(i)));
-    }
-
     public static @Nullable AEFluidKey fluid(FluidStack stack) {
         if (stack.isEmpty()) return null;
-        Fluid fluid = source(stack.getRawFluid());
         var tag = stack.getTag();
-        return tag == null || tag.isEmpty() ? AEFluidKey.of(fluid) : AEFluidKey.of(fluid, tag);
+        return tag == null ? AEFluidKey.ofSource(stack.getRawFluid()) : tagged(stack.getRawFluid(), tag);
     }
 
     public static @Nullable AEFluidKey fluidType(FluidStack stack) {
         Fluid fluid = stack.getRawFluid();
         if (fluid == Fluids.EMPTY) return null;
-        fluid = source(fluid);
         var tag = stack.getTag();
-        return tag == null || tag.isEmpty() ? AEFluidKey.of(fluid) : AEFluidKey.of(fluid, tag);
+        return tag == null ? AEFluidKey.ofSource(fluid) : tagged(fluid, tag);
+    }
+
+    private static AEFluidKey tagged(Fluid fluid, CompoundTag tag) {
+        return AEFluidKey.of(source(fluid), tag);
     }
 
     public static Fluid source(Fluid fluid) {

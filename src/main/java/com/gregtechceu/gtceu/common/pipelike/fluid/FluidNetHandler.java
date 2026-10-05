@@ -16,6 +16,7 @@ import net.minecraft.core.Direction;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -160,7 +161,7 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
 
     @Override
     public AEKeyType keyType() {
-        return AEKeyType.fluids();
+        return AEKeyTypes.FLUIDS;
     }
 
     @Override
@@ -205,7 +206,7 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
 
     @Override
     public long insert(AEFluidKey key, long amount, boolean simulate) {
-        if (amount <= 0 || pipe == null) return 0;
+        if (amount <= 0) return 0;
         pipe.checkNetwork();
         if (net == null || pipe.isInValid() || pipe.isBlocked(facing)) {
             return 0;

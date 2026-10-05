@@ -143,7 +143,7 @@ public final class ItemRecipeInfo extends ContentRecipeInfo {
     public static ItemEntryList mapItem(ContentList contents, int i) {
         var ing = contents.ingredient(i);
         int amount = Keys.saturatedInt(contents.amount(i));
-        if (ing.kind == KeyIngredient.TAG && ing.tag() != null) {
+        if (ing.kind() == KeyIngredient.TAG && ing.tagKey() != null) {
             return ItemTagList.of(ing.itemTagKey(), amount, null);
         }
         var items = ing.getItems();

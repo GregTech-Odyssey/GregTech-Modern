@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
 import com.gregtechceu.gtceu.api.blockentity.IPaintable;
 import com.gregtechceu.gtceu.api.blockentity.ISync;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
@@ -21,10 +22,12 @@ import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.transfer.forge.ForgeAdapters;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerList;
 import com.gregtechceu.gtceu.api.transfer.key.KeyIOView;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.MachineKeyStorage;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.cover.FluidFilterCover;
 import com.gregtechceu.gtceu.common.cover.ItemFilterCover;
@@ -68,7 +71,9 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.AEKeyFilter;
+import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
@@ -122,8 +127,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     protected final DirectionCache<IKeyHandler<AEItemKey>> itemHandlerModifiableCoverCache = DirectionCache.create();
     protected final DirectionCache<IKeyHandler<AEFluidKey>> fluidHandlerModifiableCoverCache = DirectionCache.create();
 
-    public final DirectionCache<LazyOptional<IItemHandler>> itemCapDirectionCache = DirectionCache.create();
-    public final DirectionCache<LazyOptional<IFluidHandler>> fluidCapDirectionCache = DirectionCache.create();
+    private final DirectionCache<SideExposure> sideExposures = DirectionCache.create();
+    private int storageEpoch;
 
     protected final DirectionCache<FluidState> fluidStateDirectionCache = DirectionCache.create();
 
@@ -420,8 +425,22 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         fluidHandlerModifiableCache.clearCache();
         fluidHandlerModifiableCoverCache.clearCache();
         // invalidate handed-out LazyOptionals so mods caching them (Pipez etc.) re-query
-        itemCapDirectionCache.clearCache(LazyOptional::invalidate);
-        fluidCapDirectionCache.clearCache(LazyOptional::invalidate);
+        sideExposures.clearCache(SideExposure::invalidate);
+        bumpStorageEpoch();
+    }
+
+    public void notifyExposureChanged() {
+        clearDirectionCache();
+        if (!isRemote() && !isRemoved()) notifyNeighborsUpdate();
+    }
+
+    public final int storageEpoch() {
+        return storageEpoch;
+    }
+
+    private void bumpStorageEpoch() {
+        storageEpoch = storageEpoch + 1 & Integer.MAX_VALUE;
+        BlockEntityWatch.changed(holder);
     }
 
     public void clearInventory(StackInventory inventory) {
@@ -435,7 +454,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     }
 
     public void clearInventory(KeyInventory<?> inventory) {
-        if (inventory.keyType() != AEKeyType.items()) return;
+        if (inventory.keyType() != AEKeyTypes.ITEMS) return;
         int size = inventory.size();
         for (int i = 0; i < size; i++) {
             long amount = inventory.amountAt(i);
@@ -677,21 +696,35 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     //////////////////////////////////////
     // ****** Capability ********//
     //////////////////////////////////////
+    private SideExposure exposure(@Nullable Direction side) {
+        var cached = sideExposures.getCache(side);
+        if (cached != null) return (SideExposure) cached;
+        var exposure = new SideExposure();
+        sideExposures.setCache(side, exposure);
+        return exposure;
+    }
+
     @Nullable
     public AEKeyFilter getKeyCapFilter(@Nullable Direction side, IO io, AEKeyType type) {
-        if (side != null) {
+        if (side == null) return null;
+        boolean items = type == AEKeyTypes.ITEMS;
+        if (io != IO.IN && io != IO.OUT) return coverFilter(getCoverContainer().getCoverAtSide(side), io, items);
+        var e = exposure(side);
+        if (!e.filtersResolved) {
             var cover = getCoverContainer().getCoverAtSide(side);
-            if (type == AEKeyType.items()) {
-                if (cover instanceof ItemFilterCover filterCover && filterCover.getFilterMode().filters(io)) {
-                    var filter = filterCover.getItemFilter();
-                    return k -> k instanceof AEItemKey itemKey && filter.test(itemKey.getReadOnlyStack());
-                }
-            } else if (cover instanceof FluidFilterCover filterCover && filterCover.getFilterMode().filters(io)) {
-                var filter = filterCover.getFluidFilter();
-                return k -> k instanceof AEFluidKey fluidKey && filter.test(fluidKey.getReadOnlyStack());
-            }
+            e.itemIn = coverFilter(cover, IO.IN, true);
+            e.itemOut = coverFilter(cover, IO.OUT, true);
+            e.fluidIn = coverFilter(cover, IO.IN, false);
+            e.fluidOut = coverFilter(cover, IO.OUT, false);
+            e.filtersResolved = true;
         }
-        return null;
+        if (items) return io == IO.IN ? e.itemIn : e.itemOut;
+        return io == IO.IN ? e.fluidIn : e.fluidOut;
+    }
+
+    private static @Nullable AEKeyFilter coverFilter(@Nullable CoverBehavior cover, IO io, boolean items) {
+        if (items) return cover instanceof ItemFilterCover filterCover ? new ItemCoverFilter(filterCover, io) : null;
+        return cover instanceof FluidFilterCover filterCover ? new FluidCoverFilter(filterCover, io) : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -715,12 +748,72 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         return new KeyIOView<>(base, !outputOnly, true, inf, outf);
     }
 
+    public @Nullable MEStorage getStorageCap(@Nullable Direction side) {
+        if (side == null) return null;
+        var items = getItemHandlerCap(side, true);
+        var fluids = getFluidHandlerCap(side, true);
+        if (items == null) return fluids;
+        if (fluids == null) return items;
+        return new MachineKeyStorage(items, fluids, Component.translatable(getDefinition().getDescriptionId()));
+    }
+
+    public final @Nullable MEStorage getExposedStorage(@Nullable Direction side) {
+        var e = exposure(side);
+        if (!e.storageResolved) {
+            e.storage = getStorageCap(side);
+            e.storageResolved = true;
+        }
+        return e.storage;
+    }
+
+    public final LazyOptional<MEStorage> getStorageCapability(@Nullable Direction side) {
+        var e = exposure(side);
+        var cap = e.storageCap;
+        if (cap == null) {
+            var storage = getExposedStorage(side);
+            e.storageCap = cap = storage == null ? LazyOptional.empty() : LazyOptional.of(() -> storage);
+        }
+        return cap;
+    }
+
+    public final LazyOptional<IItemHandler> getItemCapability(@Nullable Direction side) {
+        var e = exposure(side);
+        var cap = e.items;
+        if (cap == null) {
+            var handler = getItemHandlerCap(side, true);
+            if (handler == null) {
+                cap = LazyOptional.empty();
+            } else {
+                IItemHandler adapter = ForgeAdapters.items(handler);
+                cap = LazyOptional.of(() -> adapter);
+            }
+            e.items = cap;
+        }
+        return cap;
+    }
+
+    public final LazyOptional<IFluidHandler> getFluidCapability(@Nullable Direction side) {
+        var e = exposure(side);
+        var cap = e.fluids;
+        if (cap == null) {
+            var handler = getFluidHandlerCap(side, true);
+            if (handler == null) {
+                cap = LazyOptional.empty();
+            } else {
+                IFluidHandler adapter = ForgeAdapters.fluids(handler);
+                cap = LazyOptional.of(() -> adapter);
+            }
+            e.fluids = cap;
+        }
+        return cap;
+    }
+
     public @Nullable IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability) {
         var cache = useCoverCapability ? itemHandlerModifiableCoverCache : itemHandlerModifiableCache;
         if (cache.has(side)) return cache.get(side);
         return cache.getOrSet(side, () -> {
             boolean outputOnly = side != null && this instanceof IAutoOutputItem autoOutput && autoOutput.getOutputFacingItems() == side && !autoOutput.isAllowInputFromOutputSideItems();
-            IKeyHandler<AEItemKey> handler = buildKeyCap(side, AEKeyType.items(), outputOnly);
+            IKeyHandler<AEItemKey> handler = buildKeyCap(side, AEKeyTypes.ITEMS, outputOnly);
             if (handler == null || !useCoverCapability || side == null) return handler;
             CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
             return cover != null ? cover.getItemHandlerCap(handler) : handler;
@@ -732,7 +825,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         if (cache.has(side)) return cache.get(side);
         return cache.getOrSet(side, () -> {
             boolean outputOnly = side != null && this instanceof IAutoOutputFluid autoOutput && autoOutput.getOutputFacingFluids() == side && !autoOutput.isAllowInputFromOutputSideFluids();
-            IKeyHandler<AEFluidKey> handler = buildKeyCap(side, AEKeyType.fluids(), outputOnly);
+            IKeyHandler<AEFluidKey> handler = buildKeyCap(side, AEKeyTypes.FLUIDS, outputOnly);
             if (handler == null || !useCoverCapability || side == null) return handler;
             CoverBehavior cover = getCoverContainer().getCoverAtSide(side);
             return cover != null ? cover.getFluidHandlerCap(handler) : handler;
@@ -782,8 +875,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         itemHandlerModifiableCoverCache.remove(side);
         fluidHandlerModifiableCache.remove(side);
         fluidHandlerModifiableCoverCache.remove(side);
-        itemCapDirectionCache.remove(side, LazyOptional::invalidate);
-        fluidCapDirectionCache.remove(side, LazyOptional::invalidate);
+        sideExposures.remove(side, SideExposure::invalidate);
+        bumpStorageEpoch();
     }
 
     public void setOwnerUUID(@Nullable final UUID ownerUUID) {
@@ -803,5 +896,49 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     @Override
     public void scheduleUpdate(LogicalSide side) {
         holder.scheduleUpdate(side);
+    }
+
+    private static final class SideExposure {
+
+        @Nullable
+        LazyOptional<IItemHandler> items;
+        @Nullable
+        LazyOptional<IFluidHandler> fluids;
+        @Nullable
+        LazyOptional<MEStorage> storageCap;
+        @Nullable
+        MEStorage storage;
+        boolean storageResolved;
+        @Nullable
+        AEKeyFilter itemIn;
+        @Nullable
+        AEKeyFilter itemOut;
+        @Nullable
+        AEKeyFilter fluidIn;
+        @Nullable
+        AEKeyFilter fluidOut;
+        boolean filtersResolved;
+
+        void invalidate() {
+            if (items != null) items.invalidate();
+            if (fluids != null) fluids.invalidate();
+            if (storageCap != null) storageCap.invalidate();
+        }
+    }
+
+    private record ItemCoverFilter(ItemFilterCover cover, IO io) implements AEKeyFilter {
+
+        @Override
+        public boolean matches(AEKey key) {
+            return !cover.getFilterMode().filters(io) || key instanceof AEItemKey itemKey && cover.getItemFilter().test(itemKey.getReadOnlyStack());
+        }
+    }
+
+    private record FluidCoverFilter(FluidFilterCover cover, IO io) implements AEKeyFilter {
+
+        @Override
+        public boolean matches(AEKey key) {
+            return !cover.getFilterMode().filters(io) || key instanceof AEFluidKey fluidKey && cover.getFluidFilter().test(fluidKey.getReadOnlyStack());
+        }
     }
 }

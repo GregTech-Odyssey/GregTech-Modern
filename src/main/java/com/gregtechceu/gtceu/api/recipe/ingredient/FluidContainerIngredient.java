@@ -84,15 +84,15 @@ public class FluidContainerIngredient extends Ingredient {
             return json;
         }
         var display = ingredient.displayKey() instanceof AEFluidKey fluidKey ? fluidKey : null;
-        if (ingredient.tag() != null) {
-            json.addProperty("tag", ingredient.tag().location().toString());
+        if (ingredient.tagKey() != null) {
+            json.addProperty("tag", ingredient.tagKey().location().toString());
         } else if (display != null) {
             json.addProperty("fluid", GTUtil.FLUID_ID.apply(display.getFluid()).toString());
         } else {
             throw new IllegalStateException("Unknown fluid ingredient type");
         }
         json.addProperty("amount", amount);
-        if (ingredient.kind != KeyIngredient.BASE && ingredient.kind != KeyIngredient.TAG && display != null && display.getTag() != null) {
+        if (ingredient.kind() != KeyIngredient.BASE && ingredient.kind() != KeyIngredient.TAG && display != null && display.getTag() != null) {
             json.addProperty("nbt", display.getTag().getAsString());
         }
         return json;

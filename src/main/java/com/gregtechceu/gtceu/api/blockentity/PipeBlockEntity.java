@@ -170,6 +170,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
 
     protected void blockedChanged(boolean isBlocked) {}
 
+    public void invalidateCapabilityCache() {}
+
+    public void onJoinedNet() {}
+
     //////////////////////////////////////
     // ******* Pipe Status *******//
     //////////////////////////////////////
@@ -187,6 +191,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 blockedSide = null;
             }
             blockedChanged(isBlocked);
+            invalidateCapabilityCache();
             LevelPipeNet<?, ?> worldPipeNet = getPipeBlock().getWorldPipeNet(serverLevel);
             PipeNet<?> net = worldPipeNet.getNetFromPos(getBlockPos(), longPos);
             if (net != null) {
@@ -225,6 +230,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             }
             connections = withSideConnection(connections, side, connected);
             updateNetworkConnection(side, connected);
+            invalidateCapabilityCache();
             // notify neighbor of change so Auto Output updates its ticking status
             getLevel().neighborChanged(getBlockPos().relative(side), getPipeBlock(), getBlockPos());
             setChanged();

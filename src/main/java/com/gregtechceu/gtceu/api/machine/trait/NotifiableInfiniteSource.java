@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
@@ -46,19 +47,20 @@ public class NotifiableInfiniteSource<K extends AEKey> extends NotifiableContent
 
     @Override
     public boolean handlesItems() {
-        return config.keyType() == AEKeyType.items();
+        return config.keyType() == AEKeyTypes.ITEMS;
     }
 
     @Override
     public boolean handlesFluids() {
-        return config.keyType() == AEKeyType.fluids();
+        return config.keyType() == AEKeyTypes.FLUIDS;
     }
 
     @Override
     public long available(AEKeyType type, KeyIngredient ingredient) {
-        if (type != config.keyType()) return 0;
-        for (int i = 0; i < config.size(); i++) {
-            if (config.amountAt(i) > 0 && ingredient.test(config.uidAt(i), config.rawKeyAt(i))) return Long.MAX_VALUE;
+        var c = config;
+        int size = c.size();
+        for (int i = 0; i < size; i++) {
+            if (c.amountAt(i) > 0 && KeyIngredient.accepts(ingredient, c.uidAt(i), c.rawKeyAt(i))) return Long.MAX_VALUE;
         }
         return 0;
     }

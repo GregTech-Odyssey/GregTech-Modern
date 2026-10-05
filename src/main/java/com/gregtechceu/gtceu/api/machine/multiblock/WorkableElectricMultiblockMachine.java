@@ -105,10 +105,8 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         page.addLine(LANG_MAX_POWER, MultiblockPage.cached(this::getMaxVoltage,
                 voltage -> Component.literal(FormattingUtil.formatNumbers(voltage) + " EU/t (" + GTValues.VNF[GTUtil.getFloorTierByVoltage(voltage)] + "§r)")));
         boolean generator = isGenerator();
-        page.addLine(generator ? LANG_ENERGY_OUTPUT : LANG_ENERGY_USAGE, MultiblockPage.cached(() -> {
-            var recipe = recipeLogic.isWorking() ? recipeLogic.getLastRecipe() : null;
-            return recipe == null ? 0 : generator ? recipe.getOutputEUt() : recipe.getInputEUt();
-        }, usage -> Component.literal(FormattingUtil.formatNumbers(usage) + " EU/t")));
+        page.addLine(generator ? LANG_ENERGY_OUTPUT : LANG_ENERGY_USAGE, MultiblockPage.cached(() -> getScreenEnergyRate(generator),
+                usage -> Component.literal(FormattingUtil.formatNumbers(usage) + " EU/t")));
         page.addLine(MultiblockPage.PARALLEL, MultiblockPage.cached(() -> {
             var recipe = recipeLogic.isIdle() ? null : recipeLogic.getLastRecipe();
             return recipe == null ? 0 : recipe.parallels;
@@ -118,6 +116,11 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         addScreenReadouts(page);
         page.addText(this::addScreenText, this::handleDisplayClick);
         addControls(page.getControls());
+    }
+
+    protected long getScreenEnergyRate(boolean generator) {
+        var recipe = recipeLogic.isWorking() ? recipeLogic.getLastRecipe() : null;
+        return recipe == null ? 0 : generator ? recipe.getOutputEUt() : recipe.getInputEUt();
     }
 
     protected void addScreenText(List<Component> textList) {}

@@ -223,7 +223,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
 
     public boolean search(Predicate<GTRecipeDefinition> canHandle, IntLongMap map, ItemStack[] itemInputs, FluidStack... fluidInputs) {
         for (var item : itemInputs) {
-            var key = Keys.item(item);
+            var key = AEItemKey.of(item);
             if (key != null) this.convertKey(key, item.getCount(), map);
         }
         for (var fluid : fluidInputs) {
@@ -352,14 +352,14 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     public void convertIngredient(KeyIngredient ingredient, long amount, IntLongMap map) {
-        switch (ingredient.kind) {
+        switch (ingredient.kind()) {
             case KeyIngredient.CIRCUIT -> map.add(ingredient.circuitConfiguration(), 1);
             case KeyIngredient.EXACT, KeyIngredient.BASE -> {
                 var key = ingredient.key();
                 if (key != null) map.add(key.getPrimaryKey().hashCode(), amount);
             }
             case KeyIngredient.TAG -> {
-                if (ingredient.tag() != null) map.add(ingredient.tag().hashCode(), amount);
+                if (ingredient.tagKey() != null) map.add(ingredient.tagKey().hashCode(), amount);
             }
             default -> {}
         }

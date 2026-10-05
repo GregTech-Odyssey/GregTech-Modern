@@ -114,7 +114,7 @@ public final class FluidRecipeInfo extends ContentRecipeInfo {
     public static FluidEntryList mapFluid(ContentList contents, int i) {
         var ing = contents.ingredient(i);
         int amount = Keys.saturatedInt(contents.amount(i));
-        if ((ing.kind == KeyIngredient.TAG || ing.kind == KeyIngredient.PREDICATE) && ing.tag() != null) {
+        if ((ing.kind() == KeyIngredient.TAG || ing.kind() == KeyIngredient.PREDICATE) && ing.tagKey() != null) {
             var key = ing.displayKey();
             return FluidTagList.of(ing.fluidTagKey(), amount, key instanceof AEFluidKey fk ? fk.getTag() : null);
         }

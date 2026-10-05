@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.cover.detector;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
@@ -44,6 +43,6 @@ public class FluidDetectorCover extends DetectorCover {
     }
 
     protected IKeyHandler<AEFluidKey> getFluidHandler() {
-        return GTCapabilityHelper.getFluidKeyHandler(coverHolder.holder(), attachedSide);
+        return coverHolder.getFluidHandlerCap(attachedSide, false);
     }
 }

@@ -15,11 +15,10 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEKeyType;
-import org.jetbrains.annotations.Nullable;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -39,7 +38,7 @@ public class TankValvePartMachine extends MultiblockPartMachine {
     }
 
     protected InventoryProxyTrait<AEFluidKey> createTank(Object... args) {
-        return new InventoryProxyTrait<>(this, AEKeyType.fluids(), IO.BOTH);
+        return new InventoryProxyTrait<>(this, AEKeyTypes.FLUIDS, IO.BOTH);
     }
 
     @Override
@@ -92,11 +91,6 @@ public class TankValvePartMachine extends MultiblockPartMachine {
         autoIOSubscription.updateSubscription();
     }
 
-    @Nullable
-    private IFluidHandler getTargetTank() {
-        return holder.blockEntityDirectionCache.getAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()).orElse(null);
-    }
-
     private void autoIO() {
         tankProxy.exportToNearby(getFrontFacing());
         autoIOSubscription.updateSubscription();
@@ -106,6 +100,6 @@ public class TankValvePartMachine extends MultiblockPartMachine {
         if (!isFormed()) return false;
         if (getFrontFacing() != Direction.DOWN) return false;
         if (tankProxy.isEmpty()) return false;
-        return getTargetTank() != null;
+        return holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), getFrontFacing(), AEKeyTypes.FLUIDS, StorageAccess.INSERT);
     }
 }

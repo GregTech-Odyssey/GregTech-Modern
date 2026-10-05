@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
+import com.gregtechceu.gtceu.uipro.UIIngredient;
 import com.gregtechceu.gtceu.uipro.view.scene.SceneView;
 
 import com.lowdragmc.lowdraglib.client.utils.RenderUtils;
@@ -522,7 +523,7 @@ public final class StructureScene extends SceneView {
     @Override
     public Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
         var result = super.getXEIIngredientOverMouse(mouseX, mouseY);
-        if (result == null && !hoverItem.isEmpty() && isPointerOver(mouseX, mouseY) && !isFlying()) return hoverItem;
+        if (result == null && !hoverItem.isEmpty() && isPointerOver(mouseX, mouseY) && !isFlying()) return UIIngredient.of(hoverItem);
         return result;
     }
 

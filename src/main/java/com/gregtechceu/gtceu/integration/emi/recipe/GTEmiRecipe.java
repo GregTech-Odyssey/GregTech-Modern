@@ -364,13 +364,16 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
 
     protected static EmiIngredient getEmiIngredient(KeyIngredient ingredient, long amount, boolean input) {
         if (!input) return getEmiStack(ingredient, amount);
-        switch (ingredient.kind) {
-            case KeyIngredient.EXACT, KeyIngredient.BASE, KeyIngredient.CIRCUIT -> {
+        switch (ingredient.kind()) {
+            case KeyIngredient.EXACT, KeyIngredient.CIRCUIT -> {
                 return keyStack(ingredient.key(), amount);
             }
+            case KeyIngredient.BASE -> {
+                return keyStack(ingredient.key().dropSecondary(), amount);
+            }
             case KeyIngredient.TAG -> {
-                if (ingredient.tag() != null) {
-                    var tag = new TagEmiIngredient(ingredient.tag(), amount);
+                if (ingredient.tagKey() != null) {
+                    var tag = new TagEmiIngredient(ingredient.tagKey(), amount);
                     var tagStacks = tag.getEmiStacks();
                     if (tagStacks.size() == 1) return tagStacks.getFirst().copy().setAmount(amount);
                     if (!tagStacks.isEmpty()) return tag;

@@ -7,7 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyMap;
+import appeng.api.stacks.AEKeyLongMap;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Used to store {@link appeng.api.stacks.GenericStack } in a way that associates key and amount.
@@ -31,9 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @MethodsReturnNonnullByDefault
 public class KeyStorage extends AbstractDataSerializable implements Iterable<Reference2LongMap.Entry<AEKey>> {
 
-    public final ReentrantLock lock = new ReentrantLock();
-
-    public final AEKeyMap<AEKey> storage = new AEKeyMap<>();
+    public final AEKeyLongMap<AEKey> storage = new AEKeyLongMap<>();
 
     // not
     @Nullable
@@ -120,17 +117,12 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
     @Override
     public Data writeData() {
         var list = new ListData();
-        lock.lock();
-        try {
-            for (var entry : this) {
-                var tag = new CompoundTag();
-                if (entry == null) continue;
-                tag.put("key", entry.getKey().toTagGeneric());
-                tag.putLong("value", entry.getLongValue());
-                list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(tag));
-            }
-        } finally {
-            lock.unlock();
+        for (var entry : this) {
+            var tag = new CompoundTag();
+            if (entry == null) continue;
+            tag.put("key", entry.getKey().toTagGeneric());
+            tag.putLong("value", entry.getLongValue());
+            list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(tag));
         }
         return list.isEmpty() ? NullData.INSTANCE : list;
     }
@@ -143,12 +135,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
             var key = AEKey.fromTagGeneric(tag.getCompound("key"));
             if (key == null) continue;
             long value = tag.getLong("value");
-            lock.lock();
-            try {
-                storage.set(key, value);
-            } finally {
-                lock.unlock();
-            }
+            storage.set(key, value);
         }
     }
 }

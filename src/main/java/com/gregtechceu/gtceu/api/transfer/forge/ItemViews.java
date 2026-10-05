@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import java.util.Arrays;
  * 一个物品存储借给 Forge 的视图栈：cache 与存储共享，存储写某槽即置空该槽；lent 记录借出栈与借出时的数量/标签，
  * 被外部改写的借出栈在该槽下一次经适配器访问时结算（减少按差额从 src 抽走，其余恢复并告警）。
  */
-final class ItemViews {
+final class ItemViews implements IKeyHandler.SlotReader<AEItemKey, ItemStack> {
 
     private static long lastWarn;
 
@@ -30,6 +31,10 @@ final class ItemViews {
     final CompoundTag[] tags;
     long lentBits;
     boolean viewed;
+    @Nullable
+    private Reference2IntOpenHashMap<AEItemKey> heads;
+    @Nullable
+    private int[] next;
 
     private ItemViews(IKeyHandler<AEItemKey> src, int size) {
         this.src = src;
@@ -49,6 +54,12 @@ final class ItemViews {
         this.tags = Arrays.copyOf(from.tags, size);
         this.lentBits = from.lentBits;
         this.viewed = from.viewed;
+        var h = from.heads;
+        if (h != null) {
+            this.heads = new Reference2IntOpenHashMap<>(h);
+            this.heads.defaultReturnValue(-1);
+            this.next = Arrays.copyOf(from.next, size);
+        }
     }
 
     static @Nullable ItemViews peek(KeyInventory<?> inv) {
@@ -99,20 +110,51 @@ final class ItemViews {
     }
 
     void touchKey(AEKey key) {
-        if ((lentBits & 1L << key.getUid()) == 0) return;
-        var ks = keys;
-        long bits = 0;
-        for (int i = 0; i < ks.length; i++) {
-            var k = ks[i];
-            if (k == null) continue;
-            if (k == key && violated(i)) {
-                settle(i);
-                k = ks[i];
-                if (k == null) continue;
-            }
-            bits |= 1L << k.getUid();
+        if ((lentBits & 1L << key.getUid()) != 0) settleKey(key);
+    }
+
+    private void settleKey(AEKey key) {
+        var h = heads;
+        if (h == null) return;
+        var nx = next;
+        for (int i = h.getInt(key); i >= 0;) {
+            int n = nx[i];
+            if (violated(i)) settle(i);
+            i = n;
         }
-        lentBits = bits;
+    }
+
+    private void link(int i, AEItemKey key) {
+        var h = heads;
+        if (h == null) {
+            heads = h = new Reference2IntOpenHashMap<>();
+            h.defaultReturnValue(-1);
+            next = new int[keys.length];
+        }
+        next[i] = h.put(key, i);
+    }
+
+    private void unlink(int i, AEItemKey key) {
+        var h = heads;
+        var nx = next;
+        int head = h.getInt(key);
+        if (head == i) {
+            int n = nx[i];
+            if (n >= 0) h.put(key, n);
+            else if (h.removeInt(key) >= 0 && h.isEmpty()) lentBits = 0;
+            return;
+        }
+        for (int p = head; p >= 0; p = nx[p]) {
+            if (nx[p] == i) {
+                nx[p] = nx[i];
+                return;
+            }
+        }
+    }
+
+    @Override
+    public ItemStack read(int index, @Nullable AEItemKey key, long amount) {
+        return view(index, key, amount);
     }
 
     ItemStack view(int i, @Nullable AEItemKey key, long amount) {
@@ -130,10 +172,13 @@ final class ItemViews {
             return v;
         }
         var v = key.toStack(count);
+        var old = keys[i];
+        if (old != null) unlink(i, old);
         lent[i] = v;
         keys[i] = key;
         tags[i] = v.getTag();
         counts[i] = count;
+        link(i, key);
         lentBits |= 1L << key.getUid();
         viewed = true;
         return v;
@@ -170,6 +215,8 @@ final class ItemViews {
     }
 
     private void drop(int i) {
+        var k = keys[i];
+        if (k != null) unlink(i, k);
         cache[i] = null;
         lent[i] = null;
         keys[i] = null;

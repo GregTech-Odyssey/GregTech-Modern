@@ -36,7 +36,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -93,7 +93,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         if (args.length > 0 && args[0] instanceof IO io && io == IO.IN) {
             return CircuitHandler.create(this);
         } else {
-            return NotifiableInventory.empty(this, AEKeyType.items());
+            return NotifiableInventory.empty(this, AEKeyTypes.ITEMS);
         }
     }
 
@@ -179,7 +179,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     protected void updateInventorySubscription(Direction newFacing) {
-        if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), newFacing)) {
+        if (isWorkingEnabled() && ((io == IO.OUT && !getInventory().isEmpty()) || io == IO.IN) && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), newFacing, AEKeyTypes.ITEMS, io.neighbourAccess())) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();

@@ -71,17 +71,20 @@ public final class InfiniteKeySource<K extends AEKey> implements IKeyHandler<K> 
     @Override
     public long extract(K key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
-        for (int i = 0; i < config.size(); i++) {
-            if (config.amountAt(i) > 0 && config.rawKeyAt(i) == key) return amount;
-        }
-        return 0;
+        return holds(key) ? amount : 0;
     }
 
     @Override
     public long count(K key) {
-        for (int i = 0; i < config.size(); i++) {
-            if (config.amountAt(i) > 0 && config.rawKeyAt(i) == key) return Long.MAX_VALUE;
+        return holds(key) ? Long.MAX_VALUE : 0;
+    }
+
+    private boolean holds(K key) {
+        var c = config;
+        int size = c.size();
+        for (int i = 0; i < size; i++) {
+            if (c.amountAt(i) > 0 && c.rawKeyAt(i) == key) return true;
         }
-        return 0;
+        return false;
     }
 }

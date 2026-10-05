@@ -169,11 +169,7 @@ public final class PipeCoverContainer implements ICoverable {
 
     @Override
     public void invalidateCapabilities() {
-        if (pipeTile instanceof ItemPipeBlockEntity itemPipe) {
-            itemPipe.invalidateCapabilityCache();
-        } else if (pipeTile instanceof FluidPipeBlockEntity fluidPipe) {
-            fluidPipe.invalidateCapabilityCache();
-        }
+        pipeTile.invalidateCapabilityCache();
     }
 
     @Override

@@ -535,14 +535,14 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         @Override
         public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
             var key = Keys.fluidType(stack);
-            return key != null && handler.spaceFor(slot, key) > 0;
+            return key != null && (handler instanceof KeyInventory<AEFluidKey> inv ? inv.spaceForExplicit(slot, key) : handler.spaceFor(slot, key)) > 0;
         }
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
             var key = Keys.fluid(resource);
             if (key == null) return 0;
-            return (int) handler.insert(slot, key, resource.getAmount(), action.simulate());
+            return (int) (handler instanceof KeyInventory<AEFluidKey> inv ? inv.insertExplicit(slot, key, resource.getAmount(), action.simulate()) : handler.insert(slot, key, resource.getAmount(), action.simulate()));
         }
 
         @Override

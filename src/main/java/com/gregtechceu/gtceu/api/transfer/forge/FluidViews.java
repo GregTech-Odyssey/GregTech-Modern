@@ -18,7 +18,7 @@ import java.util.Arrays;
  * 一个流体存储借给 Forge 的视图：cache 与存储共享，存储写某罐即置空该罐；lent 记录借出视图与借出时的量/标签，
  * 被外部改写的借出视图在该罐下一次同 key 填充/抽取或 AE 按槽访问时结算（减少按差额从 src 抽走，其余恢复并告警）。
  */
-final class FluidViews {
+final class FluidViews implements IKeyHandler.SlotReader<AEFluidKey, FluidStack> {
 
     private static long lastWarn;
 
@@ -103,7 +103,10 @@ final class FluidViews {
     }
 
     void touchKey(AEKey key) {
-        if (!lent(key)) return;
+        if (lent(key)) settleKey(key);
+    }
+
+    private void settleKey(AEKey key) {
         var ks = keys;
         long bits = 0;
         for (int t = 0; t < ks.length; t++) {
@@ -117,6 +120,11 @@ final class FluidViews {
             bits |= 1L << k.getUid();
         }
         lentBits = bits;
+    }
+
+    @Override
+    public FluidStack read(int index, @Nullable AEFluidKey key, long amount) {
+        return view(index, key, amount);
     }
 
     FluidStack view(int t, @Nullable AEFluidKey key, long stored) {
@@ -144,7 +152,10 @@ final class FluidViews {
     }
 
     void follow(AEFluidKey key) {
-        if (!lent(key)) return;
+        if (lent(key)) refollow(key);
+    }
+
+    private void refollow(AEFluidKey key) {
         var ks = keys;
         for (int t = 0; t < ks.length; t++) {
             if (ks[t] != key || violated(t)) continue;

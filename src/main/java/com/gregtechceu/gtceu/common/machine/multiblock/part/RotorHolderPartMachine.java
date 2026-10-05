@@ -41,6 +41,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.recipesearch.IntLongMap;
@@ -256,7 +257,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
 
         @Override
         public AEKeyType keyType() {
-            return AEKeyType.items();
+            return AEKeyTypes.ITEMS;
         }
 
         @Override

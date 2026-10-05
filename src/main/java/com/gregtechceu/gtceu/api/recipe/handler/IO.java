@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
+import appeng.api.storage.StorageAccess;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -44,6 +45,10 @@ public enum IO implements EnumSelectorWidget.SelectableEnum {
 
     public boolean support(IO io) {
         return this == io;
+    }
+
+    public StorageAccess neighbourAccess() {
+        return this == IN ? StorageAccess.EXTRACT : this == OUT ? StorageAccess.INSERT : StorageAccess.FULL;
     }
 
     public @NotNull String getTooltip() {

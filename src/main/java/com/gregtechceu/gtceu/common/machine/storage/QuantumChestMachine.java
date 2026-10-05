@@ -53,6 +53,8 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -198,10 +200,10 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             var locked = new StackInventory(1);
             locked.deserializeNBT(tag.get("lockedItem"));
             var lockedStack = locked.getStackInSlot(0);
-            lockedItem.set(0, Keys.item(lockedStack), lockedStack.isEmpty() ? 0 : 1);
+            lockedItem.set(0, AEItemKey.of(lockedStack), lockedStack.isEmpty() ? 0 : 1);
         }
         var stored = ItemStack.of(tag.getCompound("stored"));
-        loadStored(Keys.item(stored), tag.getLong("storedAmount"));
+        loadStored(AEItemKey.of(stored), tag.getLong("storedAmount"));
     }
 
     //////////////////////////////////////
@@ -256,7 +258,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingItems();
-        if ((isAutoOutputItems() && cache.storage.amountAt(0) > 0) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputItems() && cache.storage.amountAt(0) > 0) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -302,14 +304,14 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             var hitVector = hit.getLocation().relative(getFrontFacing(), -0.5);
             if (!aabb.contains(hitVector)) return InteractionResult.PASS;
             var held = player.getMainHandItem();
-            var heldKey = Keys.item(held);
+            var heldKey = AEItemKey.of(held);
             if (heldKey != null && cache.canInsert(heldKey)) {
                 // push
                 held.shrink((int) cache.insert(0, heldKey, held.getCount(), false));
                 return InteractionResult.SUCCESS;
             } else if (isDoubleHit(player.getUUID())) {
                 for (var stack : player.getInventory().items) {
-                    var key = Keys.item(stack);
+                    var key = AEItemKey.of(stack);
                     if (key != null && cache.canInsert(key)) {
                         stack.shrink((int) cache.insert(0, key, stack.getCount(), false));
                     }
@@ -400,7 +402,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     private boolean canLockTo(ItemStack stack) {
         var key = storedKey;
-        return key == null || Keys.itemType(stack) == key;
+        return key == null || AEItemKey.of(stack) == key;
     }
 
     //////////////////////////////////////
@@ -478,7 +480,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
         @Override
         public AEKeyType keyType() {
-            return AEKeyType.items();
+            return AEKeyTypes.ITEMS;
         }
 
         @Override
@@ -535,12 +537,14 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         public void exportToNearby(Direction... facings) {
             var key = storage.keyAt(0);
             if (key == null) return;
-            var level = getMachine().getLevel();
-            var pos = getMachine().getPos();
+            var m = getMachine();
+            var level = m.getLevel();
+            var pos = m.getPos();
+            var cache = holder.blockEntityDirectionCache;
             for (Direction facing : facings) {
-                var filter = getMachine().getKeyCapFilter(facing, IO.OUT, AEKeyType.items());
+                var filter = m.getKeyCapFilter(facing, IO.OUT, AEKeyTypes.ITEMS);
                 if (filter != null && !filter.matches(key)) continue;
-                if (holder.blockEntityDirectionCache.getAdjacentKeyHandler(level, pos, facing, AEKeyType.items()) instanceof IKeyHandler<?> target) {
+                if (cache.getAdjacentKeyHandler(level, pos, facing, AEKeyTypes.ITEMS, StorageAccess.INSERT) instanceof IKeyHandler<?> target) {
                     @SuppressWarnings("unchecked")
                     var to = (IKeyHandler<AEItemKey>) target;
                     KeyTransfer.transferKey(this, to, key, exportLimit());

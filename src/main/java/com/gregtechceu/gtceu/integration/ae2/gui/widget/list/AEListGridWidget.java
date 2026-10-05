@@ -13,9 +13,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyLongMap;
 import appeng.api.stacks.GenericStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public abstract class AEListGridWidget extends DraggableScrollableWidgetGroup {
     protected final static int ROW_CHANGE_ID = 2;
     protected final static int CONTENT_CHANGE_ID = 3;
 
-    protected final Reference2LongOpenHashMap<AEKey> changeMap = new Reference2LongOpenHashMap<>();
+    protected final AEKeyLongMap<AEKey> changeMap = new AEKeyLongMap<>();
     protected final KeyStorage cached = new KeyStorage();
     protected final List<GenericStack> displayList = new ArrayList<>();
 

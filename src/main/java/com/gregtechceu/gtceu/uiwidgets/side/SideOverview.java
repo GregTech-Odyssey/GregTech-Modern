@@ -5,8 +5,11 @@ import com.gregtechceu.gtceu.api.cover.IUICover;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
+import com.gregtechceu.gtceu.common.item.CoverPlaceBehavior;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.UIIngredient;
 import com.gregtechceu.gtceu.uipro.data.Binding;
 import com.gregtechceu.gtceu.uipro.data.ClientOnly;
 import com.gregtechceu.gtceu.uipro.data.RPC;
@@ -15,6 +18,7 @@ import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
 import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.ItemCell;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
@@ -25,12 +29,15 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.cover.CoverTab;
 
+import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -82,6 +89,12 @@ public final class SideOverview {
     private static final String ALLOW_INPUT_TOOLTIP = "gtceu.gui.output_side.allow_input.tooltip";
     private static final String NOT_ITEM_OUTPUT = "gtceu.gui.side_overview.not_item_output";
     private static final String NOT_FLUID_OUTPUT = "gtceu.gui.side_overview.not_fluid_output";
+    private static final String COVER_SLOT_PLACE = "gtceu.gui.side_overview.cover_slot.place";
+    private static final String COVER_SLOT_TAKE = "gtceu.gui.side_overview.cover_slot.take";
+    private static final String COVER_SLOT_NOT_COVER = "gtceu.gui.side_overview.cover_slot.not_cover";
+    private static final String COVER_SLOT_CANNOT_PLACE = "gtceu.gui.side_overview.cover_slot.cannot_place";
+    private static final String COVER_SLOT_FRONT = "gtceu.gui.side_overview.cover_slot.front";
+    private static final int FEEDBACK_TICKS = 60;
     private static final Component HINT_SELECT = Component.translatable(SHOW_FACE).withStyle(ChatFormatting.DARK_GRAY);
     private static final Component HINT_FRONT = Component.translatable(FRONT).withStyle(ChatFormatting.GRAY);
     private static final Component HINT_BOTH = Component.translatable("gtceu.gui.side_overview.hint.both").withStyle(ChatFormatting.YELLOW);
@@ -119,6 +132,9 @@ public final class SideOverview {
     private Component selectedText = Component.empty();
     private int cellHover = -1;
     private int sceneHover = -1;
+    @Nullable
+    private Component feedback;
+    private int feedbackUntil;
 
     private SideOverview(MetaMachine machine) {
         this.machine = machine;
@@ -140,7 +156,7 @@ public final class SideOverview {
         content.addSyncValue(itemOutput);
         content.addSyncValue(fluidOutput);
         content.addSyncValue(covers);
-        selection = content.getChannel().addBinding(Binding.bindInt(() -> serverSelected, v -> serverSelected = v, -1, SIDES.length - 1));
+        selection = content.getChannel().addBinding(Binding.bindInt(() -> serverSelected, this::select, -1, SIDES.length - 1));
         quickConfig = content.getChannel().addRPC(ByteStreamCodec.INT_CODEC, (player, packed) -> cycleMode(packed))
                 .validate(packed -> packed >= 0 && packed < SIDES.length * 2);
         var holder = new UIElement().layout(l -> l.size(SCENE_WIDTH, SCENE_HEIGHT));
@@ -176,11 +192,13 @@ public final class SideOverview {
     private UIElement faceSettings() {
         var section = UIElement.section();
         section.disabled(() -> selectedSide() == null, NO_SELECTION);
-        var name = TextLine.of(0, this::selectedText).bindClientColor(UITheme::panelText);
+        var slot = ItemCell.of(this::selectedCoverStack).setOnServerClick(this::clickCoverSlot).tooltips(COVER_SLOT_PLACE, COVER_SLOT_TAKE);
+        slot.disabled(this::isCoverSlotLocked, COVER_SLOT_FRONT);
+        var name = TextLine.of(0, this::selectedText).bindClientColor(UITheme::panelText).bindLevel(() -> hasFeedback() ? Level.ERROR : Level.NORMAL);
         name.layout(l -> l.flex(1));
         var open = Button.translatable(UISizes.BUTTON_WIDTH, OPEN_COVER_SHORT).tooltips(OPEN_COVER).setOnClientClick(this::openSelectedCover);
         open.disabled(() -> !(selectedCover() instanceof IUICover), NO_COVER_SETTINGS);
-        section.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(name, open));
+        section.addChild(UIElement.centeredRow(UISizes.SLOT_SIZE).layout(l -> l.gapAll(UISizes.GAP)).addChildren(slot, name, open));
         if (items != null) {
             section.addChild(Form.controlRow(ITEM_MODE, modeGroup(false)).disabled(this::isSelectedFront, FRONT));
             section.addChild(Form.controlRow(ITEM_ALLOW_INPUT, allowInputSwitch(false), ALLOW_INPUT_TOOLTIP)
@@ -244,6 +262,72 @@ public final class SideOverview {
         return side == null ? null : coverAt(side);
     }
 
+    private ItemStack selectedCoverStack() {
+        var cover = selectedCover();
+        return cover == null ? ItemStack.EMPTY : cover.getAttachItem();
+    }
+
+    private void select(int index) {
+        serverSelected = index;
+        feedback = null;
+    }
+
+    private boolean isCoverSlotLocked() {
+        return isSelectedFront() && !machine.getDefinition().isAllowCoverOnFront() && selectedCover() == null;
+    }
+
+    private void showFeedback(String key) {
+        feedback = Component.translatable(key);
+        feedbackUntil = machine.getOffsetTimer() + FEEDBACK_TICKS;
+    }
+
+    private boolean hasFeedback() {
+        if (feedback != null && machine.getOffsetTimer() - feedbackUntil >= 0) feedback = null;
+        return feedback != null;
+    }
+
+    private void clickCoverSlot(Player player, ClickData click) {
+        var side = selectedSide();
+        if (side == null || !(player instanceof ServerPlayer serverPlayer) || isCoverSlotLocked()) return;
+        feedback = null;
+        var direction = side.toDirection(machine);
+        var container = machine.getCoverContainer();
+        var menu = player.containerMenu;
+        var carried = menu.getCarried();
+        var existing = container.getCoverAtSide(direction);
+        if (carried.isEmpty()) {
+            if (existing == null) return;
+            var taken = existing.getPickItem().copy();
+            container.removeCover(false, direction, player);
+            if (click.isShiftClick) giveOrDrop(player, taken);
+            else menu.setCarried(taken);
+            return;
+        }
+        var definition = CoverPlaceBehavior.getCoverDefinition(carried);
+        if (definition == null) {
+            showFeedback(COVER_SLOT_NOT_COVER);
+            return;
+        }
+        if (existing != null && ItemStack.isSameItemSameTags(existing.getPickItem(), carried)) return;
+        if (!container.canPlaceCoverOnSide(definition, direction) || !definition.createCoverBehavior(container, direction).canAttach()) {
+            showFeedback(COVER_SLOT_CANNOT_PLACE);
+            return;
+        }
+        var old = ItemStack.EMPTY;
+        if (existing != null) {
+            old = existing.getPickItem().copy();
+            container.removeCover(false, direction, player);
+        }
+        if (container.placeCoverOnSide(direction, carried.copyWithCount(1), definition, serverPlayer)) carried.shrink(1);
+        if (old.isEmpty()) return;
+        if (carried.isEmpty()) menu.setCarried(old);
+        else giveOrDrop(player, old);
+    }
+
+    private static void giveOrDrop(Player player, ItemStack stack) {
+        if (!player.getInventory().add(stack)) player.drop(stack, false);
+    }
+
     private boolean isSelectedFront() {
         var side = selectedSide();
         return side != null && isFront(side.toDirection(machine));
@@ -254,6 +338,7 @@ public final class SideOverview {
     }
 
     private Component selectedText() {
+        if (hasFeedback()) return feedback;
         var side = selectedSide();
         var cover = side == null ? null : coverAt(side);
         int key = side == null ? -1 : side.ordinal() * KEY_SPAN + MachineSide.frameKey(machine);
@@ -537,7 +622,7 @@ public final class SideOverview {
 
         @Override
         public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
-            if (isMouseOverElement(mouseX, mouseY) && !getStack().isEmpty()) return getStack();
+            if (isMouseOverElement(mouseX, mouseY) && !getStack().isEmpty()) return UIIngredient.of(getStack());
             return super.getXEIIngredientOverMouse(mouseX, mouseY);
         }
 

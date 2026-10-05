@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.pipelike.fluid;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.pipenet.PipeNetWalker;
@@ -12,11 +13,10 @@ import com.gregtechceu.gtceu.common.cover.data.FilterMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
 
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,9 +101,7 @@ public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, Fl
         if (neighbourTile == null || (pipePos.equals(sourcePipe) && faceToNeighbour == facingToHandler)) {
             return;
         }
-        LazyOptional<IFluidHandler> handler = neighbourTile.getCapability(ForgeCapabilities.FLUID_HANDLER,
-                faceToNeighbour.getOpposite());
-        if (handler.isPresent()) {
+        if (GTCapabilityHelper.hasTarget(neighbourTile, faceToNeighbour.getOpposite(), AEKeyTypes.FLUIDS, StorageAccess.INSERT)) {
             List<Predicate<FluidStack>> filters = new ArrayList<>(this.filters);
             List<Predicate<FluidStack>> moreFilters = nextFilters.get(faceToNeighbour);
             if (moreFilters != null && !moreFilters.isEmpty()) {

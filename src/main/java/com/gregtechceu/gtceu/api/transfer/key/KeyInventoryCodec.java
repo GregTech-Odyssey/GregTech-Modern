@@ -11,10 +11,11 @@ import net.minecraft.world.level.material.Fluids;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyIntMap;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.util.NbtUtil;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -31,8 +32,8 @@ final class KeyInventoryCodec {
 
     static byte[] encode(KeyInventory<?> inv, int header, int count) {
         var type = inv.keyType();
-        boolean items = type == AEKeyType.items();
-        boolean fluids = type == AEKeyType.fluids();
+        boolean items = type == AEKeyTypes.ITEMS;
+        boolean fluids = type == AEKeyTypes.FLUIDS;
         boolean unique = inv.isUniqueKeys();
         var raw = Unpooled.buffer(8 + count * 8);
         try {
@@ -40,7 +41,7 @@ final class KeyInventoryCodec {
             buf.writeInt(header);
             buf.writeVarInt(count);
             AEKey[] table = unique ? null : new AEKey[Math.min(count, LINEAR_LOOKUP)];
-            Reference2IntOpenHashMap<AEKey> map = null;
+            AEKeyIntMap<AEKey> map = null;
             int tableSize = 0;
             int prev = -1;
             int size = inv.size();
@@ -48,7 +49,6 @@ final class KeyInventoryCodec {
                 long amount = inv.amountAt(i);
                 if (amount <= 0) continue;
                 var key = inv.rawKeyAt(i);
-                if (key.getType() != type) continue;
                 buf.writeVarInt(i - prev - 1);
                 prev = i;
                 int ref = -1;
@@ -74,7 +74,7 @@ final class KeyInventoryCodec {
                         } else if (tableSize < table.length) {
                             table[tableSize] = key;
                         } else {
-                            map = new Reference2IntOpenHashMap<>(count);
+                            map = new AEKeyIntMap<>(count);
                             map.defaultReturnValue(-1);
                             for (int t = 0; t < tableSize; t++) map.put(table[t], t);
                             map.put(key, tableSize);
@@ -115,8 +115,8 @@ final class KeyInventoryCodec {
 
     static void decode(KeyInventory<?> inv, byte[] bytes) {
         var type = inv.keyType();
-        boolean items = type == AEKeyType.items();
-        boolean fluids = type == AEKeyType.fluids();
+        boolean items = type == AEKeyTypes.ITEMS;
+        boolean fluids = type == AEKeyTypes.FLUIDS;
         var buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
         try {
             buf.skipBytes(4);
@@ -161,10 +161,10 @@ final class KeyInventoryCodec {
         if (items) {
             var item = BuiltInRegistries.ITEM.get(id);
             if (item == Items.AIR) return null;
-            return tag == null ? AEItemKey.of(item) : AEItemKey.of(item, tag);
+            return AEItemKey.of(item, tag);
         }
         var fluid = BuiltInRegistries.FLUID.get(id);
         if (fluid == Fluids.EMPTY) return null;
-        return tag == null ? AEFluidKey.of(fluid) : AEFluidKey.of(fluid, tag);
+        return AEFluidKey.of(fluid, tag);
     }
 }

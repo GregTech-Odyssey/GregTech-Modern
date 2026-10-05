@@ -18,7 +18,7 @@ import net.minecraft.world.level.biome.Biome.Precipitation;
 import net.minecraftforge.fluids.FluidType;
 
 import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
@@ -50,7 +50,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
             var handlerList = part.getHandlerUnit();
             if (!handlerList.isValid(IO.OUT)) continue;
             for (var handler : handlerList.fluidHandlers) {
-                if (!(handler instanceof NotifiableInventory<?> inventory) || inventory.keyType() != AEKeyType.fluids()) continue;
+                if (!(handler instanceof NotifiableInventory<?> inventory) || inventory.keyType() != AEKeyTypes.FLUIDS) continue;
                 @SuppressWarnings("unchecked")
                 var tank = (NotifiableInventory<AEFluidKey>) inventory;
                 fluidTank = tank;

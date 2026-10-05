@@ -26,7 +26,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,12 +128,12 @@ public enum BreweryLogic implements GTRecipeType.ICustomRecipeLogic {
     }
 
     private static boolean collect(RecipeHandlerUnit rhl, List<AEItemKey> itemKeys, List<AEFluidKey> fluidKeys) {
-        rhl.forEachKey(AEKeyType.items(), true, (key, amount) -> {
+        rhl.forEachKey(AEKeyTypes.ITEMS, true, (key, amount) -> {
             if (key instanceof AEItemKey itemKey && amount > 0) itemKeys.add(itemKey);
             return false;
         });
         if (itemKeys.isEmpty()) return false;
-        rhl.forEachKey(AEKeyType.fluids(), true, (key, amount) -> {
+        rhl.forEachKey(AEKeyTypes.FLUIDS, true, (key, amount) -> {
             if (key instanceof AEFluidKey fluidKey && amount > 0) fluidKeys.add(fluidKey);
             return false;
         });

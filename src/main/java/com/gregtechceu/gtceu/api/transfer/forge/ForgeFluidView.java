@@ -7,6 +7,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import org.jetbrains.annotations.Nullable;
 
 public final class ForgeFluidView implements IKeyHandler<AEFluidKey> {
@@ -28,7 +29,7 @@ public final class ForgeFluidView implements IKeyHandler<AEFluidKey> {
 
     @Override
     public AEKeyType keyType() {
-        return AEKeyType.fluids();
+        return AEKeyTypes.FLUIDS;
     }
 
     @Override
@@ -71,5 +72,17 @@ public final class ForgeFluidView implements IKeyHandler<AEFluidKey> {
     public long extract(AEFluidKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
         return handler.drain(Keys.toFluidStack(key, amount), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE).getAmount();
+    }
+
+    @Override
+    public long count(AEFluidKey key) {
+        var h = handler;
+        int size = h.getTanks();
+        long total = 0;
+        for (int i = 0; i < size; i++) {
+            var stack = h.getFluidInTank(i);
+            if (Keys.fluid(stack) == key) total = Keys.add(total, stack.getAmount());
+        }
+        return total;
     }
 }

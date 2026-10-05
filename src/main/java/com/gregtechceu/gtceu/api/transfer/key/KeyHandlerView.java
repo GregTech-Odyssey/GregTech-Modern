@@ -1,12 +1,19 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
+import appeng.api.config.Actionable;
+import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.KeyCounter;
+import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Set;
 
 public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
 
     protected final IKeyHandler<K> delegate;
+    private final AEKeyType type;
     private final boolean allowInsert;
     private final boolean allowExtract;
 
@@ -16,6 +23,7 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
 
     public KeyHandlerView(IKeyHandler<K> delegate, boolean allowInsert, boolean allowExtract) {
         this.delegate = delegate;
+        this.type = delegate.keyType();
         this.allowInsert = allowInsert;
         this.allowExtract = allowExtract;
     }
@@ -60,7 +68,17 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
 
     @Override
     public final AEKeyType keyType() {
-        return delegate.keyType();
+        return type;
+    }
+
+    @Override
+    public final boolean supportsKeyType(AEKeyType type) {
+        return type == this.type;
+    }
+
+    @Override
+    public final @Nullable MEStorage forKeyType(AEKeyType type) {
+        return type == this.type ? this : null;
     }
 
     @Override
@@ -81,6 +99,11 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
     @Override
     public final long amountAt(int slot) {
         return delegate.amountAt(slot);
+    }
+
+    @Override
+    public final <R> R readSlot(int slot, int index, SlotReader<? super K, R> reader) {
+        return delegate.readSlot(slot, index, reader);
     }
 
     @Override
@@ -114,5 +137,38 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
         if (!canExtract(key)) return 0;
         long n = limitExtract(-1, key, amount);
         return n > 0 ? delegate.extract(key, n, simulate) : 0;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public final long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
+        return amount > 0 && what.getType() == type ? insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public final long extract(AEKey what, long amount, Actionable mode, IActionSource source) {
+        return amount > 0 && what.getType() == type ? extract((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out) {
+        delegate.getAvailableStacks(out);
+    }
+
+    @Override
+    public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
+        if (extractableOnly && !allowExtract) return;
+        IKeyHandler.super.getAvailableStacks(out, extractableOnly);
+    }
+
+    @Override
+    public boolean containsAny(Set<AEKey> primaryKeys) {
+        return delegate.containsAny(primaryKeys);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return delegate.isEmpty();
     }
 }

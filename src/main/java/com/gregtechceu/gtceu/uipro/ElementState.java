@@ -59,6 +59,8 @@ public final class ElementState {
     private Component disabledReason;
     @Nullable
     private BooleanSupplier clientDisabled;
+    @Nullable
+    private Component clientDisabledReason;
 
     public ElementState(Widget owner, UIChannel.Host channel) {
         this.owner = owner;
@@ -86,7 +88,12 @@ public final class ElementState {
     }
 
     public void setClientDisabled(@Nullable BooleanSupplier clientDisabled) {
+        setClientDisabled(clientDisabled, null);
+    }
+
+    public void setClientDisabled(@Nullable BooleanSupplier clientDisabled, @Nullable String reasonKey) {
         this.clientDisabled = clientDisabled;
+        this.clientDisabledReason = reasonKey == null ? null : Component.translatable(reasonKey);
     }
 
     public void setTooltips(Component... tooltips) {
@@ -117,9 +124,22 @@ public final class ElementState {
     }
 
     private boolean isDisabledHere() {
-        if (clientDisabled != null && owner.isRemote() && clientDisabled.getAsBoolean()) return true;
+        return isClientDisabledHere() || isServerDisabledHere();
+    }
+
+    private boolean isClientDisabledHere() {
+        return clientDisabled != null && owner.isRemote() && clientDisabled.getAsBoolean();
+    }
+
+    private boolean isServerDisabledHere() {
         if (disabledCondition == null || disabledValue == null) return false;
         return owner.getGui() != null && owner.isRemote() ? disabledValue.getValue() : disabledCondition.getAsBoolean();
+    }
+
+    @Nullable
+    private Component reasonHere() {
+        if (clientDisabledReason != null && isClientDisabledHere()) return clientDisabledReason;
+        return disabledReason != null && isServerDisabledHere() ? disabledReason : null;
     }
 
     // ==================== 禁用（向下继承） ====================
@@ -136,8 +156,9 @@ public final class ElementState {
     @Nullable
     public static Component disabledReason(Widget widget) {
         for (Widget w = widget; w != null; w = w.getParent()) {
-            if (w instanceof Host host && host.getState().isDisabledHere() && host.getState().disabledReason != null) {
-                return host.getState().disabledReason;
+            if (w instanceof Host host) {
+                var reason = host.getState().reasonHere();
+                if (reason != null) return reason;
             }
         }
         return null;
@@ -219,6 +240,11 @@ public final class ElementState {
 
         default T clientDisabled(BooleanSupplier disabled) {
             getState().setClientDisabled(disabled);
+            return self();
+        }
+
+        default T clientDisabled(BooleanSupplier disabled, @Nullable String reasonKey) {
+            getState().setClientDisabled(disabled, reasonKey);
             return self();
         }
 

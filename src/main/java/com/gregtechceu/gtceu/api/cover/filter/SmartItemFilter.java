@@ -22,6 +22,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
+import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.util.ItemStackHashStrategy;
 import com.gto.fastcollection.fastutil.O2IOpenCustomCacheHashMap;
 import com.gto.recipesearch.IntLongMap;
@@ -99,7 +100,7 @@ public class SmartItemFilter implements ItemFilter {
     }
 
     private int lookup(ItemStack itemStack) {
-        var key = Keys.item(itemStack);
+        var key = AEItemKey.of(itemStack);
         if (key == null) return 0;
         var map = new IntLongMap();
         filterMode.type.convertKey(key, Integer.MAX_VALUE, map);

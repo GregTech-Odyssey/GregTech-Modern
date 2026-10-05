@@ -19,7 +19,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.PlanScratch;
 import com.gregtechceu.gtceu.api.recipe.ui.RecipeSlotLayouts;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -34,6 +33,7 @@ import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.recipesearch.IntLongMap;
@@ -209,21 +209,19 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
         @Override
         public long available(AEKeyType type, KeyIngredient ingredient) {
-            if (type != AEKeyType.items()) return 0;
             long total = 0;
             for (var stack : storage.stacks) {
-                if (!stack.isEmpty() && ingredient.test(stack)) total += stack.getCount();
+                if (!stack.isEmpty() && KeyIngredient.acceptsStack(ingredient, stack)) total += stack.getCount();
             }
             return total;
         }
 
         @Override
         public long reserveInput(PlanScratch plan, int member, AEKeyType type, int entry, KeyIngredient ingredient, long need, boolean consume) {
-            if (type != AEKeyType.items()) return 0;
             long got = 0;
             for (int s = 0; s < storage.size && got < need; s++) {
                 var stack = storage.stacks[s];
-                if (stack.isEmpty() || !ingredient.test(stack)) continue;
+                if (stack.isEmpty() || !KeyIngredient.acceptsStack(ingredient, stack)) continue;
                 long free = stack.getCount() - reserved(plan, member, s, false);
                 if (free <= 0) continue;
                 long t = Math.min(free, need - got);
@@ -235,7 +233,6 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
         @Override
         public boolean commitInput(PlanScratch plan, int member, AEKeyType type) {
-            if (type != AEKeyType.items()) return true;
             var stacks = storage.stacks;
             for (int s = 0; s < storage.size; s++) {
                 take[s] = reserved(plan, member, s, true);
@@ -252,7 +249,6 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
         @Override
         public void rollbackInput(PlanScratch plan, int member, AEKeyType type) {
-            if (type != AEKeyType.items()) return;
             for (int s = 0; s < storage.size; s++) {
                 if (undo[s] != null) {
                     storage.setStackInSlot(s, undo[s]);
@@ -263,9 +259,9 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
         @Override
         public boolean forEachKey(AEKeyType type, KeyVisitor visitor) {
-            if (type != AEKeyType.items()) return false;
+            if (type != AEKeyTypes.ITEMS) return false;
             for (var stack : storage.stacks) {
-                if (!stack.isEmpty() && visitor.visit(Keys.item(stack), stack.getCount())) return true;
+                if (!stack.isEmpty() && visitor.visit(AEItemKey.of(stack), stack.getCount())) return true;
             }
             return false;
         }
@@ -273,7 +269,7 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
         @Override
         public void fillSearchMap(@NotNull GTRecipeType type, @NotNull IntLongMap map) {
             for (var stack : storage.stacks) {
-                if (!stack.isEmpty()) type.convertKey(Keys.item(stack), stack.getCount(), map);
+                if (!stack.isEmpty()) type.convertKey(AEItemKey.of(stack), stack.getCount(), map);
             }
         }
 
@@ -284,7 +280,7 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
 
         @Override
         public AEKeyType keyType() {
-            return AEKeyType.items();
+            return AEKeyTypes.ITEMS;
         }
 
         @Override

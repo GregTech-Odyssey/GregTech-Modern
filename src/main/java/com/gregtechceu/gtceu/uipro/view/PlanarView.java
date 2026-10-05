@@ -37,6 +37,7 @@ public abstract class PlanarView extends Viewport {
     protected float minScale = 0.1f, maxScale = 4f;
     private float lodSimplifiedPixelScale = 0.5f, lodBlockPixelScale = 0.2f;
     private boolean allowPan = true, allowZoom = true;
+    private boolean zoomLocked;
     private boolean clampInside;
     private boolean minScaleFits;
     private float fitPadding = UISizes.SLOT_SIZE / 2f;
@@ -332,22 +333,32 @@ public abstract class PlanarView extends Viewport {
 
     @Override
     public boolean canZoom() {
-        return allowZoom;
+        return allowZoom && !zoomLocked;
+    }
+
+    @Override
+    public boolean isZoomLocked() {
+        return zoomLocked;
+    }
+
+    @Override
+    public void setZoomLocked(boolean locked) {
+        this.zoomLocked = locked;
     }
 
     @Override
     public boolean canZoomIn() {
-        return allowZoom && scale < maxScale - 1e-4f;
+        return canZoom() && scale < maxScale - 1e-4f;
     }
 
     @Override
     public boolean canZoomOut() {
-        return allowZoom && scale > minScale() + 1e-4f;
+        return canZoom() && scale > minScale() + 1e-4f;
     }
 
     @Override
     public void zoomStep(int direction) {
-        if (!allowZoom || direction == 0) return;
+        if (!canZoom() || direction == 0) return;
         float target = steppedScale(direction);
         if (Math.abs(target - scale) > 1e-5f) zoomBy(target / scale, true);
     }
@@ -406,7 +417,7 @@ public abstract class PlanarView extends Viewport {
 
     @Override
     public void fitView() {
-        fitContent(true);
+        if (canZoom()) fitContent(true);
     }
 
     @Override
@@ -498,7 +509,7 @@ public abstract class PlanarView extends Viewport {
     @Override
     @OnlyIn(Dist.CLIENT)
     protected boolean onViewWheel(double mouseX, double mouseY, double wheelDelta) {
-        if (Screen.hasShiftDown() || !allowZoom) {
+        if (Screen.hasShiftDown() || !canZoom()) {
             if (!allowPan) return false;
             float before = offsetY;
             offsetY -= (float) (Math.signum(wheelDelta) * WHEEL_PAN / scale);

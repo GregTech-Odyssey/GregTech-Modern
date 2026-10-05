@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.core;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
@@ -41,6 +42,11 @@ public interface ILevel {
     MultiblockWorldData gtceu$getMultiblockWorldSavedData();
 
     void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data);
+
+    @Nullable
+    BlockEntityWatch gtceu$getBlockEntityWatch();
+
+    void gtceu$setBlockEntityWatch(@Nullable BlockEntityWatch watch);
 
     static <T> T getCapability(@NotNull Level level, DataComponentKey<T> key) {
         return ((ILevel) level).gtceu$getCapabilities().getData(key);

@@ -22,7 +22,8 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -41,9 +42,9 @@ public class CokeOvenHatch extends MultiblockPartMachine {
 
     public CokeOvenHatch(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
-        this.inputInventory = new InventoryProxyTrait<>(this, AEKeyType.items(), IO.IN);
-        this.outputInventory = new InventoryProxyTrait<>(this, AEKeyType.items(), IO.OUT);
-        this.tank = new InventoryProxyTrait<>(this, AEKeyType.fluids(), IO.BOTH);
+        this.inputInventory = new InventoryProxyTrait<>(this, AEKeyTypes.ITEMS, IO.IN);
+        this.outputInventory = new InventoryProxyTrait<>(this, AEKeyTypes.ITEMS, IO.OUT);
+        this.tank = new InventoryProxyTrait<>(this, AEKeyTypes.FLUIDS, IO.BOTH);
     }
 
     //////////////////////////////////////
@@ -124,8 +125,8 @@ public class CokeOvenHatch extends MultiblockPartMachine {
 
     protected void updateAutoIOSubscription() {
         if ((!outputInventory.isEmpty() &&
-                holder.blockEntityDirectionCache.hasAdjacentItemHandler(getLevel(), getPos(), getFrontFacing())) ||
-                (!tank.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), getFrontFacing()))) {
+                holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), getFrontFacing(), AEKeyTypes.ITEMS, StorageAccess.INSERT)) ||
+                (!tank.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), getFrontFacing(), AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
             autoIOSubs.unsubscribe();

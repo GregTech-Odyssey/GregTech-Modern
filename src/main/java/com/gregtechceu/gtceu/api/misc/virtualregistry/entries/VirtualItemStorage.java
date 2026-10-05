@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.misc.virtualregistry.entries;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -87,7 +86,7 @@ public class VirtualItemStorage extends VirtualEntry {
                 var itemTag = list.getCompound(i);
                 int slot = itemTag.getInt("Slot");
                 var stack = ItemStack.of(itemTag);
-                if (slot >= 0 && slot < handler.size() && !stack.isEmpty()) handler.set(slot, Keys.item(stack), stack.getCount());
+                if (slot >= 0 && slot < handler.size() && !stack.isEmpty()) handler.set(slot, AEItemKey.of(stack), stack.getCount());
             }
         }
     }

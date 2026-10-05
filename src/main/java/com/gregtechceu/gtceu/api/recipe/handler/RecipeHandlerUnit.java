@@ -8,9 +8,13 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableContentHandler;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
+import com.gregtechceu.gtceu.api.recipe.content.CircuitIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.Circuits;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
+import com.gregtechceu.gtceu.api.recipe.content.DefaultedItemBase;
+import com.gregtechceu.gtceu.api.recipe.content.FluidTagIngredient;
+import com.gregtechceu.gtceu.api.recipe.content.ItemTagIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
@@ -20,6 +24,7 @@ import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
@@ -28,9 +33,10 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
-import appeng.hooks.IUnique;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +64,8 @@ public class RecipeHandlerUnit {
         return aClass.getName().compareTo(bClass.getName());
     };
 
+    private static final KeyInventory<?>[] NO_STORES = new KeyInventory<?>[0];
+
     public static final RecipeHandlerUnit NO_DATA = new RecipeHandlerUnit(IO.NONE, null);
 
     public final IMultiPart part;
@@ -73,6 +81,8 @@ public class RecipeHandlerUnit {
     public boolean isInfiniteItemCapacity;
     public boolean isInfiniteFluidCapacity;
 
+    private final KeyInventory<?>[] itemStores;
+    private final KeyInventory<?>[] fluidStores;
     protected final IntLongMap intIngredientMap = new IntLongMap();
     private final boolean searchCacheable;
     private GTRecipeType searchType;
@@ -92,11 +102,11 @@ public class RecipeHandlerUnit {
             var p = handler.getPriority();
             if (this.priority < p) this.priority = p;
             if (handler.handlesItems()) {
-                if (handler.isInfiniteCapacity(AEKeyType.items())) isInfiniteItemCapacity = true;
+                if (handler.isInfiniteCapacity(AEKeyTypes.ITEMS)) isInfiniteItemCapacity = true;
                 items.add(handler);
             }
             if (handler.handlesFluids()) {
-                if (handler.isInfiniteCapacity(AEKeyType.fluids())) isInfiniteFluidCapacity = true;
+                if (handler.isInfiniteCapacity(AEKeyTypes.FLUIDS)) isInfiniteFluidCapacity = true;
                 fluids.add(handler);
             }
             if (handler.isSearchable()) searchs.add(handler);
@@ -107,6 +117,8 @@ public class RecipeHandlerUnit {
         }
         this.itemHandlers = items.toArray(new IRecipeHandler[0]);
         this.fluidHandlers = fluids.toArray(new IRecipeHandler[0]);
+        this.itemStores = stores(itemHandlers, AEKeyTypes.ITEMS);
+        this.fluidStores = stores(fluidHandlers, AEKeyTypes.FLUIDS);
         this.contentHandlers = searchs.toArray(new IRecipeHandler[0]);
         this.allHandlerTraits = traits.toArray(new IRecipeHandlerTrait[0]);
         boolean cacheable = true;
@@ -117,6 +129,14 @@ public class RecipeHandlerUnit {
             }
         }
         this.searchCacheable = cacheable;
+    }
+
+    private static KeyInventory<?>[] stores(IRecipeHandler[] members, AEKeyType type) {
+        int n = members.length;
+        if (n == 0) return NO_STORES;
+        var stores = new KeyInventory<?>[n];
+        for (int h = 0; h < n; h++) stores[h] = members[h].storage(type);
+        return stores;
     }
 
     public void refreshPriority() {
@@ -266,41 +286,40 @@ public class RecipeHandlerUnit {
         for (var h : allHandlers) h.onRecipeCommitted(recipe);
     }
 
-    private void beginPlan(PlanScratch p, ContentList items, ContentList fluids) {
-        var ih = itemHandlers;
-        var fh = fluidHandlers;
-        p.ensureMembers(ih.length, fh.length);
+    private void beginPlan(PlanScratch p) {
+        var items = itemStores;
+        var fluids = fluidStores;
+        int itemCount = items.length;
+        int fluidCount = fluids.length;
+        p.ensureMembers(itemCount, fluidCount);
+        var offsets = p.itemOffsets;
+        var versions = p.itemVersions;
         int slots = 0;
-        for (int h = 0; h < ih.length; h++) {
-            var inv = ih[h].storage(AEKeyType.items());
-            p.itemStores[h] = inv;
-            p.itemOffsets[h] = slots;
+        for (int h = 0; h < itemCount; h++) {
+            var inv = items[h];
+            offsets[h] = slots;
             if (inv != null) {
-                p.itemVersions[h] = inv.version();
+                versions[h] = inv.version();
                 slots += inv.size();
             }
         }
-        for (int h = 0; h < fh.length; h++) {
-            var inv = fh[h].storage(AEKeyType.fluids());
-            p.fluidStores[h] = inv;
-            p.fluidOffsets[h] = slots;
+        offsets = p.fluidOffsets;
+        versions = p.fluidVersions;
+        for (int h = 0; h < fluidCount; h++) {
+            var inv = fluids[h];
+            offsets[h] = slots;
             if (inv != null) {
-                p.fluidVersions[h] = inv.version();
+                versions[h] = inv.version();
                 slots += inv.size();
             }
         }
         p.begin(slots);
     }
 
-    private boolean planInputList(GTRecipe recipe, PlanScratch p, ContentList list, boolean fluid, long scale, boolean rolled) {
+    private static boolean planInputList(PlanScratch p, ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, int[] offsets, AEKeyType type, @Nullable long[] needs, byte fluidFlag, long scale, boolean emptyRecipe) {
         int n = list.size();
         if (n == 0) return true;
-        var members = fluid ? fluidHandlers : itemHandlers;
-        var stores = fluid ? p.fluidStores : p.itemStores;
-        var offsets = fluid ? p.fluidOffsets : p.itemOffsets;
-        var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
-        long[] needs = rolled ? (fluid ? p.fluidNeed : p.itemNeed) : null;
-        boolean emptyRecipe = recipe == GTRecipe.EMPTY;
+        int memberCount = members.length;
         int[] order = list.planOrder();
         for (int o = 0; o < n; o++) {
             int i = order[o];
@@ -308,19 +327,18 @@ public class RecipeHandlerUnit {
             long need = consume ? (needs != null ? needs[i] : list.effective(i, scale)) : list.amount(i);
             if (need <= 0) continue;
             var ing = list.ingredient(i);
-            for (int h = 0; h < members.length && need > 0; h++) {
+            byte flags = consume ? (byte) (fluidFlag | PlanScratch.FLAG_CONSUME) : fluidFlag;
+            for (int h = 0; h < memberCount && need > 0; h++) {
                 var m = members[h];
                 if (consume && m.isNotConsumable()) continue;
                 if (emptyRecipe && m.isOnlyRecipe()) continue;
                 var inv = stores[h];
-                if (inv != null) {
-                    if (!consume && m.isPresenceOnly()) {
-                        if (containsMatch(inv, ing)) need = 0;
-                    } else {
-                        need -= reserveArray(p, h, offsets[h], inv, ing, i, need, consume, fluid);
-                    }
-                } else {
+                if (inv == null) {
                     need -= m.reserveInput(p, h, type, i, ing, need, consume);
+                } else if (!consume && m.isPresenceOnly()) {
+                    if (sumArray(inv, ing, 1) > 0) need = 0;
+                } else {
+                    need -= reserveArray(p, h, offsets[h], inv, ing, i, need, flags);
                 }
             }
             if (need > 0) return false;
@@ -328,38 +346,74 @@ public class RecipeHandlerUnit {
         return true;
     }
 
-    private static boolean containsMatch(KeyInventory<?> inv, KeyIngredient ing) {
-        for (int s = 0, size = inv.size(); s < size; s++) {
-            if (inv.amountAt(s) > 0 && ing.test(inv.uidAt(s), inv.rawKeyAt(s))) return true;
-        }
-        return false;
+    private static long reserveArray(PlanScratch p, int member, int offset, KeyInventory<?> inv, KeyIngredient ing, int entry, long need, byte flags) {
+        Object o = ing;
+        if (o instanceof AEItemKey k) return k.hasTag() ? reserveKey(p, member, offset, inv, k, entry, need, flags) : reserveUid(p, member, offset, inv, k.uid, entry, need, flags);
+        if (o instanceof AEFluidKey k) return k.hasTag() ? reserveKey(p, member, offset, inv, k, entry, need, flags) : reserveUid(p, member, offset, inv, k.uid, entry, need, flags);
+        if (o instanceof ItemTagIngredient t) return reserveItemTag(p, member, offset, inv, t.tag, entry, need, flags);
+        if (o instanceof FluidTagIngredient t) return reserveFluidTag(p, member, offset, inv, t.tag, entry, need, flags);
+        if (o instanceof CircuitIngredient c) return reserveCircuit(p, member, offset, inv, c.config, entry, need, flags);
+        if (o instanceof DefaultedItemBase d) return reserveUid(p, member, offset, inv, d.key.uid, entry, need, flags);
+        return reserveTest(p, member, offset, inv, ing, entry, need, flags);
     }
 
-    private static long reserveArray(PlanScratch p, int member, int offset, KeyInventory<?> inv, KeyIngredient ing, int entry, long need, boolean consume, boolean fluid) {
+    private static long reserveKey(PlanScratch p, int member, int offset, KeyInventory<?> inv, AEKey key, int entry, long need, byte flags) {
         int size = inv.size();
         long got = 0;
-        byte flags = (byte) ((consume ? PlanScratch.FLAG_CONSUME : 0) | (fluid ? PlanScratch.FLAG_FLUID : 0));
-        switch (ing.kind) {
-            case KeyIngredient.EXACT -> {
-                var key = ing.key();
-                for (int s = 0; s < size && got < need; s++) {
-                    long a = inv.amountAt(s);
-                    if (a > 0 && inv.rawKeyAt(s) == key) got += take(p, member, offset + s, s, a, need - got, entry, flags);
-                }
-            }
-            case KeyIngredient.BASE -> {
-                int uid = ing.uid();
-                for (int s = 0; s < size && got < need; s++) {
-                    long a = inv.amountAt(s);
-                    if (a > 0 && inv.uidAt(s) == uid) got += take(p, member, offset + s, s, a, need - got, entry, flags);
-                }
-            }
-            default -> {
-                for (int s = 0; s < size && got < need; s++) {
-                    long a = inv.amountAt(s);
-                    if (a > 0 && ing.test(inv.uidAt(s), inv.rawKeyAt(s))) got += take(p, member, offset + s, s, a, need - got, entry, flags);
-                }
-            }
+        for (int s = 0; s < size && got < need; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && inv.rawKeyAt(s) == key) got += take(p, member, offset + s, s, a, need - got, entry, flags);
+        }
+        return got;
+    }
+
+    private static long reserveUid(PlanScratch p, int member, int offset, KeyInventory<?> inv, int uid, int entry, long need, byte flags) {
+        int size = inv.size();
+        long got = 0;
+        for (int s = 0; s < size && got < need; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && inv.uidAt(s) == uid) got += take(p, member, offset + s, s, a, need - got, entry, flags);
+        }
+        return got;
+    }
+
+    private static long reserveItemTag(PlanScratch p, int member, int offset, KeyInventory<?> inv, TagKey<Item> tag, int entry, long need, byte flags) {
+        int size = inv.size();
+        long got = 0;
+        for (int s = 0; s < size && got < need; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && ((AEItemKey) inv.rawKeyAt(s)).item.builtInRegistryHolder().is(tag)) got += take(p, member, offset + s, s, a, need - got, entry, flags);
+        }
+        return got;
+    }
+
+    private static long reserveFluidTag(PlanScratch p, int member, int offset, KeyInventory<?> inv, TagKey<Fluid> tag, int entry, long need, byte flags) {
+        int size = inv.size();
+        long got = 0;
+        for (int s = 0; s < size && got < need; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && ((AEFluidKey) inv.rawKeyAt(s)).fluid.is(tag)) got += take(p, member, offset + s, s, a, need - got, entry, flags);
+        }
+        return got;
+    }
+
+    private static long reserveCircuit(PlanScratch p, int member, int offset, KeyInventory<?> inv, int config, int entry, long need, byte flags) {
+        int size = inv.size();
+        int uid = Circuits.uid();
+        long got = 0;
+        for (int s = 0; s < size && got < need; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && inv.uidAt(s) == uid && Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)).getTag()) == config) got += take(p, member, offset + s, s, a, need - got, entry, flags);
+        }
+        return got;
+    }
+
+    private static long reserveTest(PlanScratch p, int member, int offset, KeyInventory<?> inv, KeyIngredient ing, int entry, long need, byte flags) {
+        int size = inv.size();
+        long got = 0;
+        for (int s = 0; s < size && got < need; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && ing.test(inv.rawKeyAt(s))) got += take(p, member, offset + s, s, a, need - got, entry, flags);
         }
         return got;
     }
@@ -373,9 +427,101 @@ public class RecipeHandlerUnit {
         return t;
     }
 
+    private static long sumArray(KeyInventory<?> inv, KeyIngredient ing, long stop) {
+        Object o = ing;
+        if (o instanceof AEItemKey k) return k.hasTag() ? sumKey(inv, k, stop) : sumUid(inv, k.uid, stop);
+        if (o instanceof AEFluidKey k) return k.hasTag() ? sumKey(inv, k, stop) : sumUid(inv, k.uid, stop);
+        if (o instanceof ItemTagIngredient t) return sumItemTag(inv, t.tag, stop);
+        if (o instanceof FluidTagIngredient t) return sumFluidTag(inv, t.tag, stop);
+        if (o instanceof CircuitIngredient c) return sumCircuit(inv, c.config, stop);
+        if (o instanceof DefaultedItemBase d) return sumUid(inv, d.key.uid, stop);
+        return sumTest(inv, ing, stop);
+    }
+
+    private static long sumKey(KeyInventory<?> inv, AEKey key, long stop) {
+        int size = inv.size();
+        long sum = 0;
+        for (int s = 0; s < size; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && inv.rawKeyAt(s) == key) {
+                sum = Keys.add(sum, a);
+                if (sum >= stop) break;
+            }
+        }
+        return sum;
+    }
+
+    private static long sumUid(KeyInventory<?> inv, int uid, long stop) {
+        int size = inv.size();
+        long sum = 0;
+        for (int s = 0; s < size; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && inv.uidAt(s) == uid) {
+                sum = Keys.add(sum, a);
+                if (sum >= stop) break;
+            }
+        }
+        return sum;
+    }
+
+    private static long sumItemTag(KeyInventory<?> inv, TagKey<Item> tag, long stop) {
+        int size = inv.size();
+        long sum = 0;
+        for (int s = 0; s < size; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && ((AEItemKey) inv.rawKeyAt(s)).item.builtInRegistryHolder().is(tag)) {
+                sum = Keys.add(sum, a);
+                if (sum >= stop) break;
+            }
+        }
+        return sum;
+    }
+
+    private static long sumFluidTag(KeyInventory<?> inv, TagKey<Fluid> tag, long stop) {
+        int size = inv.size();
+        long sum = 0;
+        for (int s = 0; s < size; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && ((AEFluidKey) inv.rawKeyAt(s)).fluid.is(tag)) {
+                sum = Keys.add(sum, a);
+                if (sum >= stop) break;
+            }
+        }
+        return sum;
+    }
+
+    private static long sumCircuit(KeyInventory<?> inv, int config, long stop) {
+        int size = inv.size();
+        int uid = Circuits.uid();
+        long sum = 0;
+        for (int s = 0; s < size; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && inv.uidAt(s) == uid && Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)).getTag()) == config) {
+                sum = Keys.add(sum, a);
+                if (sum >= stop) break;
+            }
+        }
+        return sum;
+    }
+
+    private static long sumTest(KeyInventory<?> inv, KeyIngredient ing, long stop) {
+        int size = inv.size();
+        long sum = 0;
+        for (int s = 0; s < size; s++) {
+            long a = inv.amountAt(s);
+            if (a > 0 && ing.test(inv.rawKeyAt(s))) {
+                sum = Keys.add(sum, a);
+                if (sum >= stop) break;
+            }
+        }
+        return sum;
+    }
+
     public boolean planInputs(GTRecipe recipe, PlanScratch p, long scale, boolean rolled) {
-        beginPlan(p, recipe.itemInputs, recipe.fluidInputs);
-        return planInputList(recipe, p, recipe.itemInputs, false, scale, rolled) && planInputList(recipe, p, recipe.fluidInputs, true, scale, rolled);
+        beginPlan(p);
+        boolean emptyRecipe = recipe == GTRecipe.EMPTY;
+        return planInputList(p, recipe.itemInputs, itemHandlers, itemStores, p.itemOffsets, AEKeyTypes.ITEMS, rolled ? p.itemNeed : null, (byte) 0, scale, emptyRecipe) &&
+                planInputList(p, recipe.fluidInputs, fluidHandlers, fluidStores, p.fluidOffsets, AEKeyTypes.FLUIDS, rolled ? p.fluidNeed : null, PlanScratch.FLAG_FLUID, scale, emptyRecipe);
     }
 
     public boolean matchInputs(GTRecipe recipe) {
@@ -417,19 +563,23 @@ public class RecipeHandlerUnit {
     }
 
     private boolean commitPass(PlanScratch p, boolean lossy) {
-        for (int h = 0; h < itemHandlers.length; h++) {
-            var m = itemHandlers[h];
-            if (m.isLossyRollback() != lossy || p.itemStores[h] != null || !hasLogs(p, h, false)) continue;
-            if (!m.commitInput(p, h, AEKeyType.items())) {
+        var items = itemHandlers;
+        var stores = itemStores;
+        for (int h = 0; h < items.length; h++) {
+            var m = items[h];
+            if (m.isLossyRollback() != lossy || stores[h] != null || !hasLogs(p, h, false)) continue;
+            if (!m.commitInput(p, h, AEKeyTypes.ITEMS)) {
                 rollback(p, lossy, h - 1, -1);
                 return false;
             }
         }
-        for (int h = 0; h < fluidHandlers.length; h++) {
-            var m = fluidHandlers[h];
-            if (m.isLossyRollback() != lossy || p.fluidStores[h] != null || !hasLogs(p, h, true)) continue;
-            if (!m.commitInput(p, h, AEKeyType.fluids())) {
-                rollback(p, lossy, itemHandlers.length - 1, h - 1);
+        var fluids = fluidHandlers;
+        stores = fluidStores;
+        for (int h = 0; h < fluids.length; h++) {
+            var m = fluids[h];
+            if (m.isLossyRollback() != lossy || stores[h] != null || !hasLogs(p, h, true)) continue;
+            if (!m.commitInput(p, h, AEKeyTypes.FLUIDS)) {
+                rollback(p, lossy, items.length - 1, h - 1);
                 return false;
             }
         }
@@ -437,13 +587,17 @@ public class RecipeHandlerUnit {
     }
 
     private void rollback(PlanScratch p, boolean lossy, int lastItem, int lastFluid) {
+        var items = itemHandlers;
+        var stores = itemStores;
         for (int h = 0; h <= lastItem; h++) {
-            var m = itemHandlers[h];
-            if (m.isLossyRollback() == lossy && p.itemStores[h] == null && hasLogs(p, h, false)) m.rollbackInput(p, h, AEKeyType.items());
+            var m = items[h];
+            if (m.isLossyRollback() == lossy && stores[h] == null && hasLogs(p, h, false)) m.rollbackInput(p, h, AEKeyTypes.ITEMS);
         }
+        var fluids = fluidHandlers;
+        stores = fluidStores;
         for (int h = 0; h <= lastFluid; h++) {
-            var m = fluidHandlers[h];
-            if (m.isLossyRollback() == lossy && p.fluidStores[h] == null && hasLogs(p, h, true)) m.rollbackInput(p, h, AEKeyType.fluids());
+            var m = fluids[h];
+            if (m.isLossyRollback() == lossy && stores[h] == null && hasLogs(p, h, true)) m.rollbackInput(p, h, AEKeyTypes.FLUIDS);
         }
     }
 
@@ -455,35 +609,47 @@ public class RecipeHandlerUnit {
     }
 
     private boolean versionsUnchanged(PlanScratch p) {
-        for (int h = 0; h < itemHandlers.length; h++) {
-            var inv = p.itemStores[h];
-            if (inv != null && inv.version() != p.itemVersions[h]) return false;
+        var stores = itemStores;
+        var versions = p.itemVersions;
+        for (int h = 0; h < stores.length; h++) {
+            var inv = stores[h];
+            if (inv != null && inv.version() != versions[h]) return false;
         }
-        for (int h = 0; h < fluidHandlers.length; h++) {
-            var inv = p.fluidStores[h];
-            if (inv != null && inv.version() != p.fluidVersions[h]) return false;
+        stores = fluidStores;
+        versions = p.fluidVersions;
+        for (int h = 0; h < stores.length; h++) {
+            var inv = stores[h];
+            if (inv != null && inv.version() != versions[h]) return false;
         }
         return true;
     }
 
     public void commitArrays(PlanScratch p) {
         int epoch = p.epoch();
-        int itemCount = itemHandlers.length;
-        for (int i = 0; i < p.logSize; i++) {
-            byte flags = p.logFlags[i];
+        var items = itemStores;
+        var fluids = fluidStores;
+        int itemCount = items.length;
+        int logSize = p.logSize;
+        var logFlags = p.logFlags;
+        var logMember = p.logMember;
+        var logSlot = p.logSlot;
+        var logAmount = p.logAmount;
+        var touched = p.touched;
+        for (int i = 0; i < logSize; i++) {
+            byte flags = logFlags[i];
             if ((flags & PlanScratch.FLAG_CONSUME) == 0) continue;
             boolean fluid = (flags & PlanScratch.FLAG_FLUID) != 0;
-            int h = p.logMember[i];
-            var inv = fluid ? p.fluidStores[h] : p.itemStores[h];
+            int h = logMember[i];
+            var inv = fluid ? fluids[h] : items[h];
             if (inv == null) continue;
-            inv.extractQuiet(p.logSlot[i], p.logAmount[i]);
-            p.touched[fluid ? itemCount + h : h] = epoch;
+            inv.extractQuiet(logSlot[i], logAmount[i]);
+            touched[fluid ? itemCount + h : h] = epoch;
         }
         for (int h = 0; h < itemCount; h++) {
-            if (p.touched[h] == epoch) p.itemStores[h].notifyChanged();
+            if (touched[h] == epoch) items[h].notifyChanged();
         }
-        for (int h = 0; h < fluidHandlers.length; h++) {
-            if (p.touched[itemCount + h] == epoch) p.fluidStores[h].notifyChanged();
+        for (int h = 0; h < fluids.length; h++) {
+            if (touched[itemCount + h] == epoch) fluids[h].notifyChanged();
         }
     }
 
@@ -494,19 +660,18 @@ public class RecipeHandlerUnit {
     public boolean fitsOutputs(GTRecipe recipe, PlanScratch p, long scale, boolean checkItems, boolean checkFluids) {
         var items = recipe.itemOutputs;
         var fluids = recipe.fluidOutputs;
-        beginPlan(p, items, fluids);
-        if (checkItems && !items.isEmpty() && !isInfiniteItemCapacity && !planOutputList(p, items, false, scale)) return false;
-        return !checkFluids || fluids.isEmpty() || isInfiniteFluidCapacity || planOutputList(p, fluids, true, scale);
+        beginPlan(p);
+        if (checkItems && !items.isEmpty() && !isInfiniteItemCapacity && !planOutputList(p, items, itemHandlers, itemStores, p.itemOffsets, AEKeyTypes.ITEMS, scale)) return false;
+        return !checkFluids || fluids.isEmpty() || isInfiniteFluidCapacity || planOutputList(p, fluids, fluidHandlers, fluidStores, p.fluidOffsets, AEKeyTypes.FLUIDS, scale);
     }
 
     public long outputParallelBound(GTRecipe recipe, PlanScratch p, boolean checkItems, boolean checkFluids) {
         long scale = recipe.scale;
-        if (scale < 1) return ~Long.MAX_VALUE;
         long bound = Long.MAX_VALUE;
         boolean exact = true;
         var items = recipe.itemOutputs;
         if (checkItems && !items.isEmpty() && !isInfiniteItemCapacity) {
-            long b = outputListBound(p, items, itemHandlers, AEKeyType.items(), scale);
+            long b = outputListBound(p, items, itemStores, scale);
             if (b < 0) {
                 exact = false;
                 b = ~b;
@@ -515,7 +680,7 @@ public class RecipeHandlerUnit {
         }
         var fluids = recipe.fluidOutputs;
         if (checkFluids && !fluids.isEmpty() && !isInfiniteFluidCapacity) {
-            long b = outputListBound(p, fluids, fluidHandlers, AEKeyType.fluids(), scale);
+            long b = outputListBound(p, fluids, fluidStores, scale);
             if (b < 0) {
                 exact = false;
                 b = ~b;
@@ -529,31 +694,21 @@ public class RecipeHandlerUnit {
         return list.chance(i) != 0 && list.amount(i) > 0;
     }
 
-    private static long outputListBound(PlanScratch p, ContentList list, IRecipeHandler[] members, AEKeyType type, long scale) {
+    private static long outputListBound(PlanScratch p, ContentList list, KeyInventory<?>[] stores, long scale) {
+        if (!list.hasActiveOutput()) return Long.MAX_VALUE;
+        if (!list.distinctOutputKeys()) return ~Long.MAX_VALUE;
         int n = list.size();
-        int active = 0;
-        for (int i = 0; i < n; i++) {
-            if (!activeOutput(list, i)) continue;
-            active++;
-            var key = list.ingredient(i).key();
-            if (key == null) return ~Long.MAX_VALUE;
-            for (int j = 0; j < i; j++) {
-                if (activeOutput(list, j) && list.ingredient(j).key() == key) return ~Long.MAX_VALUE;
-            }
-        }
-        if (active == 0) return Long.MAX_VALUE;
         long[] cap = p.outLeft(n);
-        for (int i = 0; i < n; i++) cap[i] = 0;
+        Arrays.fill(cap, 0, n, 0L);
         boolean exact = true;
-        for (var m : members) {
-            var inv = m.storage(type);
+        for (var inv : stores) {
             if (inv == null) return ~Long.MAX_VALUE;
             int size = inv.size();
             boolean unique = inv.isUniqueKeys();
             int spill = 0;
             for (int i = 0; i < n; i++) {
                 if (!activeOutput(list, i)) continue;
-                var key = list.ingredient(i).key();
+                var key = list.outputKey(i);
                 long limit = inv.limitFor(key);
                 if (limit <= 0) continue;
                 long c = 0;
@@ -604,11 +759,7 @@ public class RecipeHandlerUnit {
         return r < 0 ? Long.MAX_VALUE : r;
     }
 
-    private boolean planOutputList(PlanScratch p, ContentList list, boolean fluid, long scale) {
-        var members = fluid ? fluidHandlers : itemHandlers;
-        var stores = fluid ? p.fluidStores : p.itemStores;
-        var offsets = fluid ? p.fluidOffsets : p.itemOffsets;
-        var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
+    private static boolean planOutputList(PlanScratch p, ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, int[] offsets, AEKeyType type, long scale) {
         int n = list.size();
         long[] left = p.outLeft(n);
         long total = 0;
@@ -641,6 +792,7 @@ public class RecipeHandlerUnit {
         long limit = inv.limitFor(key);
         if (limit <= 0) return 0;
         int size = inv.size();
+        boolean unique = inv.isUniqueKeys();
         long left = amount;
         boolean hasSlot = false;
         for (int s = 0; s < size && left > 0; s++) {
@@ -661,7 +813,7 @@ public class RecipeHandlerUnit {
             p.addReserved(idx, t);
             left -= t;
         }
-        if (left > 0 && !(hasSlot && inv.isUniqueKeys())) {
+        if (left > 0 && !(hasSlot && unique)) {
             for (int s = 0; s < size && left > 0; s++) {
                 int idx = offset + s;
                 if (inv.amountAt(s) > 0 || p.claim(idx) > 0 || !inv.acceptsEmpty(s, key)) continue;
@@ -669,7 +821,7 @@ public class RecipeHandlerUnit {
                 p.setClaim(idx, entry + 1);
                 p.addReserved(idx, t);
                 left -= t;
-                if (inv.isUniqueKeys()) break;
+                if (unique) break;
             }
         }
         return amount - left;
@@ -677,10 +829,12 @@ public class RecipeHandlerUnit {
 
     public boolean insertOutputs(ContentList list, long[] amounts, boolean fluid) {
         var members = fluid ? fluidHandlers : itemHandlers;
-        var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
+        var stores = fluid ? fluidStores : itemStores;
+        var type = fluid ? AEKeyTypes.FLUIDS : AEKeyTypes.ITEMS;
         int n = list.size();
-        for (var m : members) {
-            var inv = m.storage(type);
+        for (int h = 0; h < members.length; h++) {
+            var inv = stores[h];
+            var m = members[h];
             boolean inserted = false;
             boolean remaining = false;
             for (int i = 0; i < n; i++) {
@@ -706,127 +860,107 @@ public class RecipeHandlerUnit {
         long limit = inv.limitFor(key);
         if (limit <= 0) return 0;
         int size = inv.size();
+        boolean unique = inv.isUniqueKeys();
         long left = amount;
         boolean hasSlot = false;
         for (int s = 0; s < size && left > 0; s++) {
-            if (inv.amountAt(s) > 0 && inv.rawKeyAt(s) == key) {
+            long stored = inv.amountAt(s);
+            if (stored > 0 && inv.rawKeyAt(s) == key) {
                 hasSlot = true;
-                long space = limit - inv.amountAt(s);
+                long space = limit - stored;
                 if (space <= 0) continue;
                 long t = left < space ? left : space;
                 inv.insertQuiet(s, key, t);
                 left -= t;
             }
         }
-        if (left > 0 && !(hasSlot && inv.isUniqueKeys())) {
+        if (left > 0 && !(hasSlot && unique)) {
             for (int s = 0; s < size && left > 0; s++) {
                 if (inv.amountAt(s) > 0 || !inv.acceptsEmpty(s, key)) continue;
                 long t = left < limit ? left : limit;
                 inv.insertQuiet(s, key, t);
                 left -= t;
-                if (inv.isUniqueKeys()) break;
+                if (unique) break;
             }
         }
         return amount - left;
     }
 
     public long inputParallel(GTRecipe recipe, long limit) {
+        long scale = recipe.scale;
+        long par = sumParallel(recipe.itemInputs, itemHandlers, itemStores, AEKeyTypes.ITEMS, scale, limit);
+        if (par == 0) return 0;
+        return sumParallel(recipe.fluidInputs, fluidHandlers, fluidStores, AEKeyTypes.FLUIDS, scale, par);
+    }
+
+    private static long sumParallel(ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, AEKeyType type, long scale, long par) {
+        if (list.hasOverlap()) return overlapParallel(list, members, stores, type, scale, par);
+        int n = list.size();
+        for (int i = 0; i < n; i++) {
+            par = entryParallel(list, i, members, stores, type, scale, par);
+            if (par == 0) return 0;
+        }
+        return par;
+    }
+
+    private static long overlapParallel(ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, AEKeyType type, long scale, long par) {
+        int separate = list.size() - list.overlapCount();
+        for (int j = 0; j < separate; j++) {
+            par = entryParallel(list, list.separateEntry(j), members, stores, type, scale, par);
+            if (par == 0) return 0;
+        }
         var p = PlanScratch.acquire();
         try {
-            return inputParallel(recipe, limit, p);
+            return p.overlap().bound(list, members, stores, type, scale, par);
         } finally {
             PlanScratch.release();
         }
     }
 
-    private long inputParallel(GTRecipe recipe, long limit, PlanScratch p) {
-        beginPlan(p, recipe.itemInputs, recipe.fluidInputs);
-        p.overlap = false;
-        long par = limit;
-        par = sumParallel(recipe, p, recipe.itemInputs, false, par);
-        if (par == 0) return 0;
-        par = sumParallel(recipe, p, recipe.fluidInputs, true, par);
-        if (par == 0) return 0;
-        if (!p.overlap) return par;
-        if (planInputs(recipe, p, Keys.multiply(recipe.scale, par), false)) return par;
-        long low = 0, high = par;
-        while (low + 1 < high) {
-            long mid = low + (high - low) / 2;
-            if (planInputs(recipe, p, Keys.multiply(recipe.scale, mid), false)) {
-                low = mid;
+    private static long entryParallel(ContentList list, int i, IRecipeHandler[] members, KeyInventory<?>[] stores, AEKeyType type, long scale, long par) {
+        boolean consume = list.isConsumable(i);
+        long need = consume ? list.effective(i, scale) : list.amount(i);
+        if (need <= 0) return par;
+        var ing = list.ingredient(i);
+        long enough = consume ? Keys.multiply(need, par) : need;
+        long avail = 0;
+        for (int h = 0, memberCount = members.length; h < memberCount && avail < enough; h++) {
+            var m = members[h];
+            if (consume && m.isNotConsumable()) continue;
+            var inv = stores[h];
+            if (inv == null) {
+                avail = Keys.add(avail, m.available(type, ing));
+            } else if (!consume && m.isPresenceOnly()) {
+                if (sumArray(inv, ing, 1) > 0) avail = Long.MAX_VALUE;
             } else {
-                high = mid;
+                avail = Keys.add(avail, sumArray(inv, ing, enough - avail));
             }
         }
-        return low;
-    }
-
-    private long sumParallel(GTRecipe recipe, PlanScratch p, ContentList list, boolean fluid, long par) {
-        int n = list.size();
-        var members = fluid ? fluidHandlers : itemHandlers;
-        var stores = fluid ? p.fluidStores : p.itemStores;
-        var offsets = fluid ? p.fluidOffsets : p.itemOffsets;
-        var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
-        for (int i = 0; i < n; i++) {
-            boolean consume = list.isConsumable(i);
-            long need = consume ? list.effective(i, recipe.scale) : list.amount(i);
-            if (need <= 0) continue;
-            var ing = list.ingredient(i);
-            long avail = 0;
-            for (int h = 0; h < members.length; h++) {
-                var m = members[h];
-                if (consume && m.isNotConsumable()) continue;
-                var inv = stores[h];
-                if (inv != null) {
-                    if (!consume && m.isPresenceOnly()) {
-                        if (containsMatch(inv, ing)) avail = Long.MAX_VALUE;
-                        continue;
-                    }
-                    avail = Keys.add(avail, sumArray(p, offsets[h], inv, ing, (fluid ? 0x40000000 : 0) | (i + 1)));
-                } else {
-                    avail = Keys.add(avail, m.available(type, ing));
-                }
-            }
-            if (avail < need) return 0;
-            if (consume) {
-                long q = avail / need;
-                if (q < par) par = q;
-            }
+        if (avail < need) return 0;
+        if (consume) {
+            long q = avail / need;
+            if (q < par) par = q;
         }
         return par;
-    }
-
-    private static long sumArray(PlanScratch p, int offset, KeyInventory<?> inv, KeyIngredient ing, int mark) {
-        int size = inv.size();
-        long sum = 0;
-        for (int s = 0; s < size; s++) {
-            long a = inv.amountAt(s);
-            if (a <= 0 || !ing.test(inv.uidAt(s), inv.rawKeyAt(s))) continue;
-            int idx = offset + s;
-            int c = p.claim(idx);
-            if (c != 0 && c != mark) p.overlap = true;
-            p.setClaim(idx, mark);
-            sum = Keys.add(sum, a);
-        }
-        return sum;
     }
 
     public boolean consume(KeyIngredient ing, long amount, boolean simulate) {
         if (amount <= 0) return true;
         var p = PlanScratch.acquire();
         try {
+            beginPlan(p);
             boolean fluid = ing.isFluid();
-            beginPlan(p, ContentList.EMPTY, ContentList.EMPTY);
             var members = fluid ? fluidHandlers : itemHandlers;
-            var stores = fluid ? p.fluidStores : p.itemStores;
+            var stores = fluid ? fluidStores : itemStores;
             var offsets = fluid ? p.fluidOffsets : p.itemOffsets;
-            var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
+            var type = fluid ? AEKeyTypes.FLUIDS : AEKeyTypes.ITEMS;
+            byte flags = fluid ? (byte) (PlanScratch.FLAG_CONSUME | PlanScratch.FLAG_FLUID) : PlanScratch.FLAG_CONSUME;
             long need = amount;
             for (int h = 0; h < members.length && need > 0; h++) {
                 var m = members[h];
                 if (m.isNotConsumable() || m.isOnlyRecipe()) continue;
                 var inv = stores[h];
-                need -= inv != null ? reserveArray(p, h, offsets[h], inv, ing, 0, need, true, fluid) : m.reserveInput(p, h, type, 0, ing, need, true);
+                need -= inv != null ? reserveArray(p, h, offsets[h], inv, ing, 0, need, flags) : m.reserveInput(p, h, type, 0, ing, need, true);
             }
             boolean ok = need <= 0;
             if (ok && !simulate) {
@@ -842,40 +976,33 @@ public class RecipeHandlerUnit {
     public long count(KeyIngredient ing, boolean consumable) {
         boolean fluid = ing.isFluid();
         var members = fluid ? fluidHandlers : itemHandlers;
-        var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
+        var stores = fluid ? fluidStores : itemStores;
+        var type = fluid ? AEKeyTypes.FLUIDS : AEKeyTypes.ITEMS;
         long total = 0;
-        for (var m : members) {
+        for (int h = 0; h < members.length; h++) {
+            var m = members[h];
             if (consumable && m.isNotConsumable()) continue;
-            var inv = m.storage(type);
-            if (inv != null) {
-                int size = inv.size();
-                for (int s = 0; s < size; s++) {
-                    long a = inv.amountAt(s);
-                    if (a > 0 && ing.test(inv.uidAt(s), inv.rawKeyAt(s))) total = Keys.add(total, a);
-                }
-            } else {
-                total = Keys.add(total, m.available(type, ing));
-            }
+            var inv = stores[h];
+            total = Keys.add(total, inv != null ? sumArray(inv, ing, Long.MAX_VALUE) : m.available(type, ing));
         }
         return total;
     }
 
     public boolean output(AEKey key, long amount, boolean simulate) {
         if (amount <= 0) return true;
-        boolean fluid = key.getType() == AEKeyType.fluids();
-        var type = fluid ? AEKeyType.fluids() : AEKeyType.items();
+        boolean fluid = key instanceof AEFluidKey;
         var members = fluid ? fluidHandlers : itemHandlers;
+        var stores = fluid ? fluidStores : itemStores;
+        var type = fluid ? AEKeyTypes.FLUIDS : AEKeyTypes.ITEMS;
         if (simulate) {
             if (fluid ? isInfiniteFluidCapacity : isInfiniteItemCapacity) return true;
             var p = PlanScratch.acquire();
             try {
-                beginPlan(p, ContentList.EMPTY, ContentList.EMPTY);
-                var stores = fluid ? p.fluidStores : p.itemStores;
-                var offsets = fluid ? p.fluidOffsets : p.itemOffsets;
+                beginPlan(p);
                 long left = amount;
                 for (int h = 0; h < members.length && left > 0; h++) {
                     var inv = stores[h];
-                    left -= inv != null ? reserveOutputSingle(p, offsets[h], inv, key, left) : members[h].reserveOutput(p, h, type, 0, key, left);
+                    left -= inv != null ? reserveOutputSingle(inv, key, left) : members[h].reserveOutput(p, h, type, 0, key, left);
                 }
                 return left <= 0;
             } finally {
@@ -884,24 +1011,24 @@ public class RecipeHandlerUnit {
         }
         long left = amount;
         for (int h = 0; h < members.length && left > 0; h++) {
-            var m = members[h];
-            var inv = m.storage(type);
+            var inv = stores[h];
             if (inv != null) {
                 long n = insertInto(inv, key, left);
                 if (n > 0) inv.notifyChanged();
                 left -= n;
             } else {
-                left -= m.insertOutput(type, key, left);
+                left -= members[h].insertOutput(type, key, left);
             }
         }
         return left <= 0;
     }
 
-    private static long reserveOutputSingle(PlanScratch p, int offset, KeyInventory<?> inv, AEKey key, long amount) {
+    private static long reserveOutputSingle(KeyInventory<?> inv, AEKey key, long amount) {
         long limit = inv.limitFor(key);
         if (limit <= 0) return 0;
-        long left = amount;
         int size = inv.size();
+        boolean unique = inv.isUniqueKeys();
+        long left = amount;
         boolean hasSlot = false;
         for (int s = 0; s < size && left > 0; s++) {
             long stored = inv.amountAt(s);
@@ -911,18 +1038,23 @@ public class RecipeHandlerUnit {
                 if (space > 0) left -= Math.min(left, space);
             }
         }
-        if (left > 0 && !(hasSlot && inv.isUniqueKeys())) {
+        if (left > 0 && !(hasSlot && unique)) {
             for (int s = 0; s < size && left > 0; s++) {
                 if (inv.amountAt(s) > 0 || !inv.acceptsEmpty(s, key)) continue;
                 left -= Math.min(left, limit);
-                if (inv.isUniqueKeys()) break;
+                if (unique) break;
             }
         }
         return amount - left;
     }
 
+    private static KeyIngredient baseItem(ItemLike item) {
+        return KeyIngredient.exact(AEItemKey.of(item, null));
+    }
+
     public boolean inputItem(ItemLike item, long amount) {
-        return consume(KeyIngredient.item(item), amount, true) && consume(KeyIngredient.item(item), amount, false);
+        var ing = baseItem(item);
+        return consume(ing, amount, true) && consume(ing, amount, false);
     }
 
     public boolean inputItem(AEItemKey key, long amount) {
@@ -931,7 +1063,8 @@ public class RecipeHandlerUnit {
     }
 
     public boolean inputFluid(Fluid fluid, long amount) {
-        return consume(KeyIngredient.fluid(fluid), amount, true) && consume(KeyIngredient.fluid(fluid), amount, false);
+        var ing = KeyIngredient.fluid(fluid);
+        return consume(ing, amount, true) && consume(ing, amount, false);
     }
 
     public boolean inputFluid(AEFluidKey key, long amount) {
@@ -960,7 +1093,7 @@ public class RecipeHandlerUnit {
     }
 
     public boolean matchItem(ItemLike item, long amount) {
-        return count(KeyIngredient.item(item), false) >= amount;
+        return count(baseItem(item), false) >= amount;
     }
 
     public boolean matchKey(AEKey key, long amount) {
@@ -986,14 +1119,17 @@ public class RecipeHandlerUnit {
     private int getCircuit(boolean sum, int wanted) {
         int circuit = 0;
         boolean found = false;
-        int circuitUid = IUnique.getUid(Circuits.item());
-        for (var h : itemHandlers) {
-            if (!h.isNotConsumable()) continue;
-            var inv = h.storage(AEKeyType.items());
+        int circuitUid = Circuits.uid();
+        var members = itemHandlers;
+        var stores = itemStores;
+        for (int h = 0; h < members.length; h++) {
+            if (!members[h].isNotConsumable()) continue;
+            var inv = stores[h];
             if (inv == null) continue;
-            for (int s = 0; s < inv.size(); s++) {
+            int size = inv.size();
+            for (int s = 0; s < size; s++) {
                 if (inv.amountAt(s) <= 0 || inv.uidAt(s) != circuitUid) continue;
-                int c = Circuits.configOf((AEItemKey) inv.rawKeyAt(s));
+                int c = Circuits.configOf(((AEItemKey) inv.rawKeyAt(s)).getTag());
                 if (wanted >= 0) {
                     if (c == wanted) return c;
                     continue;
@@ -1022,7 +1158,7 @@ public class RecipeHandlerUnit {
 
     public void getItemAmount(boolean consumable, Item[] items, long[] amounts) {
         for (int i = 0; i < items.length; i++) {
-            amounts[i] = Keys.add(amounts[i], count(KeyIngredient.item(items[i]), consumable));
+            amounts[i] = Keys.add(amounts[i], count(baseItem(items[i]), consumable));
         }
     }
 
@@ -1033,7 +1169,7 @@ public class RecipeHandlerUnit {
     }
 
     public boolean forEachKey(AEKeyType type, boolean consumable, IRecipeHandler.KeyVisitor visitor) {
-        var members = type == AEKeyType.fluids() ? fluidHandlers : itemHandlers;
+        var members = type == AEKeyTypes.FLUIDS ? fluidHandlers : itemHandlers;
         for (var m : members) {
             if (consumable && m.isNotConsumable()) continue;
             if (m.forEachKey(type, visitor)) return true;

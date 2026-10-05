@@ -53,6 +53,8 @@ import net.minecraftforge.fluids.FluidUtil;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
+import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -238,7 +240,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     protected void updateAutoOutputSubscription() {
         var outputFacing = getOutputFacingFluids();
-        if ((isAutoOutputFluids() && cache.storage.amountAt(0) > 0) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentFluidHandler(getLevel(), getPos(), outputFacing)) {
+        if ((isAutoOutputFluids() && cache.storage.amountAt(0) > 0) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.FLUIDS, StorageAccess.INSERT)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -398,7 +400,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
         @Override
         public AEKeyType keyType() {
-            return AEKeyType.fluids();
+            return AEKeyTypes.FLUIDS;
         }
 
         @Override
@@ -455,12 +457,14 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         public void exportToNearby(Direction... facings) {
             var key = storage.keyAt(0);
             if (key == null) return;
-            var level = getMachine().getLevel();
-            var pos = getMachine().getPos();
+            var m = getMachine();
+            var level = m.getLevel();
+            var pos = m.getPos();
+            var cache = holder.blockEntityDirectionCache;
             for (Direction facing : facings) {
-                var filter = getMachine().getKeyCapFilter(facing, IO.OUT, AEKeyType.fluids());
+                var filter = m.getKeyCapFilter(facing, IO.OUT, AEKeyTypes.FLUIDS);
                 if (filter != null && !filter.matches(key)) continue;
-                if (holder.blockEntityDirectionCache.getAdjacentKeyHandler(level, pos, facing, AEKeyType.fluids()) instanceof IKeyHandler<?> target) {
+                if (cache.getAdjacentKeyHandler(level, pos, facing, AEKeyTypes.FLUIDS, StorageAccess.INSERT) instanceof IKeyHandler<?> target) {
                     @SuppressWarnings("unchecked")
                     var to = (IKeyHandler<AEFluidKey>) target;
                     KeyTransfer.transferKey(this, to, key, exportLimit());

@@ -63,14 +63,14 @@ public final class MenuItemAdapter implements IItemHandlerModifiable {
     @Override
     public void setStackInSlot(int slot, @NotNull ItemStack stack) {
         if (slot < views.length) views[slot] = null;
-        inventory.set(slot, Keys.item(stack), stack.getCount());
+        inventory.set(slot, AEItemKey.of(stack), stack.getCount());
     }
 
     @Override
     public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
         if (stack.isEmpty()) return stack;
         writeBack(slot);
-        var key = Keys.item(stack);
+        var key = AEItemKey.of(stack);
         if (key == null) return stack;
         long n = inventory.insert(slot, key, stack.getCount(), simulate);
         if (n <= 0) return stack;
@@ -97,7 +97,7 @@ public final class MenuItemAdapter implements IItemHandlerModifiable {
 
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        var key = Keys.itemType(stack);
+        var key = AEItemKey.of(stack);
         return key != null && inventory.acceptsEmpty(slot, key);
     }
 
@@ -125,7 +125,7 @@ public final class MenuItemAdapter implements IItemHandlerModifiable {
         if (now <= 0) {
             inventory.set(slot, null, 0);
         } else {
-            inventory.set(slot, Keys.item(view), now);
+            inventory.set(slot, AEItemKey.of(view), now);
         }
     }
 }

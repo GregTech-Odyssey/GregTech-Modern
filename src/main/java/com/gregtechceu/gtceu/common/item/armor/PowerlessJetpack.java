@@ -266,6 +266,7 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
                         @Override
                         public boolean canFillFluidType(FluidStack fluid) {
                             var key = Keys.fluidType(fluid);
+                            if (key == null) return false;
                             for (var fuel : FUELS.keySet()) {
                                 if (fuel.ingredient().test(key)) return true;
                             }

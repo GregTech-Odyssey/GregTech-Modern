@@ -1,10 +1,10 @@
 package com.gregtechceu.gtceu.uipro.elements.ae;
 
-import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.integration.ae2.utils.KeyStorage;
 import com.gregtechceu.gtceu.uipro.ILayoutItem;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.UIIngredient;
 import com.gregtechceu.gtceu.uipro.data.UIChannel;
 import com.gregtechceu.gtceu.uipro.data.UIEvent;
 import com.gregtechceu.gtceu.uipro.render.UIDraw;
@@ -31,13 +31,11 @@ import net.minecraftforge.fluids.FluidStack;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyIntMap;
+import appeng.api.stacks.AEKeyLongMap;
 import appeng.api.stacks.AmountFormat;
 import appeng.api.stacks.GenericStack;
-import appeng.integration.modules.emi.EmiStackHelper;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
-import dev.emi.emi.api.stack.EmiStackInteraction;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -65,10 +63,10 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot,
     private final int minRows;
     private final LayoutStyle layoutStyle;
     /// 服务端：上次下发的内容
-    private final Reference2LongOpenHashMap<AEKey> cached = new Reference2LongOpenHashMap<>();
+    private final AEKeyLongMap<AEKey> cached = new AEKeyLongMap<>();
     /// 客户端：显示的内容（按首次出现的顺序）
     private final List<GenericStack> displayList = new ArrayList<>();
-    private final Object2IntOpenHashMap<AEKey> displayIndex = new Object2IntOpenHashMap<>();
+    private final AEKeyIntMap<AEKey> displayIndex = new AEKeyIntMap<>();
     private final UIChannel channel = new UIChannel(this);
     private final UIEvent<List<Change>> content;
 
@@ -101,8 +99,8 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot,
     // ==================== 同步 ====================
 
     /** 服务端：与上次下发的内容比较，收集增量（键 → 数量差，移除为负的原数量）。 */
-    private Reference2LongOpenHashMap<AEKey> collectChanges() {
-        var changes = new Reference2LongOpenHashMap<AEKey>();
+    private AEKeyLongMap<AEKey> collectChanges() {
+        var changes = new AEKeyLongMap<>();
         var cachedIt = cached.reference2LongEntrySet().fastIterator();
         while (cachedIt.hasNext()) {
             var entry = cachedIt.next();
@@ -125,7 +123,7 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot,
 
     private record Change(AEKey key, long delta) {}
 
-    private static List<Change> toList(Reference2LongOpenHashMap<AEKey> changes) {
+    private static List<Change> toList(AEKeyLongMap<AEKey> changes) {
         var result = new ArrayList<Change>(changes.size());
         changes.reference2LongEntrySet().fastForEach(entry -> result.add(new Change(entry.getKey(), entry.getLongValue())));
         return result;
@@ -281,9 +279,6 @@ public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot,
     /** EMI 查看鼠标下的物品 / 流体。 */
     @Override
     public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
-        var stack = getAt(cellAt(mouseX, mouseY));
-        if (stack == null || !GTCEu.Mods.isEMILoaded()) return null;
-        var emiStack = EmiStackHelper.toEmiStack(stack);
-        return emiStack == null ? null : new EmiStackInteraction(emiStack, null, false);
+        return UIIngredient.of(getAt(cellAt(mouseX, mouseY)));
     }
 }

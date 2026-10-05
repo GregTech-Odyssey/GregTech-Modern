@@ -1722,6 +1722,11 @@ public class LangHandler {
         provider.add("gtceu.gui.side_overview.no_cover_settings", "This side has no configurable cover");
         provider.add("gtceu.gui.side_overview.open_cover_short", "Settings");
         provider.add("gtceu.gui.side_overview.no_selection", "Select a side in the slots above or in the preview first");
+        provider.add("gtceu.gui.side_overview.cover_slot.place", "Click with a cover in hand to install it on this side; an existing cover is swapped out");
+        provider.add("gtceu.gui.side_overview.cover_slot.take", "Click with an empty hand to take the cover; hold Shift to send it to the inventory");
+        provider.add("gtceu.gui.side_overview.cover_slot.not_cover", "Not a cover");
+        provider.add("gtceu.gui.side_overview.cover_slot.cannot_place", "Cannot be installed on this side");
+        provider.add("gtceu.gui.side_overview.cover_slot.front", "Covers cannot be installed on the front side");
         provider.add("gtceu.gui.side_overview.none_selected", "No side selected");
         provider.add("gtceu.gui.side_overview.selected_cover", "%s: %s");
         provider.add("gtceu.gui.side_overview.item_mode", "Item output");
@@ -1851,6 +1856,8 @@ public class LangHandler {
         provider.add("gtceu.gui.multiblock.steam", "Steam");
         provider.add("gtceu.gui.multiblock.steam_usage", "Steam Usage");
         provider.add("gtceu.gui.multiblock.max_power", "Max Power");
+        provider.add("gtceu.gui.multiblock.cleanliness", "Cleanliness");
+        provider.add("gtceu.gui.multiblock.clean_per_cycle", "Cleanliness per Cycle");
         provider.add("gtceu.gui.multiblock.energy_usage", "Energy Usage");
         provider.add("gtceu.gui.multiblock.energy_output", "Energy Output");
         provider.add("gtceu.gui.multiblock.on", "On");
@@ -1965,6 +1972,11 @@ public class LangHandler {
         provider.add("gtceu.uipro.view.zoom_percent", "Current zoom. Click to fit the view. Scroll over the view to zoom, Shift + scroll to pan, drag to pan.");
         provider.add("gtceu.uipro.view.reset", "Reset view");
         provider.add("gtceu.uipro.view.zoom_distance", "Distance relative to the default view. Click to return to the default distance");
+        provider.add("gtceu.uipro.view.zoom_locked", "Zoom locked");
+        provider.add("gtceu.uipro.view.zoom_locked.hint", "The scroll wheel no longer zooms the view. Click to unlock");
+        provider.add("gtceu.uipro.view.zoom_locked.reason", "Zoom is locked. Click the lock button to unlock");
+        provider.add("gtceu.uipro.view.zoom_unlocked", "Zoom unlocked");
+        provider.add("gtceu.uipro.view.zoom_unlocked.hint", "Click to lock, so the scroll wheel cannot change the zoom by accident");
         provider.add("gtceu.structure_preview.highlight", "Highlight part positions: positions that accept hatches, buses and other parts");
         provider.add("gtceu.gui.part_cells.title", "Show Part Positions in World");
         provider.add("gtceu.gui.part_cells.legend", "Green boxes: casings that can be replaced with hatches, buses and other parts; blue boxes: parts already placed");

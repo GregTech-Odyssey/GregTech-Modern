@@ -31,7 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeySet;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
@@ -144,7 +144,7 @@ public class DataAccessHatchMachine extends TieredPartMachine implements IMachin
             List<Component> list = new ArrayList<>();
             list.add(Component.translatable("behavior.data_item.assemblyline.title"));
             list.add(Component.empty());
-            var itemsAdded = new ReferenceOpenHashSet<AEKey>();
+            var itemsAdded = new AEKeySet<>();
             for (GTRecipeDefinition recipe : recipes) {
                 if (recipe.itemOutputs.isEmpty()) continue;
                 var key = recipe.itemOutputs.outputKey(0);

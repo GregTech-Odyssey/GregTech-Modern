@@ -6,8 +6,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.datastream.data.ByteData;
 import com.gto.datasynclib.datastream.data.CustomData;
 import com.gto.datasynclib.datastream.data.Data;
@@ -26,7 +27,7 @@ final class LegacyKeyInventoryCodec {
 
     static void decode(KeyInventory<?> inv, Data data, int dataVersion) {
         if (data == NullData.INSTANCE || data == NullData.NONE) return;
-        if (inv.keyType() == AEKeyType.items()) {
+        if (inv.keyType() == AEKeyTypes.ITEMS) {
             decodeItems(inv, data, dataVersion);
         } else {
             decodeFluids(inv, data, dataVersion);
@@ -69,7 +70,7 @@ final class LegacyKeyInventoryCodec {
 
     private static void putItem(KeyInventory<?> inv, int slot, CompoundTag tag) {
         var stack = ItemStack.of(tag);
-        if (!stack.isEmpty()) inv.put(slot, Keys.item(stack), stack.getCount());
+        if (!stack.isEmpty()) inv.put(slot, AEItemKey.of(stack), stack.getCount());
     }
 
     private static boolean isKeyMap(ListData list) {
@@ -79,7 +80,7 @@ final class LegacyKeyInventoryCodec {
     private static void decodeKeyMap(KeyInventory<?> inv, ListData list, int dataVersion) {
         int size = list.size();
         int slot = 0;
-        boolean items = inv.keyType() == AEKeyType.items();
+        boolean items = inv.keyType() == AEKeyTypes.ITEMS;
         for (int i = 0; i + 1 < size; i += 2) {
             AEKey key = items ? KeyCodecs.AE_ITEM_KEY_DATA_CODEC.decode(list.get(i), dataVersion) : KeyCodecs.AE_FLUID_KEY_DATA_CODEC.decode(list.get(i), dataVersion);
             long amount = list.get(i + 1).getLong();

@@ -260,6 +260,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
             int activeConnections = pipeTile.getConnections();
             boolean isActiveNode = activeConnections != 0;
             getWorldPipeNet(level).addNode(pos, createRawData(state, null), 0, activeConnections, isActiveNode);
+            pipeTile.onJoinedNet();
         }
     }
 

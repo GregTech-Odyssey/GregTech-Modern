@@ -26,7 +26,7 @@ public final class KeyTransfer {
         long stored = from.amountAt(slot);
         if (stored <= 0) return 0;
         K key = from.keyAt(slot);
-        if (key == null || (filter != null && !filter.matches(key))) return 0;
+        if (filter != null && !filter.matches(key)) return 0;
         long want = from.extract(slot, key, stored < maxAmount ? stored : maxAmount, true);
         if (want <= 0) return 0;
         long accept = to.insert(key, want, true);
@@ -35,7 +35,7 @@ public final class KeyTransfer {
         if (extracted <= 0) return 0;
         long inserted = to.insert(key, extracted, false);
         if (inserted < extracted) {
-            var origin = unwrap(from);
+            var origin = from.unrestricted();
             long back = origin.insert(slot, key, extracted - inserted, false);
             if (back < extracted - inserted) back += origin.insert(key, extracted - inserted - back, false);
             if (back < extracted - inserted) inserted += to.insert(key, extracted - inserted - back, false);
@@ -49,12 +49,9 @@ public final class KeyTransfer {
         long accept = to.insert(key, want, true);
         if (accept <= 0) return 0;
         long extracted = from.extract(key, accept, false);
+        if (extracted <= 0) return 0;
         long inserted = to.insert(key, extracted, false);
-        if (inserted < extracted) unwrap(from).insert(key, extracted - inserted, false);
+        if (inserted < extracted) from.unrestricted().insert(key, extracted - inserted, false);
         return inserted;
-    }
-
-    private static <K extends AEKey> IKeyHandler<K> unwrap(IKeyHandler<K> handler) {
-        return handler.unrestricted();
     }
 }

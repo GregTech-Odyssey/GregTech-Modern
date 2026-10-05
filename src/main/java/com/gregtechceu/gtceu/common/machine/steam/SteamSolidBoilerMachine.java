@@ -70,7 +70,7 @@ public class SteamSolidBoilerMachine extends SteamBoilerMachine {
             if (!inputs.isEmpty() && inputs.ingredient(0).displayKey() instanceof AEItemKey input) {
                 var remaining = getBurningFuelRemainder(Keys.displayStack(input));
                 if (!remaining.isEmpty()) {
-                    ashHandler.storage.insert(0, Keys.item(remaining), remaining.getCount(), false);
+                    ashHandler.storage.insert(0, AEItemKey.of(remaining), remaining.getCount(), false);
                 }
             }
         }

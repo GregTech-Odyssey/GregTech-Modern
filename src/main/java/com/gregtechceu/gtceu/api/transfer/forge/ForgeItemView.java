@@ -3,15 +3,20 @@ package com.gregtechceu.gtceu.api.transfer.forge;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import org.jetbrains.annotations.Nullable;
 
 public final class ForgeItemView implements IKeyHandler<AEItemKey> {
 
+    private static final int[] NO_SLOTS = new int[0];
+
     private final IItemHandler handler;
+    private int[] empties = NO_SLOTS;
 
     private ForgeItemView(IItemHandler handler) {
         this.handler = handler;
@@ -26,9 +31,32 @@ public final class ForgeItemView implements IKeyHandler<AEItemKey> {
         return handler;
     }
 
+    private static boolean holds(ItemStack stack, AEItemKey key) {
+        if (stack.getItem() != key.getItem()) return false;
+        var t = stack.getTag();
+        var kt = key.getTag();
+        return t == kt || (t == null || t.isEmpty() ? kt == null : t.equals(kt));
+    }
+
+    private static long insertSlot(IItemHandler h, int slot, AEItemKey key, long amount, boolean simulate) {
+        int n = Keys.saturatedInt(Math.min(amount, Math.max(key.getMaxStackSize(), h.getSlotLimit(slot))));
+        return n - h.insertItem(slot, key.toStack(n), simulate).getCount();
+    }
+
+    private static long extractSlot(IItemHandler h, int slot, long amount, boolean simulate) {
+        long total = 0;
+        while (total < amount) {
+            int c = h.extractItem(slot, Keys.saturatedInt(amount - total), simulate).getCount();
+            if (c <= 0) break;
+            total += c;
+            if (simulate) break;
+        }
+        return total;
+    }
+
     @Override
     public AEKeyType keyType() {
-        return AEKeyType.items();
+        return AEKeyTypes.ITEMS;
     }
 
     @Override
@@ -38,7 +66,7 @@ public final class ForgeItemView implements IKeyHandler<AEItemKey> {
 
     @Override
     public @Nullable AEItemKey keyAt(int slot) {
-        return Keys.item(handler.getStackInSlot(slot));
+        return AEItemKey.of(handler.getStackInSlot(slot));
     }
 
     @Override
@@ -54,38 +82,37 @@ public final class ForgeItemView implements IKeyHandler<AEItemKey> {
     @Override
     public long insert(int slot, AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
-        int n = Keys.saturatedInt(Math.min(amount, Math.max(key.getMaxStackSize(), handler.getSlotLimit(slot))));
-        var rest = handler.insertItem(slot, key.toStack(n), simulate);
-        return n - rest.getCount();
+        return insertSlot(handler, slot, key, amount, simulate);
     }
 
     @Override
     public long extract(int slot, AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
-        var stack = handler.getStackInSlot(slot);
-        if (stack.isEmpty() || Keys.itemType(stack) != key) return 0;
-        long total = 0;
-        while (total < amount) {
-            var got = handler.extractItem(slot, Keys.saturatedInt(amount - total), simulate);
-            int c = got.getCount();
-            if (c <= 0) break;
-            total += c;
-            if (simulate) break;
-        }
-        return total;
+        var h = handler;
+        return holds(h.getStackInSlot(slot), key) ? extractSlot(h, slot, amount, simulate) : 0;
     }
 
     @Override
     public long insert(AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
+        var h = handler;
+        int size = h.getSlots();
+        var e = empties;
+        if (e.length < size) empties = e = new int[size];
+        int ne = 0;
         long left = amount;
-        int size = handler.getSlots();
-        for (int i = 0; i < size && left > 0; i++) {
-            var stack = handler.getStackInSlot(i);
-            if (!stack.isEmpty() && key.matches(stack)) left -= insert(i, key, left, simulate);
+        for (int i = 0; i < size; i++) {
+            var stack = h.getStackInSlot(i);
+            if (stack.isEmpty()) {
+                e[ne++] = i;
+            } else if (holds(stack, key)) {
+                left -= insertSlot(h, i, key, left, simulate);
+                if (left <= 0) return amount;
+            }
         }
-        for (int i = 0; i < size && left > 0; i++) {
-            if (handler.getStackInSlot(i).isEmpty()) left -= insert(i, key, left, simulate);
+        for (int j = 0; j < ne; j++) {
+            left -= insertSlot(h, e[j], key, left, simulate);
+            if (left <= 0) return amount;
         }
         return amount - left;
     }
@@ -93,11 +120,27 @@ public final class ForgeItemView implements IKeyHandler<AEItemKey> {
     @Override
     public long extract(AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
+        var h = handler;
+        int size = h.getSlots();
         long left = amount;
-        int size = handler.getSlots();
-        for (int i = 0; i < size && left > 0; i++) {
-            left -= extract(i, key, left, simulate);
+        for (int i = 0; i < size; i++) {
+            if (holds(h.getStackInSlot(i), key)) {
+                left -= extractSlot(h, i, left, simulate);
+                if (left <= 0) break;
+            }
         }
         return amount - left;
+    }
+
+    @Override
+    public long count(AEItemKey key) {
+        var h = handler;
+        int size = h.getSlots();
+        long total = 0;
+        for (int i = 0; i < size; i++) {
+            var stack = h.getStackInSlot(i);
+            if (holds(stack, key)) total = Keys.add(total, stack.getCount());
+        }
+        return total;
     }
 }

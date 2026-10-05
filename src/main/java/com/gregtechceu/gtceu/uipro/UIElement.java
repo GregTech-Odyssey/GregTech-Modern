@@ -708,7 +708,7 @@ public class UIElement extends WidgetGroup implements ElementState.Host<UIElemen
     public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
         double x = toLocalX(mouseX), y = toLocalY(mouseY);
         if (!isInClip(x, y)) return null;
-        return super.getXEIIngredientOverMouse(x, y);
+        return UIIngredient.of(super.getXEIIngredientOverMouse(x, y));
     }
 
     @Override

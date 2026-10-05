@@ -13,7 +13,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
 import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
@@ -58,7 +57,7 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     @Override
     public void recoverItemsTable(ItemStack recoveryItems) {
         if (calculateChance()) {
-            var key = Keys.item(recoveryItems);
+            var key = AEItemKey.of(recoveryItems);
             if (key != null) inventory.insert(key, recoveryItems.getCount(), false);
         }
     }

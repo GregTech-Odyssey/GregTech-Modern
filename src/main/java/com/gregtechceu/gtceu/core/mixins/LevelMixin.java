@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.core.mixins;
 
+import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.core.IServerChunkCache;
@@ -54,6 +55,10 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     @Unique
     private MultiblockWorldData gtceu$multiblockWorldData;
 
+    @Unique
+    @Nullable
+    private BlockEntityWatch gtceu$blockEntityWatch;
+
     @Override
     public DataComponentMap gtceu$getCapabilities() {
         var cap = gtceu$capabilitie;
@@ -76,6 +81,16 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
     @Override
     public void gtceu$setMultiblockWorldSavedData(MultiblockWorldData data) {
         gtceu$multiblockWorldData = data;
+    }
+
+    @Override
+    public @Nullable BlockEntityWatch gtceu$getBlockEntityWatch() {
+        return gtceu$blockEntityWatch;
+    }
+
+    @Override
+    public void gtceu$setBlockEntityWatch(@Nullable BlockEntityWatch watch) {
+        gtceu$blockEntityWatch = watch;
     }
 
     @Override
@@ -112,6 +127,7 @@ public abstract class LevelMixin implements LevelAccessor, ILevel {
         gtceu$taskHandler = null;
         gtceu$multiblockWorldData = null;
         gtceu$capabilitie = null;
+        gtceu$blockEntityWatch = null;
     }
 
     /**

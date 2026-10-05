@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 
 import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.UIIngredient;
 import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.SyncItem;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
@@ -180,7 +181,7 @@ public class StatusLine extends UIElement {
     @Override
     public @Nullable Object getXEIIngredientOverMouse(double mouseX, double mouseY) {
         var stack = iconAt(mouseX, mouseY);
-        return stack != null ? stack : super.getXEIIngredientOverMouse(mouseX, mouseY);
+        return stack != null ? UIIngredient.of(stack) : super.getXEIIngredientOverMouse(mouseX, mouseY);
     }
 
     @Nullable

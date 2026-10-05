@@ -94,7 +94,10 @@ public class FlowChart extends UIElement {
 
     public FlowView toView(FancyMachineUIWidget window, boolean inventory, String zoomKey) {
         var view = new FlowView(zoomKey, this, true).limitToWindow(inventory);
-        if (window instanceof MachineWindow machineWindow) machineWindow.addTitleTool(() -> ZoomBar.title(view));
+        if (window instanceof MachineWindow machineWindow) {
+            view.setZoomLocked(true);
+            machineWindow.addTitleTool(() -> ZoomBar.of(view, false).lock().zoom(true).build());
+        }
         return view;
     }
 

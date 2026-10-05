@@ -204,11 +204,11 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
             if (item == null) return null;
             var stack = new ItemStack(item);
             stack.setTag(emiStack.getNbt());
-            var key = Keys.itemType(stack);
+            var key = AEItemKey.of(stack);
             return key == null ? null : new GenericStack(key, Math.max(1, emiStack.getAmount()));
         }
         if (ingredient instanceof ItemStack stack) {
-            var key = Keys.itemType(stack);
+            var key = AEItemKey.of(stack);
             return key == null ? null : new GenericStack(key, Math.max(1, stack.getCount()));
         }
         return null;
@@ -366,7 +366,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
         if (boundHandler instanceof MenuItemAdapter adapter) {
             var filter = adapter.getInventory().getFilter();
             if (filter == null) return true;
-            var key = Keys.itemType(stack);
+            var key = AEItemKey.of(stack);
             return key != null && filter.matches(key);
         }
         if (boundHandler instanceof ForgeStackAdapter adapter) {

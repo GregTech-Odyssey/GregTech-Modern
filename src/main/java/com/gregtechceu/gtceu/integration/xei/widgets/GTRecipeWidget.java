@@ -329,7 +329,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     private static int inputOrder(ContentList inputs, int i) {
         if (inputs.chance(i) > 0) return 2;
-        return inputs.ingredient(i).kind == KeyIngredient.CIRCUIT ? 0 : 1;
+        return inputs.ingredient(i).kind() == KeyIngredient.CIRCUIT ? 0 : 1;
     }
 
     private static void collectStorage(Table<IO, RecipeInfo, Object> extraTable, Table<IO, RecipeInfo, ContentList> extraContents,

@@ -1,22 +1,20 @@
 package com.gregtechceu.gtceu.utils.cache;
 
-import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
+import com.gregtechceu.gtceu.api.transfer.key.KeyTarget;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
 
 import appeng.api.stacks.AEKeyType;
-import org.jetbrains.annotations.NotNull;
+import appeng.api.storage.StorageAccess;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockEntityDirectionCache extends DirectionCache<BlockEntity> {
+
+    private final KeyTarget[] targets = new KeyTarget[6];
 
     public static BlockEntityDirectionCache create() {
         return new BlockEntityDirectionCache();
@@ -45,33 +43,24 @@ public class BlockEntityDirectionCache extends DirectionCache<BlockEntity> {
         }
     }
 
-    public @NotNull LazyOptional<IItemHandler> getAdjacentItemHandler(Level level, BlockPos pos, Direction facing) {
+    public boolean hasAdjacentTarget(Level level, BlockPos pos, Direction facing, AEKeyType type, StorageAccess access) {
         var blockEntity = getAdjacentBlockEntity(level, pos, facing);
-        if (blockEntity != null) {
-            return blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite());
-        }
-        return LazyOptional.empty();
+        return blockEntity != null && target(facing).has(blockEntity, facing.getOpposite(), type, access);
     }
 
-    public boolean hasAdjacentItemHandler(Level level, BlockPos pos, Direction facing) {
-        return getAdjacentItemHandler(level, pos, facing).isPresent();
-    }
-
-    public @NotNull LazyOptional<IFluidHandler> getAdjacentFluidHandler(Level level, BlockPos pos, Direction facing) {
+    public @Nullable IKeyHandler<?> getAdjacentKeyHandler(Level level, BlockPos pos, Direction facing, AEKeyType type, StorageAccess access) {
         var blockEntity = getAdjacentBlockEntity(level, pos, facing);
-        if (blockEntity != null) {
-            return blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, facing.getOpposite());
-        }
-        return LazyOptional.empty();
+        return blockEntity == null ? null : target(facing).find(blockEntity, facing.getOpposite(), type, access);
     }
 
-    public boolean hasAdjacentFluidHandler(Level level, BlockPos pos, Direction facing) {
-        return getAdjacentFluidHandler(level, pos, facing).isPresent();
+    public @Nullable IKeyHandler<?> getAdjacentKeyHandler(BlockEntity neighbour, Direction facing, AEKeyType type, StorageAccess access) {
+        return target(facing).find(neighbour, facing.getOpposite(), type, access);
     }
 
-    public @Nullable IKeyHandler<?> getAdjacentKeyHandler(Level level, BlockPos pos, Direction facing, AEKeyType type) {
-        var blockEntity = getAdjacentBlockEntity(level, pos, facing);
-        if (blockEntity == null) return null;
-        return GTCapabilityHelper.getKeyHandler(blockEntity, facing.getOpposite(), type);
+    private KeyTarget target(Direction facing) {
+        int i = facing.ordinal();
+        var t = targets[i];
+        if (t == null) targets[i] = t = new KeyTarget();
+        return t;
     }
 }

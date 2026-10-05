@@ -38,7 +38,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -87,6 +87,11 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     protected final FilterHandler<FluidStack, FluidFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
     protected final AEKeyFilter fluidKeyFilter = this::matchesFilter;
+    @Nullable
+    private Reference2LongLinkedOpenHashMap<AEFluidKey> fluidsA;
+    @Nullable
+    private Reference2LongLinkedOpenHashMap<AEFluidKey> fluidsB;
+    private boolean fluidFlip;
 
     public PumpCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -115,7 +120,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     @Nullable
     @SuppressWarnings("unchecked")
     protected IKeyHandler<AEFluidKey> getAdjacentFluidHandler() {
-        return (IKeyHandler<AEFluidKey>) coverHolder.getBlockEntityDirectionCache().getAdjacentKeyHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide, AEKeyType.fluids());
+        return (IKeyHandler<AEFluidKey>) coverHolder.getBlockEntityDirectionCache().getAdjacentKeyHandler(coverHolder.getLevel(), coverHolder.getPos(), attachedSide, AEKeyTypes.FLUIDS, io.neighbourAccess());
     }
 
     //////////////////////////////////////
@@ -210,13 +215,19 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     }
 
     protected Reference2LongLinkedOpenHashMap<AEFluidKey> enumerateDistinctFluids(IKeyHandler<AEFluidKey> fluidHandler) {
-        var summedFluids = new Reference2LongLinkedOpenHashMap<AEFluidKey>();
+        var summedFluids = (fluidFlip = !fluidFlip) ? fluidsA : fluidsB;
+        if (summedFluids == null) {
+            summedFluids = new Reference2LongLinkedOpenHashMap<>();
+            if (fluidFlip) fluidsA = summedFluids;
+            else fluidsB = summedFluids;
+        } else {
+            summedFluids.clear();
+        }
         int size = fluidHandler.size();
         for (int tank = 0; tank < size; tank++) {
             long amount = fluidHandler.amountAt(tank);
             if (amount <= 0) continue;
             var key = fluidHandler.keyAt(tank);
-            if (key == null) continue;
             summedFluids.put(key, Keys.add(summedFluids.getLong(key), amount));
         }
         return summedFluids;

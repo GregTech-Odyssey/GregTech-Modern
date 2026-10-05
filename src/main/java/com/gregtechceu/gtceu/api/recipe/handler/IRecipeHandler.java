@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,11 +24,11 @@ public interface IRecipeHandler extends IFilteredHandler {
     }
 
     default boolean handlesItems() {
-        return storage(AEKeyType.items()) != null;
+        return storage(AEKeyTypes.ITEMS) != null;
     }
 
     default boolean handlesFluids() {
-        return storage(AEKeyType.fluids()) != null;
+        return storage(AEKeyTypes.FLUIDS) != null;
     }
 
     default long available(AEKeyType type, KeyIngredient ingredient) {

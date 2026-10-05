@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.uiwidgets.structure.StructurePreviewScreen;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,7 +24,10 @@ import appeng.menu.me.common.MEStorageMenu;
 import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.Bounds;
+import dev.emi.emi.api.widget.WidgetHolder;
 import dev.emi.emi.bom.BoM;
+import dev.emi.emi.config.EmiConfig;
 import dev.emi.emi.config.SidebarType;
 import dev.emi.emi.runtime.EmiFavorites;
 import dev.emi.emi.runtime.EmiPersistentData;
@@ -52,6 +56,10 @@ public final class MultiblockEmiActions {
                 .setOnClientClick(() -> toggleFavorite(recipe, definition));
         favorite.tooltips(FAVORITE);
         return List.of(favorite);
+    }
+
+    public static void blockFavoriteKey(WidgetHolder widgets) {
+        widgets.add(new FavoriteKeyBlocker(new Bounds(0, 0, widgets.getWidth(), widgets.getHeight())));
     }
 
     public static void register() {
@@ -115,5 +123,27 @@ public final class MultiblockEmiActions {
         minecraft.setScreen(origin);
         BoM.setGoal(tree);
         EmiApi.viewRecipeTree();
+    }
+
+    private static final class FavoriteKeyBlocker extends dev.emi.emi.api.widget.Widget {
+
+        private final Bounds bounds;
+
+        private FavoriteKeyBlocker(Bounds bounds) {
+            this.bounds = bounds;
+        }
+
+        @Override
+        public Bounds getBounds() {
+            return bounds;
+        }
+
+        @Override
+        public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {}
+
+        @Override
+        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+            return EmiConfig.favorite.matchesKey(keyCode, scanCode);
+        }
     }
 }

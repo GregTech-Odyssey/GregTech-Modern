@@ -499,7 +499,7 @@ public class MachineLang {
         // Cleanroom
         multiLang(provider, "gtceu.machine.cleanroom.tooltip",
                 "Place machines inside to run cleanroom recipes.",
-                "Uses §f30 EU/t§7 when dirty, §f4 EU/t§7 when clean.",
+                "Uses §f30 EU/t§7 when dirty, §f8 EU/t§7 when clean.",
                 "Overclocking increases cleaning per cycle.",
                 "§bSize: §f5x5x5 to 15x15x15",
                 "Requires §fFilter Casings §7in the ceiling, excluding the edges.",
