@@ -483,6 +483,16 @@ public class LangHandler {
         provider.add("cover.item_filter.ignore_damage.disabled", "Respect Damage");
         provider.add("cover.item_filter.ignore_nbt.enabled", "Ignore NBT");
         provider.add("cover.item_filter.ignore_nbt.disabled", "Respect NBT");
+        provider.add("cover.nbt_filter.strict.enabled", "Exact NBT");
+        provider.add("cover.nbt_filter.strict.disabled", "Contains NBT");
+        provider.add("cover.nbt_filter.slot.tooltip", "Put an item here to copy its NBT");
+        multilineLang(provider, "cover.id_filter.info",
+                "§bFilter by registry id§r: separate entries with commas / spaces, multiple allowed.\nMod id only (§6minecraft§r) matches the whole mod; §6minecraft:iron§r matches ids starting with it; without a colon the path prefix works too (§6iron§r).");
+        provider.add("cover.durability_filter.min", "Min Durability %");
+        provider.add("cover.durability_filter.max", "Max Durability %");
+        provider.add("cover.durability_filter.reverse.enabled", "Outside Range");
+        provider.add("cover.durability_filter.reverse.disabled", "Inside Range");
+        provider.add("cover.durability_filter.info", "Matches by remaining durability in percent (0~100). Items without durability never match; turn the switch on to match outside the range.");
         provider.add("cover.voiding.voiding_mode.void_any", "Void Matching");
         provider.add("cover.voiding.voiding_mode.void_overflow", "Void Overflow");
         multilineLang(provider, "cover.voiding.voiding_mode.description",

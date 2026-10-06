@@ -1810,6 +1810,27 @@ public class GTItems {
                     new CoverPlaceBehavior(GTCovers.ITEM_FILTER)))
             .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Zinc, GTValues.M * 3 / 2))))
             .register();
+    public static ItemEntry<ComponentItem> NBT_ITEM_FILTER = REGISTRATE
+            .item("item_nbt_filter", ComponentItem::create)
+            .lang("Item NBT Filter")
+            .onRegister(attach(new ItemFilterBehaviour(NbtItemFilter::loadFilter),
+                    new CoverPlaceBehavior(GTCovers.ITEM_FILTER)))
+            .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Zinc, GTValues.M * 2))))
+            .register();
+    public static ItemEntry<ComponentItem> ID_ITEM_FILTER = REGISTRATE
+            .item("item_id_filter", ComponentItem::create)
+            .lang("Item ID Filter")
+            .onRegister(attach(new ItemFilterBehaviour(IdItemFilter::loadFilter),
+                    new CoverPlaceBehavior(GTCovers.ITEM_FILTER)))
+            .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Zinc, GTValues.M * 2))))
+            .register();
+    public static ItemEntry<ComponentItem> DURABILITY_ITEM_FILTER = REGISTRATE
+            .item("item_durability_filter", ComponentItem::create)
+            .lang("Item Durability Filter")
+            .onRegister(attach(new ItemFilterBehaviour(DurabilityItemFilter::loadFilter),
+                    new CoverPlaceBehavior(GTCovers.ITEM_FILTER)))
+            .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Zinc, GTValues.M * 2))))
+            .register();
     public static ItemEntry<ComponentItem> FLUID_FILTER = REGISTRATE.item("fluid_filter", ComponentItem::create)
             .onRegister(attach(new FluidFilterBehaviour(SimpleFluidFilter::loadFilter),
                     new CoverPlaceBehavior(GTCovers.FLUID_FILTER)))
@@ -1818,6 +1839,12 @@ public class GTItems {
     public static ItemEntry<ComponentItem> TAG_FLUID_FILTER = REGISTRATE.item("fluid_tag_filter", ComponentItem::create)
             .lang("Fluid Tag Filter")
             .onRegister(attach(new FluidFilterBehaviour(TagFluidFilter::loadFilter),
+                    new CoverPlaceBehavior(GTCovers.FLUID_FILTER)))
+            .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Zinc, GTValues.M * 3 / 2))))
+            .register();
+    public static ItemEntry<ComponentItem> ID_FLUID_FILTER = REGISTRATE.item("fluid_id_filter", ComponentItem::create)
+            .lang("Fluid ID Filter")
+            .onRegister(attach(new FluidFilterBehaviour(IdFluidFilter::loadFilter),
                     new CoverPlaceBehavior(GTCovers.FLUID_FILTER)))
             .onRegister(materialInfo(new ItemMaterialInfo(new MaterialStack(GTMaterials.Zinc, GTValues.M * 3 / 2))))
             .register();
