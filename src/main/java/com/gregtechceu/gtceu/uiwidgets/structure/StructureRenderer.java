@@ -25,6 +25,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import it.unimi.dsi.fastutil.longs.*;
 import org.jetbrains.annotations.Nullable;
 import org.joml.FrustumIntersection;
@@ -42,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class StructureRenderer {
 
     private static final List<RenderType> LAYERS = RenderType.chunkBufferLayers();
+    private static final int TRANSLUCENT_LAYER = LAYERS.indexOf(RenderType.translucent());
     private static final int THREADS = Math.max(1, Math.min(3, Runtime.getRuntime().availableProcessors() / 4));
     private static final long UPLOAD_NANOS = 3_000_000L;
     private static final int UPLOAD_BYTES = 8 << 20;
@@ -325,6 +327,7 @@ final class StructureRenderer {
             for (int i = 0; i < mesh.layers.length; i++) {
                 var data = mesh.layers[i];
                 if (data == null) {
+                    if (i == TRANSLUCENT_LAYER) section.translucentSortState = null;
                     if (section.buffers[i] != null) {
                         section.buffers[i].close();
                         section.buffers[i] = null;
@@ -336,6 +339,11 @@ final class StructureRenderer {
                 var builder = uploader();
                 builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
                 builder.putBulkData(ByteBuffer.wrap(data));
+                if (i == TRANSLUCENT_LAYER) {
+                    builder.setQuadSorting(VertexSorting.DISTANCE_TO_ORIGIN);
+                    section.translucentSortState = builder.getSortState();
+                    section.translucentEye.set(Float.NaN, Float.NaN, Float.NaN);
+                }
                 buffer.bind();
                 buffer.upload(builder.end());
                 bound = true;
@@ -371,6 +379,7 @@ final class StructureRenderer {
         }
         float ex = eye.x(), ey = eye.y(), ez = eye.z();
         visible.sort((a, b) -> Float.compare(distance(a.key, ex, ey, ez), distance(b.key, ex, ey, ez)));
+        for (var section : visible) section.sortTranslucent(eye);
         for (int i = 0; i < LAYERS.size(); i++) {
             var layer = LAYERS.get(i);
             if (layer == RenderType.translucent() && !ghost()) renderBlockEntities(frustum, partialTicks);
@@ -474,12 +483,30 @@ final class StructureRenderer {
         final long key;
         final int x, y, z;
         final VertexBuffer[] buffers = new VertexBuffer[LAYERS.size()];
+        @Nullable
+        BufferBuilder.SortState translucentSortState;
+        final Vector3f translucentEye = new Vector3f(Float.NaN, Float.NaN, Float.NaN);
 
         Section(long key) {
             this.key = key;
             this.x = SectionPos.x(key) << 4;
             this.y = SectionPos.y(key) << 4;
             this.z = SectionPos.z(key) << 4;
+        }
+
+        void sortTranslucent(Vector3f eye) {
+            var state = translucentSortState;
+            var buffer = buffers[TRANSLUCENT_LAYER];
+            if (state == null || buffer == null || translucentEye.equals(eye)) return;
+            var builder = uploader();
+            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
+            builder.restoreSortState(state);
+            // Vertices are section-local; only regenerate indices when the camera moves.
+            builder.setQuadSorting(VertexSorting.byDistance(eye.x() - x, eye.y() - y, eye.z() - z));
+            buffer.bind();
+            buffer.upload(builder.end());
+            VertexBuffer.unbind();
+            translucentEye.set(eye);
         }
 
         boolean isEmpty() {
@@ -490,6 +517,7 @@ final class StructureRenderer {
         }
 
         void close() {
+            translucentSortState = null;
             for (int i = 0; i < buffers.length; i++) {
                 if (buffers[i] != null) {
                     buffers[i].close();

@@ -293,6 +293,9 @@ public abstract class SceneView extends Viewport {
             hasMatrix = true;
             renderExtras(partialTicks);
         } finally {
+            // Some world render types leave depth writes disabled. glClear respects the depth mask, so force it on
+            // before clearing the scene's depth values; otherwise later GUI quads can be rejected by stale 3D depth.
+            RenderSystem.depthMask(true);
             gameRenderer.setPanoramicMode(panoramic);
             RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
             RenderSystem.viewport(0, 0, window.getWidth(), window.getHeight());
