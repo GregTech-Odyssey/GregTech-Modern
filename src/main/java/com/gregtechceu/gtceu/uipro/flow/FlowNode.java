@@ -7,12 +7,14 @@ import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +25,7 @@ import java.util.function.Supplier;
 
 public class FlowNode extends UIElement {
 
-    private static final ByteStreamCodec<List<Component>> LINES = ByteStreamCodec.collection(ArrayList::new, StreamCodecs.COMPONENT_CODEC);
+    private static final StreamCodec<FriendlyByteBuf, List<Component>> LINES = ByteStreamCodec.collection(ArrayList::new, StreamCodecs.COMPONENT_CODEC);
 
     final int row;
     final int column;

@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.cover;
 
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.ISync;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.factory.CoverUIFactory;
@@ -30,7 +32,6 @@ import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
-import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -49,7 +50,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHolder {
+public abstract class CoverBehavior implements IToolGridHighlight, ISync {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
@@ -218,12 +219,17 @@ public abstract class CoverBehavior implements IToolGridHighlight, IFieldDataHol
     }
 
     @Override
+    public GTBlockEntity getHolder() {
+        return coverHolder.getHolder();
+    }
+
+    @Override
     public FieldDataManager getFieldDataManager() {
         return fieldDataManager.get();
     }
 
     @Override
-    public void scheduleUpdate(LogicalSide side) {
-        coverHolder.scheduleUpdate(side);
+    public @Nullable IFieldDataHolder getParentHolder() {
+        return coverHolder;
     }
 }

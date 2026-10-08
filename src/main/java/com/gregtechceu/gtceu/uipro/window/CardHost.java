@@ -1,10 +1,12 @@
 package com.gregtechceu.gtceu.uipro.window;
 
 import com.gregtechceu.gtceu.uipro.ILocalUI;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.UIStructure;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -26,6 +28,11 @@ public class CardHost extends UIElement {
     private final String id;
     private final IntFunction<Popup> factory;
     private final UIStructure<Integer> card;
+    /**
+     * -- GETTER --
+     * 打开着的卡片的参数，没打开为 -1（客户端可直接读，用于高亮对应项）。
+     */
+    @Getter
     private int argument = -1;
     private int initialArgument = -1;
     private int maxHeight = Integer.MAX_VALUE;
@@ -37,16 +44,11 @@ public class CardHost extends UIElement {
     public CardHost(String id, IntFunction<Popup> factory) {
         this.id = id;
         this.factory = factory;
-        layout(l -> l.column());
+        layout(LayoutStyle::column);
         card = addStructure(ByteStreamCodec.INT_CODEC, () -> argument)
                 .validate(argument -> argument >= -1)
                 .prepare(this::prepare)
                 .apply(this::show);
-    }
-
-    /** 打开着的卡片的参数，没打开为 -1（客户端可直接读，用于高亮对应项）。 */
-    public int getArgument() {
-        return argument;
     }
 
     public boolean isOpen() {

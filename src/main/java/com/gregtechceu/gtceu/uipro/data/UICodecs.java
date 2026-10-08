@@ -2,9 +2,11 @@ package com.gregtechceu.gtceu.uipro.data;
 
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Unit;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import io.netty.handler.codec.DecoderException;
 
 import java.util.ArrayList;
@@ -16,13 +18,13 @@ import java.util.List;
  */
 public final class UICodecs {
 
-    public static final ByteStreamCodec<Unit> UNIT = ByteStreamCodec.unit(Unit.INSTANCE);
-    public static final ByteStreamCodec<Wheel> WHEEL = ByteStreamCodec.composite(
+    public static final StreamCodec<FriendlyByteBuf, Unit> UNIT = StreamCodec.unit(Unit.INSTANCE);
+    public static final StreamCodec<FriendlyByteBuf, Wheel> WHEEL = StreamCodec.composite(
             ByteStreamCodec.BOOLEAN_CODEC, Wheel::up,
             ByteStreamCodec.BOOLEAN_CODEC, Wheel::shift,
             ByteStreamCodec.BOOLEAN_CODEC, Wheel::ctrl,
             Wheel::new);
-    public static final ByteStreamCodec<ClickData> CLICK = ByteStreamCodec.of((buf, value) -> {
+    public static final StreamCodec<FriendlyByteBuf, ClickData> CLICK = StreamCodec.of((buf, value) -> {
         buf.writeVarInt(value.button);
         buf.writeBoolean(value.isShiftClick);
         buf.writeBoolean(value.isCtrlClick);
@@ -30,15 +32,15 @@ public final class UICodecs {
 
     private UICodecs() {}
 
-    public static <T> ByteStreamCodec<List<T>> list(ByteStreamCodec<T> element, int maxSize) {
+    public static <T> StreamCodec<FriendlyByteBuf, List<T>> list(StreamCodec<? super FriendlyByteBuf, T> element, int maxSize) {
         return ByteStreamCodec.collection(size -> {
             if (size < 0 || size > maxSize) throw new DecoderException("Invalid list size " + size);
             return new ArrayList<>(size);
         }, element);
     }
 
-    public static ByteStreamCodec<float[]> floats(int maxLength) {
-        return ByteStreamCodec.of((buf, value) -> {
+    public static StreamCodec<FriendlyByteBuf, float[]> floats(int maxLength) {
+        return StreamCodec.of((buf, value) -> {
             buf.writeVarInt(value.length);
             for (float v : value) buf.writeFloat(v);
         }, buf -> {
@@ -50,13 +52,13 @@ public final class UICodecs {
         });
     }
 
-    public static ByteStreamCodec<String> utf(int maxLength) {
-        return ByteStreamCodec.of((buf, value) -> buf.writeUtf(value, maxLength), buf -> buf.readUtf(maxLength));
+    public static StreamCodec<FriendlyByteBuf, String> utf(int maxLength) {
+        return StreamCodec.of((buf, value) -> buf.writeUtf(value, maxLength), buf -> buf.readUtf(maxLength));
     }
 
-    public static <E extends Enum<E>> ByteStreamCodec<E> enumOf(Class<E> type) {
+    public static <E extends Enum<E>> StreamCodec<FriendlyByteBuf, E> enumOf(Class<E> type) {
         var constants = type.getEnumConstants();
-        return ByteStreamCodec.of((buf, value) -> buf.writeVarInt(value.ordinal()), buf -> {
+        return StreamCodec.of((buf, value) -> buf.writeVarInt(value.ordinal()), buf -> {
             int ordinal = buf.readVarInt();
             if (ordinal < 0 || ordinal >= constants.length) throw new DecoderException("Invalid enum ordinal " + ordinal);
             return constants[ordinal];

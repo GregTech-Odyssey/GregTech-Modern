@@ -11,6 +11,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.FlexWrap;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +38,7 @@ public final class PopupHost extends UIElement {
 
     private static final int MAX_KEY_LENGTH = 64;
     private static final int MAX_OPEN = 16;
-    private static final ByteStreamCodec<OpenPopup> ENTRY = ByteStreamCodec.composite(
+    private static final StreamCodec<FriendlyByteBuf, OpenPopup> ENTRY = StreamCodec.composite(
             ByteStreamCodec.STRING_CODEC, OpenPopup::key,
             ByteStreamCodec.INT_CODEC, OpenPopup::argument,
             OpenPopup::new);

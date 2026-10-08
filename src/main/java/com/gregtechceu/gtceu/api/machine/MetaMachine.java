@@ -75,8 +75,8 @@ import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.AEKeyFilter;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
-import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
@@ -894,8 +894,8 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     }
 
     @Override
-    public void scheduleUpdate(LogicalSide side) {
-        holder.scheduleUpdate(side);
+    public @Nullable IFieldDataHolder getParentHolder() {
+        return holder;
     }
 
     private static final class SideExposure {

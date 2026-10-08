@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
+import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.ISync;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import net.minecraft.core.BlockPos;
@@ -10,9 +12,9 @@ import net.minecraft.world.level.Level;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
-import com.gto.datasynclib.LogicalSide;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -20,7 +22,7 @@ import java.util.UUID;
  * represents an abstract capability held by machine. Such as item, fluid, energy, etc.
  * All trait should be added while MetaMachine is creating. you cannot modify it on the fly。
  */
-public abstract class MachineTrait implements IFieldDataHolder {
+public abstract class MachineTrait implements ISync {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
@@ -77,12 +79,17 @@ public abstract class MachineTrait implements IFieldDataHolder {
     public void loadCustomPersistedData(@NotNull CompoundTag tag) {}
 
     @Override
+    public GTBlockEntity getHolder() {
+        return machine.holder;
+    }
+
+    @Override
     public FieldDataManager getFieldDataManager() {
         return fieldDataManager.get();
     }
 
     @Override
-    public void scheduleUpdate(LogicalSide side) {
-        machine.scheduleUpdate(side);
+    public @Nullable IFieldDataHolder getParentHolder() {
+        return machine;
     }
 }

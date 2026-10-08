@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,18 +30,18 @@ import java.util.function.Supplier;
 public final class SyncValue<T> {
 
     private final Supplier<T> getter;
-    private final ByteStreamCodec<T> codec;
+    private final StreamCodec<? super FriendlyByteBuf, T> codec;
     private T value;
     @Nullable
     private Consumer<T> onChanged;
 
-    private SyncValue(Supplier<T> getter, ByteStreamCodec<T> codec, T initialValue) {
+    private SyncValue(Supplier<T> getter, StreamCodec<? super FriendlyByteBuf, T> codec, T initialValue) {
         this.getter = getter;
         this.codec = codec;
         this.value = initialValue;
     }
 
-    public static <T> SyncValue<T> of(Supplier<T> getter, ByteStreamCodec<T> codec, T initialValue) {
+    public static <T> SyncValue<T> of(Supplier<T> getter, StreamCodec<? super FriendlyByteBuf, T> codec, T initialValue) {
         return new SyncValue<>(getter, codec, initialValue);
     }
 

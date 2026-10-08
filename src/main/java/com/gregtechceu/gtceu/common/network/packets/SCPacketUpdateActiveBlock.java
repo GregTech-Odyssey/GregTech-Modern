@@ -6,10 +6,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.lowdragmc.lowdraglib.networking.IHandlerContext;
 import com.lowdragmc.lowdraglib.networking.IPacket;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -43,21 +40,8 @@ public class SCPacketUpdateActiveBlock implements IPacket {
 
     @Override
     public void execute(IHandlerContext handler) {
-        updateActiveBlocks(blocks, GTUtil.getClientLevel(), active);
+        ActiveBlock.updateActiveBlocks(blocks, GTUtil.getClientLevel(), active);
     }
 
     public SCPacketUpdateActiveBlock() {}
-
-    public static void updateActiveBlocks(LongSet activeBlocks, Level level, boolean active) {
-        activeBlocks.forEach(pos -> {
-            var blockPos = BlockPos.of(pos);
-            var blockState = level.getBlockState(blockPos);
-            if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
-                var newState = blockState.setValue(ActiveBlock.ACTIVE, active);
-                if (newState != blockState) {
-                    level.setBlock(blockPos, newState, Block.UPDATE_KNOWN_SHAPE);
-                }
-            }
-        });
-    }
 }

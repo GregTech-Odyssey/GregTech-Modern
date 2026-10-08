@@ -137,7 +137,7 @@ public class NbtItemFilter implements ItemFilter {
         if (written instanceof CompoundTag writtenCompound) {
             if (!(input instanceof CompoundTag inputCompound)) return false;
             for (var e : writtenCompound.tags.entrySet()) {
-                if (!containsNbt(inputCompound.get(e.getKey()),e.getValue())) return false;
+                if (!containsNbt(inputCompound.get(e.getKey()), e.getValue())) return false;
             }
             return true;
         }

@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.uipro.data;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -24,7 +24,7 @@ public final class UIStructure<K> {
 
     private final UIChannel channel;
     private final int id;
-    private final ByteStreamCodec<K> codec;
+    private final StreamCodec<? super FriendlyByteBuf, K> codec;
     private final Supplier<K> current;
     private final RPC<K> request;
     @Nullable
@@ -39,7 +39,7 @@ public final class UIStructure<K> {
     private boolean hasPending;
     private boolean serverOnly;
 
-    UIStructure(UIChannel channel, int id, ByteStreamCodec<K> codec, Supplier<K> current) {
+    UIStructure(UIChannel channel, int id, StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<K> current) {
         this.channel = channel;
         this.id = id;
         this.codec = codec;

@@ -13,7 +13,7 @@ import net.minecraft.util.Unit;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import io.netty.buffer.Unpooled;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,7 +74,7 @@ public final class UIChannel {
         return value;
     }
 
-    public <T> RPC<T> addRPC(ByteStreamCodec<T> codec, BiConsumer<Player, T> handler) {
+    public <T> RPC<T> addRPC(StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<Player, T> handler) {
         var rpc = new RPC<>(this, BASE + entries.size(), codec, handler);
         register(rpc, 2);
         return rpc;
@@ -84,7 +84,7 @@ public final class UIChannel {
         return addRPC(UICodecs.UNIT, (player, unit) -> handler.accept(player));
     }
 
-    public <K> UIStructure<K> addStructure(ByteStreamCodec<K> codec, Supplier<K> current) {
+    public <K> UIStructure<K> addStructure(StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<K> current) {
         var structure = new UIStructure<>(this, BASE + entries.size(), codec, current);
         register(structure, 3);
         structures.add(structure);
@@ -92,7 +92,7 @@ public final class UIChannel {
         return structure;
     }
 
-    public <K> UIStructure<K> addStructure(ByteStreamCodec<K> codec, Supplier<K> current, Consumer<K> apply) {
+    public <K> UIStructure<K> addStructure(StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<K> current, Consumer<K> apply) {
         return addStructure(codec, current).apply(apply);
     }
 
@@ -101,7 +101,7 @@ public final class UIChannel {
         return binding;
     }
 
-    public <T> UIEvent<T> addEvent(ByteStreamCodec<T> codec, Consumer<T> handler) {
+    public <T> UIEvent<T> addEvent(StreamCodec<? super FriendlyByteBuf, T> codec, Consumer<T> handler) {
         var event = new UIEvent<>(this, BASE + entries.size(), codec, handler);
         register(event, 4);
         return event;
@@ -299,7 +299,7 @@ public final class UIChannel {
             return getChannel().addSyncValue(value);
         }
 
-        default <T> RPC<T> addRPC(ByteStreamCodec<T> codec, BiConsumer<Player, T> handler) {
+        default <T> RPC<T> addRPC(StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<Player, T> handler) {
             return getChannel().addRPC(codec, handler);
         }
 
@@ -307,11 +307,11 @@ public final class UIChannel {
             return getChannel().addRPC(handler);
         }
 
-        default <K> UIStructure<K> addStructure(ByteStreamCodec<K> codec, Supplier<K> current) {
+        default <K> UIStructure<K> addStructure(StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<K> current) {
             return getChannel().addStructure(codec, current);
         }
 
-        default <K> UIStructure<K> addStructure(ByteStreamCodec<K> codec, Supplier<K> current, Consumer<K> apply) {
+        default <K> UIStructure<K> addStructure(StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<K> current, Consumer<K> apply) {
             return getChannel().addStructure(codec, current, apply);
         }
 
@@ -319,7 +319,7 @@ public final class UIChannel {
             return getChannel().addBinding(binding);
         }
 
-        default <T> UIEvent<T> addEvent(ByteStreamCodec<T> codec, Consumer<T> handler) {
+        default <T> UIEvent<T> addEvent(StreamCodec<? super FriendlyByteBuf, T> codec, Consumer<T> handler) {
             return getChannel().addEvent(codec, handler);
         }
     }

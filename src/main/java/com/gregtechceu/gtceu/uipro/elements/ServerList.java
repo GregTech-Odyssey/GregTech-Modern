@@ -9,7 +9,10 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -47,7 +50,7 @@ public class ServerList<K> extends UIElement {
     @Nullable
     private ScrollerView scroller;
 
-    protected ServerList(ByteStreamCodec<K> codec, Supplier<List<K>> source, Function<K, ? extends Widget> rowFactory) {
+    protected ServerList(StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<List<K>> source, Function<K, ? extends Widget> rowFactory) {
         this.source = source;
         this.rowFactory = rowFactory;
         layout(l -> l.column());
@@ -56,7 +59,7 @@ public class ServerList<K> extends UIElement {
         addChild(body);
     }
 
-    public static <K> ServerList<K> of(ByteStreamCodec<K> codec, Supplier<List<K>> source, Function<K, ? extends Widget> rowFactory) {
+    public static <K> ServerList<K> of(StreamCodec<? super FriendlyByteBuf, K> codec, Supplier<List<K>> source, Function<K, ? extends Widget> rowFactory) {
         return new ServerList<>(codec, source, rowFactory);
     }
 
@@ -156,9 +159,9 @@ public class ServerList<K> extends UIElement {
         private int builtVersion;
         private int ticks;
 
-        private Rows(ByteStreamCodec<K> codec) {
+        private Rows(StreamCodec<? super FriendlyByteBuf, K> codec) {
             layout(l -> l.column().gapAll(UISizes.GAP));
-            ByteStreamCodec<Entry<K>> entryCodec = ByteStreamCodec.composite(
+            StreamCodec<FriendlyByteBuf, Entry<K>> entryCodec = StreamCodec.composite(
                     codec, Entry::key,
                     ByteStreamCodec.BOOLEAN_CODEC, Entry::shown,
                     Entry::new);

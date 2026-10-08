@@ -20,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
-import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -202,7 +201,7 @@ public abstract class FilterHandler<T, F extends Filter<T, F>> implements IField
     }
 
     @Override
-    public void scheduleUpdate(LogicalSide side) {
-        container.scheduleUpdate(side);
+    public @Nullable IFieldDataHolder getParentHolder() {
+        return container;
     }
 }

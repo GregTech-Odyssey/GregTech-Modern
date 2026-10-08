@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.capability;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.IAppearance;
 import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.ISync;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
@@ -31,7 +32,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.google.common.collect.ImmutableList;
-import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.ListData;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface ICoverable extends ITickSubscription, IAppearance, IFieldDataHolder {
+public interface ICoverable extends ITickSubscription, IAppearance, ISync {
 
     BlockEntityDirectionCache getBlockEntityDirectionCache();
 

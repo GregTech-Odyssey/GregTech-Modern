@@ -30,7 +30,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class RecipeIOList extends UIElement {
         public static final Snapshot EMPTY = new Snapshot(0, Collections.emptyList());
     }
 
-    public static final ByteStreamCodec<Snapshot> CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, Snapshot> CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, Snapshot value) {

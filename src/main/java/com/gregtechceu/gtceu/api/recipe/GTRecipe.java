@@ -15,8 +15,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.datastream.data.ByteArrayData;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.IntData;
@@ -37,7 +37,7 @@ public final class GTRecipe {
 
     private static final int MAGIC = 0x47545234;
 
-    public static final ByteStreamCodec<GTRecipe> STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, GTRecipe> STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public GTRecipe decode(FriendlyByteBuf buf) {

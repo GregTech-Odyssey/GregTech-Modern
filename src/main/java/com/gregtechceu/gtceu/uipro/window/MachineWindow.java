@@ -53,6 +53,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.config.EmiConfig;
 import org.jetbrains.annotations.Nullable;
@@ -146,11 +147,11 @@ public class MachineWindow extends FancyMachineUIWidget {
     private static final int SWITCHER = -1;
     private static final int MAX_HISTORY = 32;
     private static final int MAX_TAB = 255;
-    private static final ByteStreamCodec<NavEntry> NAV_ENTRY = ByteStreamCodec.composite(
+    private static final StreamCodec<FriendlyByteBuf, NavEntry> NAV_ENTRY = StreamCodec.composite(
             ByteStreamCodec.INT_CODEC, NavEntry::home,
             ByteStreamCodec.INT_CODEC, NavEntry::tab,
             NavEntry::new);
-    private static final ByteStreamCodec<NavState> NAV_STATE = ByteStreamCodec.composite(
+    private static final StreamCodec<FriendlyByteBuf, NavState> NAV_STATE = StreamCodec.composite(
             ByteStreamCodec.INT_CODEC, NavState::home,
             ByteStreamCodec.INT_CODEC, NavState::tab,
             UICodecs.list(NAV_ENTRY, MAX_HISTORY), NavState::back,

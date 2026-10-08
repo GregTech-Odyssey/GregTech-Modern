@@ -65,6 +65,7 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
 
     @Override
     public void onStructureFormedClient() {
+        super.onStructureFormedClient();
         particleSubscription = subscribeClientTick(particleSubscription, this::particleTick);
     }
 
@@ -76,6 +77,7 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
 
     @Override
     public void onStructureInvalidClient() {
+        super.onStructureInvalidClient();
         particleSubscription = ITickSubscription.unsubscribe(particleSubscription);
     }
 

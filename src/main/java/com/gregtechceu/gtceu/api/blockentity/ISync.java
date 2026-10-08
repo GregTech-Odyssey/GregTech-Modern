@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.blockentity;
 
 import net.minecraftforge.network.PacketDistributor;
 
+import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.network.BlockEntitySyncPacket;
@@ -10,6 +11,10 @@ import com.gto.datasynclib.network.DataSyncNetwork;
 public interface ISync extends IFieldDataHolder {
 
     GTBlockEntity getHolder();
+
+    default void remoteCall(String method, Object... args) {
+        DataSyncNetwork.sendBlockEntityToClients(getHolder(), FieldDataManager.writeRemoteCall(getHolder(), this, method, args));
+    }
 
     default void syncToServer() {
         DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, false)));

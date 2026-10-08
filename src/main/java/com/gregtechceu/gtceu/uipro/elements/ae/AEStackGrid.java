@@ -35,7 +35,7 @@ import appeng.api.stacks.AEKeyIntMap;
 import appeng.api.stacks.AEKeyLongMap;
 import appeng.api.stacks.AmountFormat;
 import appeng.api.stacks.GenericStack;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ import java.util.Objects;
  */
 public class AEStackGrid extends Widget implements ILayoutItem, IIngredientSlot, UIChannel.Host {
 
-    private static final ByteStreamCodec<List<Change>> CHANGES = ByteStreamCodec.of(AEStackGrid::writeChanges, AEStackGrid::readChangeList);
+    private static final StreamCodec<FriendlyByteBuf, List<Change>> CHANGES = StreamCodec.of(AEStackGrid::writeChanges, AEStackGrid::readChangeList);
     private static final int COLUMNS = UISizes.SLOTS_PER_ROW;
     private static final int CELL = UISizes.SLOT_SIZE;
 

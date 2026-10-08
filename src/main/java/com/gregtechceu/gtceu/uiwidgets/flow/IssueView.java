@@ -5,13 +5,13 @@ import com.gregtechceu.gtceu.uipro.flow.FlowState;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
 public record IssueView(RecipeIssue issue, @Nullable Component label, @Nullable FlowState stateOverride) {
 
-    public static final ByteStreamCodec<IssueView> CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, IssueView> CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, IssueView value) {

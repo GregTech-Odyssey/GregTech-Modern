@@ -8,7 +8,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
@@ -25,7 +25,7 @@ public final class RPC<T> {
 
     private final UIChannel channel;
     private final int id;
-    private final ByteStreamCodec<T> codec;
+    private final StreamCodec<? super FriendlyByteBuf, T> codec;
     private final BiConsumer<Player, T> handler;
     @Nullable
     private Predicate<T> validator;
@@ -39,7 +39,7 @@ public final class RPC<T> {
     private int countThisTick;
     private long lastRejectReplyTick = Long.MIN_VALUE;
 
-    RPC(UIChannel channel, int id, ByteStreamCodec<T> codec, BiConsumer<Player, T> handler) {
+    RPC(UIChannel channel, int id, StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<Player, T> handler) {
         this.channel = channel;
         this.id = id;
         this.codec = codec;

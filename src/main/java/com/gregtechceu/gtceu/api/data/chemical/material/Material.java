@@ -23,6 +23,7 @@ import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTMath;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -34,8 +35,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.google.common.collect.ImmutableList;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
@@ -54,7 +55,7 @@ public class Material implements Comparable<Material> {
 
     public static final DataCodec<Material> DATA_CODEC = GTCEuAPI.materialManager.dataCodec();
 
-    public static final ByteStreamCodec<Material> STREAM_CODEC = GTCEuAPI.materialManager.streamCodec();
+    public static final StreamCodec<FriendlyByteBuf, Material> STREAM_CODEC = GTCEuAPI.materialManager.streamCodec();
 
     public final Reference2ReferenceOpenHashMap<TagPrefix, List<Supplier<? extends Item>>> MATERIAL_ENTRY_ITEM_MAP = new Reference2ReferenceOpenHashMap<>();
     public final Reference2ReferenceOpenHashMap<TagPrefix, List<Item>> MATERIAL_ENTRY_ITEM_LIKE_MAP = new Reference2ReferenceOpenHashMap<>();

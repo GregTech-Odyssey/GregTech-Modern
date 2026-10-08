@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.uipro.elements;
 
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.UIStructure;
 
@@ -29,7 +30,7 @@ public class SwitchedContent extends UIElement {
     public SwitchedContent(IntSupplier serverKey, Factory factory) {
         this.serverKey = serverKey;
         this.factory = factory;
-        layout(l -> l.column());
+        layout(LayoutStyle::column);
         content = addStructure(ByteStreamCodec.INT_CODEC, () -> builtKey)
                 .serverOnly()
                 .apply(this::build);

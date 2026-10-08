@@ -45,6 +45,7 @@ import it.unimi.dsi.fastutil.longs.LongSets;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -144,6 +145,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onUnload() {
         super.onUnload();
         activeState = ActiveBlock.State.UNKNOWN;
@@ -216,7 +218,9 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onStructureFormedClient() {
+        super.onStructureFormedClient();
         activeState = ActiveBlock.State.UNKNOWN;
     }
 
@@ -224,6 +228,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     // *** Multiblock LifeCycle ***//
     //////////////////////////////////////
     @Override
+    @MustBeInvokedByOverriders
     protected void onStructureFormedAfter() {
         super.onStructureFormedAfter();
         arrangeHandlerList();
@@ -232,6 +237,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onStructureFormed() {
         super.onStructureFormed();
         availableRecipeTypesCache = null;
@@ -287,6 +293,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onStructureInvalid() {
         availableRecipeTypesCache = null;
         recipeLogicAvailable = false;

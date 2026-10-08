@@ -8,8 +8,8 @@ import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
 import com.gto.datasynclib.DataSyncCodec;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.util.DataCodecs;
@@ -101,7 +101,7 @@ public final class KeyCodecs {
         }
     };
 
-    public static final ByteStreamCodec<AEKey> AE_KEY_STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, AEKey> AE_KEY_STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, AEKey obj) {
@@ -114,7 +114,7 @@ public final class KeyCodecs {
         }
     };
 
-    public static final ByteStreamCodec<AEItemKey> AE_ITEM_KEY_STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, AEItemKey> AE_ITEM_KEY_STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, AEItemKey obj) {
@@ -127,7 +127,7 @@ public final class KeyCodecs {
         }
     };
 
-    public static final ByteStreamCodec<AEFluidKey> AE_FLUID_KEY_STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, AEFluidKey> AE_FLUID_KEY_STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, AEFluidKey obj) {
@@ -140,7 +140,7 @@ public final class KeyCodecs {
         }
     };
 
-    public static final ByteStreamCodec<GenericStack> GENERIC_STACK_STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, GenericStack> GENERIC_STACK_STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, GenericStack obj) {
@@ -156,7 +156,7 @@ public final class KeyCodecs {
         }
     };
 
-    public static final ByteStreamCodec<KeyCounter> KEY_COUNTER_STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, KeyCounter> KEY_COUNTER_STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, KeyCounter obj) {

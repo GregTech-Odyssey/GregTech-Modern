@@ -13,9 +13,8 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.misc.TickTimeSampler;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
-import com.gregtechceu.gtceu.common.network.GTNetwork;
-import com.gregtechceu.gtceu.common.network.packets.SCPacketStructureFormed;
 import com.gregtechceu.gtceu.core.ILevel;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.ChatFormatting;
@@ -35,6 +34,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.annotations.RemoteCall;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.recipesearch.IteratorUtil;
 import lombok.Getter;
@@ -62,7 +63,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @SyncToClient(listener = "onPartsUpdated")
     protected BlockPos[] partPositions = new BlockPos[0];
     @Getter
-    @SyncToClient(listener = "onFormedUpdated", scheduleUpdate = true)
+    @SyncToClient(scheduleUpdate = true)
     protected boolean isFormed;
 
     @Getter
@@ -105,6 +106,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
@@ -118,6 +120,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @Override
+    @MustBeInvokedByOverriders
     public void onUnload() {
         super.onUnload();
         if (getLevel() instanceof ServerLevel serverLevel) {
@@ -152,12 +155,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             }
         }
         parts = list.toArray(new IMultiPart[0]);
-    }
-
-    protected void onFormedUpdated(boolean newValue, boolean oldValue) {
-        if (newValue) {
-            onStructureFormedClient();
-        }
     }
 
     protected void updatePartPositions() {
@@ -271,11 +268,17 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void onStructureFormedClient() {}
+    @RemoteCall(side = LogicalSide.CLIENT)
+    @MustBeInvokedByOverriders
+    public void onStructureFormedClient() {
+        var level = getLevel();
+        if (level == null) return;
+        ILevel.getHighlightCache(level).remove(holder.longPos);
+    }
 
     @MustBeInvokedByOverriders
     protected void onStructureFormedAfter() {
-        GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), true));
+        remoteCall("onStructureFormedClient");
     }
 
     @Override
@@ -306,10 +309,16 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     }
 
     @OnlyIn(Dist.CLIENT)
-    public void onStructureInvalidClient() {}
+    @RemoteCall(side = LogicalSide.CLIENT)
+    @MustBeInvokedByOverriders
+    public void onStructureInvalidClient() {
+        var level = GTUtil.getClientLevel();
+        if (level == null || isRemoved()) return;
+        ILevel.getHighlightCache(level).add(holder.longPos);
+    }
 
     protected void onStructureInvalidAfter() {
-        GTNetwork.NETWORK.sendToAll(new SCPacketStructureFormed(getPos().asLong(), false));
+        remoteCall("onStructureInvalidClient");
     }
 
     @Override

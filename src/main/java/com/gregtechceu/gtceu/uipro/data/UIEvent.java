@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.uipro.data;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 
 import java.util.function.Consumer;
 
@@ -13,10 +13,10 @@ public final class UIEvent<T> {
 
     private final UIChannel channel;
     private final int id;
-    private final ByteStreamCodec<T> codec;
+    private final StreamCodec<? super FriendlyByteBuf, T> codec;
     private final Consumer<T> handler;
 
-    UIEvent(UIChannel channel, int id, ByteStreamCodec<T> codec, Consumer<T> handler) {
+    UIEvent(UIChannel channel, int id, StreamCodec<? super FriendlyByteBuf, T> codec, Consumer<T> handler) {
         this.channel = channel;
         this.id = id;
         this.codec = codec;

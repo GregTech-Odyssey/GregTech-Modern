@@ -1,6 +1,9 @@
 package com.gregtechceu.gtceu.uipro.data;
 
+import net.minecraft.network.FriendlyByteBuf;
+
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +25,7 @@ public final class Binding<T> {
 
     private final Supplier<T> getter;
     private final Consumer<T> setter;
-    private final ByteStreamCodec<T> codec;
+    private final StreamCodec<? super FriendlyByteBuf, T> codec;
     private final T initialValue;
     @Nullable
     private Predicate<T> validator;
@@ -39,14 +42,14 @@ public final class Binding<T> {
     private T pending;
     private boolean hasPending;
 
-    private Binding(Supplier<T> getter, Consumer<T> setter, ByteStreamCodec<T> codec, T initialValue) {
+    private Binding(Supplier<T> getter, Consumer<T> setter, StreamCodec<? super FriendlyByteBuf, T> codec, T initialValue) {
         this.getter = getter;
         this.setter = setter;
         this.codec = codec;
         this.initialValue = initialValue;
     }
 
-    public static <T> Binding<T> bind(Supplier<T> getter, Consumer<T> setter, ByteStreamCodec<T> codec, T initialValue) {
+    public static <T> Binding<T> bind(Supplier<T> getter, Consumer<T> setter, StreamCodec<? super FriendlyByteBuf, T> codec, T initialValue) {
         return new Binding<>(getter, setter, codec, initialValue);
     }
 

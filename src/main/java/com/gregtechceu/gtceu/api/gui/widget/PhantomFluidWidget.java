@@ -32,7 +32,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.GenericStack;
 import com.google.common.collect.Lists;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.stack.EmiStack;
 import lombok.Setter;
@@ -49,7 +49,7 @@ import javax.annotation.Nullable;
 @LDLRegister(name = "gtm_phantom_fluid_slot", group = "widget.gtm_container", priority = 50)
 public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTarget, UIChannel.Host {
 
-    private static final ByteStreamCodec<GenericStack> OPTIONAL_STACK = ByteStreamCodec.of((buf, stack) -> {
+    private static final StreamCodec<FriendlyByteBuf, GenericStack> OPTIONAL_STACK = StreamCodec.of((buf, stack) -> {
         buf.writeBoolean(stack != null);
         if (stack != null) KeyCodecs.GENERIC_STACK_STREAM_CODEC.encode(buf, stack);
     }, buf -> buf.readBoolean() ? KeyCodecs.GENERIC_STACK_STREAM_CODEC.decode(buf) : null);

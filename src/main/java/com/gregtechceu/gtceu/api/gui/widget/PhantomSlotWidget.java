@@ -37,6 +37,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import com.google.common.collect.Lists;
 import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.emi.emi.api.stack.EmiStack;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ import javax.annotation.Nonnull;
 @LDLRegister(name = "gtm_phantom_item_slot", group = "widget.gtm_container", priority = 50)
 public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTarget, UIChannel.Host {
 
-    private static final ByteStreamCodec<Drop> DROP_CODEC = ByteStreamCodec.composite(
+    private static final StreamCodec<FriendlyByteBuf, Drop> DROP_CODEC = StreamCodec.composite(
             KeyCodecs.GENERIC_STACK_STREAM_CODEC, Drop::stack,
             ByteStreamCodec.BOOLEAN_CODEC, Drop::shift,
             Drop::new);

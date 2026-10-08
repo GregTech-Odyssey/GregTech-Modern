@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.util.StreamCodecs;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,7 +81,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         }
     }
 
-    public static final ByteStreamCodec<Range> RANGE = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, Range> RANGE = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, Range value) {
@@ -116,7 +116,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         }
     }
 
-    public static final ByteStreamCodec<Callout> CALLOUT = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, Callout> CALLOUT = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, Callout value) {
@@ -142,7 +142,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
 
     private record Marker(long position, int color, @Nullable SyncValue<Callout> callout) {}
 
-    public static final ByteStreamCodec<Progress> PROGRESS = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, Progress> PROGRESS = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, Progress value) {

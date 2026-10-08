@@ -14,8 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
 import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.datastream.data.ListData;
 import com.gto.datasynclib.util.DataCodecs;
@@ -55,7 +55,7 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
     private static final RecipeExtension[] NO_EXTENSIONS = new RecipeExtension[0];
     private static final RecipeModifier[] NO_MODIFIERS = new RecipeModifier[0];
 
-    public static final ByteStreamCodec<GTRecipeDefinition> STREAM_CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, GTRecipeDefinition> STREAM_CODEC = new StreamCodec<>() {
 
         @Override
         public GTRecipeDefinition decode(FriendlyByteBuf buf) {

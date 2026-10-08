@@ -93,11 +93,13 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
 
     @Override
     public void onStructureFormedClient() {
+        super.onStructureFormedClient();
         particleSubscription = subscribeClientTick(particleSubscription, this::particleTick);
     }
 
     @Override
     public void onStructureInvalidClient() {
+        super.onStructureInvalidClient();
         particleSubscription = ITickSubscription.unsubscribe(particleSubscription);
     }
 

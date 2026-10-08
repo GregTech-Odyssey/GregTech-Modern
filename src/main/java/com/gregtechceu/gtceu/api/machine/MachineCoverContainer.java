@@ -16,6 +16,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.FieldDataManager;
+import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.Access;
@@ -180,7 +181,7 @@ public final class MachineCoverContainer implements ICoverable {
     }
 
     @Override
-    public void scheduleUpdate(LogicalSide side) {
-        machine.scheduleUpdate(side);
+    public @Nullable IFieldDataHolder getParentHolder() {
+        return machine;
     }
 }

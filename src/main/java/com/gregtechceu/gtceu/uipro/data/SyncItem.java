@@ -3,13 +3,13 @@ package com.gregtechceu.gtceu.uipro.data;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 
 public record SyncItem(ItemStack stack) {
 
     public static final SyncItem EMPTY = new SyncItem(ItemStack.EMPTY);
 
-    public static final ByteStreamCodec<SyncItem> CODEC = new ByteStreamCodec<>() {
+    public static final StreamCodec<FriendlyByteBuf, SyncItem> CODEC = new StreamCodec<>() {
 
         @Override
         public void encode(FriendlyByteBuf buf, SyncItem value) {
