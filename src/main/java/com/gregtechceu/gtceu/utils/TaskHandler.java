@@ -228,7 +228,7 @@ public class TaskHandler {
 
         @Override
         public TickableSubscription enqueueTick(BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
-            if (isUnsubscribe) return new TaskRunnableEntry(GTUtil.NOOP, TaskRunnableEntry.FALSE, false, 0);
+            if (isUnsubscribe) return new TaskRunnableEntry(GTUtil.NOOP, TaskRunnableEntry.FALSE, false, cycle/4);
             var entry = super.enqueueTick(isRemove, runnable, cycle, delay);
             createExecutorService();
             return entry;

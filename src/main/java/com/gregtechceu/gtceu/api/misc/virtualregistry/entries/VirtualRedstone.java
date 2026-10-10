@@ -5,9 +5,9 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 
 import net.minecraft.nbt.CompoundTag;
 
-import com.gto.datasynclib.datastream.codec.DataCodec;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.util.ValueCodecs;
 import it.unimi.dsi.fastutil.objects.Object2ShortMap;
 import it.unimi.dsi.fastutil.objects.Object2ShortOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -18,18 +18,18 @@ import java.util.UUID;
 
 public class VirtualRedstone extends VirtualEntry {
 
-    public static final DataCodec<VirtualRedstone> DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<VirtualRedstone> DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public VirtualRedstone decode(@NotNull Data data, int dataVersion) {
+        public VirtualRedstone decode(ValueOps ops, @NotNull Object data) {
             var tank = new VirtualRedstone();
-            tank.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            tank.deserializeNBT(ValueCodecs.COMPOUND_TAG.decode(ops, data));
             return tank;
         }
 
         @Override
-        public @NotNull Data encode(VirtualRedstone obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.serializeNBT());
+        public @NotNull Object encode(ValueOps ops, VirtualRedstone obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, obj.serializeNBT());
         }
     };
 

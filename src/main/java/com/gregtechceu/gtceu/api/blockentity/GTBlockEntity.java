@@ -23,9 +23,9 @@ import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.datasynclib.datastream.data.Data;
 import com.gto.datasynclib.network.DataSyncNetwork;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -262,9 +262,11 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         } else {
             loadCustomPersistedData(tag);
             if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
-                getFieldDataManager().readFromData(Data.readData(byteArrayTag.getAsByteArray()), tag.getInt("field_data_dataVersion"));
+                var ops = JavaValueOps.create(tag.getInt("field_data_dataVersion"));
+                getFieldDataManager().readFromValue(ops.fromBytes(byteArrayTag.getAsByteArray()), ops);
             } else {
-                getFieldDataManager().readFromData(DataCodecs.COMPOUND_TAG_CODEC.encode(tag), -1);
+                getFieldDataManager().readFromValue(
+                        ValueCodecs.COMPOUND_TAG.encode(JavaValueOps.INSTANCE, tag), JavaValueOps.INSTANCE);
             }
         }
     }
@@ -273,7 +275,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     protected final void saveAdditional(@NotNull CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putInt("field_data_dataVersion", GTDataFixer.VERSION);
-        tag.putByteArray("field_save", getFieldDataManager().writeToData().writeToBytes());
+        tag.putByteArray("field_save", JavaValueOps.INSTANCE.toBytes(getFieldDataManager().writeToValue(JavaValueOps.INSTANCE)));
         saveCustomPersistedData(tag, false);
     }
 

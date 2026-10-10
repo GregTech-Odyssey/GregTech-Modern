@@ -52,7 +52,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.config.EmiConfig;
@@ -148,14 +148,14 @@ public class MachineWindow extends FancyMachineUIWidget {
     private static final int MAX_HISTORY = 32;
     private static final int MAX_TAB = 255;
     private static final StreamCodec<FriendlyByteBuf, NavEntry> NAV_ENTRY = StreamCodec.composite(
-            ByteStreamCodec.INT_CODEC, NavEntry::home,
-            ByteStreamCodec.INT_CODEC, NavEntry::tab,
+            ByteBufCodecs.INT, NavEntry::home,
+            ByteBufCodecs.INT, NavEntry::tab,
             NavEntry::new);
     private static final StreamCodec<FriendlyByteBuf, NavState> NAV_STATE = StreamCodec.composite(
-            ByteStreamCodec.INT_CODEC, NavState::home,
-            ByteStreamCodec.INT_CODEC, NavState::tab,
+            ByteBufCodecs.INT, NavState::home,
+            ByteBufCodecs.INT, NavState::tab,
             UICodecs.list(NAV_ENTRY, MAX_HISTORY), NavState::back,
-            ByteStreamCodec.INT_CODEC, NavState::transientPage,
+            ByteBufCodecs.INT, NavState::transientPage,
             NavState::new);
     @Nullable
     private final ResourceLocation skin;

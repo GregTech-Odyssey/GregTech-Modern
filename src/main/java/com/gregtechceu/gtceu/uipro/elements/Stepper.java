@@ -15,7 +15,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
@@ -43,7 +43,7 @@ public class Stepper extends UIElement {
     private boolean wrap;
     private IntFunction<String> formatter = Integer::toString;
     private final SyncValue<Integer> value;
-    private final RPC<Boolean> wheel = addRPC(ByteStreamCodec.BOOLEAN_CODEC, (player, up) -> step(up ? 1 : -1));
+    private final RPC<Boolean> wheel = addRPC(ByteBufCodecs.BOOL, (player, up) -> step(up ? 1 : -1));
 
     protected Stepper(int valueWidth, IntSupplier getter, IntConsumer setter, int min, IntSupplier max) {
         this.getter = getter;

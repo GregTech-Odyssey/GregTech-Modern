@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.util.StreamCodecs;
+import com.gto.datasynclib.util.ByteBufCodecExtends;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -111,7 +111,7 @@ public final class ElementState {
     }
 
     public void bindTooltips(Supplier<List<Component>> tooltips) {
-        channel.addSyncValue(SyncValue.of(tooltips, UICodecs.list(StreamCodecs.COMPONENT_CODEC, MAX_TOOLTIP_LINES), Collections.emptyList())
+        channel.addSyncValue(SyncValue.of(tooltips, UICodecs.list(ByteBufCodecExtends.COMPONENT_CODEC, MAX_TOOLTIP_LINES), Collections.emptyList())
                 .onChanged(this::applyTooltips));
     }
 

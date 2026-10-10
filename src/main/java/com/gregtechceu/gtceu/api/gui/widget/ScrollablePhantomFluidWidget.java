@@ -10,7 +10,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -26,7 +26,7 @@ public class ScrollablePhantomFluidWidget extends PhantomFluidWidget {
                                         int height, Supplier<FluidStack> phantomFluidGetter,
                                         Consumer<FluidStack> phantomFluidSetter) {
         super(fluidTank, tank, x, y, width, height, phantomFluidGetter, phantomFluidSetter);
-        this.scrollRequest = addRPC(ByteStreamCodec.INT_CODEC, (player, delta) -> handleScrollAction(delta))
+        this.scrollRequest = addRPC(ByteBufCodecs.INT, (player, delta) -> handleScrollAction(delta))
                 .validate(delta -> delta >= -MAX_SCROLL_DELTA && delta <= MAX_SCROLL_DELTA);
     }
 

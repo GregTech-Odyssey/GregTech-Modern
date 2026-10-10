@@ -11,9 +11,11 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
+import com.gto.datasynclib.util.ValueCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class UnionIngredient implements KeyIngredient {
 
@@ -80,13 +82,12 @@ public final class UnionIngredient implements KeyIngredient {
     }
 
     @Override
-    public Data toData() {
-        var list = new ListData(4);
-        list.addByte(TAG);
-        list.addBoolean(true);
-        list.addBoolean(true);
-        list.addString(ingredient.toJson().toString());
-        return list;
+        public Object toData(ValueOps ops) {
+        return ops.createList(
+                ops.createByte(TAG),
+                ops.createBoolean(true),
+                ops.createBoolean(true),
+                ValueCodecs.JSON.encode(ops, ingredient.toJson()));
     }
 
     @Override

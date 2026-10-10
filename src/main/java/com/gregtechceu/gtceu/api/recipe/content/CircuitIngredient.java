@@ -7,8 +7,9 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+
+import java.util.List;
 
 public final class CircuitIngredient implements KeyIngredient {
 
@@ -64,12 +65,11 @@ public final class CircuitIngredient implements KeyIngredient {
     }
 
     @Override
-    public Data toData() {
-        var list = new ListData(3);
-        list.addByte(CIRCUIT);
-        list.addBoolean(true);
-        list.addInt(config);
-        return list;
+        public Object toData(ValueOps ops) {
+        return ops.createList(
+                ops.createByte(CIRCUIT),
+                ops.createBoolean(true),
+                ops.createInt(config));
     }
 
     @Override

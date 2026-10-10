@@ -10,7 +10,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.FlexWrap;
@@ -39,8 +39,8 @@ public final class PopupHost extends UIElement {
     private static final int MAX_KEY_LENGTH = 64;
     private static final int MAX_OPEN = 16;
     private static final StreamCodec<FriendlyByteBuf, OpenPopup> ENTRY = StreamCodec.composite(
-            ByteStreamCodec.STRING_CODEC, OpenPopup::key,
-            ByteStreamCodec.INT_CODEC, OpenPopup::argument,
+            ByteBufCodecs.STRING_UTF8, OpenPopup::key,
+            ByteBufCodecs.INT, OpenPopup::argument,
             OpenPopup::new);
 
     private final Map<String, IntFunction<Popup>> factories = new HashMap<>();

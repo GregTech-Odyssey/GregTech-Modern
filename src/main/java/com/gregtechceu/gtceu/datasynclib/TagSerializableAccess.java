@@ -8,10 +8,9 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.NullData;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.ValueCodecs;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import org.jetbrains.annotations.NotNull;
@@ -89,19 +88,19 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     }
 
     @Override
-    protected @NotNull Data doWriteData(@NotNull Object source, @NotNull ITagSerializable instance) {
+    protected @NotNull Object doWriteValue(@NotNull Object source, @NotNull ITagSerializable instance, @NotNull ValueOps ops) {
         var nbt = instance.serializeNBT();
         if (nbt == null) {
-            return NullData.INSTANCE;
+            return ops.createNull();
         } else {
-            return DataCodecs.TAG_CODEC.encode(instance.serializeNBT());
+            return ValueCodecs.TAG.encode(ops, nbt);
         }
     }
 
     @Override
-    protected void doReadData(@NotNull ITagSerializable instance, @NotNull Data data, int dataVersion) {
-        if (data.isNull()) return;
-        var nbt = DataCodecs.TAG_CODEC.decode(data, dataVersion);
+    protected void doReadValue(@NotNull ITagSerializable instance, @NotNull Object data, @NotNull ValueOps ops) {
+        if (ops.isNull(data)) return;
+        var nbt = ValueCodecs.TAG.decode(ops, data);
         instance.deserializeNBT(nbt);
     }
 }

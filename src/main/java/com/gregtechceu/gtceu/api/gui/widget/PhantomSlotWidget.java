@@ -36,7 +36,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import com.google.common.collect.Lists;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.emi.emi.api.stack.EmiStack;
@@ -55,7 +55,7 @@ public class PhantomSlotWidget extends SlotWidget implements IGhostIngredientTar
 
     private static final StreamCodec<FriendlyByteBuf, Drop> DROP_CODEC = StreamCodec.composite(
             KeyCodecs.GENERIC_STACK_STREAM_CODEC, Drop::stack,
-            ByteStreamCodec.BOOLEAN_CODEC, Drop::shift,
+            ByteBufCodecs.BOOL, Drop::shift,
             Drop::new);
 
     private boolean clearSlotOnRightClick;

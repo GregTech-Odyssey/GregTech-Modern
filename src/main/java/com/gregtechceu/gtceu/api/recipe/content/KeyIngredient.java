@@ -26,10 +26,11 @@ import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import com.google.gson.JsonParser;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * 配方内容的匹配器：BASE/EXACT 由 AE 规范 key 自身充当（无 NBT 按 uid、带 NBT 按身份），其余种类各为只含 final 字段的小实现类。
@@ -114,14 +115,14 @@ public interface KeyIngredient {
         return key().getDisplayName();
     }
 
-    default Data toData() {
+    default Object toData(ValueOps ops) {
         byte kind = kind();
         var key = key();
-        var list = new ListData(3);
-        list.addByte(kind);
-        list.addBoolean(isItem());
-        list.add(kind == EXACT ? KeyCodecs.AE_KEY_DATA_CODEC.encode(key) : DataCodecs.RESOURCE_LOCATION_CODEC.encode(key.getId()));
-        return list;
+        return ops.createList(
+                ops.createByte(kind),
+                ops.createBoolean(isItem()),
+                kind == EXACT ? KeyCodecs.AE_KEY_DATA_CODEC.encode(ops, key)
+                        : ValueCodecs.RESOURCE_LOCATION.encode(ops, key.getId()));
     }
 
     default void toNetwork(FriendlyByteBuf buf) {
@@ -233,15 +234,15 @@ public interface KeyIngredient {
         return k != null && ing.test(k);
     }
 
-    static @Nullable KeyIngredient fromData(Data data, int dataVersion) {
-        var list = data.getList();
-        byte kind = list.get(0).getByte();
-        boolean item = list.get(1).getBoolean();
+    static @Nullable KeyIngredient fromData(Object data, ValueOps ops) {
+        var list = ops.getList(data);
+        byte kind = ops.getByte(list, 0);
+        boolean item = ops.getBoolean(list, 1);
         var payload = list.get(2);
         return switch (kind) {
-            case EXACT -> KeyCodecs.AE_KEY_DATA_CODEC.decode(payload, dataVersion) instanceof KeyIngredient ing ? ing : null;
+            case EXACT -> KeyCodecs.AE_KEY_DATA_CODEC.decode(ops, payload) instanceof KeyIngredient ing ? ing : null;
             case BASE -> {
-                var id = DataCodecs.RESOURCE_LOCATION_CODEC.decode(payload, dataVersion);
+                var id = ValueCodecs.RESOURCE_LOCATION.decode(ops, payload);
                 if (item) {
                     var it = BuiltInRegistries.ITEM.get(id);
                     yield it == Items.AIR ? null : item(it);
@@ -249,18 +250,18 @@ public interface KeyIngredient {
                 var fl = BuiltInRegistries.FLUID.get(id);
                 yield fl == Fluids.EMPTY ? null : fluid(fl);
             }
-            case CIRCUIT -> CircuitIngredient.of(payload.getInt());
+            case CIRCUIT -> CircuitIngredient.of(ops.getInt(payload));
             case TAG -> {
                 var body = list.get(3);
-                if (payload.getBoolean()) yield of(Ingredient.fromJson(JsonParser.parseString(body.getString())));
-                var loc = DataCodecs.RESOURCE_LOCATION_CODEC.decode(body, dataVersion);
+                if (ops.getBoolean(payload)) yield of(Ingredient.fromJson(ValueCodecs.JSON.decode(ops, body)));
+                var loc = ValueCodecs.RESOURCE_LOCATION.decode(ops, body);
                 yield item ? ItemTagIngredient.of(TagKey.create(Registries.ITEM, loc)) : FluidTagIngredient.of(TagKey.create(Registries.FLUID, loc));
             }
             default -> {
                 var body = list.get(3);
-                if (payload.getBoolean()) yield of(Ingredient.fromJson(JsonParser.parseString(body.getString())));
-                var loc = DataCodecs.RESOURCE_LOCATION_CODEC.decode(body, dataVersion);
-                yield fluidTag(TagKey.create(Registries.FLUID, loc), DataCodecs.COMPOUND_TAG_CODEC.decode(list.get(4), dataVersion));
+                if (ops.getBoolean(payload)) yield of(Ingredient.fromJson(ValueCodecs.JSON.decode(ops, body)));
+                var loc = ValueCodecs.RESOURCE_LOCATION.decode(ops, body);
+                yield fluidTag(TagKey.create(Registries.FLUID, loc), ValueCodecs.COMPOUND_TAG.decode(ops, list.get(4)));
             }
         };
     }

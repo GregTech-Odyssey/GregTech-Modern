@@ -6,9 +6,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.util.StreamCodecs;
+import com.gto.datasynclib.util.ByteBufCodecExtends;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -46,15 +46,15 @@ public final class SyncValue<T> {
     }
 
     public static SyncValue<Integer> ofInt(Supplier<Integer> getter, int initialValue) {
-        return of(getter, ByteStreamCodec.INT_CODEC, initialValue);
+        return of(getter, ByteBufCodecs.INT, initialValue);
     }
 
     public static SyncValue<Long> ofLong(Supplier<Long> getter, long initialValue) {
-        return of(getter, ByteStreamCodec.LONG_CODEC, initialValue);
+        return of(getter, ByteBufCodecs.LONG, initialValue);
     }
 
     public static SyncValue<Boolean> ofBool(BooleanSupplier getter, boolean initialValue) {
-        return of(getter::getAsBoolean, ByteStreamCodec.BOOLEAN_CODEC, initialValue);
+        return of(getter::getAsBoolean, ByteBufCodecs.BOOL, initialValue);
     }
 
     public static SyncValue<Boolean> ofBool(BooleanSupplier getter) {
@@ -62,11 +62,11 @@ public final class SyncValue<T> {
     }
 
     public static SyncValue<Component> ofComponent(Supplier<Component> getter) {
-        return of(getter, StreamCodecs.COMPONENT_CODEC, getter.get());
+        return of(getter, ByteBufCodecExtends.COMPONENT_CODEC, getter.get());
     }
 
     public static SyncValue<Component> ofComponent(Supplier<Component> getter, Component initialValue) {
-        return of(getter, StreamCodecs.COMPONENT_CODEC, initialValue);
+        return of(getter, ByteBufCodecExtends.COMPONENT_CODEC, initialValue);
     }
 
     public static SyncValue<SyncItem> ofItem(Supplier<ItemStack> getter) {

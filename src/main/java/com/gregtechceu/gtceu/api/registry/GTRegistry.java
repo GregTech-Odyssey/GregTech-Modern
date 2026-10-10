@@ -4,8 +4,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
-import com.gto.datasynclib.datastream.codec.DataCodec;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.datasynclib.util.Registry;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.mojang.serialization.Codec;
@@ -21,19 +21,19 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
     protected final ResourceLocation registryName;
     private final boolean checkContext;
 
-    public GTRegistry(ResourceLocation registryName, DataCodec<K> keyCodec, Function<? super V, ? extends K> keyGetter, boolean checkContext) {
+    public GTRegistry(ResourceLocation registryName, ValueCodec<K> keyCodec, Function<? super V, ? extends K> keyGetter, boolean checkContext) {
         super(registryName.toString(), keyCodec, keyGetter);
         this.registryName = registryName;
         this.checkContext = checkContext;
     }
 
-    public GTRegistry(ResourceLocation registryName, DataCodec<K> keyCodec, boolean checkContext) {
+    public GTRegistry(ResourceLocation registryName, ValueCodec<K> keyCodec, boolean checkContext) {
         super(registryName.toString(), keyCodec, null);
         this.registryName = registryName;
         this.checkContext = checkContext;
     }
 
-    public GTRegistry(ResourceLocation registryName, DataCodec<K> keyCodec, Function<? super V, ? extends K> keyGetter) {
+    public GTRegistry(ResourceLocation registryName, ValueCodec<K> keyCodec, Function<? super V, ? extends K> keyGetter) {
         this(registryName, keyCodec, keyGetter, true);
     }
 
@@ -54,7 +54,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
         }
 
         public Str(ResourceLocation registryName, Function<? super V, String> keyGetter, boolean checkContext) {
-            super(registryName, DataCodec.STRING_CODEC, keyGetter, checkContext);
+            super(registryName, ValueCodec.STRING, keyGetter, checkContext);
         }
 
         public Str(ResourceLocation registryName) {
@@ -62,7 +62,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
         }
 
         public Str(ResourceLocation registryName, boolean checkContext) {
-            super(registryName, DataCodec.STRING_CODEC, checkContext);
+            super(registryName, ValueCodec.STRING, checkContext);
         }
 
         @Override
@@ -78,7 +78,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
         }
 
         public RL(ResourceLocation registryName, Function<? super V, ResourceLocation> keyGetter, boolean checkContext) {
-            super(registryName, DataCodecs.RESOURCE_LOCATION_CODEC, keyGetter, checkContext);
+            super(registryName, ValueCodecs.RESOURCE_LOCATION, keyGetter, checkContext);
         }
 
         public RL(ResourceLocation registryName) {
@@ -86,7 +86,7 @@ public abstract class GTRegistry<K extends Comparable<K>, V> extends Registry<K,
         }
 
         public RL(ResourceLocation registryName, boolean checkContext) {
-            super(registryName, DataCodecs.RESOURCE_LOCATION_CODEC, checkContext);
+            super(registryName, ValueCodecs.RESOURCE_LOCATION, checkContext);
         }
 
         @Override

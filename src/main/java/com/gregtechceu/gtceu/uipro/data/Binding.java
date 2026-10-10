@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.uipro.data;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import org.jetbrains.annotations.Nullable;
@@ -54,16 +54,16 @@ public final class Binding<T> {
     }
 
     public static Binding<Boolean> bindBool(BooleanSupplier getter, BooleanConsumer setter) {
-        return new Binding<>(getter::getAsBoolean, setter::accept, ByteStreamCodec.BOOLEAN_CODEC, false);
+        return new Binding<>(getter::getAsBoolean, setter::accept, ByteBufCodecs.BOOL, false);
     }
 
     public static Binding<Integer> bindInt(IntSupplier getter, IntConsumer setter, int min, int max) {
-        return new Binding<Integer>(getter::getAsInt, setter::accept, ByteStreamCodec.INT_CODEC, min)
+        return new Binding<Integer>(getter::getAsInt, setter::accept, ByteBufCodecs.INT, min)
                 .validate(value -> value >= min && value <= max);
     }
 
     public static Binding<Long> bindLong(LongSupplier getter, LongConsumer setter) {
-        return new Binding<>(getter::getAsLong, setter::accept, ByteStreamCodec.LONG_CODEC, 0L);
+        return new Binding<>(getter::getAsLong, setter::accept, ByteBufCodecs.LONG, 0L);
     }
 
     public static Binding<String> bindString(Supplier<String> getter, Consumer<String> setter, int maxLength) {

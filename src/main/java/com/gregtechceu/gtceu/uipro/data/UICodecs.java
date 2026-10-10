@@ -5,7 +5,7 @@ import com.lowdragmc.lowdraglib.gui.util.ClickData;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Unit;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import io.netty.handler.codec.DecoderException;
 
@@ -13,16 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DataSyncLib 没有的界面编解码器；基础类型与组合器直接用 {@link ByteStreamCodec} / {@code StreamCodecs}。
+ * DataSyncLib 没有的界面编解码器；基础类型与组合器直接用 {@link ByteBufCodecs} / {@code ByteBufCodecExtends}。
  * 客户端上行的集合必须用 {@link #list}：DataSyncLib 的 {@code collection} 按上报数量预分配，伪造的数量会耗尽内存。
  */
 public final class UICodecs {
 
     public static final StreamCodec<FriendlyByteBuf, Unit> UNIT = StreamCodec.unit(Unit.INSTANCE);
     public static final StreamCodec<FriendlyByteBuf, Wheel> WHEEL = StreamCodec.composite(
-            ByteStreamCodec.BOOLEAN_CODEC, Wheel::up,
-            ByteStreamCodec.BOOLEAN_CODEC, Wheel::shift,
-            ByteStreamCodec.BOOLEAN_CODEC, Wheel::ctrl,
+            ByteBufCodecs.BOOL, Wheel::up,
+            ByteBufCodecs.BOOL, Wheel::shift,
+            ByteBufCodecs.BOOL, Wheel::ctrl,
             Wheel::new);
     public static final StreamCodec<FriendlyByteBuf, ClickData> CLICK = StreamCodec.of((buf, value) -> {
         buf.writeVarInt(value.button);
@@ -33,7 +33,7 @@ public final class UICodecs {
     private UICodecs() {}
 
     public static <T> StreamCodec<FriendlyByteBuf, List<T>> list(StreamCodec<? super FriendlyByteBuf, T> element, int maxSize) {
-        return ByteStreamCodec.collection(size -> {
+        return ByteBufCodecs.collection(size -> {
             if (size < 0 || size > maxSize) throw new DecoderException("Invalid list size " + size);
             return new ArrayList<>(size);
         }, element);

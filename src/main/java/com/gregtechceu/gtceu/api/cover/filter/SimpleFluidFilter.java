@@ -25,7 +25,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -150,7 +150,7 @@ public class SimpleFluidFilter implements FluidFilter {
             super(adapter, 0, () -> adapter.getFluidInTank(0), fluid -> tank.set(0, Keys.fluid(fluid), fluid.getAmount()));
             this.tank = tank;
             this.showAmount = showAmount;
-            this.scroll = addRPC(ByteStreamCodec.INT_CODEC, (player, delta) -> scrollAmount(delta))
+            this.scroll = addRPC(ByteBufCodecs.INT, (player, delta) -> scrollAmount(delta))
                     .validate(delta -> delta >= -MAX_SCROLL_DELTA && delta <= MAX_SCROLL_DELTA);
         }
 

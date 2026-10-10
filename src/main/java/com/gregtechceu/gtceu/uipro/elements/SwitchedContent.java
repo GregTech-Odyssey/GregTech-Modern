@@ -6,7 +6,7 @@ import com.gregtechceu.gtceu.uipro.data.UIStructure;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.IntSupplier;
@@ -31,7 +31,7 @@ public class SwitchedContent extends UIElement {
         this.serverKey = serverKey;
         this.factory = factory;
         layout(LayoutStyle::column);
-        content = addStructure(ByteStreamCodec.INT_CODEC, () -> builtKey)
+        content = addStructure(ByteBufCodecs.INT, () -> builtKey)
                 .serverOnly()
                 .apply(this::build);
     }

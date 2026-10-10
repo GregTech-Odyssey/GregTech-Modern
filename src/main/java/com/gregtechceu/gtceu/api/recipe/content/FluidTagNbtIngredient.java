@@ -12,10 +12,11 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class FluidTagNbtIngredient implements KeyIngredient {
 
@@ -77,14 +78,13 @@ public final class FluidTagNbtIngredient implements KeyIngredient {
     }
 
     @Override
-    public Data toData() {
-        var list = new ListData(5);
-        list.addByte(PREDICATE);
-        list.addBoolean(false);
-        list.addBoolean(false);
-        list.add(DataCodecs.RESOURCE_LOCATION_CODEC.encode(tag.location()));
-        list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(nbt));
-        return list;
+        public Object toData(ValueOps ops) {
+        return ops.createList(
+                ops.createByte(PREDICATE),
+                ops.createBoolean(false),
+                ops.createBoolean(false),
+                ValueCodecs.RESOURCE_LOCATION.encode(ops, tag.location()),
+                ValueCodecs.COMPOUND_TAG.encode(ops, nbt));
     }
 
     @Override

@@ -14,12 +14,9 @@ import appeng.api.storage.AEKeyFilter;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datastream.data.ByteArrayData;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.IntData;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.datastream.data.NullData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -655,21 +652,21 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     @Override
-    public Data writeData() {
+    public @NotNull Object writeValue(@NotNull ValueOps ops) {
         int count = 0;
         for (long a : amounts) {
             if (a > 0) count++;
         }
-        if (count == 0 && !uniqueKeys) return NullData.INSTANCE;
-        return new ByteArrayData(KeyInventoryCodec.encode(this, MAGIC | FLAG_COMPACT | (uniqueKeys ? FLAG_UNIQUE : 0), count));
+        if (count == 0 && !uniqueKeys) return ops.createNull();
+        return ops.createByteArray(KeyInventoryCodec.encode(this, MAGIC | FLAG_COMPACT | (uniqueKeys ? FLAG_UNIQUE : 0), count));
     }
 
     @Override
-    public void readData(@NotNull Data data, int dataVersion) {
+    public void readValue(@NotNull Object data, @NotNull ValueOps ops) {
         Arrays.fill(amounts, 0);
         high = 0;
-        if (data instanceof ByteArrayData array) {
-            byte[] bytes = array.getByteArray();
+        if (ops.isByteArray(data)) {
+            byte[] bytes = ops.getByteArray(data);
             int header = bytes.length >= 4 ? (bytes[0] & 0xFF) << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | bytes[3] & 0xFF : 0;
             if ((header & ~0xFF) == MAGIC && (header & FLAG_COMPACT) != 0) {
                 uniqueKeys = (header & FLAG_UNIQUE) != 0;
@@ -679,23 +676,29 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
                     GTCEu.LOGGER.error("Failed to read key inventory", e);
                 }
             }
-        } else if (!(data instanceof ListData list && !list.isEmpty() && list.get(0) instanceof IntData(int header) && (header & ~0xFF) == MAGIC)) {
-            LegacyKeyInventoryCodec.decode(this, data, dataVersion);
+        } else if (!isCompactKeyMap(ops, data)) {
+            LegacyKeyInventoryCodec.decode(this, data, ops);
         }
         rebuildIndex();
         markAll();
         version++;
     }
 
+    private static boolean isCompactKeyMap(@NotNull ValueOps ops, @NotNull Object data) {
+        if (!ops.isList(data)) return false;
+        var list = ops.getList(data);
+        return !list.isEmpty() && ops.isInt(list.getFirst()) && (ops.getInt(list, 0) & ~0xFF) == MAGIC;
+    }
+
     public ByteArrayTag serializeNBT() {
-        return new ByteArrayTag(writeData().writeToBytes());
+        return new ByteArrayTag(JavaValueOps.INSTANCE.toBytes(writeValue(JavaValueOps.INSTANCE)));
     }
 
     public void deserializeNBT(Tag tag) {
         if (tag instanceof ByteArrayTag bytes) {
-            readData(Data.readData(bytes.getAsByteArray()), GTDataFixer.VERSION);
+            readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
         } else if (tag instanceof CompoundTag compound) {
-            readData(DataCodecs.COMPOUND_TAG_CODEC.encode(compound), 0);
+            readValue(ValueCodecs.COMPOUND_TAG.encode(JavaValueOps.INSTANCE, compound), JavaValueOps.INSTANCE);
         }
     }
 

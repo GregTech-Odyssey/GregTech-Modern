@@ -15,14 +15,11 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.datastream.data.ByteArrayData;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.IntData;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.datastream.data.StringMapData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
@@ -67,61 +64,58 @@ public final class GTRecipe {
         }
     };
 
-    public static final DataCodec<GTRecipe> DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<GTRecipe> DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public Data encode(GTRecipe recipe) {
-            var list = new ListData(15);
-            list.addInt(MAGIC);
-            list.add(GTRecipeDefinition.DATA_CODEC, recipe.definition);
-            list.add(recipe.itemInputs.toData());
-            list.add(recipe.itemOutputs.toData());
-            list.add(recipe.fluidInputs.toData());
-            list.add(recipe.fluidOutputs.toData());
-            list.add(GTRecipeDataKeys.REGISTRY.encode(recipe.data));
-            list.addLong(recipe.eut);
-            list.addInt(recipe.tier);
-            list.addInt(recipe.duration);
-            list.addLong(recipe.parallels);
-            list.addLong(recipe.batchParallels);
-            list.addInt(recipe.ocLevel);
-            list.addInt(recipe.outputColor);
-            list.addLong(recipe.scale);
-            return list;
+        public Object encode(ValueOps ops, GTRecipe recipe) {
+            var list = new ArrayList<Object>(15);
+            ops.addInt(list, MAGIC);
+            list.add(GTRecipeDefinition.DATA_CODEC.encode(ops, recipe.definition));
+            list.add(recipe.itemInputs.toData(ops));
+            list.add(recipe.itemOutputs.toData(ops));
+            list.add(recipe.fluidInputs.toData(ops));
+            list.add(recipe.fluidOutputs.toData(ops));
+            list.add(GTRecipeDataKeys.REGISTRY.encode(ops, recipe.data));
+            ops.addLong(list, recipe.eut);
+            ops.addInt(list, recipe.tier);
+            ops.addInt(list, recipe.duration);
+            ops.addLong(list, recipe.parallels);
+            ops.addLong(list, recipe.batchParallels);
+            ops.addInt(list, recipe.ocLevel);
+            ops.addInt(list, recipe.outputColor);
+            ops.addLong(list, recipe.scale);
+            return ops.createList(list);
         }
 
         @Override
-        public GTRecipe decode(Data data, int dataVersion) {
-            if (dataVersion == -1 && data instanceof StringMapData mapData) {
-                return fromLegacyNbt(DataCodecs.COMPOUND_TAG_CODEC.decode(mapData, dataVersion));
+        public GTRecipe decode(ValueOps ops, Object data) {
+            if (ops.isByteArray(data)) {
+                data = ops.fromBytes(ops.getByteArray(data));
             }
-            if (data instanceof ByteArrayData arrayData) {
-                data = Data.readData(arrayData.getByteArray());
-            }
-            var list = data.getList();
-            boolean current = list.getFirst() instanceof IntData(int magic) && magic == MAGIC;
+            var list = ops.getList(data);
+            boolean current = ops.isInt(list.getFirst()) && ops.getInt(list, 0) == MAGIC;
             int o = current ? 1 : 0;
-            var definition = GTRecipeDefinition.DATA_CODEC.decode(list.get(o), dataVersion);
-            var recipeData = GTRecipeDataKeys.REGISTRY.decode(list.get(o + 5), dataVersion);
+            var definition = GTRecipeDefinition.DATA_CODEC.decode(ops, list.get(o));
+            var recipeData = GTRecipeDataKeys.REGISTRY.decode(ops, list.get(o + 5));
             definition = withExtensions(definition, recipeData);
             ContentList itemIn, itemOut, fluidIn, fluidOut;
             if (current) {
-                itemIn = ContentList.fromData(list.get(o + 1), dataVersion);
-                itemOut = ContentList.fromData(list.get(o + 2), dataVersion);
-                fluidIn = ContentList.fromData(list.get(o + 3), dataVersion);
-                fluidOut = ContentList.fromData(list.get(o + 4), dataVersion);
+                itemIn = ContentList.fromData(list.get(o + 1), ops);
+                itemOut = ContentList.fromData(list.get(o + 2), ops);
+                fluidIn = ContentList.fromData(list.get(o + 3), ops);
+                fluidOut = ContentList.fromData(list.get(o + 4), ops);
             } else {
-                itemIn = LegacyRecipeCodec.items(list.get(1), dataVersion);
-                itemOut = LegacyRecipeCodec.items(list.get(2), dataVersion);
-                fluidIn = LegacyRecipeCodec.fluids(list.get(3), dataVersion);
-                fluidOut = LegacyRecipeCodec.fluids(list.get(4), dataVersion);
+                itemIn = LegacyRecipeCodec.items(list.get(1), ops);
+                itemOut = LegacyRecipeCodec.items(list.get(2), ops);
+                fluidIn = LegacyRecipeCodec.fluids(list.get(3), ops);
+                fluidOut = LegacyRecipeCodec.fluids(list.get(4), ops);
             }
-            var recipe = new GTRecipe(definition, itemIn, itemOut, fluidIn, fluidOut, recipeData, list.get(o + 6).getLong(), list.get(o + 7).getInt(), list.get(o + 8).getInt());
-            recipe.parallels = list.get(o + 9).getLong();
-            recipe.batchParallels = list.get(o + 10).getLong();
-            recipe.ocLevel = list.get(o + 11).getInt();
-            recipe.outputColor = list.get(o + 12).getInt();
-            if (current) recipe.scale = list.get(o + 13).getLong();
+            var recipe = new GTRecipe(definition, itemIn, itemOut, fluidIn, fluidOut, recipeData, ops.getLong(list, o + 6), ops.getInt(list, o + 7), ops.getInt(list, o + 8));
+            recipe.parallels = ops.getLong(list, o + 9);
+            recipe.batchParallels = ops.getLong(list, o + 10);
+            recipe.ocLevel = ops.getInt(list, o + 11);
+            recipe.outputColor = ops.getInt(list, o + 12);
+            if (current) recipe.scale = ops.getLong(list, o + 13);
             return recipe;
         }
     };
@@ -305,7 +299,8 @@ public final class GTRecipe {
     @Nullable
     public static GTRecipe fromNbt(@Nullable Tag t) {
         if (t instanceof ByteArrayTag tag) {
-            return DATA_CODEC.decode(Data.readData(tag.getAsByteArray()), GTDataFixer.VERSION);
+            var ops = JavaValueOps.create(GTDataFixer.VERSION);
+            return DATA_CODEC.decode(ops, ops.fromBytes(tag.getAsByteArray()));
         } else if (t instanceof CompoundTag compoundTag) {
             return fromLegacyNbt(compoundTag);
         }
@@ -321,6 +316,6 @@ public final class GTRecipe {
     }
 
     public static ByteArrayTag toNbt(GTRecipe recipe) {
-        return new ByteArrayTag(DATA_CODEC.encode(recipe).writeToBytes());
+        return new ByteArrayTag(JavaValueOps.INSTANCE.toBytes(DATA_CODEC.encode(JavaValueOps.INSTANCE, recipe)));
     }
 }

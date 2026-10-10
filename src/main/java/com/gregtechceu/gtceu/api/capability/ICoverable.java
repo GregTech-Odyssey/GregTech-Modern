@@ -32,9 +32,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.google.common.collect.ImmutableList;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
 import org.jetbrains.annotations.Nullable;
+
+import com.gto.datasynclib.datastream.codec.ValueOps;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -304,18 +304,17 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
         return null;
     }
 
-    default Data serializeCoverData(CoverBehavior coverBehavior) {
-        var uid = new ListData();
-        uid.add(GTRegistries.COVERS.dataCodec(), coverBehavior.coverDefinition);
-        uid.addByte((byte) coverBehavior.attachedSide.ordinal());
-        return uid;
+    default Object serializeCoverData(ValueOps ops, CoverBehavior coverBehavior) {
+        return ops.createList(
+                GTRegistries.COVERS.valueCodec().encode(ops, coverBehavior.coverDefinition),
+                ops.createByte((byte) coverBehavior.attachedSide.ordinal()));
     }
 
-    default CoverBehavior deserializeCoverData(Data data, int dataVersion) {
-        var list = data.getList();
-        var definition = GTRegistries.COVERS.dataCodec().decode(list.getFirst(), dataVersion);
+    default CoverBehavior deserializeCoverData(ValueOps ops, Object data) {
+        var list = ops.getList(data);
+        var definition = GTRegistries.COVERS.valueCodec().decode(ops, list.getFirst());
         if (definition != null) {
-            return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[list.get(1).getByte()]);
+            return definition.createCoverBehavior(this, GTUtil.DIRECTIONS[ops.getByte(list, 1)]);
         }
         GTCEu.LOGGER.error("couldn't find cover definition {}", data);
         throw new RuntimeException();

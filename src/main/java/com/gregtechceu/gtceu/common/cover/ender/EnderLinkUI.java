@@ -26,7 +26,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -126,7 +126,7 @@ final class EnderLinkUI {
         title.layout(l -> l.flex(1));
         page.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(back, title));
 
-        var list = ServerList.of(ByteStreamCodec.STRING_CODEC, ctx::listNames, key -> channelRow(ctx, key))
+        var list = ServerList.of(ByteBufCodecs.STRING_UTF8, ctx::listNames, key -> channelRow(ctx, key))
                 .version(ctx::revision).rescanEvery(LIST_RESCAN_TICKS).emptyText("cover.ender_link.ui.list.empty")
                 .rowHeight(ROW_HEIGHT).maxRows(LIST_MAX_ROWS).scroll("ender_link.channels", LIST_WIDTH);
         page.addChild(UIElement.section().addChild(list));

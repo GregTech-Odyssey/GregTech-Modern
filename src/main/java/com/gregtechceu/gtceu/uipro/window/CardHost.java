@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.UIStructure;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ public class CardHost extends UIElement {
         this.id = id;
         this.factory = factory;
         layout(LayoutStyle::column);
-        card = addStructure(ByteStreamCodec.INT_CODEC, () -> argument)
+        card = addStructure(ByteBufCodecs.INT, () -> argument)
                 .validate(argument -> argument >= -1)
                 .prepare(this::prepare)
                 .apply(this::show);

@@ -18,7 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import dev.vfyjxf.taffy.style.FlexWrap;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +76,7 @@ public class ButtonGroup extends UIElement {
     private Binding<Integer> singleBinding(int count, IntSupplier current, IntConsumer select) {
         return Binding.bind(current::getAsInt, (Integer index) -> {
             if (current.getAsInt() != index) select.accept(index);
-        }, ByteStreamCodec.INT_CODEC, 0).validate(index -> index >= 0 && index < count && !isOptionDisabled(index));
+        }, ByteBufCodecs.INT, 0).validate(index -> index >= 0 && index < count && !isOptionDisabled(index));
     }
 
     private boolean isOptionDisabled(int index) {

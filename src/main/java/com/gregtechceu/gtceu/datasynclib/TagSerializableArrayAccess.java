@@ -10,15 +10,15 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.DataFieldDefinition;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datastream.data.*;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.field.access.AbstractFieldAccess;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.ValueCodecs;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
 
 public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSerializable[]> {
 
@@ -97,44 +97,32 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     }
 
     @Override
-    protected @NotNull Data doWriteData(@NotNull Object source, ITagSerializable @NotNull [] instance) {
-        var list = new ListData();
+    protected @NotNull Object doWriteValue(@NotNull Object source, ITagSerializable @NotNull [] instance, @NotNull ValueOps ops) {
+        var list = new ArrayList<>(instance.length);
         for (var element : instance) {
             var nbt = element == null ? null : element.serializeNBT();
             if (nbt == null) {
-                list.addNull();
+                list.add(ops.createNull());
             } else {
-                list.add(DataCodecs.TAG_CODEC.encode(nbt));
+                list.add(ValueCodecs.TAG.encode(ops, nbt));
             }
         }
-        return list;
+        return ops.createList(list);
     }
 
     @Override
-    protected void doReadData(ITagSerializable @NotNull [] instance, @NotNull Data data, int dataVersion) {
-        var list = data.getList();
+    protected void doReadValue(ITagSerializable @NotNull [] instance, @NotNull Object data, @NotNull ValueOps ops) {
+        var list = ops.getList(data);
         var length = Math.min(list.size(), instance.length);
-        if (dataVersion == -1) {
-            for (int i = 0; i < length; i++) {
-                if (list.get(i) instanceof StringMapData(Map<String, Data> map) && !map.isEmpty()) {
-                    var element = instance[i];
-                    if (element != null) {
-                        var nbt = DataCodecs.TAG_CODEC.decode(map.get("p"), dataVersion);
-                        element.deserializeNBT(nbt);
-                    }
-                }
-            }
-        } else {
             for (int i = 0; i < length; i++) {
                 var d = list.get(i);
-                if (d != NullData.INSTANCE) {
+                if (!ops.isNull(d)) {
                     var element = instance[i];
                     if (element != null) {
-                        var nbt = DataCodecs.TAG_CODEC.decode(d, dataVersion);
+                        var nbt = ValueCodecs.TAG.decode(ops, d);
                         element.deserializeNBT(nbt);
                     }
                 }
             }
         }
-    }
 }

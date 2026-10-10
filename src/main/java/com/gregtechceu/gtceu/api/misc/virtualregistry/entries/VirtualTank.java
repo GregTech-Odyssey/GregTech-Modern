@@ -9,25 +9,25 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
-import com.gto.datasynclib.datastream.codec.DataCodec;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
 
 public class VirtualTank extends VirtualEntry {
 
-    public static final DataCodec<VirtualTank> DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<VirtualTank> DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public VirtualTank decode(@NotNull Data data, int dataVersion) {
+        public VirtualTank decode(ValueOps ops, @NotNull Object data) {
             var tank = new VirtualTank();
-            tank.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            tank.deserializeNBT(ValueCodecs.COMPOUND_TAG.decode(ops, data));
             return tank;
         }
 
         @Override
-        public @NotNull Data encode(VirtualTank obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.serializeNBT());
+        public @NotNull Object encode(ValueOps ops, VirtualTank obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, obj.serializeNBT());
         }
     };
 

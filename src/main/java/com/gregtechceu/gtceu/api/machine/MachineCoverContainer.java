@@ -39,7 +39,7 @@ public final class MachineCoverContainer implements ICoverable {
     @SaveToDisk
     @SyncToClient(listener = "onCoverSet")
     @Access(instanceAsValue = true)
-    @Codec(writeToData = "serializeCoverData", readFromData = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
+    @Codec(writeToValue = "serializeCoverData", readFromValue = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior up, down, north, south, west, east;
 
     public MachineCoverContainer(MetaMachine machine) {

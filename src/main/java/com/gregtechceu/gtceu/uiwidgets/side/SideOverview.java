@@ -42,7 +42,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -157,7 +157,7 @@ public final class SideOverview {
         content.addSyncValue(fluidOutput);
         content.addSyncValue(covers);
         selection = content.getChannel().addBinding(Binding.bindInt(() -> serverSelected, this::select, -1, SIDES.length - 1));
-        quickConfig = content.getChannel().addRPC(ByteStreamCodec.INT_CODEC, (player, packed) -> cycleMode(packed))
+        quickConfig = content.getChannel().addRPC(ByteBufCodecs.INT, (player, packed) -> cycleMode(packed))
                 .validate(packed -> packed >= 0 && packed < SIDES.length * 2);
         var holder = new UIElement().layout(l -> l.size(SCENE_WIDTH, SCENE_HEIGHT));
         if (machine.isRemote()) addScene(holder);

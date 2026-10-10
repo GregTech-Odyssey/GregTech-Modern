@@ -22,7 +22,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.util.StreamCodecs;
+import com.gto.datasynclib.util.ByteBufCodecExtends;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -123,19 +123,19 @@ public class ProgressBar extends UIElement implements IHoverOwner {
             buf.writeBoolean(value.shown());
             if (!value.shown()) return;
             buf.writeVarInt(value.level().ordinal());
-            StreamCodecs.COMPONENT_CODEC.encode(buf, value.text());
+            ByteBufCodecExtends.COMPONENT_CODEC.encode(buf, value.text());
             buf.writeVarInt(value.detail().size());
-            for (var line : value.detail()) StreamCodecs.COMPONENT_CODEC.encode(buf, line);
+            for (var line : value.detail()) ByteBufCodecExtends.COMPONENT_CODEC.encode(buf, line);
         }
 
         @Override
         public Callout decode(FriendlyByteBuf buf) {
             if (!buf.readBoolean()) return Callout.HIDDEN;
             var level = Level.of(buf.readVarInt());
-            var text = StreamCodecs.COMPONENT_CODEC.decode(buf);
+            var text = ByteBufCodecExtends.COMPONENT_CODEC.decode(buf);
             int size = buf.readVarInt();
             var detail = new ArrayList<Component>(size);
-            for (int i = 0; i < size; i++) detail.add(StreamCodecs.COMPONENT_CODEC.decode(buf));
+            for (int i = 0; i < size; i++) detail.add(ByteBufCodecExtends.COMPONENT_CODEC.decode(buf));
             return Callout.of(level, text, detail);
         }
     };

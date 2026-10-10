@@ -11,16 +11,15 @@ import appeng.api.stacks.AEKeyLongMap;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.datastream.data.NullData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -115,23 +114,24 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
     }
 
     @Override
-    public Data writeData() {
-        var list = new ListData();
+    public @NotNull Object writeValue(@NotNull ValueOps ops) {
+        var list = new ArrayList<Object>();
         for (var entry : this) {
             var tag = new CompoundTag();
             if (entry == null) continue;
             tag.put("key", entry.getKey().toTagGeneric());
             tag.putLong("value", entry.getLongValue());
-            list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(tag));
+            list.add(ValueCodecs.COMPOUND_TAG.encode(ops, tag));
         }
-        return list.isEmpty() ? NullData.INSTANCE : list;
+        return list.isEmpty() ? ops.createNull() : ops.createList(list);
     }
 
     @Override
-    public void readData(@NotNull Data data, int dataVersion) {
-        var list = data.getList();
-        for (Data item : list) {
-            var tag = DataCodecs.COMPOUND_TAG_CODEC.decode(item, dataVersion);
+    public void readValue(@NotNull Object data, @NotNull ValueOps ops) {
+        if (ops.isNull(data)) return;
+        var list = ops.getList(data);
+        for (Object item : list) {
+            var tag = ValueCodecs.COMPOUND_TAG.decode(ops, item);
             var key = AEKey.fromTagGeneric(tag.getCompound("key"));
             if (key == null) continue;
             long value = tag.getLong("value");

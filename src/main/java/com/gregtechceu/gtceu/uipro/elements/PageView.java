@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.uipro.elements;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.UIStructure;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class PageView extends UIElement {
 
     public PageView(int width, int height) {
         layout(l -> l.column().size(width, height));
-        pageState = addStructure(ByteStreamCodec.INT_CODEC, () -> page)
+        pageState = addStructure(ByteBufCodecs.INT, () -> page)
                 .validate(index -> index >= 0 && index < pages.size())
                 .apply(this::show);
     }

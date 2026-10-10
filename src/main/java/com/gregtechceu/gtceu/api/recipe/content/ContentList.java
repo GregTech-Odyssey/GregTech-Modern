@@ -3,8 +3,7 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import appeng.api.stacks.AEKey;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.fastcollection.cache.CustomHashInterner;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.jetbrains.annotations.Nullable;
@@ -358,27 +357,27 @@ public final class ContentList {
         return Arrays.asList(ingredients);
     }
 
-    public Data toData() {
+    public Object toData(ValueOps ops) {
         int n = size();
-        var list = new ListData(n * 5);
+        var list = new ArrayList<>(n * 5);
         for (int i = 0; i < n; i++) {
-            list.add(ingredients[i].toData());
-            list.addLong(amounts[i]);
-            list.addInt(chances[i]);
-            list.addInt(boosts[i]);
-            list.addLong(rollUnits[i]);
+            list.add(ingredients[i].toData(ops));
+            ops.addLong(list, amounts[i]);
+            ops.addInt(list, chances[i]);
+            ops.addInt(list, boosts[i]);
+            ops.addLong(list, rollUnits[i]);
         }
-        return list;
+        return ops.createList(list);
     }
 
-    public static ContentList fromData(Data data, int dataVersion) {
-        var list = data.getList();
+    public static ContentList fromData(Object data, ValueOps ops) {
+        var list = ops.getList(data);
         int n = list.size() / 5;
         var b = new Builder(n);
         for (int i = 0; i < n; i++) {
             int o = i * 5;
-            var ingredient = KeyIngredient.fromData(list.get(o), dataVersion);
-            if (ingredient != null) b.add(ingredient, list.get(o + 1).getLong(), list.get(o + 2).getInt(), list.get(o + 3).getInt(), list.get(o + 4).getLong());
+            var ingredient = KeyIngredient.fromData(list.get(o), ops);
+            if (ingredient != null) b.add(ingredient, ops.getLong(list, o + 1), ops.getInt(list, o + 2), ops.getInt(list, o + 3), ops.getLong(list, o + 4));
         }
         return b.build();
     }

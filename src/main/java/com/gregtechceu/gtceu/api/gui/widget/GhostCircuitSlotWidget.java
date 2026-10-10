@@ -26,7 +26,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import appeng.api.stacks.AEItemKey;
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,10 +72,10 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
 
     public GhostCircuitSlotWidget() {
         super();
-        circuitRequest = addRPC(ByteStreamCodec.INT_CODEC, (player, value) -> serverSetCircuit(value))
+        circuitRequest = addRPC(ByteBufCodecs.INT, (player, value) -> serverSetCircuit(value))
                 .validate(value -> value == NO_CONFIG || value >= 0 && value <= Circuits.MAX);
-        fallbackRequest = addRPC(ByteStreamCodec.BOOLEAN_CODEC, (player, open) -> serverSetFallbackOpen(open)).limit(1);
-        fallbackChanged = addEvent(ByteStreamCodec.BOOLEAN_CODEC, this::setFallbackOpen);
+        fallbackRequest = addRPC(ByteBufCodecs.BOOL, (player, open) -> serverSetFallbackOpen(open)).limit(1);
+        fallbackChanged = addEvent(ByteBufCodecs.BOOL, this::setFallbackOpen);
     }
 
     @Override

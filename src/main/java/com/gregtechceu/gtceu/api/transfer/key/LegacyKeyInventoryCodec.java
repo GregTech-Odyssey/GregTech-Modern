@@ -9,15 +9,11 @@ import net.minecraftforge.fluids.FluidStack;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyTypes;
-import com.gto.datasynclib.datastream.data.ByteData;
-import com.gto.datasynclib.datastream.data.CustomData;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.datastream.data.LongData;
-import com.gto.datasynclib.datastream.data.NullData;
-import com.gto.datasynclib.datastream.data.StringMapData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.List;
 
 @Deprecated(since = "0.6.0", forRemoval = true)
 @ApiStatus.ScheduledForRemoval(inVersion = "0.7.0")
@@ -25,45 +21,39 @@ final class LegacyKeyInventoryCodec {
 
     private LegacyKeyInventoryCodec() {}
 
-    static void decode(KeyInventory<?> inv, Data data, int dataVersion) {
-        if (data == NullData.INSTANCE || data == NullData.NONE) return;
+    static void decode(KeyInventory<?> inv, Object data, ValueOps ops) {
+        if (ops.isNull(data)) return;
         if (inv.keyType() == AEKeyTypes.ITEMS) {
-            decodeItems(inv, data, dataVersion);
+            decodeItems(inv, data, ops);
         } else {
-            decodeFluids(inv, data, dataVersion);
+            decodeFluids(inv, data, ops);
         }
     }
 
-    private static void decodeItems(KeyInventory<?> inv, Data data, int dataVersion) {
-        if (dataVersion < 1 && data instanceof StringMapData map) {
-            var list = map.getList("Items");
-            for (int i = 0; i < list.size(); i++) {
-                var item = list.getMap(i);
-                putItem(inv, item.getInt("Slot"), DataCodecs.COMPOUND_TAG_CODEC.decode(item, dataVersion));
-            }
-            inv.legacyUniqueKeys(map.getBoolean("il"));
-            return;
-        }
-        if (data instanceof ByteData(byte config)) {
+    private static void decodeItems(KeyInventory<?> inv, Object data, ValueOps ops) {
+        if (ops.isByte(data)) {
+            byte config = ops.getByte(data);
             if (config >= 0) inv.put(0, Circuits.key(config), 1);
             return;
         }
-        if (data instanceof StringMapData || data instanceof CustomData<?>) {
-            putItem(inv, 0, DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+        if (ops.isCustom(data)) {
+            putItem(inv, 0, ValueCodecs.COMPOUND_TAG.decode(ops, data));
             return;
         }
-        if (!(data instanceof ListData list) || list.isEmpty()) return;
-        if (isKeyMap(list)) {
-            decodeKeyMap(inv, list, dataVersion);
+        if (!ops.isList(data)) return;
+        var list = ops.getList(data);
+        if (list.isEmpty()) return;
+        if (isKeyMap(ops, list)) {
+            decodeKeyMap(inv, list, ops);
             return;
         }
         int i = 0;
-        if (list.get(0) == NullData.INSTANCE) {
+        if (ops.isNull(list.get(0))) {
             inv.legacyUniqueKeys(true);
             i++;
         }
         for (; i < list.size(); i++) {
-            var tag = DataCodecs.COMPOUND_TAG_CODEC.decode(list.get(i), dataVersion);
+            var tag = ValueCodecs.COMPOUND_TAG.decode(ops, list.get(i));
             putItem(inv, tag.getInt("Slot"), tag);
         }
     }
@@ -73,35 +63,35 @@ final class LegacyKeyInventoryCodec {
         if (!stack.isEmpty()) inv.put(slot, AEItemKey.of(stack), stack.getCount());
     }
 
-    private static boolean isKeyMap(ListData list) {
-        return list.size() >= 2 && list.get(1) instanceof LongData;
+    private static boolean isKeyMap(ValueOps ops, List<Object> list) {
+        return list.size() >= 2 && ops.isLong(list.get(1));
     }
 
-    private static void decodeKeyMap(KeyInventory<?> inv, ListData list, int dataVersion) {
+    private static void decodeKeyMap(KeyInventory<?> inv, List<Object> list, ValueOps ops) {
         int size = list.size();
         int slot = 0;
         boolean items = inv.keyType() == AEKeyTypes.ITEMS;
         for (int i = 0; i + 1 < size; i += 2) {
-            AEKey key = items ? KeyCodecs.AE_ITEM_KEY_DATA_CODEC.decode(list.get(i), dataVersion) : KeyCodecs.AE_FLUID_KEY_DATA_CODEC.decode(list.get(i), dataVersion);
-            long amount = list.get(i + 1).getLong();
+            AEKey key = items ? KeyCodecs.AE_ITEM_KEY_DATA_CODEC.decode(ops, list.get(i)) : KeyCodecs.AE_FLUID_KEY_DATA_CODEC.decode(ops, list.get(i));
+            long amount = ops.getLong(list, i + 1);
             if (key != null && amount > 0) inv.put(slot++, key, amount);
         }
     }
 
-    private static void decodeFluids(KeyInventory<?> inv, Data data, int dataVersion) {
-        if (data instanceof ListData list) {
-            if (isKeyMap(list)) {
-                decodeKeyMap(inv, list, dataVersion);
+    private static void decodeFluids(KeyInventory<?> inv, Object data, ValueOps ops) {
+        if (ops.isList(data)) {
+            var list = ops.getList(data);
+            if (isKeyMap(ops, list)) {
+                decodeKeyMap(inv, list, ops);
                 return;
             }
             for (int i = 0; i < list.size(); i++) {
                 var element = list.get(i);
-                if (dataVersion == -1 && element instanceof StringMapData map) element = map.get("p");
-                if (element == null || element == NullData.INSTANCE) continue;
-                putFluid(inv, i, DataCodecs.COMPOUND_TAG_CODEC.decode(element, dataVersion));
+                if (ops.isNull(element)) continue;
+                putFluid(inv, i, ValueCodecs.COMPOUND_TAG.decode(ops, element));
             }
         } else {
-            putFluid(inv, 0, DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            putFluid(inv, 0, ValueCodecs.COMPOUND_TAG.decode(ops, data));
         }
     }
 

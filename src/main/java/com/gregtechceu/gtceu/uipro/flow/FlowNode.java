@@ -13,9 +13,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.util.StreamCodecs;
+import com.gto.datasynclib.util.ByteBufCodecExtends;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public class FlowNode extends UIElement {
 
-    private static final StreamCodec<FriendlyByteBuf, List<Component>> LINES = ByteStreamCodec.collection(ArrayList::new, StreamCodecs.COMPONENT_CODEC);
+    private static final StreamCodec<FriendlyByteBuf, List<Component>> LINES = ByteBufCodecs.collection(ArrayList::new, ByteBufCodecExtends.COMPONENT_CODEC);
 
     final int row;
     final int column;

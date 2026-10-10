@@ -43,6 +43,7 @@ import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
 import com.gregtechceu.gtceu.data.pack.GTPackSource;
 import com.gregtechceu.gtceu.data.recipe.GTCraftingComponents;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.datasynclib.TagSerializableAccess;
 import com.gregtechceu.gtceu.datasynclib.TagSerializableArrayAccess;
 import com.gregtechceu.gtceu.forge.AlloyBlastPropertyAddition;
@@ -206,12 +207,14 @@ public class CommonProxy {
     private static void initDataSync() {
         KeyCodecs.register();
         DataSyncCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
-        DataSyncCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.dataCodec());
+        DataSyncCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.valueCodec());
         DataSyncCodec.register(GTRecipe.class, GTRecipe.STREAM_CODEC, GTRecipe.DATA_CODEC);
         DataSyncCodec.register(GTRecipeDefinition.class, GTRecipeDefinition.STREAM_CODEC, GTRecipeDefinition.DATA_CODEC);
-        DataSyncCodec.register(VirtualItemStorage.class, VirtualItemStorage.DATA_CODEC);
-        DataSyncCodec.register(VirtualTank.class, VirtualTank.DATA_CODEC);
-        DataSyncCodec.register(VirtualRedstone.class, VirtualRedstone.DATA_CODEC);
+        // the network half of these three is the disk bytes inline, so the version their codecs decode
+        // with has to be stated: the version this data is written at
+        DataSyncCodec.register(VirtualItemStorage.class, GTDataFixer.VERSION, VirtualItemStorage.DATA_CODEC);
+        DataSyncCodec.register(VirtualTank.class, GTDataFixer.VERSION, VirtualTank.DATA_CODEC);
+        DataSyncCodec.register(VirtualRedstone.class, GTDataFixer.VERSION, VirtualRedstone.DATA_CODEC);
         FieldDefinitionStorage.registerAccessInterfaceFactory(ITagSerializable.class, k -> TagSerializableAccess::new, 1000);
         FieldDefinitionStorage.registerAccessCustomFactory(c -> c.isArray() && !c.componentType().isPrimitive() && ITagSerializable.class.isAssignableFrom(c.componentType()), c -> TagSerializableArrayAccess::new, 2000);
         EnumUtil.addFixedEnum(t -> true);

@@ -15,8 +15,7 @@ import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamDecoder;
-import com.gto.datasynclib.datastream.codec.ByteStreamEncoder;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,13 +69,13 @@ public class MachineModeFancyConfigurator implements IFancyUIProvider {
         public void writeInitialData(FriendlyByteBuf buffer) {
             sentRecipeType = machine.getActiveRecipeType();
             buffer.writeVarInt(sentRecipeType);
-            ByteStreamEncoder.array(GTRegistries.RECIPE_TYPES.streamCodec()).encode(buffer, machine.getAvailableRecipeTypes());
+            ByteBufCodecs.array(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec()).encode(buffer, machine.getAvailableRecipeTypes());
         }
 
         @Override
         public void readInitialData(FriendlyByteBuf buffer) {
             machine.setActiveRecipeType(buffer.readVarInt());
-            machine.setAvailableRecipeTypesCache(ByteStreamDecoder.list(GTRegistries.RECIPE_TYPES.streamCodec()).decode(buffer).toArray(new GTRecipeType[0]));
+            machine.setAvailableRecipeTypesCache(ByteBufCodecs.list(GTRegistries.RECIPE_TYPES.streamCodec()).decode(buffer).toArray(new GTRecipeType[0]));
         }
 
         @Override

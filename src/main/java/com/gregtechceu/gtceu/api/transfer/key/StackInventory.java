@@ -5,6 +5,9 @@ import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import net.minecraft.Util;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
@@ -22,13 +25,11 @@ import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.datastream.data.NullData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -332,9 +333,9 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     }
 
     @Override
-    public Data writeData() {
-        var list = new ListData();
-        if (this.isInputLimited) list.addNull();
+    public @NotNull Object writeValue(@NotNull ValueOps ops) {
+        var list = new ArrayList<>();
+        if (this.isInputLimited) list.add(ops.createNull());
         var stacks = this.stacks;
         for (int i = 0; i < this.size; i++) {
             var stack = stacks[i];
@@ -342,24 +343,24 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
                 CompoundTag itemTag = new CompoundTag();
                 itemTag.putInt("Slot", i);
                 stack.save(itemTag);
-                list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(itemTag));
+                list.add(ValueCodecs.COMPOUND_TAG.encode(ops, itemTag));
             }
         }
-        return list.isEmpty() ? NullData.INSTANCE : list;
+        return list.isEmpty() ? ops.createNull() : ops.createList(list);
     }
 
     @Override
-    public void readData(@NotNull Data data, int dataVersion) {
-        GTDataFixer.decodeStackInventory(this, data, dataVersion);
+    public void readValue(@NotNull Object data, @NotNull ValueOps ops) {
+        GTDataFixer.decodeStackInventory(this, ops, data);
     }
 
     public final ByteArrayTag serializeNBT() {
-        return new ByteArrayTag(writeData().writeToBytes());
+        return new ByteArrayTag(JavaValueOps.INSTANCE.toBytes(writeValue(JavaValueOps.INSTANCE)));
     }
 
     public final void deserializeNBT(Tag tag) {
         if (tag instanceof ByteArrayTag byteTags) {
-            readData(Data.readData(byteTags.getAsByteArray()), GTDataFixer.VERSION);
+            readValue(JavaValueOps.INSTANCE.fromBytes(byteTags.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
         } else if (tag instanceof CompoundTag nbt) {
             ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
             for (int i = 0; i < tagList.size(); i++) {

@@ -12,9 +12,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
-import com.gto.datasynclib.datastream.codec.DataCodec;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.util.ValueCodecs;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,18 +25,18 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class VirtualItemStorage extends VirtualEntry {
 
-    public static final DataCodec<VirtualItemStorage> DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<VirtualItemStorage> DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public VirtualItemStorage decode(Data data, int dataVersion) {
+        public VirtualItemStorage decode(ValueOps ops, Object data) {
             var tank = new VirtualItemStorage();
-            tank.deserializeNBT(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+            tank.deserializeNBT(ValueCodecs.COMPOUND_TAG.decode(ops, data));
             return tank;
         }
 
         @Override
-        public Data encode(VirtualItemStorage obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.serializeNBT());
+        public Object encode(ValueOps ops, VirtualItemStorage obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, obj.serializeNBT());
         }
     };
 
@@ -69,7 +70,7 @@ public class VirtualItemStorage extends VirtualEntry {
     @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = super.serializeNBT();
-        tag.put(ITEM_KEY, new ByteArrayTag(handler.writeData().writeToBytes()));
+        tag.put(ITEM_KEY, new ByteArrayTag(JavaValueOps.INSTANCE.toBytes(handler.writeValue(JavaValueOps.INSTANCE))));
         return tag;
     }
 
@@ -78,7 +79,7 @@ public class VirtualItemStorage extends VirtualEntry {
         super.deserializeNBT(nbt);
         var items = nbt.get(ITEM_KEY);
         if (items instanceof ByteArrayTag bytes) {
-            handler.readData(Data.readData(bytes.getAsByteArray()), GTDataFixer.VERSION);
+            handler.readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
         } else if (items instanceof CompoundTag legacy) {
             handler.clear();
             var list = legacy.getList("Items", Tag.TAG_COMPOUND);

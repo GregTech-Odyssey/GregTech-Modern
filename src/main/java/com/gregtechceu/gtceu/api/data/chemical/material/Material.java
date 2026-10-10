@@ -35,7 +35,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.google.common.collect.ImmutableList;
-import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -53,7 +53,7 @@ import static com.gregtechceu.gtceu.api.data.chemical.material.properties.Proper
 
 public class Material implements Comparable<Material> {
 
-    public static final DataCodec<Material> DATA_CODEC = GTCEuAPI.materialManager.dataCodec();
+    public static final ValueCodec<Material> DATA_CODEC = GTCEuAPI.materialManager.valueCodec();
 
     public static final StreamCodec<FriendlyByteBuf, Material> STREAM_CODEC = GTCEuAPI.materialManager.streamCodec();
 

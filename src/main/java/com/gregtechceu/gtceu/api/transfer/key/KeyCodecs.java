@@ -8,78 +8,79 @@ import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
 import com.gto.datasynclib.DataSyncCodec;
-import com.gto.datasynclib.datastream.codec.DataCodec;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public final class KeyCodecs {
 
     private KeyCodecs() {}
 
-    public static final DataCodec<AEKey> AE_KEY_DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<AEKey> AE_KEY_DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public AEKey decode(@NotNull Data data, int dataVersion) {
-            return AEKey.fromTagGeneric(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+        public AEKey decode(ValueOps ops, @NotNull Object data) {
+            return AEKey.fromTagGeneric(ValueCodecs.COMPOUND_TAG.decode(ops, data));
         }
 
         @Override
-        public @NotNull Data encode(AEKey obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.toTagGeneric());
-        }
-    };
-
-    public static final DataCodec<AEItemKey> AE_ITEM_KEY_DATA_CODEC = new DataCodec<>() {
-
-        @Override
-        public AEItemKey decode(@NotNull Data data, int dataVersion) {
-            return AEItemKey.fromTag(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
-        }
-
-        @Override
-        public @NotNull Data encode(AEItemKey obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.toTag());
+        public @NotNull Object encode(ValueOps ops, AEKey obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, obj.toTagGeneric());
         }
     };
 
-    public static final DataCodec<AEFluidKey> AE_FLUID_KEY_DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<AEItemKey> AE_ITEM_KEY_DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public AEFluidKey decode(@NotNull Data data, int dataVersion) {
-            return AEFluidKey.fromTag(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
+        public AEItemKey decode(ValueOps ops, @NotNull Object data) {
+            return AEItemKey.fromTag(ValueCodecs.COMPOUND_TAG.decode(ops, data));
         }
 
         @Override
-        public @NotNull Data encode(AEFluidKey obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(obj.toTag());
-        }
-    };
-
-    public static final DataCodec<GenericStack> GENERIC_STACK_DATA_CODEC = new DataCodec<>() {
-
-        @Override
-        public GenericStack decode(@NotNull Data data, int dataVersion) {
-            return GenericStack.readTag(DataCodecs.COMPOUND_TAG_CODEC.decode(data, dataVersion));
-        }
-
-        @Override
-        public @NotNull Data encode(GenericStack obj) {
-            return DataCodecs.COMPOUND_TAG_CODEC.encode(GenericStack.writeTag(obj));
+        public @NotNull Object encode(ValueOps ops, AEItemKey obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, obj.toTag());
         }
     };
 
-    public static final DataCodec<KeyCounter> KEY_COUNTER_DATA_CODEC = new DataCodec<>() {
+    public static final ValueCodec<AEFluidKey> AE_FLUID_KEY_DATA_CODEC = new ValueCodec<>() {
 
         @Override
-        public KeyCounter decode(@NotNull Data data, int dataVersion) {
-            var list = data.asListData();
+        public AEFluidKey decode(ValueOps ops, @NotNull Object data) {
+            return AEFluidKey.fromTag(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+        }
+
+        @Override
+        public @NotNull Object encode(ValueOps ops, AEFluidKey obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, obj.toTag());
+        }
+    };
+
+    public static final ValueCodec<GenericStack> GENERIC_STACK_DATA_CODEC = new ValueCodec<>() {
+
+        @Override
+        public GenericStack decode(ValueOps ops, @NotNull Object data) {
+            return GenericStack.readTag(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+        }
+
+        @Override
+        public @NotNull Object encode(ValueOps ops, GenericStack obj) {
+            return ValueCodecs.COMPOUND_TAG.encode(ops, GenericStack.writeTag(obj));
+        }
+    };
+
+    public static final ValueCodec<KeyCounter> KEY_COUNTER_DATA_CODEC = new ValueCodec<>() {
+
+        @Override
+        public KeyCounter decode(ValueOps ops, @NotNull Object data) {
+            var list = ops.getList(data);
             var keyCounter = new KeyCounter();
             keyCounter.ensureCapacity(list.size());
             for (var entryTag : list) {
-                var tag = DataCodecs.COMPOUND_TAG_CODEC.decode(entryTag, dataVersion);
+                var tag = ValueCodecs.COMPOUND_TAG.decode(ops, entryTag);
                 var what = AEKey.fromTagGeneric(tag);
                 long amount = tag.getLong("#");
                 if (what != null) {
@@ -90,14 +91,14 @@ public final class KeyCodecs {
         }
 
         @Override
-        public @NotNull Data encode(KeyCounter obj) {
-            var list = new ListData(obj.size());
+        public @NotNull Object encode(ValueOps ops, KeyCounter obj) {
+            var list = new ArrayList<Object>(obj.size());
             for (var entry : obj) {
                 var tag = entry.getKey().toTagGeneric();
                 tag.putLong("#", entry.getLongValue());
-                list.add(DataCodecs.COMPOUND_TAG_CODEC.encode(tag));
+                list.add(ValueCodecs.COMPOUND_TAG.encode(ops, tag));
             }
-            return list;
+            return ops.createList(list);
         }
     };
 

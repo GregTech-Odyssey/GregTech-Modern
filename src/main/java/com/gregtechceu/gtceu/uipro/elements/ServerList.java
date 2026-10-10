@@ -11,7 +11,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.FriendlyByteBuf;
 
-import com.gto.datasynclib.datastream.codec.ByteStreamCodec;
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,7 +163,7 @@ public class ServerList<K> extends UIElement {
             layout(l -> l.column().gapAll(UISizes.GAP));
             StreamCodec<FriendlyByteBuf, Entry<K>> entryCodec = StreamCodec.composite(
                     codec, Entry::key,
-                    ByteStreamCodec.BOOLEAN_CODEC, Entry::shown,
+                    ByteBufCodecs.BOOL, Entry::shown,
                     Entry::new);
             state = addStructure(UICodecs.list(entryCodec, MAX_ROWS), () -> entries).serverOnly().apply(this::apply);
         }

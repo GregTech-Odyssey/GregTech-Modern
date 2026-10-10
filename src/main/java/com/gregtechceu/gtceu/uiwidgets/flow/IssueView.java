@@ -6,7 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.util.StreamCodecs;
+import com.gto.datasynclib.util.ByteBufCodecExtends;
 import org.jetbrains.annotations.Nullable;
 
 public record IssueView(RecipeIssue issue, @Nullable Component label, @Nullable FlowState stateOverride) {
@@ -17,14 +17,14 @@ public record IssueView(RecipeIssue issue, @Nullable Component label, @Nullable 
         public void encode(FriendlyByteBuf buf, IssueView value) {
             buf.writeVarInt(value.issue.ordinal());
             buf.writeBoolean(value.label != null);
-            if (value.label != null) StreamCodecs.COMPONENT_CODEC.encode(buf, value.label);
+            if (value.label != null) ByteBufCodecExtends.COMPONENT_CODEC.encode(buf, value.label);
             buf.writeByte(value.stateOverride == null ? -1 : value.stateOverride.ordinal());
         }
 
         @Override
         public IssueView decode(FriendlyByteBuf buf) {
             var issue = RecipeIssue.of(buf.readVarInt());
-            var label = buf.readBoolean() ? StreamCodecs.COMPONENT_CODEC.decode(buf) : null;
+            var label = buf.readBoolean() ? ByteBufCodecExtends.COMPONENT_CODEC.decode(buf) : null;
             int state = buf.readByte();
             return label == null && state < 0 ? issue.view() : new IssueView(issue, label, state < 0 ? null : FlowState.of(state));
         }

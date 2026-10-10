@@ -43,7 +43,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.datasynclib.datastream.data.Data;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
 import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -159,7 +159,7 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
     public void saveToItem(CompoundTag tag) {
         if (isTaped) {
             tag.putBoolean("taped", isTaped);
-            tag.put("inventory", new ByteArrayTag(inventory.storage.writeData().writeToBytes()));
+            tag.put("inventory", new ByteArrayTag(JavaValueOps.INSTANCE.toBytes(inventory.storage.writeValue(JavaValueOps.INSTANCE))));
         }
     }
 
@@ -172,7 +172,7 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
     private void readInventory(@Nullable Tag tag) {
         var storage = inventory.storage;
         if (tag instanceof ByteArrayTag bytes) {
-            storage.readData(Data.readData(bytes.getAsByteArray()), GTDataFixer.VERSION);
+            storage.readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
             storage.notifyChanged();
         } else if (tag instanceof CompoundTag nbt) {
             ListTag list = nbt.getList("Items", Tag.TAG_COMPOUND);

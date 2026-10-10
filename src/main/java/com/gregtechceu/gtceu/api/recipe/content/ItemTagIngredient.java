@@ -11,11 +11,12 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.ListData;
-import com.gto.datasynclib.util.DataCodecs;
+import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.fastcollection.cache.IdentityHashCache;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class ItemTagIngredient implements KeyIngredient {
 
@@ -81,13 +82,12 @@ public final class ItemTagIngredient implements KeyIngredient {
     }
 
     @Override
-    public Data toData() {
-        var list = new ListData(4);
-        list.addByte(TAG);
-        list.addBoolean(true);
-        list.addBoolean(false);
-        list.add(DataCodecs.RESOURCE_LOCATION_CODEC.encode(tag.location()));
-        return list;
+        public Object toData(ValueOps ops) {
+        return ops.createList(
+                ops.createByte(TAG),
+                ops.createBoolean(true),
+                ops.createBoolean(false),
+                ValueCodecs.RESOURCE_LOCATION.encode(ops, tag.location()));
     }
 
     @Override

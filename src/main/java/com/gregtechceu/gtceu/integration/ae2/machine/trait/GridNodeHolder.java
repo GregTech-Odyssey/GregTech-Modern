@@ -14,8 +14,7 @@ import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.gto.datasynclib.annotations.Access;
 import com.gto.datasynclib.annotations.Codec;
 import com.gto.datasynclib.annotations.SaveToDisk;
-import com.gto.datasynclib.datastream.data.Data;
-import com.gto.datasynclib.datastream.data.NullData;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import lombok.Getter;
 
 import java.util.EnumSet;
@@ -29,7 +28,7 @@ public class GridNodeHolder extends MachineTrait {
 
     @SaveToDisk
     @Access(instanceAsValue = true)
-    @Codec(writeToData = "serializeGridNode", readFromData = "deserializeGridNode")
+    @Codec(writeToValue = "serializeGridNode", readFromValue = "deserializeGridNode")
     protected final SerializableManagedGridNode mainNode;
 
     public GridNodeHolder(IGridConnectedMachine machine) {
@@ -68,12 +67,12 @@ public class GridNodeHolder extends MachineTrait {
     }
 
     @SuppressWarnings("unused")
-    public Data serializeGridNode(SerializableManagedGridNode node) {
-        return NullData.INSTANCE;
+    public Object serializeGridNode(ValueOps ops, SerializableManagedGridNode node) {
+        return ops.createNull();
     }
 
     @SuppressWarnings("unused")
-    public SerializableManagedGridNode deserializeGridNode(Data data, int v) {
+    public SerializableManagedGridNode deserializeGridNode(ValueOps ops, Object data) {
         return this.mainNode;
     }
 }
