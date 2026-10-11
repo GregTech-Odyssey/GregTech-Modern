@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * 配方页信息区的内容：状态面板的行和面板下方的额外展示槽。记下各方追加的内容，由配方页据此建控件。
+ * 配方页信息区的内容：状态面板的行、面板内的展示槽和面板下方的额外展示槽。记下各方追加的内容，由配方页据此建控件。
  * 只需要尺寸时用 {@link Counter}（只数数，不调用任何 Supplier）。
  * <p>
  * 经 {@link RecipeInfoBuilder} 追加的数值只取一次（第一次显示时），之后复用；随电压档变化的核心参数行用 {@link #dynamicLine}。
@@ -26,6 +26,7 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
 
     private final List<Line> lines = new ArrayList<>();
     private final List<Supplier<Widget>> slots = new ArrayList<>(2);
+    private final ArrayList<Supplier<Widget>> panelSlots = new ArrayList<>(2);
 
     @Override
     public RecipeInfoLines line(String labelKey, Supplier<Component> value) {
@@ -57,6 +58,12 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
         return this;
     }
 
+    @Override
+    public RecipeInfoLines panelSlot(Supplier<Widget> slot) {
+        panelSlots.add(slot);
+        return this;
+    }
+
     private static Component nonNull(@Nullable Component value) {
         return value == null ? Component.empty() : value;
     }
@@ -69,12 +76,17 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
         return slots;
     }
 
+    public ArrayList<Supplier<Widget>> panelSlots() {
+        return panelSlots;
+    }
+
     /** 只数行数和槽数，算配方页尺寸用。 */
     public static final class Counter implements RecipeInfoBuilder {
 
         private int labeled;
         private int sentences;
         private int slots;
+        private int panelSlots;
         private final List<@Nullable Supplier<Component>> sentenceTexts = new ArrayList<>();
 
         @Override
@@ -103,6 +115,12 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
             return this;
         }
 
+        @Override
+        public Counter panelSlot(Supplier<Widget> slot) {
+            panelSlots++;
+            return this;
+        }
+
         /** "名称 …… 数值"行数。 */
         public int labeled() {
             return labeled;
@@ -115,6 +133,10 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
 
         public int slots() {
             return slots;
+        }
+
+        public int panelSlots() {
+            return panelSlots;
         }
 
         public int sentenceRows(int panelWidth) {

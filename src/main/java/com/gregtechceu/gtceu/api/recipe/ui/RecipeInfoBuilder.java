@@ -10,7 +10,7 @@ import java.util.function.Supplier;
  * 配方页信息区的收集器：配方条件、配方扩展、配方修饰器、配方类型的附加内容都往这里追加。
  * <p>
  * 信息区是一块只读的状态面板（uipro {@code StatusPanel}），每条信息一行；配方要求的额外物品/流体
- * （所需线圈、维度、邻接流体、研究数据等）以展示槽的形式排在状态面板下方。
+ * （所需线圈、维度、邻接流体、研究数据等）以展示槽的形式排在状态面板下方；与信息关联的槽可排在面板内。
  * <p>
  * 同一套追加代码会跑两遍：一遍只数行数和槽数（算配方页尺寸，EMI 翻页排版时对整个类别的配方都要算一次），
  * 一遍才真正建控件。所以数值和槽位都以 {@link Supplier} 传入，只数数时不会被调用，建页后数值只取一次；
@@ -41,4 +41,9 @@ public interface RecipeInfoBuilder {
      * 这样在配方查看器里能按 EMI 的方式查配方、查用途。
      */
     RecipeInfoBuilder slot(Supplier<Widget> slot);
+
+    /** 信息面板内的展示槽（18 见方），排在说明行下方，按面板可用宽度换行。 */
+    default RecipeInfoBuilder panelSlot(Supplier<Widget> slot) {
+        return slot(slot);
+    }
 }

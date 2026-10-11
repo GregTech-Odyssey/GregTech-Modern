@@ -89,6 +89,9 @@ public class TagPrefixItem extends Item implements ITagPrefixItem {
 
     @Override
     public Component getName(ItemStack stack) {
+        if (tagPrefix.getDisplayName() != null) {
+            return tagPrefix.getDisplayName().apply(material);
+        }
         return ITagPrefixItem.super.getName(stack);
     }
 

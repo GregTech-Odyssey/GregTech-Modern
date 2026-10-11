@@ -295,6 +295,8 @@ public class TagPrefix {
     private int maxStackSize = 64;
     @Getter
     private ToIntFunction<Material> maxDamageProvider;
+    @Getter
+    private Function<Material, Component> displayName;
     private final List<MaterialStack> secondaryMaterials = new ArrayList<>();
     protected final Set<TagKey<Block>> miningToolTag = new ReferenceOpenHashSet<>();
 
@@ -742,6 +744,11 @@ public class TagPrefix {
      */
     public TagPrefix tooltip(@Nullable final BiConsumer<Material, List<Component>> tooltip) {
         this.tooltip = tooltip;
+        return this;
+    }
+
+    public TagPrefix displayName(@Nullable final Function<Material, Component> nameFunction) {
+        this.displayName = nameFunction;
         return this;
     }
 

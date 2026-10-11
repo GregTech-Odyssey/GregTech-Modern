@@ -200,7 +200,8 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         appendInfo(recipe, counter, null, preview);
         boolean inline = inlineSlots(slotArea.width, counter.slots(), width);
         int stage = inline ? Math.max(slotArea.height, UISizes.SLOT_SIZE) : slotArea.height;
-        int left = panelHeight(preview != null && preview.hasStepper(), counter.labeled(), counter.sentenceRows(frame.besideNotch(width)));
+        int panelWidth = frame.besideNotch(width);
+        int left = panelHeight(preview != null && preview.hasStepper(), counter.labeled(), counter.sentenceRows(panelWidth), counter.panelSlots(), panelWidth);
         int footer = footerHeight(inline ? 0 : counter.slots(), frame.besideNotch(width));
         if (footer > 0) left += (left > 0 ? UISizes.SECTION_GAP : 0) + footer;
         int lower = Math.max(left, frame.notchHeight());
@@ -213,10 +214,20 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     /** 参数表高度；没有任何内容时为 0（不显示）。 */
-    private static int panelHeight(boolean stepper, int values, int sentences) {
+    private static int panelHeight(boolean stepper, int values, int sentences, int slots, int width) {
         if (stepper) values++;
-        if (values + sentences == 0) return 0;
-        return RecipeSpecPanel.heightFor(false, values, sentences);
+        if (values + sentences + slots == 0) return 0;
+        int height = RecipeSpecPanel.heightFor(false, values, sentences);
+        if (slots > 0) {
+            if (values + sentences > 0) height += RecipeSpecPanel.DIVIDER_HEIGHT;
+            int perRow = panelSlotsPerRow(width);
+            height += (slots + perRow - 1) / perRow * UISizes.SLOT_SIZE;
+        }
+        return height;
+    }
+
+    private static int panelSlotsPerRow(int width) {
+        return Math.max(1, (width - 2 * UISizes.PANEL_PADDING) / UISizes.SLOT_SIZE);
     }
 
     // ==================== 卡片 ====================
@@ -288,7 +299,9 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     public static List<Widget> createInfoSlots(GTRecipeDefinition recipe) {
         var info = new RecipeInfoLines();
         appendInfo(recipe, info, null, RecipeTierPreview.create(recipe));
-        var slots = createSlots(info);
+        var slots = new ArrayList<Widget>(info.slots().size() + info.panelSlots().size());
+        for (var slot : info.slots()) slots.add(slot.get());
+        for (var slot : info.panelSlots()) slots.add(slot.get());
         for (var slot : slots) slot.setClientSideWidget();
         return slots;
     }
@@ -410,7 +423,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     @Nullable
     private Widget createPanel(RecipeInfoLines info, int panelWidth) {
         boolean stepper = preview != null && preview.hasStepper();
-        if (!stepper && info.lines().isEmpty()) return null;
+        if (!stepper && info.lines().isEmpty() && info.panelSlots().isEmpty()) return null;
         var panel = new RecipeSpecPanel();
         panel.layout(l -> l.flexGrow(1));
         if (stepper) {
@@ -440,6 +453,10 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
             } else {
                 panel.sentence(line.value());
             }
+        }
+        if (!info.panelSlots().isEmpty()) {
+            if (stepper || values || sentences) panel.divider();
+            panel.addChild(SlotGrid.of(panelSlotsPerRow(panelWidth), info.panelSlots().size(), i -> info.panelSlots().get(i).get()));
         }
         return panel;
     }
