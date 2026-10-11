@@ -25,12 +25,9 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
-import com.google.gson.JsonParser;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * 配方内容的匹配器：BASE/EXACT 由 AE 规范 key 自身充当（无 NBT 按 uid、带 NBT 按身份），其余种类各为只含 final 字段的小实现类。
@@ -121,8 +118,7 @@ public interface KeyIngredient {
         return ops.createList(
                 ops.createByte(kind),
                 ops.createBoolean(isItem()),
-                kind == EXACT ? KeyCodecs.AE_KEY_DATA_CODEC.encode(ops, key)
-                        : ValueCodecs.RESOURCE_LOCATION.encode(ops, key.getId()));
+                kind == EXACT ? KeyCodecs.AE_KEY_DATA_CODEC.encode(ops, key) : ValueCodecs.RESOURCE_LOCATION.encode(ops, key.getId()));
     }
 
     default void toNetwork(FriendlyByteBuf buf) {

@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
-import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ValueCodecs;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

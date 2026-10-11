@@ -114,15 +114,15 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
     protected void doReadValue(ITagSerializable @NotNull [] instance, @NotNull Object data, @NotNull ValueOps ops) {
         var list = ops.getList(data);
         var length = Math.min(list.size(), instance.length);
-            for (int i = 0; i < length; i++) {
-                var d = list.get(i);
-                if (!ops.isNull(d)) {
-                    var element = instance[i];
-                    if (element != null) {
-                        var nbt = ValueCodecs.TAG.decode(ops, d);
-                        element.deserializeNBT(nbt);
-                    }
+        for (int i = 0; i < length; i++) {
+            var d = list.get(i);
+            if (!ops.isNull(d)) {
+                var element = instance[i];
+                if (element != null) {
+                    var nbt = ValueCodecs.TAG.decode(ops, d);
+                    element.deserializeNBT(nbt);
                 }
             }
         }
+    }
 }

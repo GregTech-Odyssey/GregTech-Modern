@@ -35,7 +35,8 @@ public final class TipTooltipLayout {
         for (int i = 1; i < elements.size(); i++) {
             var left = elements.get(i).left();
             if (left.isPresent() && left.get() instanceof Component c && c.getContents() instanceof TipContents tip &&
-                    tip.role() == TipRole.HEADING) return i;
+                    tip.role() == TipRole.HEADING)
+                return i;
         }
         return elements.size();
     }

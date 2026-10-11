@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
@@ -275,8 +276,8 @@ public class ToolHelper {
     }
 
     public static AoESymmetrical getAoEDefinition(ItemStack stack) {
-        if (!hasBehaviorsTag(stack)) return AoESymmetrical.ZERO;
-        return AoESymmetrical.read(getBehaviorsTag(stack), getMaxAoEDefinition(stack));
+        if (!stack.hasTag()) return AoESymmetrical.ZERO;
+        return IDataComponentItem.getOrDefault(stack, AoESymmetrical.KEY, AoESymmetrical.readMax(stack));
     }
 
     public static List<BlockPos> iterateAoE(AoESymmetrical aoeDefinition, Predicate<UseOnContext> predicate,

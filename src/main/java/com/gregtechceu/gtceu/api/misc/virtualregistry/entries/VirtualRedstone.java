@@ -5,8 +5,8 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 
 import net.minecraft.nbt.CompoundTag;
 
-import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ValueCodecs;
 import it.unimi.dsi.fastutil.objects.Object2ShortMap;
 import it.unimi.dsi.fastutil.objects.Object2ShortOpenHashMap;

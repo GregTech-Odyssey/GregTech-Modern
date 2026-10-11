@@ -2,11 +2,17 @@ package com.gregtechceu.gtceu.api.item.capability;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
+import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
+import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.LongTag;
 import net.minecraft.world.item.ItemStack;
 
 public class ElectricItem implements IElectricItem {
+
+    public static final ItemDataComponentKey<Long, LongTag> CHARGE = ItemDataComponentKey.create(ToolHelper.CHARGE_KEY, ElectricItem::write, ElectricItem::read);
+    public static final ItemDataComponentKey<Long, LongTag> MAX_CHARGE = ItemDataComponentKey.create(ToolHelper.MAX_CHARGE_KEY, ElectricItem::write, ElectricItem::read);
 
     protected final ItemStack itemStack;
 
@@ -32,12 +38,20 @@ public class ElectricItem implements IElectricItem {
         this.transferAmps = transferAmps;
     }
 
+    private static LongTag write(long change) {
+        return LongTag.valueOf(change);
+    }
+
+    private static long read(LongTag tag) {
+        return tag.getAsLong();
+    }
+
     public void setCharge(long change) {
-        itemStack.getOrCreateTag().putLong("Charge", change);
+        IDataComponentItem.set(itemStack, CHARGE, change);
     }
 
     public void setMaxChargeOverride(long maxCharge) {
-        itemStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
+        IDataComponentItem.set(itemStack, MAX_CHARGE, maxCharge);
     }
 
     @Override
@@ -47,25 +61,19 @@ public class ElectricItem implements IElectricItem {
 
     @Override
     public long getMaxCharge() {
-        var tagCompound = itemStack.getTag();
-        if (tagCompound == null)
-            return maxCharge;
-        if (tagCompound.contains("MaxCharge", Tag.TAG_LONG))
-            return tagCompound.getLong("MaxCharge");
+        Long maxCharge = IDataComponentItem.get(itemStack, MAX_CHARGE);
+        if (maxCharge == null) return this.maxCharge;
         return maxCharge;
     }
 
     public long getCharge() {
-        var tagCompound = itemStack.getTag();
-        if (tagCompound == null)
-            return 0;
-        if (tagCompound.getBoolean("Infinite"))
-            return getMaxCharge();
-        return Math.min(tagCompound.getLong("Charge"), getMaxCharge());
+        var c = IDataComponentItem.getLong(itemStack, CHARGE);
+        if (c == -666) return getMaxCharge();
+        return Math.min(c, getMaxCharge());
     }
 
     public void setInfiniteCharge(boolean infiniteCharge) {
-        itemStack.getOrCreateTag().putBoolean("Infinite", infiniteCharge);
+        IDataComponentItem.set(itemStack, CHARGE, infiniteCharge ? -666L : 0);
     }
 
     @Override

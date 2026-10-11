@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.item.tool.aoe;
 
 import com.gregtechceu.gtceu.api.item.IGTTool;
+import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 
 import net.minecraft.nbt.CompoundTag;
@@ -8,9 +9,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.Nullable;
 
 public record AoESymmetrical(int column, int row, int layer) {
+
+    public static final ItemDataComponentKey<AoESymmetrical, CompoundTag> KEY = ItemDataComponentKey.createCompound(ToolHelper.BEHAVIOURS_TAG_KEY, AoESymmetrical::write, AoESymmetrical::read, AoESymmetrical::remove);
 
     private AoESymmetrical() {
         this(0, 0, 0);
@@ -36,29 +38,23 @@ public record AoESymmetrical(int column, int row, int layer) {
         return ((IGTTool) stack.getItem()).getToolStats().getAoEDefinition(stack);
     }
 
-    public static AoESymmetrical read(CompoundTag tag, @Nullable AoESymmetrical defaultDefinition) {
-        int column, row, layer;
-        if (tag.contains(ToolHelper.AOE_COLUMN_KEY, Tag.TAG_INT)) {
-            column = tag.getInt(ToolHelper.AOE_COLUMN_KEY);
-        } else {
-            column = defaultDefinition == null ? 0 : defaultDefinition.column;
-        }
-        if (tag.contains(ToolHelper.AOE_ROW_KEY, Tag.TAG_INT)) {
-            row = tag.getInt(ToolHelper.AOE_ROW_KEY);
-        } else {
-            row = defaultDefinition == null ? 0 : defaultDefinition.row;
-        }
-        if (tag.contains(ToolHelper.AOE_LAYER_KEY, Tag.TAG_INT)) {
-            layer = tag.getInt(ToolHelper.AOE_LAYER_KEY);
-        } else {
-            layer = defaultDefinition == null ? 0 : defaultDefinition.layer;
-        }
-        if (column == 0 && row == 0 && layer == 0) {
-            return ZERO;
-        }
-        tag.putInt(ToolHelper.AOE_COLUMN_KEY, column);
-        tag.putInt(ToolHelper.AOE_ROW_KEY, row);
-        tag.putInt(ToolHelper.AOE_LAYER_KEY, layer);
+    public static void write(CompoundTag tag, AoESymmetrical definition) {
+        tag.putInt(ToolHelper.AOE_COLUMN_KEY, definition.column);
+        tag.putInt(ToolHelper.AOE_ROW_KEY, definition.row);
+        tag.putInt(ToolHelper.AOE_LAYER_KEY, definition.layer);
+    }
+
+    public static void remove(CompoundTag tag) {
+        tag.remove(ToolHelper.AOE_COLUMN_KEY);
+        tag.remove(ToolHelper.AOE_ROW_KEY);
+        tag.remove(ToolHelper.AOE_LAYER_KEY);
+    }
+
+    public static AoESymmetrical read(CompoundTag tag) {
+        int column = tag.getInt(ToolHelper.AOE_COLUMN_KEY);
+        int row = tag.getInt(ToolHelper.AOE_ROW_KEY);
+        int layer = tag.getInt(ToolHelper.AOE_LAYER_KEY);
+        if (column == 0 && row == 0 && layer == 0) return null;
         return AoESymmetrical.of(column, row, layer);
     }
 

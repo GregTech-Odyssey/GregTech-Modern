@@ -9,11 +9,9 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
-import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.datasynclib.datastream.codec.ValueOps;
+import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public final class PredicateIngredient implements KeyIngredient {
 
@@ -65,7 +63,7 @@ public final class PredicateIngredient implements KeyIngredient {
     }
 
     @Override
-        public Object toData(ValueOps ops) {
+    public Object toData(ValueOps ops) {
         return ops.createList(
                 ops.createByte(PREDICATE),
                 ops.createBoolean(true),

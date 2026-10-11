@@ -5,9 +5,6 @@ import com.gregtechceu.gtceu.api.transfer.forge.ForgeStackAdapter;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import com.gto.datasynclib.datastream.codec.JavaValueOps;
-import com.gto.datasynclib.datastream.codec.ValueOps;
-import com.gto.datasynclib.util.ValueCodecs;
 import net.minecraft.Util;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
@@ -25,6 +22,8 @@ import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
 import com.gto.datasynclib.AbstractDataSerializable;
 import com.gto.datasynclib.LogicalSide;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

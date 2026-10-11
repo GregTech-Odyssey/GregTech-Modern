@@ -23,8 +23,8 @@ import net.minecraft.world.level.chunk.LevelChunk;
 
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.datasynclib.network.DataSyncNetwork;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.network.DataSyncNetwork;
 import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

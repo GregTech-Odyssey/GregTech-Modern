@@ -22,12 +22,6 @@
   ],
   "mixins": [
     "AEKeyIngredientMixin",
-    "ldlib.ModularUIContainerMixin",
-    "ldlib.ModularUIContainerFaultMixin",
-    "ldlib.UIFactoryFaultMixin",
-    "ldlib.WidgetAccessor",
-    "ldlib.ModularUIBudgetMixin",
-    "ldlib.WidgetGroupRoutingMixin",
     "BlockBehaviourAccessor",
     "BlockEntityMixin",
     "BlockMixin",
@@ -36,6 +30,7 @@
     "EntityMixin",
     "IFoliagePlacerTypeAccessor",
     "InventoryMixin",
+    "ItemStackMixin",
     "ITrunkPlacerTypeAccessor",
     "LevelMixin",
     "LootPoolAccessor",
@@ -52,8 +47,14 @@
     "TagManagerMixin",
     "emi.FillRecipePacketMixin",
     "emi.FluidEmiStackMixin",
+    "ldlib.ModularUIBudgetMixin",
+    "ldlib.ModularUIContainerFaultMixin",
+    "ldlib.ModularUIContainerMixin",
     "ldlib.ModularWrapperWidgetMixin",
-    "ldlib.SlotWidgetMixin"
+    "ldlib.SlotWidgetMixin",
+    "ldlib.UIFactoryFaultMixin",
+    "ldlib.WidgetAccessor",
+    "ldlib.WidgetGroupRoutingMixin"
   ],
   "injectors": {
     "defaultRequire": 1,

@@ -16,10 +16,9 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
-import com.gto.datasynclib.datastream.codec.ValueOps;
-import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.util.ValueCodecs;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 

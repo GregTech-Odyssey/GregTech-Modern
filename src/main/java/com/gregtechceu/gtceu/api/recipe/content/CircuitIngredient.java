@@ -9,8 +9,6 @@ import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 
-import java.util.List;
-
 public final class CircuitIngredient implements KeyIngredient {
 
     private static final CircuitIngredient[] ALL = new CircuitIngredient[Circuits.MAX + 1];
@@ -65,7 +63,7 @@ public final class CircuitIngredient implements KeyIngredient {
     }
 
     @Override
-        public Object toData(ValueOps ops) {
+    public Object toData(ValueOps ops) {
         return ops.createList(
                 ops.createByte(CIRCUIT),
                 ops.createBoolean(true),

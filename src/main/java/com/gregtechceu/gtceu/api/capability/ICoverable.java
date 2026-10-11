@@ -32,9 +32,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.Nullable;
-
 import com.gto.datasynclib.datastream.codec.ValueOps;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;

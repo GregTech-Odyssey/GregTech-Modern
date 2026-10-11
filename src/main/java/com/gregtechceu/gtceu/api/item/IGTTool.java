@@ -1,8 +1,8 @@
 package com.gregtechceu.gtceu.api.item;
 
-import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.CombinedCapabilityProvider;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.DustProperty;
@@ -149,9 +149,7 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
         getToolStats().getBehaviors().forEach(behavior -> behavior.addBehaviorNBT(stack, behaviourTag));
 
         if (!aoeDefinition.isZero()) {
-            behaviourTag.putInt(AOE_COLUMN_KEY, aoeDefinition.column());
-            behaviourTag.putInt(AOE_ROW_KEY, aoeDefinition.row());
-            behaviourTag.putInt(AOE_LAYER_KEY, aoeDefinition.layer());
+            IDataComponentItem.set(stack, AoESymmetrical.KEY, aoeDefinition);
         }
 
         return stack;
@@ -226,21 +224,15 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
     }
 
     default long getMaxCharge(ItemStack stack) {
-        if (isElectric()) {
-            CompoundTag tag = stack.getTag();
-            if (tag != null && tag.contains(MAX_CHARGE_KEY, Tag.TAG_LONG)) {
-                return tag.getLong(MAX_CHARGE_KEY);
-            }
+        if (isElectric() && stack.hasTag()) {
+            return IDataComponentItem.getLong(stack, ElectricItem.MAX_CHARGE);
         }
         return -1L;
     }
 
     default long getCharge(ItemStack stack) {
-        if (isElectric()) {
-            CompoundTag tag = stack.getTag();
-            if (tag != null && tag.contains(CHARGE_KEY, Tag.TAG_LONG)) {
-                return tag.getLong(CHARGE_KEY);
-            }
+        if (isElectric() && stack.hasTag()) {
+            return IDataComponentItem.getLong(stack, ElectricItem.CHARGE);
         }
         return -1L;
     }

@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolUIBehavior;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -46,7 +48,10 @@ public class AOEConfigUIBehavior implements IToolUIBehavior {
         return Stepper.of(UISizes.VALUE_WIDTH, () -> {
             var tag = getBehaviorsTag(holder.getHeld());
             return tag.contains(key, Tag.TAG_INT) ? tag.getInt(key) : max;
-        }, value -> getBehaviorsTag(holder.getHeld()).putInt(key, value), 0, max)
+        }, value -> {
+            getBehaviorsTag(holder.getHeld()).putInt(key, value);
+            IDataComponentItem.remove(holder.getHeld(), AoESymmetrical.KEY);
+        }, 0, max)
                 .setFormatter(value -> Integer.toString(symmetric ? 1 + 2 * value : 1 + value));
     }
 }

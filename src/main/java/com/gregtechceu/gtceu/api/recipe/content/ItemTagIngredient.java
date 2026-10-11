@@ -16,8 +16,6 @@ import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.fastcollection.cache.IdentityHashCache;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public final class ItemTagIngredient implements KeyIngredient {
 
     private static final IdentityHashCache<TagKey<Item>, ItemTagIngredient> CACHE = new IdentityHashCache<>(ItemTagIngredient::new);
@@ -82,7 +80,7 @@ public final class ItemTagIngredient implements KeyIngredient {
     }
 
     @Override
-        public Object toData(ValueOps ops) {
+    public Object toData(ValueOps ops) {
         return ops.createList(
                 ops.createByte(TAG),
                 ops.createBoolean(true),

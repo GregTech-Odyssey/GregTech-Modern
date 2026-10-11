@@ -5,8 +5,8 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingContext;
 
 import com.gto.datasynclib.datastream.codec.ValueCodec;
-import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.datasynclib.util.Registry;
+import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.mojang.serialization.Codec;
 import lombok.Getter;

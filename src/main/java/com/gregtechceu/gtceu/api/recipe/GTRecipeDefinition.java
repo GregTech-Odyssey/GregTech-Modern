@@ -14,11 +14,11 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.datasynclib.datastream.DataComponentMap;
-import com.gto.datasynclib.datastream.codec.ValueOps;
-import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.gto.datasynclib.util.ValueCodecs;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ByteBufCodecExtends;
+import com.gto.datasynclib.util.ValueCodecs;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.gto.recipesearch.IngredientTable;
 import org.jetbrains.annotations.Range;
