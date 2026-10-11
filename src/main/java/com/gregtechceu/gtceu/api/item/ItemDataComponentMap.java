@@ -151,7 +151,8 @@ public final class ItemDataComponentMap extends DataKey2ObjectMap<ItemDataCompon
     private <T, NBT extends Tag> T readerTag(ItemDataComponentKey<T, NBT> dataKey) {
         var tag = stack.getTag();
         if (tag == null || tag.tags.isEmpty()) return null;
-        var t = tag.tags.get(dataKey.name);
+        var name = dataKey.name;
+        var t = name == null ? tag : tag.tags.get(name);
         if (t == null) return null;
         return dataKey.reader.apply((NBT) t);
     }
@@ -165,7 +166,8 @@ public final class ItemDataComponentMap extends DataKey2ObjectMap<ItemDataCompon
             stack.setTag(tag);
         }
         if (dataKey.compound) {
-            dataKey.writerCompound.accept((NBT) tag.tags.computeIfAbsent(dataKey.name, mappingFunction), value);
+            var name = dataKey.name;
+            dataKey.writerCompound.accept((NBT) (name == null ? tag : tag.tags.computeIfAbsent(name, mappingFunction)), value);
         } else {
             tag.put(dataKey.name, dataKey.writer.apply(value));
         }
@@ -174,12 +176,16 @@ public final class ItemDataComponentMap extends DataKey2ObjectMap<ItemDataCompon
     private <T, NBT extends Tag> void removeTag(ItemDataComponentKey<T, NBT> dataKey) {
         var tag = stack.getTag();
         if (tag == null || tag.tags.isEmpty()) return;
-        var t = tag.tags.get(dataKey.name);
-        if (t == null) return;
-        if (dataKey.compound && t instanceof CompoundTag compoundTag) {
+        if (dataKey.compound) {
+            var name = dataKey.name;
+            if (!((name == null ? tag : tag.tags.get(name)) instanceof CompoundTag compoundTag)) return;
             dataKey.remove.accept(compoundTag);
             if (compoundTag.tags.isEmpty()) {
-                tag.tags.remove(dataKey.name);
+                if (name == null) {
+                    stack.setTag(null);
+                } else {
+                    tag.tags.remove(name);
+                }
             }
         } else {
             tag.tags.remove(dataKey.name);
