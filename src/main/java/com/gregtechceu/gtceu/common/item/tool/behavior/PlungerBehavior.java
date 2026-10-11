@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.api.misc.forge.VoidFluidHandlerItemStack;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -88,7 +89,7 @@ public class PlungerBehavior implements IToolBehavior, IComponentCapability, IIn
     @Override
     public void addInformation(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
-        tooltip.add(Component.translatable("item.gtceu.tool.behavior.plunger"));
+        tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.plunger")));
     }
 
     @Override

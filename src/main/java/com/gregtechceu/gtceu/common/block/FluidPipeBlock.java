@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.model.PipeModel;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.data.GTBlockEntities;
@@ -68,7 +69,7 @@ public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipePr
                                 TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
         FluidPipeProperties properties = createProperties(defaultBlockState(), stack);
-        tooltip.add(Component.translatable("gtceu.universal.tooltip.fluid_transfer_rate", properties.getThroughput()));
+        tooltip.add(Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_transfer_rate", properties.getThroughput())));
     }
 
     @Override

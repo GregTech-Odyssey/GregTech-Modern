@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
+import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
 import com.gregtechceu.gtceu.utils.memoization.MemoizedSupplier;
 
@@ -254,18 +255,23 @@ public class MultiblockMachineBuilder extends MachineBuilder<MultiblockMachineDe
     }
 
     @Override
-    public MultiblockMachineBuilder tooltips(Component... components) {
-        return (MultiblockMachineBuilder) super.tooltips(components);
+    public MultiblockMachineBuilder tips(TipSpec spec) {
+        return (MultiblockMachineBuilder) super.tips(spec);
     }
 
     @Override
-    public MultiblockMachineBuilder conditionalTooltip(Component component, BooleanSupplier condition) {
-        return (MultiblockMachineBuilder) super.conditionalTooltip(component, condition);
+    public MultiblockMachineBuilder tips(Component... lines) {
+        return (MultiblockMachineBuilder) super.tips(lines);
     }
 
     @Override
-    public MultiblockMachineBuilder conditionalTooltip(Component component, boolean condition) {
-        return (MultiblockMachineBuilder) super.conditionalTooltip(component, condition);
+    public MultiblockMachineBuilder conditionalTips(Component line, BooleanSupplier condition) {
+        return (MultiblockMachineBuilder) super.conditionalTips(line, condition);
+    }
+
+    @Override
+    public MultiblockMachineBuilder conditionalTips(Component line, boolean condition) {
+        return (MultiblockMachineBuilder) super.conditionalTips(line, condition);
     }
 
     @Override

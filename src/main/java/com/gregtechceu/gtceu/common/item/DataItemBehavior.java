@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.item.component.IDataItem;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.ResearchManager;
@@ -50,16 +51,16 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
         if (researchData == null) {
             if (stack.getOrCreateTag().contains("pos", Tag.TAG_INT_ARRAY) && stack.hasTag()) {
                 int[] posArray = stack.getOrCreateTag().getIntArray("pos");
-                tooltipComponents.add(Component.translatable(
+                tooltipComponents.add(Tips.feature(Component.translatable(
                         "gtceu.tooltip.proxy_bind",
                         Component.literal("" + posArray[0]).withStyle(ChatFormatting.LIGHT_PURPLE),
                         Component.literal("" + posArray[1]).withStyle(ChatFormatting.LIGHT_PURPLE),
-                        Component.literal("" + posArray[2]).withStyle(ChatFormatting.LIGHT_PURPLE)));
+                        Component.literal("" + posArray[2]).withStyle(ChatFormatting.LIGHT_PURPLE))));
             }
         } else {
             Collection<GTRecipeDefinition> recipes = researchData.recipeType().getDataStickEntry(researchData.researchId());
             if (recipes != null && !recipes.isEmpty()) {
-                tooltipComponents.add(Component.translatable("behavior.data_item.assemblyline.title"));
+                tooltipComponents.add(Tips.heading(Component.translatable("behavior.data_item.assemblyline.title")));
                 Collection<ItemStack> added = new OpenCacheHashSet<>();
                 outer:
                 for (GTRecipeDefinition recipe : recipes) {
@@ -69,8 +70,8 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
                     }
                     if (added.add(output)) {
                         tooltipComponents.add(
-                                Component.translatable("behavior.data_item.assemblyline.data",
-                                        output.getDisplayName()));
+                                Tips.feature(Component.translatable("behavior.data_item.assemblyline.data",
+                                        output.getDisplayName())));
                     }
                 }
             }

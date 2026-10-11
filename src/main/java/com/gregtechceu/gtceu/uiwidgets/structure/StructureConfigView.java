@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.MachineProtocol;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.SizeControl;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureTree;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
@@ -72,6 +73,8 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     private final Runnable onChange;
     @Nullable
     private final Consumer<MultiblockMachineDefinition> onOpen;
+    @Nullable
+    private final TerminalModes demolish;
     private final List<MachineProtocol> mounted = new ArrayList<>();
     @Nullable
     private Layout layout;
@@ -85,6 +88,13 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     public StructureConfigView(MultiblockMachineDefinition definition, Structure structure, int[] values, @Nullable boolean[] excluded,
                                Runnable onChange, @Nullable Consumer<MultiblockMachineDefinition> onOpen, int minWidth, int viewWidth, int viewHeight) {
+        this(definition, structure, values, excluded, onChange, onOpen, minWidth, viewWidth, viewHeight, null);
+    }
+
+    public StructureConfigView(MultiblockMachineDefinition definition, Structure structure, int[] values, @Nullable boolean[] excluded,
+                               Runnable onChange, @Nullable Consumer<MultiblockMachineDefinition> onOpen, int minWidth, int viewWidth, int viewHeight,
+                               @Nullable TerminalModes demolish) {
+        this.demolish = demolish;
         this.structure = structure;
         this.tree = structure.tree();
         this.values = values;
@@ -97,7 +107,8 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         }
         setClientSideWidget();
         layout(l -> l.column().width(LayoutStyle.AUTO).gapAll(UISizes.GAP));
-        if (tree.nodes().length > 1 || tree.sizes().length > 0 || !mounted.isEmpty()) {
+        if (tree.nodes().length > 1 || tree.sizes().length > 0 || !structure.controls().isEmpty() || !mounted.isEmpty()) {
+
             viewMaxHeight = Math.max(UISizes.SLOT_SIZE * 2, viewHeight - TextLine.HEIGHT - UISizes.GAP);
             view = new FlowView("structure_config", chart(), false).maxSize(viewWidth, viewMaxHeight).minSize(minWidth, 0);
             addChild(view);
@@ -151,6 +162,10 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         switch (node.kind()) {
             case ROOT -> {
                 var options = structure.options();
+                for (var control : structure.controls()) {
+                    flow.addChild(TextLine.constant(LayoutStyle.AUTO, control.key().getName()));
+                    flow.addChild(controlField(index, control, inner));
+                }
                 for (int option : tree.sizes()) {
                     var size = options.get(option).key();
                     flow.addChild(TextLine.constant(LayoutStyle.AUTO, size == null ? Component.translatable(SEGMENT) : size.getName()));
@@ -179,6 +194,13 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
                     flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                             .addChildren(TextLine.translatable(0, LISTED).layout(l -> l.flex(1)), listed));
                 }
+                if (demolish != null) {
+                    var demolishing = Switch.of(() -> demolish.isDemolishing(index), on -> demolish.setDemolishing(index, on))
+                            .disabled(() -> !tree.active(index, values), INACTIVE);
+                    demolishing.tooltips(TerminalModes.DEMOLISH_NODE_DESC);
+                    flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
+                            .addChildren(TextLine.translatable(0, TerminalModes.DEMOLISH_NODE).layout(l -> l.flex(1)), demolishing));
+                }
             }
             default -> {}
         }
@@ -197,6 +219,20 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         var field = NumberField.ofInt(width, () -> values[option], value -> set(option, value), min, max).setSteps(STEPS);
         field.disabled(() -> !tree.active(index, values), INACTIVE);
         return field;
+    }
+
+    private UIElement controlField(int index, SizeControl control, int width) {
+        var field = NumberField.ofInt(width, () -> control.read(values), value -> setControl(control, value), () -> control.min(values), () -> control.max(values)).setSteps(STEPS);
+        field.disabled(() -> !tree.active(index, values), INACTIVE);
+        return field;
+    }
+
+    private void setControl(SizeControl control, int value) {
+        var previous = values.clone();
+        control.write(values, value);
+        if (Arrays.equals(previous, values)) return;
+        refresh();
+        onChange.run();
     }
 
     private ButtonGroup choices(int index, StructureTree.Node node) {

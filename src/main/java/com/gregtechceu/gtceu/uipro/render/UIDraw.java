@@ -5,14 +5,17 @@ import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 
 /**
  * 界面绘制原语：多块纯色拼成的图形批进一次 {@link RenderType#gui()} 提交，批内只有纯色块。
@@ -69,6 +72,17 @@ public final class UIDraw {
         quad(consumer, matrix, l + c, b - 1, r - c, b, color);
         quad(consumer, matrix, l, t + 1, l + 1, b - 1, color);
         quad(consumer, matrix, r - 1, t + 1, r, b - 1, color);
+    }
+
+    public static void item(GuiGraphics graphics, ItemStack stack, int x, int y) {
+        if (stack.isEmpty()) return;
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(true);
+        graphics.renderItem(stack, x, y);
+        graphics.flush();
+        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+        RenderSystem.depthMask(false);
+        RenderSystem.disableDepthTest();
     }
 
     public static void fillRect(GuiGraphics graphics, int x, int y, int width, int height, int color) {

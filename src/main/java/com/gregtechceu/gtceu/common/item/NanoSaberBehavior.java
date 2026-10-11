@@ -227,8 +227,6 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
         Component reason = powered ? null : ArmorTooltips.reason(
                 Component.translatable(enabled ? "metaarmor.gto.state.no_energy" : "metaarmor.gto.state.blade_off"), color);
 
-        lines.add(ArmorTooltips.info("metaarmor.gto.capacity", ArmorTooltips.value(Integer.toString(HOURS[grade])),
-                GTValues.VNF[tier]));
         lines.add(ArmorTooltips.section("metaarmor.gto.section.weapon"));
         lines.add(stateLine("metaarmor.gto.saber.damage", ArmorTooltips.amps(getAttackDamage(powered)), color, reason));
         lines.add(stateLine("metaarmor.gto.saber.health_percent", ArmorTooltips.amps(powered ? getHealthPercent() : 0) + "%",

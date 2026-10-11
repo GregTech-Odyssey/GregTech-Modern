@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
@@ -157,11 +158,11 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
         int remainingUses = getUsesLeft(stack);
         if (color != null) {
             tooltipComponents
-                    .add(Component.translatable("behaviour.paintspray." + this.color.getSerializedName() + ".tooltip"));
+                    .add(Tips.feature(Component.translatable("behaviour.paintspray." + this.color.getSerializedName() + ".tooltip")));
         } else {
-            tooltipComponents.add(Component.translatable("behaviour.paintspray.solvent.tooltip"));
+            tooltipComponents.add(Tips.feature(Component.translatable("behaviour.paintspray.solvent.tooltip")));
         }
-        tooltipComponents.add(Component.translatable("behaviour.paintspray.uses", remainingUses));
+        tooltipComponents.add(Tips.stat(Component.translatable("behaviour.paintspray.uses", remainingUses)));
     }
 
     @Override

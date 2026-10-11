@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.client.renderer.BlockHighlightRenderer;
+import com.gregtechceu.gtceu.client.tooltip.TipTooltipLayout;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.item.InfiniteSprayCanBehaviour;
@@ -25,6 +26,7 @@ import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderHighlightEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
@@ -55,6 +57,11 @@ public class ForgeClientEventListener {
     @SubscribeEvent
     public static void onTooltipEvent(ItemTooltipEvent event) {
         TooltipsHandler.appendTooltips(event.getItemStack(), event.getFlags(), event.getToolTip());
+    }
+
+    @SubscribeEvent
+    public static void onGatherTooltipComponents(RenderTooltipEvent.GatherComponents event) {
+        TipTooltipLayout.gather(event);
     }
 
     @SubscribeEvent

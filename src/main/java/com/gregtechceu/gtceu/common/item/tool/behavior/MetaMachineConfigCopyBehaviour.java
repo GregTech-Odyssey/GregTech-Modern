@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 
 import net.minecraft.ChatFormatting;
@@ -173,7 +174,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             header.append(Component.literal(" · ").append(Component.translatable("behaviour.memory_card.gto.empty"))
                     .withStyle(ChatFormatting.GRAY));
         }
-        tooltipComponents.add(header.withStyle(ChatFormatting.GOLD));
+        tooltipComponents.add(Tips.heading(header.withStyle(ChatFormatting.GOLD)));
 
         Direction origFront = data == null ? null : tagToDirection(data.get(ORIGINAL_FRONT));
         addSetting(tooltipComponents, Component.translatable("behaviour.memory_card.gto.setting.output_side"), data,
@@ -186,33 +187,33 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
                 config -> onOff(config.getBoolean(AUTO)));
         addSetting(tooltipComponents, Component.translatable("behaviour.memory_card.gto.setting.input_from_output"),
                 data, config -> onOff(config.getBoolean(INPUT_FROM_OUTPUT_SIDE)));
-        tooltipComponents.add(settingLine(Component.translatable("behaviour.memory_card.gto.setting.muffled"),
-                data == null ? null : data.contains(MUFFLED) ? onOff(data.getBoolean(MUFFLED)) : notRecorded()));
+        tooltipComponents.add(Tips.stat(settingLine(Component.translatable("behaviour.memory_card.gto.setting.muffled"),
+                data == null ? null : data.contains(MUFFLED) ? onOff(data.getBoolean(MUFFLED)) : notRecorded())));
 
-        tooltipComponents.add(Component.literal("◆ ")
+        tooltipComponents.add(Tips.heading(Component.literal("◆ ")
                 .append(Component.translatable("behaviour.memory_card.gto.section.usage"))
-                .withStyle(ChatFormatting.GOLD));
-        tooltipComponents.add(Component.literal(" ").append(Component.translatable("behaviour.memory_card.gto.usage.copy"))
-                .withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.literal(" ")
+                .withStyle(ChatFormatting.GOLD)));
+        tooltipComponents.add(Tips.rightClick(Component.literal(" ").append(Component.translatable("behaviour.memory_card.gto.usage.copy"))
+                .withStyle(ChatFormatting.GRAY)));
+        tooltipComponents.add(Tips.rightClick(Component.literal(" ")
                 .append(Component.translatable("behaviour.memory_card.gto.usage.paste"))
-                .withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.literal(" ")
+                .withStyle(ChatFormatting.GRAY)));
+        tooltipComponents.add(Tips.rightClick(Component.literal(" ")
                 .append(Component.translatable("behaviour.memory_card.gto.usage.clear"))
-                .withStyle(ChatFormatting.GRAY));
+                .withStyle(ChatFormatting.GRAY)));
         if (Screen.hasShiftDown()) {
-            tooltipComponents.add(Component.literal(" ")
+            tooltipComponents.add(Tips.note(Component.literal(" ")
                     .append(Component.translatable("behaviour.memory_card.gto.details.relative"))
-                    .withStyle(ChatFormatting.DARK_GRAY));
-            tooltipComponents.add(Component.literal(" ")
+                    .withStyle(ChatFormatting.DARK_GRAY)));
+            tooltipComponents.add(Tips.note(Component.literal(" ")
                     .append(Component.translatable("behaviour.memory_card.gto.details.skip"))
-                    .withStyle(ChatFormatting.DARK_GRAY));
-            tooltipComponents.add(Component.literal(" ")
+                    .withStyle(ChatFormatting.DARK_GRAY)));
+            tooltipComponents.add(Tips.note(Component.literal(" ")
                     .append(Component.translatable("behaviour.memory_card.gto.details.not_copied"))
-                    .withStyle(ChatFormatting.DARK_GRAY));
+                    .withStyle(ChatFormatting.DARK_GRAY)));
         } else {
-            tooltipComponents.add(Component.translatable("metaarmor.gto.hint.shift")
-                    .withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.add(Tips.control(Component.translatable("metaarmor.gto.hint.shift")
+                    .withStyle(ChatFormatting.DARK_GRAY)));
         }
     }
 
@@ -251,7 +252,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             }
             if (value == null) value = notRecorded().copy();
         }
-        tooltip.add(settingLine(name, value));
+        tooltip.add(Tips.stat(settingLine(name, value)));
     }
 
     private static CompoundTag copyOutputConfig(Direction outputSide, boolean autoOutput,

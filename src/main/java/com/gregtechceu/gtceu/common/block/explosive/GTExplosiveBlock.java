@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.block.explosive;
 
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.entity.GTExplosiveEntity;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
@@ -171,10 +172,10 @@ public abstract class GTExplosiveBlock extends Block {
                                 TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
         if (explodeOnMine) {
-            tooltip.add(Component.translatable("block.gtceu.explosive.breaking_tooltip"));
+            tooltip.add(Tips.warning(Component.translatable("block.gtceu.explosive.breaking_tooltip")));
         }
         if (!canRedstoneActivate) {
-            tooltip.add(Component.translatable("block.gtceu.explosive.lighting_tooltip"));
+            tooltip.add(Tips.unsupported(Component.translatable("block.gtceu.explosive.lighting_tooltip")));
         }
     }
 }

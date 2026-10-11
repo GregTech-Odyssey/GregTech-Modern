@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.item.armor;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -34,7 +35,7 @@ public class NightvisionGoggles extends ArmorLogicSuite {
     public void addInfo(ItemStack itemStack, List<Component> lines) {
         super.addInfo(itemStack, lines);
         if (type == ArmorItem.Type.HELMET) {
-            lines.add(Component.translatable("metaarmor.tooltip.gto_no_nightvision"));
+            lines.add(Tips.unsupported(Component.translatable("metaarmor.tooltip.gto_no_nightvision")));
         }
     }
 }

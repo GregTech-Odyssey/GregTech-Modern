@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
@@ -74,8 +75,8 @@ public class EntityDamageBehavior implements IToolBehavior {
     public void addInformation(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
         if (mobType != null && !mobType.isEmpty()) {
-            tooltip.add(Component.translatable("item.gtceu.tool.behavior.damage_boost",
-                    Component.translatable("item.gtceu.tool.behavior.damage_boost_" + mobType)));
+            tooltip.add(Tips.bonus(Component.translatable("item.gtceu.tool.behavior.damage_boost",
+                    Component.translatable("item.gtceu.tool.behavior.damage_boost_" + mobType))));
         }
     }
 

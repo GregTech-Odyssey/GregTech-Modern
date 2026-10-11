@@ -69,6 +69,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     public static final ParamKey RIGHT_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.right", "gtceu.multiblock.charcoal_pile_igniter.right.desc");
     public static final ParamKey FRONT_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.front", "gtceu.multiblock.charcoal_pile_igniter.front.desc");
     public static final ParamKey BACK_DIST = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.back", "gtceu.multiblock.charcoal_pile_igniter.back.desc");
+    public static final ParamKey WIDTH = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.width", "gtceu.multiblock.charcoal_pile_igniter.width.desc");
+    public static final ParamKey DEPTH = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.depth", "gtceu.multiblock.charcoal_pile_igniter.depth.desc");
     public static final ParamKey HEIGHT = ParamKey.of("gtceu.multiblock.charcoal_pile_igniter.height", "gtceu.multiblock.charcoal_pile_igniter.height.desc");
 
     private final Collection<BlockPos> logPos = new OpenCacheHashSet<>();
@@ -162,6 +164,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
                 .measure(m -> m.param(BACK_DIST).toward(BACK).until(wallBelow).range(MIN_RADIUS, MAX_RADIUS))
                 .measure(m -> m.param(HEIGHT).toward(DOWN).until(floor).range(MIN_DEPTH, MAX_DEPTH))
                 .require(size -> Math.abs(size.get(LEFT_DIST) - size.get(RIGHT_DIST)) <= 1 && Math.abs(size.get(FRONT_DIST) - size.get(BACK_DIST)) <= 1)
+                .centered(WIDTH, LEFT_DIST, RIGHT_DIST, 1, MIN_RADIUS * 2 + 1, MAX_RADIUS * 2 + 1)
+                .centered(DEPTH, FRONT_DIST, BACK_DIST, 1, MIN_RADIUS * 2 + 1, MAX_RADIUS * 2 + 1)
                 .build();
     }
 

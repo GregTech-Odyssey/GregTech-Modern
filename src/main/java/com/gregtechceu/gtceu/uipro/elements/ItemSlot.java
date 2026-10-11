@@ -162,7 +162,7 @@ public class ItemSlot extends SlotWidget implements ElementState.Host<ItemSlot>,
     private void drawGhost(GuiGraphics graphics) {
         var ghost = ghosts[(int) (UIClock.millis() / 1000 % ghosts.length)];
         int x = getPositionX() + 1, y = getPositionY() + 1;
-        graphics.renderItem(ghost, x, y);
+        UIDraw.item(graphics, ghost, x, y);
         var pose = graphics.pose();
         pose.pushPose();
         pose.translate(0, 0, UILayers.ITEM_OVERLAY);

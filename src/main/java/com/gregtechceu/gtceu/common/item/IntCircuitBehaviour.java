@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
 import com.gregtechceu.gtceu.api.recipe.content.Circuits;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.uiwidgets.circuit.CircuitSelector;
 import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
@@ -82,7 +83,7 @@ public class IntCircuitBehaviour implements IItemUIFactory, IAddInformation {
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                TooltipFlag isAdvanced) {
         int configuration = getCircuitConfiguration(stack);
-        tooltipComponents.add(Component.translatable("metaitem.int_circuit.configuration", configuration));
+        tooltipComponents.add(Tips.stat(Component.translatable("metaitem.int_circuit.configuration", configuration)));
     }
 
     @Override

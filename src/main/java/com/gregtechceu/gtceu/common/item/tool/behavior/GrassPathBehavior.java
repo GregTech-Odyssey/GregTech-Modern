@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item.tool.behavior;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -95,6 +96,6 @@ public class GrassPathBehavior implements IToolBehavior {
     @Override
     public void addInformation(@NotNull ItemStack stack, @Nullable Level Level, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
-        tooltip.add(Component.translatable("item.gtceu.tool.behavior.grass_path"));
+        tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.grass_path")));
     }
 }

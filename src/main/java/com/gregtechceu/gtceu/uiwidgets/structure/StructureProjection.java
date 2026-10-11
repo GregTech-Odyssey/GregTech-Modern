@@ -44,9 +44,12 @@ public final class StructureProjection {
     private StructureProjection() {}
 
     public static void project(IMultiController controller, Layout layout, Item[] items) {
+        project(controller, layout, items, controller.self().isFlipped());
+    }
+
+    public static void project(IMultiController controller, Layout layout, Item[] items, boolean flip) {
         var machine = controller.self();
-        var blocks = StructureBlocks.worldBlocks(layout, items, machine.getPos(), machine.getFrontFacing(), machine.getUpwardsFacing(),
-                machine.isFlipped());
+        var blocks = StructureBlocks.worldBlocks(layout, items, machine.getPos(), machine.getFrontFacing(), machine.getUpwardsFacing(), flip);
         show(machine.getPos(), machine.getDefinition(), blocks, -1);
     }
 

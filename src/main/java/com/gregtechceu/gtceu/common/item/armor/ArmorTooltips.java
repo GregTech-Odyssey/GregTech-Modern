@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
@@ -28,7 +29,7 @@ import java.util.function.Predicate;
  */
 public final class ArmorTooltips {
 
-    public static final Component SHIFT_HINT = Component.translatable("metaarmor.gto.hint.shift").withStyle(ChatFormatting.DARK_GRAY);
+    public static final Component SHIFT_HINT = Tips.control(Component.translatable("metaarmor.gto.hint.shift"));
 
     private ArmorTooltips() {}
 
@@ -43,34 +44,25 @@ public final class ArmorTooltips {
         return Component.literal(text).withStyle(color);
     }
 
-    /**
-     * 数值未按最佳状态生效时附在行尾的原因，例如「 · 电量不足」
-     */
     public static Component reason(Component reason, ChatFormatting color) {
         return Component.literal(" · ").append(reason).withStyle(color);
     }
 
     public static Component section(String key) {
-        return Component.literal("◆ ").append(Component.translatable(key)).withStyle(ChatFormatting.GOLD);
+        return Tips.heading(Component.translatable(key));
     }
 
-    /**
-     * 缩进的说明行（灰色），用于防护数值等常驻信息
-     */
     public static MutableComponent info(String key, Object... args) {
-        return Component.literal(" ").append(Component.translatable(key, args)).withStyle(ChatFormatting.GRAY);
+        return Tips.stat(Component.translatable(key, args));
     }
 
     public static boolean showDetails() {
         return GTCEu.isClientSide() && ArmorTooltipsClient.hasShiftDown();
     }
 
-    /**
-     * 按住 Shift 才显示的说明行（深灰）
-     */
     public static void addDetail(List<Component> lines, String key, Object... args) {
         if (showDetails()) {
-            lines.add(Component.literal("     ").append(Component.translatable(key, args)).withStyle(ChatFormatting.DARK_GRAY));
+            lines.add(Tips.note(Component.translatable(key, args)));
         }
     }
 
@@ -78,11 +70,10 @@ public final class ArmorTooltips {
      * 功能行；cost 为 null 表示不耗电，不显示
      */
     public static void addFeature(List<Component> lines, String key, Component state, @Nullable Component cost) {
-        MutableComponent line = Component.literal(" ▸ ").withStyle(ChatFormatting.DARK_GRAY)
-                .append(Component.translatable(key).withStyle(ChatFormatting.WHITE))
+        MutableComponent line = Component.translatable(key).withStyle(ChatFormatting.WHITE)
                 .append("  ").append(state);
         if (cost != null) line.append("  ").append(cost);
-        lines.add(line);
+        lines.add(Tips.feature(line));
     }
 
     // 状态

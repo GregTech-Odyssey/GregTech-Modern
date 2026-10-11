@@ -11,6 +11,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 
+import java.util.Collection;
+import java.util.List;
+
 @OnlyIn(Dist.CLIENT)
 public final class CarriedStock {
 
@@ -20,11 +23,15 @@ public final class CarriedStock {
     private CarriedStock() {}
 
     public static boolean request() {
+        return request(false, List.of());
+    }
+
+    public static boolean request(boolean network, Collection<Item> wanted) {
         var player = Minecraft.getInstance().player;
         if (player == null) return false;
         counts = PlayerSupply.of(player, false).count();
         version++;
-        GTNetwork.NETWORK.sendToServer(new CPacketCarriedStock());
+        GTNetwork.NETWORK.sendToServer(new CPacketCarriedStock(network, wanted));
         return true;
     }
 

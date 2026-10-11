@@ -643,7 +643,7 @@ public final class SideOverview {
             else if (page.cellHover == side.ordinal()) page.cellHover = -1;
             UITheme.ITEM_SLOT.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
             var stack = getStack();
-            if (!stack.isEmpty()) graphics.renderItem(stack, x + 1, y + 1);
+            UIDraw.item(graphics, stack, x + 1, y + 1);
             if (over || page.sceneHover == side.ordinal()) UIDraw.hoverOverlay(graphics, x, y, SIZE, SIZE);
             boolean itemOut = page.isItemOutput(side), fluidOut = page.isFluidOutput(side);
             if (itemOut || fluidOut) {

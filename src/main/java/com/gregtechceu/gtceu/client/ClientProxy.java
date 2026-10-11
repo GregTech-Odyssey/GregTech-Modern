@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.LampBlockItem;
+import com.gregtechceu.gtceu.api.tooltip.TipLineComponent;
 import com.gregtechceu.gtceu.client.particle.HazardParticle;
 import com.gregtechceu.gtceu.client.particle.MufflerParticle;
 import com.gregtechceu.gtceu.client.renderer.entity.GTBoatRenderer;
@@ -11,6 +12,7 @@ import com.gregtechceu.gtceu.client.renderer.entity.GTExplosiveRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.decorator.GTComponentItemDecorator;
 import com.gregtechceu.gtceu.client.renderer.item.decorator.GTLampItemOverlayRenderer;
 import com.gregtechceu.gtceu.client.renderer.item.decorator.GTToolBarRenderer;
+import com.gregtechceu.gtceu.client.tooltip.ClientTipLine;
 import com.gregtechceu.gtceu.common.CommonProxy;
 import com.gregtechceu.gtceu.common.data.GTBlockEntities;
 import com.gregtechceu.gtceu.common.data.GTEntityTypes;
@@ -101,6 +103,11 @@ public class ClientProxy extends CommonProxy {
     @SubscribeEvent
     public void registerKeyBindings(RegisterKeyMappingsEvent event) {
         KeyBind.onRegisterKeyBinds(event);
+    }
+
+    @SubscribeEvent
+    public void onRegisterTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(TipLineComponent.class, ClientTipLine::new);
     }
 
     @SubscribeEvent

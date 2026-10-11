@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.item.component.IItemHUDProvider;
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.GradientUtil;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
@@ -283,17 +284,17 @@ public class PowerlessJetpack implements IArmorLogic, IJetpack, IItemHUDProvider
             boolean enabled = !data.contains("enabled") || data.getBoolean("enabled");
             state = enabled ? Component.translatable("metaarmor.hud.status.enabled") :
                     Component.translatable("metaarmor.hud.status.disabled");
-            tooltipComponents.add(Component.translatable("metaarmor.hud.engine_enabled", state));
+            tooltipComponents.add(Tips.stat(Component.translatable("metaarmor.hud.engine_enabled", state)));
 
             boolean hover = data.contains("hover") && data.getBoolean("hover");
             state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
                     Component.translatable("metaarmor.hud.status.disabled");
-            tooltipComponents.add(Component.translatable("metaarmor.hud.hover_mode", state));
+            tooltipComponents.add(Tips.stat(Component.translatable("metaarmor.hud.hover_mode", state)));
 
             boolean emergencyHover = data.getBoolean("emergencyHover");
             state = emergencyHover ? Component.translatable("metaarmor.hud.status.enabled") :
                     Component.translatable("metaarmor.hud.status.disabled");
-            tooltipComponents.add(Component.translatable("metaarmor.hud.emergency_hover_mode", state));
+            tooltipComponents.add(Tips.stat(Component.translatable("metaarmor.hud.emergency_hover_mode", state)));
         }
     }
 

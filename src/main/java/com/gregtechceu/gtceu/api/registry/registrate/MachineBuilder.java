@@ -16,6 +16,8 @@ import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifierList;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.tooltip.TipSlot;
+import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -97,7 +99,8 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
     private int paintingColor = Long.decode(ConfigHolder.INSTANCE.client.defaultPaintingColor).intValue();
     private BiFunction<ItemStack, Integer, Integer> itemColor = ((itemStack, tintIndex) -> tintIndex == 2 ? GTValues.VC[tier] : tintIndex == 1 ? paintingColor : -1);
     private PartAbility[] abilities = new PartAbility[0];
-    private final List<Component> tooltips = new ArrayList<>();
+    private final TipSpec.Builder tips = TipSpec.builder();
+    private final TipSpec.Lines tipLines = tips.open(TipSlot.FEATURES, null, false);
     private BiConsumer<ItemStack, List<Component>> tooltipBuilder;
     private RecipeModifier recipeModifier = RecipeModifier.NO_MODIFIER;
 
@@ -199,17 +202,22 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         return this;
     }
 
-    public MachineBuilder<DEFINITION> tooltips(@Nullable Component... components) {
-        tooltips.addAll(Arrays.stream(components).filter(Objects::nonNull).toList());
+    public MachineBuilder<DEFINITION> tips(TipSpec spec) {
+        tips.include(spec);
         return this;
     }
 
-    public MachineBuilder<DEFINITION> conditionalTooltip(Component component, BooleanSupplier condition) {
-        return conditionalTooltip(component, condition.getAsBoolean());
+    public MachineBuilder<DEFINITION> tips(@Nullable Component... lines) {
+        tipLines.lines(Arrays.stream(lines).filter(Objects::nonNull).toList());
+        return this;
     }
 
-    public MachineBuilder<DEFINITION> conditionalTooltip(Component component, boolean condition) {
-        if (condition) tooltips.add(component);
+    public MachineBuilder<DEFINITION> conditionalTips(Component line, BooleanSupplier condition) {
+        return conditionalTips(line, condition.getAsBoolean());
+    }
+
+    public MachineBuilder<DEFINITION> conditionalTips(Component line, boolean condition) {
+        if (condition) tips(line);
         return this;
     }
 
@@ -271,8 +279,9 @@ public class MachineBuilder<DEFINITION extends MachineDefinition> extends Builde
         definition.setRecipeOutputLimits(recipeOutputLimits);
         definition.setBlockEntityTypeSupplier(blockEntity::get);
         definition.setMachineSupplier(machine);
+        TipSpec spec = tips.build();
         definition.setTooltipBuilder((itemStack, components) -> {
-            components.addAll(tooltips);
+            components.addAll(spec.get());
             if (tooltipBuilder != null) tooltipBuilder.accept(itemStack, components);
         });
         definition.setRecipeModifier(recipeModifier);

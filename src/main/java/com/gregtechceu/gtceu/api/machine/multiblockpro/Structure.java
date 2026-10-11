@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -60,6 +61,7 @@ public final class Structure {
     private volatile Boolean mirrorSymmetric;
     private final List<Limit> limits;
     private final List<Option> options;
+    private final List<SizeControl> controls;
     private final StructureTree tree;
     private final int optionalModuleCount;
     private final MachineProtocol[] protocols;
@@ -78,7 +80,6 @@ public final class Structure {
         this.bindings = List.copyOf(builder.bindings);
         this.multiPiece = !bindings.isEmpty();
         this.limits = List.copyOf(builder.limits);
-        this.requirement = builder.requirement;
         var index = new Index(symbols, builder.measures);
         index.root(root, bindings);
         this.measures = new Measure[builder.measures.size()];
@@ -97,9 +98,21 @@ public final class Structure {
         this.childPorts = index.childPorts.toArray(new PortKey[0][]);
         this.options = List.copyOf(index.options);
         this.optionalSlots = index.optional;
-        var sizes = new int[measures.length];
-        for (int i = 0; i < sizes.length; i++) sizes[i] = i;
-        this.tree = new StructureTree(index.nodes, sizes);
+        this.controls = controls(builder.controls);
+        this.requirement = combine(builder.requirement, controls, measureKeys);
+        var hidden = new boolean[measures.length];
+        for (var control : controls) {
+            hidden[control.low()] = true;
+            hidden[control.high()] = true;
+        }
+        var sizes = new IntArrayList();
+        for (int i = 0; i < measures.length; i++) {
+            if (!hidden[i]) sizes.add(i);
+        }
+        this.tree = new StructureTree(index.nodes, sizes.toIntArray());
+        if (measures.length > 0 && requirement != null && !requirement.test(sizeOf(defaultValues()))) {
+            throw new IllegalStateException("default measures violate the structure's size requirements");
+        }
         int modules = 0;
         for (var node : index.nodes) {
             if (node.isOptionalModule()) modules++;
@@ -116,9 +129,7 @@ public final class Structure {
             concrete = concreteDefault;
             if (concrete == null) {
                 if (perSize) {
-                    var minimum = new int[measures.length];
-                    for (int i = 0; i < minimum.length; i++) minimum[i] = measures[i].min();
-                    concrete = forSize(new Size(measureKeys, minimum));
+                    concrete = forSize(sizeOf(defaultValues()));
                 } else {
                     concrete = new CompiledStructure(this, NO_SIZE);
                 }
@@ -157,6 +168,38 @@ public final class Structure {
 
     public StructureTree tree() {
         return tree;
+    }
+
+    public List<SizeControl> controls() {
+        return controls;
+    }
+
+    private List<SizeControl> controls(List<ControlSpec> specs) {
+        var list = new ArrayList<SizeControl>(specs.size());
+        for (var spec : specs) {
+            int low = measureIndex(spec.low()), high = measureIndex(spec.high());
+            list.add(new SizeControl(spec.key(), spec.kind(), low, high, spec.bias(), spec.min(), spec.max(), options.get(low), options.get(high)));
+        }
+        return List.copyOf(list);
+    }
+
+    private int measureIndex(ParamKey key) {
+        for (int i = 0; i < measureKeys.length; i++) {
+            if (measureKeys[i] == key) return i;
+        }
+        throw new IllegalStateException("size control refers to an unmeasured key: " + key);
+    }
+
+    @Nullable
+    private static Predicate<Size> combine(@Nullable Predicate<Size> requirement, List<SizeControl> controls, ParamKey[] keys) {
+        var spans = controls.stream().filter(SizeControl::spans).toArray(SizeControl[]::new);
+        if (spans.length == 0) return requirement;
+        return size -> {
+            for (var control : spans) {
+                if (!control.accepts(size.get(keys[control.low()]), size.get(keys[control.high()]))) return false;
+            }
+            return requirement == null || requirement.test(size);
+        };
     }
 
     public int optionalModuleCount() {
@@ -223,7 +266,16 @@ public final class Structure {
             long pos = entry.getLongKey();
             list.add(new Layout.Cell(BlockPos.getX(pos), BlockPos.getY(pos), BlockPos.getZ(pos), entry.getValue(), cells.layers.get(pos), cells.nodes.get(pos)));
         }
-        return new Layout(List.copyOf(list), this);
+        int[][] shared = null;
+        if (!cells.shared.isEmpty()) {
+            shared = new int[list.size()][];
+            for (int i = 0; i < shared.length; i++) {
+                var cell = list.get(i);
+                var others = cells.shared.get(BlockPos.asLong(cell.x(), cell.y(), cell.z()));
+                if (others != null) shared[i] = others.toIntArray();
+            }
+        }
+        return new Layout(List.copyOf(list), this, shared);
     }
 
     private void walk(CompiledStructure concrete, int[] values, Placement host, Piece.Port port, int node, Cells cells) {
@@ -273,6 +325,9 @@ public final class Structure {
                 if (cells.predicates.putIfAbsent(pos, piece.predicate(i)) == null) {
                     cells.layers.put(pos, layer);
                     cells.nodes.put(pos, node);
+                } else if (cells.nodes.get(pos) != node) {
+                    var others = cells.shared.computeIfAbsent(pos, k -> new IntArrayList(1));
+                    if (!others.contains(node)) others.add(node);
                 }
             }
         }
@@ -283,6 +338,7 @@ public final class Structure {
         final Long2ObjectLinkedOpenHashMap<TraceabilityPredicate> predicates = new Long2ObjectLinkedOpenHashMap<>();
         final Long2IntOpenHashMap layers = new Long2IntOpenHashMap();
         final Long2IntOpenHashMap nodes = new Long2IntOpenHashMap();
+        final Long2ObjectOpenHashMap<IntArrayList> shared = new Long2ObjectOpenHashMap<>();
         int nextLayer;
     }
 
@@ -471,7 +527,7 @@ public final class Structure {
 
         Index(Symbols symbols, List<MeasureBuilder> measures) {
             this.symbols = symbols;
-            for (var measure : measures) options.add(new Option(Option.Kind.SIZE, measure.param, measure.min, measure.max, measure.min));
+            for (var measure : measures) options.add(new Option(Option.Kind.SIZE, measure.param, measure.min, measure.max, measure.preset > 0 ? measure.preset : measure.min));
         }
 
         void root(Piece root, List<Slot.Binding> bindings) {
@@ -577,6 +633,7 @@ public final class Structure {
         private boolean hasUntil;
         private int min = -1;
         private int max = -1;
+        private int preset;
 
         private MeasureBuilder() {}
 
@@ -609,11 +666,19 @@ public final class Structure {
             return this;
         }
 
+        public MeasureBuilder preset(int value) {
+            this.preset = value;
+            return this;
+        }
+
         private void validate() {
             if (param == null || toward == null || !hasUntil) throw new IllegalStateException("measure needs param, toward and until");
             if (min < 1 || max < min) throw new IllegalStateException("invalid measure range " + min + ".." + max);
+            if (preset != 0 && (preset < min || preset > max)) throw new IllegalStateException("measure preset " + preset + " outside " + min + ".." + max);
         }
     }
+
+    private record ControlSpec(ParamKey key, SizeControl.Kind kind, ParamKey low, ParamKey high, int bias, int min, int max) {}
 
     public static final class Builder {
 
@@ -621,6 +686,7 @@ public final class Structure {
         private final List<Slot.Binding> bindings = new ArrayList<>();
         private final List<MeasureBuilder> measures = new ArrayList<>();
         private final List<Limit> limits = new ArrayList<>();
+        private final List<ControlSpec> controls = new ArrayList<>();
         @Nullable
         private Symbols symbols;
         @Nullable
@@ -653,6 +719,22 @@ public final class Structure {
 
         public Builder require(Predicate<Size> requirement) {
             this.requirement = requirement;
+            return this;
+        }
+
+        public Builder span(ParamKey size, ParamKey position, ParamKey low, ParamKey high, int bias, int min, int max) {
+            controls.add(new ControlSpec(size, SizeControl.Kind.SPAN, low, high, bias, min, max));
+            controls.add(new ControlSpec(position, SizeControl.Kind.POSITION, low, high, bias, min, max));
+            return this;
+        }
+
+        public Builder symmetric(ParamKey size, ParamKey low, ParamKey high, int bias, int min, int max) {
+            controls.add(new ControlSpec(size, SizeControl.Kind.SYMMETRIC, low, high, bias, min, max));
+            return this;
+        }
+
+        public Builder centered(ParamKey size, ParamKey low, ParamKey high, int bias, int min, int max) {
+            controls.add(new ControlSpec(size, SizeControl.Kind.CENTERED, low, high, bias, min, max));
             return this;
         }
 

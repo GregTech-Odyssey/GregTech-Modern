@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.item.HeldItemPage;
@@ -129,11 +130,11 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component.translatable("metaitem.prospector.tooltip.radius", radius));
-        tooltipComponents.add(Component.translatable("metaitem.prospector.tooltip.modes"));
+        tooltipComponents.add(Tips.stat(Component.translatable("metaitem.prospector.tooltip.radius", radius)));
+        tooltipComponents.add(Tips.heading(Component.translatable("metaitem.prospector.tooltip.modes")));
         for (ProspectorMode<?> mode : modes) {
-            tooltipComponents.add(Component.literal(" -").append(Component.translatable(mode.unlocalizedName))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+            tooltipComponents.add(Tips.feature(Component.literal(" -").append(Component.translatable(mode.unlocalizedName))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))));
         }
     }
 }

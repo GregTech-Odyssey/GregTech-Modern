@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.ITurbineRotorBehavior;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.item.tool.CoatedTurbineRotorBehaviour;
 
 import net.minecraft.ChatFormatting;
@@ -69,8 +70,8 @@ public class TurbineRotorBehaviour implements ITurbineRotorBehavior {
             eff = Component.translatable("metaitem.tool.tooltip.rotor.efficiency", getRotorEfficiency(stack));
             pow = Component.translatable("metaitem.tool.tooltip.rotor.power", getRotorPower(stack));
         }
-        tooltipComponents.add(eff);
-        tooltipComponents.add(pow);
+        tooltipComponents.add(Tips.stat(eff));
+        tooltipComponents.add(Tips.stat(pow));
     }
 
     @Nullable

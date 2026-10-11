@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
 import com.gregtechceu.gtceu.api.item.armor.ArmorUtils;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -169,17 +170,17 @@ public class Jetpack extends ArmorLogicSuite implements IJetpack {
         boolean enabled = !data.contains("enabled") || data.getBoolean("enabled");
         state = enabled ? Component.translatable("metaarmor.hud.status.enabled") :
                 Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.hud.engine_enabled", state));
+        lines.add(Tips.stat(Component.translatable("metaarmor.hud.engine_enabled", state)));
 
         boolean hover = data.contains("hover") && data.getBoolean("hover");
         state = hover ? Component.translatable("metaarmor.hud.status.enabled") :
                 Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.hud.hover_mode", state));
+        lines.add(Tips.stat(Component.translatable("metaarmor.hud.hover_mode", state)));
 
         boolean emergencyHover = data.getBoolean("emergencyHover");
         state = emergencyHover ? Component.translatable("metaarmor.hud.status.enabled") :
                 Component.translatable("metaarmor.hud.status.disabled");
-        lines.add(Component.translatable("metaarmor.hud.emergency_hover_mode", state));
+        lines.add(Tips.stat(Component.translatable("metaarmor.hud.emergency_hover_mode", state)));
     }
 
     @Override

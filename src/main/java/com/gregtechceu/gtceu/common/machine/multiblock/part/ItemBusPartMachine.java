@@ -145,12 +145,12 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
 
     @Override
     public boolean hasInputLimitConfig() {
-        return inventory.storage.size() > 1;
+        return io != IO.OUT && IInputLimitableMachine.configurable(inventory.storage);
     }
 
     @Override
     public void setInputLimit(boolean inputLimit) {
-        this.inventory.storage.setUniqueKeys(io != IO.OUT && inputLimit);
+        if (io != IO.OUT) IInputLimitableMachine.limit(inputLimit, inventory.storage);
     }
 
     @Override
@@ -268,6 +268,6 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     }
 
     public boolean isInputLimit() {
-        return this.inventory.storage.isUniqueKeys();
+        return IInputLimitableMachine.limited(inventory.storage);
     }
 }

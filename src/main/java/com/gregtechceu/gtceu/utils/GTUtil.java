@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKeys;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.ClientProxy;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
@@ -521,15 +522,15 @@ public class GTUtil {
         if (!material.hasProperty(HAZARD)) return;
 
         if (GTUtil.isShiftDown()) {
-            tooltipComponents.add(Component.translatable("gtceu.medical_condition.description_shift"));
-            tooltipComponents.add(Component
-                    .translatable("gtceu.medical_condition." + material.getProperty(HAZARD).condition.name));
-            tooltipComponents.add(Component.translatable("gtceu.hazard_trigger.description"));
-            tooltipComponents.add(Component
-                    .translatable("gtceu.hazard_trigger." + material.getProperty(HAZARD).hazardTrigger.name()));
+            tooltipComponents.add(Tips.warning(Component.translatable("gtceu.medical_condition.description_shift")));
+            tooltipComponents.add(Tips.warning(Component
+                    .translatable("gtceu.medical_condition." + material.getProperty(HAZARD).condition.name)));
+            tooltipComponents.add(Tips.note(Component.translatable("gtceu.hazard_trigger.description")));
+            tooltipComponents.add(Tips.note(Component
+                    .translatable("gtceu.hazard_trigger." + material.getProperty(HAZARD).hazardTrigger.name())));
             return;
         }
-        tooltipComponents.add(Component.translatable("gtceu.medical_condition.description"));
+        tooltipComponents.add(Tips.warning(Component.translatable("gtceu.medical_condition.description")));
     }
 
     public static CompoundTag saveItemStack(ItemStack itemStack, CompoundTag compoundTag) {
@@ -584,12 +585,12 @@ public class GTUtil {
 
     public static void addPotionTooltip(List<Pair<MobEffectInstance, Float>> effects, List<Component> list) {
         if (!effects.isEmpty()) {
-            list.add(Component.translatable("gtceu.tooltip.potion.header"));
+            list.add(Tips.heading(Component.translatable("gtceu.tooltip.potion.header")));
         }
         effects.forEach(pair -> {
             var effect = pair.getFirst();
             float probability = pair.getSecond();
-            list.add(Component.translatable("gtceu.tooltip.potion.each",
+            list.add(Tips.feature(Component.translatable("gtceu.tooltip.potion.each",
                     Component.translatable(effect.getDescriptionId())
                             .setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)),
                     Component.translatable("enchantment.level." + (effect.getAmplifier() + 1))
@@ -597,7 +598,7 @@ public class GTUtil {
                     Component.literal(String.valueOf(effect.getDuration()))
                             .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)),
                     Component.literal(String.valueOf(100 * probability))
-                            .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN))));
+                            .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)))));
         });
     }
 

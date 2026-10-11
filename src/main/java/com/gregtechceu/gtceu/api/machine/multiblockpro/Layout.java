@@ -19,6 +19,8 @@ public final class Layout {
     public record Cell(int x, int y, int z, TraceabilityPredicate predicate, int layer, int node) {}
 
     private static final int REACH = 2;
+    private static final int[] EMPTY_NODES = new int[0];
+    private static final int[] PREVIEW_MIRROR = previewMirror();
     private static final double HORIZONTAL_BONUS = 1000;
 
     private final List<Cell> cells;
@@ -34,8 +36,11 @@ public final class Layout {
     private final Layout whole;
     @Nullable
     private final Structure source;
+    @Nullable
+    private final int[][] shared;
 
     private Layout(Layout base, boolean[] nodes) {
+        this.shared = base.shared;
         this.whole = base.whole != null ? base.whole : base;
         this.source = base.source;
         this.cells = base.cells;
@@ -57,6 +62,11 @@ public final class Layout {
     }
 
     Layout(List<Cell> cells, @Nullable Structure source) {
+        this(cells, source, null);
+    }
+
+    Layout(List<Cell> cells, @Nullable Structure source, @Nullable int[][] shared) {
+        this.shared = shared;
         this.source = source;
         this.whole = null;
         this.excludedNodes = null;
@@ -130,6 +140,42 @@ public final class Layout {
     @Nullable
     public Structure source() {
         return source;
+    }
+
+    public int[] sharedNodes(int index) {
+        var others = shared == null ? null : shared[index];
+        return others == null ? EMPTY_NODES : others;
+    }
+
+    public BlockPos previewPos(int index, boolean flip) {
+        var cell = cells.get(index);
+        if (!flip) return new BlockPos(cell.x, cell.y, cell.z);
+        int[] m = PREVIEW_MIRROR;
+        return new BlockPos(cell.x * m[0] + cell.y * m[3] + cell.z * m[6], cell.x * m[1] + cell.y * m[4] + cell.z * m[7],
+                cell.x * m[2] + cell.y * m[5] + cell.z * m[8]);
+    }
+
+    @Nullable
+    public Direction outwardPreview(int index, boolean flip) {
+        if (!flip) return outwardPreview(index);
+        var world = outwardWorld(index, Direction.NORTH, Direction.NORTH, true);
+        if (world == null) return null;
+        int[] w = Orientation.world(Direction.NORTH, Direction.NORTH, false);
+        int wx = world.getStepX(), wy = world.getStepY(), wz = world.getStepZ();
+        return Direction.fromDelta(wx * w[0] + wy * w[1] + wz * w[2], wx * w[3] + wy * w[4] + wz * w[5], wx * w[6] + wy * w[7] + wz * w[8]);
+    }
+
+    private static int[] previewMirror() {
+        int[] w = Orientation.world(Direction.NORTH, Direction.NORTH, false);
+        int[] f = Orientation.world(Direction.NORTH, Direction.NORTH, true);
+        int[] m = new int[9];
+        for (int col = 0; col < 3; col++) {
+            int fx = f[col * 3], fy = f[col * 3 + 1], fz = f[col * 3 + 2];
+            m[col * 3] = fx * w[0] + fy * w[1] + fz * w[2];
+            m[col * 3 + 1] = fx * w[3] + fy * w[4] + fz * w[5];
+            m[col * 3 + 2] = fx * w[6] + fy * w[7] + fz * w[8];
+        }
+        return m;
     }
 
     public int[] nodes() {

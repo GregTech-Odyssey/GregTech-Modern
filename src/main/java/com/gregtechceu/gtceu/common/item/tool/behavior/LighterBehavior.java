@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item.tool.behavior;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.block.explosive.GTExplosiveBlock;
 import com.gregtechceu.gtceu.common.block.explosive.IndustrialTNTBlock;
 import com.gregtechceu.gtceu.common.block.explosive.PowderbarrelBlock;
@@ -246,11 +247,11 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level,
                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component
-                .translatable(usesFluid ? "behaviour.lighter.fluid.tooltip" : "behaviour.lighter.tooltip.description"));
-        tooltipComponents.add(Component.translatable("behaviour.lighter.tooltip.usage"));
+        tooltipComponents.add(Tips.feature(Component
+                .translatable(usesFluid ? "behaviour.lighter.fluid.tooltip" : "behaviour.lighter.tooltip.description")));
+        tooltipComponents.add(Tips.rightClick(Component.translatable("behaviour.lighter.tooltip.usage")));
         if (hasMultipleUses && !usesFluid) {
-            tooltipComponents.add(Component.translatable("behaviour.lighter.uses", getUsesLeft(stack)));
+            tooltipComponents.add(Tips.stat(Component.translatable("behaviour.lighter.uses", getUsesLeft(stack))));
         }
     }
 

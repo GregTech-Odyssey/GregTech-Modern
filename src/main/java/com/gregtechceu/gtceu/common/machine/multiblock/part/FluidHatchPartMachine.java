@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.CircuitHandler;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
@@ -47,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implements IMachineLife, IDistinctPart {
+public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implements IMachineLife, IDistinctPart, IInputLimitableMachine {
 
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_4X = 2 * FluidType.BUCKET_VOLUME;
@@ -246,8 +247,24 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
             IDistinctPart.super.superAttachConfigurators(configuratorPanel);
         } else if (this.io == IO.IN) {
             IDistinctPart.super.attachConfigurators(configuratorPanel);
+            IInputLimitableMachine.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
+    }
+
+    @Override
+    public boolean hasInputLimitConfig() {
+        return io != IO.OUT && IInputLimitableMachine.configurable(tank.storage);
+    }
+
+    @Override
+    public void setInputLimit(boolean inputLimit) {
+        if (io != IO.OUT) IInputLimitableMachine.limit(inputLimit, tank.storage);
+    }
+
+    @Override
+    public boolean isInputLimit() {
+        return IInputLimitableMachine.limited(tank.storage);
     }
 
     @Override

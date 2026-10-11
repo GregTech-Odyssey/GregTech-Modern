@@ -3,6 +3,8 @@ package com.gregtechceu.gtceu.common.block;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.AppearanceBlock;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
+import com.gregtechceu.gtceu.api.tooltip.StatKind;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -35,9 +37,9 @@ public class BatteryBlock extends AppearanceBlock {
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
         if (this.data.getTier() == -1) {
-            tooltip.add(Component.translatable("block.gtceu.substation_capacitor.tooltip_empty"));
+            tooltip.add(Tips.feature(Component.translatable("block.gtceu.substation_capacitor.tooltip_empty")));
         } else {
-            tooltip.add(Component.translatable("block.gtceu.substation_capacitor.tooltip_filled", FormattingUtil.formatNumbers(this.data.getCapacity())));
+            tooltip.add(Tips.energy(StatKind.BATTERY_CAPACITY, this.data.getCapacity(), this.data.getTier()));
         }
     }
 

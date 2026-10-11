@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.PartCells;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBuild;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.uipro.ILayoutHost;
@@ -83,6 +84,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
     private static final String LEGACY_MINIMAP_PREFERENCE = "structure_preview.minimap";
     private static final String CONTROLS_SEEN_PREFERENCE = "structure_preview.controls_seen";
     private static final int HIGHLIGHT_COLOR = 0x5055FF55;
+    private static final int DEMOLISH_COLOR = 0x50FF3B30;
     private static final int MINIMAP_THRESHOLD = 64;
 
     private static final int MARGIN = 8;
@@ -124,6 +126,11 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
     public static void open(MultiblockMachineDefinition definition, Structure structure, @Nullable Function<Screen, Runnable> back,
                             Action... actions) {
+        open(definition, structure, back, (TerminalModes) null, actions);
+    }
+
+    public static void open(MultiblockMachineDefinition definition, Structure structure, @Nullable Function<Screen, Runnable> back,
+                            @Nullable TerminalModes modes, Action... actions) {
         var minecraft = Minecraft.getInstance();
         minecraft.tell(() -> {
             if (minecraft.player == null) return;
@@ -137,7 +144,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             Collections.addAll(all, actions);
             var window = minecraft.getWindow();
             int width = window.getGuiScaledWidth(), height = window.getGuiScaledHeight();
-            var host = new Host(definition, structure, width, height, all.toArray(Action[]::new), onBack);
+            var host = new Host(definition, structure, width, height, all.toArray(Action[]::new), modes, onBack);
             var ui = new ModularUI(width, height, IUIHolder.EMPTY, minecraft.player).widget(host);
             var screen = new StructurePreviewScreen(host, ui, onBack);
             host.onClose = screen::closePreview;
@@ -215,6 +222,11 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private StructurePlans.Preview preview;
         private StructureConfigView config;
         private final List<Action> actions = new ArrayList<>();
+        @Nullable
+        private final TerminalModes modes;
+        private int modesVersion;
+        private boolean demolishShown;
+        private boolean cellsFlip;
         private final Runnable onBack;
         @Nullable
         private PopupCard card;
@@ -232,7 +244,12 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private Runnable onClose = () -> {};
 
         private Host(MultiblockMachineDefinition definition, Structure structure, int width, int height, Action[] actions,
-                     Runnable onBack) {
+                     @Nullable TerminalModes modes, Runnable onBack) {
+            this.modes = modes;
+            if (modes != null) {
+                modesVersion = modes.getVersion();
+                demolishShown = modes.isDemolish();
+            }
             layout(l -> l.size(width, height));
             for (var action : actions) {
                 if (action != null) this.actions.add(action);
@@ -282,7 +299,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             return new StructureConfigView(page.definition, page.structure, page.values, page.excluded, () -> {
                 pipeline.scheduleRebuild();
                 scene.cancelRender();
-            }, this::navigate, UISizes.POPUP_CONTENT_WIDTH, frameWidth() / 2, frameHeight() / 2);
+            }, this::navigate, UISizes.POPUP_CONTENT_WIDTH, frameWidth() / 2, frameHeight() / 2, isDemolishing() ? modes : null);
         }
 
         private void fillHeading() {
@@ -379,6 +396,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             if (placedMinimap != minimapShown()) place();
             long now = System.currentTimeMillis();
+            checkModes();
             if (pipeline.modelChanged(chosenModel()) && layout != null) pipeline.scheduleRebuild();
             if (pipeline.rebuildDue(now)) {
                 scene.continueProgress();
@@ -409,15 +427,51 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             applyHighlight();
         }
 
+        private boolean isFlip() {
+            return modes != null && history.isRoot() && modes.isMirror();
+        }
+
+        private boolean isDemolishing() {
+            return modes != null && history.isRoot() && modes.isDemolish();
+        }
+
+        private void checkModes() {
+            if (modes == null || modes.getVersion() == modesVersion) return;
+            modesVersion = modes.getVersion();
+            if (demolishShown != modes.isDemolish()) {
+                demolishShown = modes.isDemolish();
+                config = createConfig();
+                if (card != null) {
+                    closeCard();
+                    openCard();
+                }
+            }
+            highlightCells = null;
+            pipeline.scheduleRebuild();
+            scene.cancelRender();
+        }
+
         private void applyHighlight() {
+            if (isDemolishing() && layout != null) {
+                if (highlightCells == null) {
+                    highlightCells = new LongArrayList();
+                    var targets = StructureBuild.demolishCells(layout, modes.getDemolishNodes());
+                    boolean flip = isFlip();
+                    for (int n = 0; n < targets.size(); n++) highlightCells.add(layout.previewPos(targets.getInt(n), flip).asLong());
+                }
+                scene.setHighlight(highlightCells, DEMOLISH_COLOR);
+                return;
+            }
             if (!highlightOn || layout == null) {
                 scene.setHighlight(null, HIGHLIGHT_COLOR);
                 return;
             }
             if (highlightCells == null) {
                 highlightCells = new LongArrayList();
-                for (var cell : layout.cells()) {
-                    if (isReplaceable(cell.predicate())) highlightCells.add(BlockPos.asLong(cell.x(), cell.y(), cell.z()));
+                var layoutCells = layout.cells();
+                boolean flip = isFlip();
+                for (int i = 0; i < layoutCells.size(); i++) {
+                    if (isReplaceable(layoutCells.get(i).predicate())) highlightCells.add(layout.previewPos(i, flip).asLong());
                 }
             }
             scene.setHighlight(highlightCells, HIGHLIGHT_COLOR);
@@ -449,6 +503,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
                 partsSection.addChild(TextLine.translatable(LayoutStyle.AUTO, PARTS).setColor(UITheme.PANEL_TEXT));
                 partsSection.addChild(parts);
                 column.addChild(partsSection);
+                if (modes != null) column.addChild(UIElement.section().addChild(modes.options()));
                 if (!actions.isEmpty()) column.addChild(actionRow());
             });
             card = new PopupCard(CARD_ID, popup, Math.max(UISizes.SLOT_SIZE, frameHeight()), this::closeCard);
@@ -569,16 +624,19 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             var model = listed == null ? null : StructureBuildFlow.chosen(page.definition, page.values, page.excluded);
             var preview = pipeline.build(page.definition, layout, listed, model);
             this.preview = preview;
-            if (cellsLayout != layout) {
+            boolean flip = isFlip();
+            if (cellsLayout != layout || cellsFlip != flip) {
                 cellsLayout = layout;
+                cellsFlip = flip;
                 cells.clear();
-                for (var cell : layout.cells()) cells.put(BlockPos.asLong(cell.x(), cell.y(), cell.z()), cell.predicate());
+                var layoutCells = layout.cells();
+                for (int i = 0; i < layoutCells.size(); i++) cells.put(layout.previewPos(i, flip).asLong(), layoutCells.get(i).predicate());
                 highlightCells = null;
                 replaceable.clear();
             }
             applyHighlight();
             closeCandidates();
-            var blocks = preview.blocks();
+            var blocks = preview.blocks(item -> true, flip);
             bounds = PreviewBounds.of(blocks);
             minimap.setBlocks(blocks, bounds);
             int layers = layerCount();
@@ -586,7 +644,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             var present = new ReferenceOpenHashSet<Item>();
             for (var stack : preview.parts()) present.add(stack.getItem());
             page.shown.retainAll(present);
-            pendingBlocks = page.shown.isEmpty() ? blocks : preview.blocks(page.shown::contains);
+            pendingBlocks = page.shown.isEmpty() ? blocks : preview.blocks(page.shown::contains, flip);
             showBlocks();
             fillParts(preview.parts());
             if (card != null && layers != shownLayers) {
@@ -615,7 +673,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private void toggleShown(Item item) {
             if (!page.shown.remove(item)) page.shown.add(item);
             if (preview == null) return;
-            pendingBlocks = page.shown.isEmpty() ? preview.blocks() : preview.blocks(page.shown::contains);
+            pendingBlocks = preview.blocks(page.shown.isEmpty() ? any -> true : page.shown::contains, isFlip());
             scene.cancelRender();
             showBlocks();
         }

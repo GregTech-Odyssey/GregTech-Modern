@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.common.fluid.potion;
 
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTFluids;
 import com.gregtechceu.gtceu.core.mixins.StrictNBTIngredientAccessor;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -108,7 +109,7 @@ public class PotionFluidHelper {
         List<MobEffectInstance> list = PotionUtils.getAllEffects(fs.getOrCreateTag());
         List<Tuple<String, AttributeModifier>> modifiers = new ArrayList<>();
         if (list.isEmpty()) {
-            tooltip.accept(Component.translatable("effect.none").withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Tips.note(Component.translatable("effect.none")));
         } else {
             for (MobEffectInstance effectInstance : list) {
                 MutableComponent name = Component.translatable(effectInstance.getDescriptionId());
@@ -137,14 +138,18 @@ public class PotionFluidHelper {
 
                 }
 
-                tooltip.accept(name.withStyle(effect.getCategory()
-                        .getTooltipFormatting()));
+                var category = effect.getCategory();
+                Component line = name.withStyle(category.getTooltipFormatting());
+                tooltip.accept(switch (category) {
+                    case BENEFICIAL -> Tips.bonus(line);
+                    case HARMFUL -> Tips.penalty(line);
+                    default -> Tips.feature(line);
+                });
             }
         }
 
         if (!modifiers.isEmpty()) {
-            tooltip.accept(Component.empty());
-            tooltip.accept(Component.translatable("potion.whenDrank").withStyle(ChatFormatting.DARK_PURPLE));
+            tooltip.accept(Tips.heading(Component.translatable("potion.whenDrank")));
 
             for (Tuple<String, AttributeModifier> tuple : modifiers) {
                 AttributeModifier modifier2 = tuple.getB();
@@ -158,20 +163,20 @@ public class PotionFluidHelper {
                 }
 
                 if (d0 > 0.0D) {
-                    tooltip.accept(Component.translatable(
+                    tooltip.accept(Tips.bonus(Component.translatable(
                             "attribute.modifier.plus." + modifier2.getOperation()
                                     .toValue(),
                             ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1),
                             Component.translatable(tuple.getA()))
-                            .withStyle(ChatFormatting.BLUE));
+                            .withStyle(ChatFormatting.BLUE)));
                 } else if (d0 < 0.0D) {
                     d1 = d1 * -1.0D;
-                    tooltip.accept(Component.translatable(
+                    tooltip.accept(Tips.penalty(Component.translatable(
                             "attribute.modifier.take." + modifier2.getOperation()
                                     .toValue(),
                             ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1),
                             Component.translatable(tuple.getA()))
-                            .withStyle(ChatFormatting.RED));
+                            .withStyle(ChatFormatting.RED)));
                 }
             }
         }

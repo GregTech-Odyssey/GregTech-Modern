@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.feature.*;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -209,11 +210,11 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         String mainKey = String.format("%s.machine.%s.tooltip", definition.getId().getNamespace(), definition.getId().getPath());
         if (GTUtil.isShiftDown()) {
             if (definition instanceof MultiblockMachineDefinition multiblockDefinition && multiblockDefinition.getStructureInfo() instanceof MultiblockMachineDefinition.StructureInfo info) {
-                tooltip.add(Component.translatable("gtceu.multiblock.dimension", info.depth(), info.height(), info.width()));
+                tooltip.add(Tips.stat(Component.translatable("gtceu.multiblock.dimension", info.depth(), info.height(), info.width())));
             }
         }
         if (Language.getInstance().has(mainKey)) {
-            tooltip.add(1, Component.translatable(mainKey));
+            tooltip.add(1, Tips.summary(Component.translatable(mainKey)));
         }
     }
 

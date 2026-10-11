@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.item.component;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.GTTurbineItem;
 import com.gregtechceu.gtceu.common.item.tool.CoatedTurbineRotorBehaviour;
@@ -59,9 +60,9 @@ public interface ITurbineRotorBehavior extends IDurabilityBar, IAddInformation, 
                     .append(")").withStyle(ChatFormatting.GREEN));
         }
         tooltipComponents
-                .add(c);
+                .add(Tips.stat(c));
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.primary_material", material.getLocalizedName()));
+                .add(Tips.stat(Component.translatable("metaitem.tool.tooltip.primary_material", material.getLocalizedName())));
     }
 
     @OnlyIn(Dist.CLIENT)

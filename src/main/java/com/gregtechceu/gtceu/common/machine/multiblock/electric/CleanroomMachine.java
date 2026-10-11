@@ -119,6 +119,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
     public static final ParamKey FRONT_DIST = ParamKey.of("gtceu.multiblock.cleanroom.front", "gtceu.multiblock.cleanroom.front.desc");
     public static final ParamKey BACK_DIST = ParamKey.of("gtceu.multiblock.cleanroom.back", "gtceu.multiblock.cleanroom.back.desc");
     public static final ParamKey RINGS = ParamKey.of("gtceu.multiblock.cleanroom.rings", "gtceu.multiblock.cleanroom.rings.desc");
+    public static final ParamKey WIDTH = ParamKey.of("gtceu.multiblock.cleanroom.width", "gtceu.multiblock.cleanroom.width.desc");
+    public static final ParamKey DEPTH = ParamKey.of("gtceu.multiblock.cleanroom.depth", "gtceu.multiblock.cleanroom.depth.desc");
     @SaveToDisk
     private int lDist = 0;
     @SaveToDisk
@@ -291,6 +293,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
                 .measure(m -> m.param(FRONT_DIST).toward(FRONT).until('D').range(MIN_RADIUS, MAX_RADIUS))
                 .measure(m -> m.param(BACK_DIST).toward(BACK).until('D').range(MIN_RADIUS, MAX_RADIUS))
                 .require(size -> Math.abs(size.get(LEFT_DIST) - size.get(RIGHT_DIST)) <= 1 && Math.abs(size.get(FRONT_DIST) - size.get(BACK_DIST)) <= 1)
+                .centered(WIDTH, LEFT_DIST, RIGHT_DIST, 1, MIN_RADIUS * 2 + 1, MAX_RADIUS * 2 + 1)
+                .centered(DEPTH, FRONT_DIST, BACK_DIST, 1, MIN_RADIUS * 2 + 1, MAX_RADIUS * 2 + 1)
                 .limit(passthrough, size -> width(size) * depth(size) / 4)
                 .atPort(PortKey.OUT, Slot.chain(ring, PortKey.IN, PortKey.OUT, PortKey.IN)
                         .count(RINGS, MIN_DEPTH - 1, MAX_DEPTH - 1)

@@ -1,10 +1,21 @@
 package com.gregtechceu.gtceu.api.item.component;
 
+import java.util.Set;
+import java.util.Map;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.nbt.Tag;
+import net.minecraft.core.registries.BuiltInRegistries;
+import com.gregtechceu.gtceu.api.tooltip.StatKind;
+import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.renderer.item.ToolChargeBarRenderer;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -175,57 +186,50 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
         IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
         if (electricItem == null) return;
         addCurrentChargeTooltip(tooltipComponents, electricItem.getCharge(), electricItem.getMaxCharge(),
-                electricItem.getTier(), electricItem.canProvideChargeExternally());
+                electricItem.getTier());
+        addBatteryTooltip(tooltipComponents, stack, electricItem.getMaxCharge(), electricItem.getTier(), false);
         if (electricItem.canProvideChargeExternally()) {
-            tooltipComponents.add(Component.translatable("metaitem.electric.discharge_mode.tooltip"));
+            tooltipComponents.add(Tips.rightClick(Component.translatable("metaitem.electric.discharge_mode.tooltip")));
         }
     }
 
-    public static void addCurrentChargeTooltip(List<Component> tooltip, long currentCharge, long maxCharge, int tier,
-                                               boolean showTimeRemaining) {
-        double percentage = (double) currentCharge / (double) maxCharge;
+    public static void addCurrentChargeTooltip(List<Component> tooltip, long currentCharge, long maxCharge, int tier) {
+        tooltip.add(Tips.charge(Math.max(0, currentCharge), Math.max(0, maxCharge), tier));
+    }
 
-        Instant start = Instant.now();
-        Instant current = Instant.now().plusSeconds((long) ((currentCharge * 1.0) / GTValues.V[tier] / 20));
-        Instant max = Instant.now().plusSeconds((long) ((maxCharge * 1.0) / GTValues.V[tier] / 20));
-        Duration durationCurrent = Duration.between(start, current);
-        Duration durationMax = Duration.between(start, max);
-        long currentChargeTime;
-        long maxChargeTime;
-        Component unit;
+    @Nullable
+    private static Map<Long, Item> batteries;
 
-        ChatFormatting color = ChatFormatting.RED;
-        if (percentage > 0.5) {
-            color = ChatFormatting.GREEN;
-        } else if (percentage > 0.3) {
-            color = ChatFormatting.YELLOW;
+    public static void addBatteryTooltip(List<Component> tooltip, ItemStack stack, long maxCharge, int tier, boolean infer) {
+        if (maxCharge <= 0) return;
+        Item battery = null;
+        var tag = stack.getTag();
+        if (tag != null && tag.contains(ToolHelper.BATTERY_KEY, Tag.TAG_STRING)) {
+            ResourceLocation id = ResourceLocation.tryParse(tag.getString(ToolHelper.BATTERY_KEY));
+            if (id != null && BuiltInRegistries.ITEM.containsKey(id)) battery = BuiltInRegistries.ITEM.get(id);
         }
+        if (battery == null && infer) battery = findBattery(maxCharge, tier);
+        if (battery != null) tooltip.add(Tips.stat(StatKind.BATTERY, battery.getDescription()));
+    }
 
-        if (showTimeRemaining) {
-            if (durationCurrent.getSeconds() <= 60) {
-                maxChargeTime = durationMax.getSeconds();
-                currentChargeTime = durationCurrent.toSeconds();
-                unit = Component.translatable("item.gtceu.battery.charge_unit.second");
-            } else if (durationCurrent.toMinutes() <= 60) {
-                maxChargeTime = durationMax.toMinutes();
-                currentChargeTime = durationCurrent.toMinutes();
-                unit = Component.translatable("item.gtceu.battery.charge_unit.minute");
-            } else {
-                maxChargeTime = durationMax.toHours();
-                currentChargeTime = durationCurrent.toHours();
-                unit = Component.translatable("item.gtceu.battery.charge_unit.hour");
+    @Nullable
+    private static Item findBattery(long maxCharge, int tier) {
+        if (batteries == null) {
+            Map<Long, Item> map = new Long2ObjectOpenHashMap<>();
+            Set<Long> duplicated = new LongOpenHashSet();
+            for (Item item : BuiltInRegistries.ITEM) {
+                if (!(item instanceof IComponentItem componentItem)) continue;
+                for (var component : componentItem.getComponents()) {
+                    if (component instanceof ElectricStats stats && stats.dischargeable) {
+                        long key = stats.maxCharge * 32 + stats.tier;
+                        if (map.putIfAbsent(key, item) != null) duplicated.add(key);
+                    }
+                }
             }
-            tooltip.add(Component.translatable("item.gtceu.battery.charge_detailed",
-                    FormattingUtil.formatNumbers(currentCharge), FormattingUtil.formatNumbers(maxCharge),
-                    GTValues.VNF[tier],
-                    FormattingUtil.formatNumbers(currentChargeTime), FormattingUtil.formatNumbers(maxChargeTime),
-                    unit)
-                    .withStyle(color));
-        } else {
-            tooltip.add(Component.translatable("metaitem.generic.electric_item.tooltip",
-                    FormattingUtil.formatNumbers(currentCharge), FormattingUtil.formatNumbers(maxCharge),
-                    GTValues.VNF[tier]).withStyle(color));
+            for (long key : duplicated) map.remove(key);
+            batteries = map;
         }
+        return batteries.get(maxCharge * 32 + tier);
     }
 
     private static boolean isInDischargeMode(ItemStack itemStack) {

@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
@@ -69,20 +70,20 @@ public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         if (GTUtil.isShiftDown()) {
-            tooltipComponents.add(Component.translatable("gtceu.medical_condition.antidote.description_shift"));
+            tooltipComponents.add(Tips.heading(Component.translatable("gtceu.medical_condition.antidote.description_shift")));
             for (var type : types) {
-                tooltipComponents.add(Component.translatable("gtceu.medical_condition." + type.name));
+                tooltipComponents.add(Tips.feature(Component.translatable("gtceu.medical_condition." + type.name)));
             }
             if (removePercent == -1) {
                 tooltipComponents
-                        .add(Component.translatable("gtceu.medical_condition.antidote.description.effect_removed.all"));
+                        .add(Tips.bonus(Component.translatable("gtceu.medical_condition.antidote.description.effect_removed.all")));
             } else {
                 tooltipComponents
-                        .add(Component.translatable("gtceu.medical_condition.antidote.description.effect_removed",
-                                removePercent));
+                        .add(Tips.bonus(Component.translatable("gtceu.medical_condition.antidote.description.effect_removed",
+                                removePercent)));
             }
             return;
         }
-        tooltipComponents.add(Component.translatable("gtceu.medical_condition.antidote.description"));
+        tooltipComponents.add(Tips.plain(Component.translatable("gtceu.medical_condition.antidote.description")));
     }
 }

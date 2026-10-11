@@ -144,6 +144,10 @@ public final class StructurePlans {
         public Long2ObjectOpenHashMap<BlockState> blocks(Predicate<Item> shown) {
             return StructurePlans.blocks(layout, items, controller, shown);
         }
+
+        public Long2ObjectOpenHashMap<BlockState> blocks(Predicate<Item> shown, boolean flip) {
+            return StructurePlans.blocks(layout, items, controller, shown, flip);
+        }
     }
 
     public static Preview preview(MultiblockMachineDefinition definition, Layout layout) {
@@ -189,11 +193,15 @@ public final class StructurePlans {
     }
 
     public static Long2ObjectOpenHashMap<BlockState> blocks(Layout layout, Item[] items, BlockState controller, Predicate<Item> shown) {
+        return blocks(layout, items, controller, shown, false);
+    }
+
+    public static Long2ObjectOpenHashMap<BlockState> blocks(Layout layout, Item[] items, BlockState controller, Predicate<Item> shown, boolean flip) {
         var cells = layout.cells();
         var blocks = new Long2ObjectOpenHashMap<BlockState>(cells.size());
         for (int i = 0; i < cells.size(); i++) {
             var cell = cells.get(i);
-            long pos = BlockPos.asLong(cell.x(), cell.y(), cell.z());
+            long pos = flip ? layout.previewPos(i, true).asLong() : BlockPos.asLong(cell.x(), cell.y(), cell.z());
             if (cell.predicate() instanceof ControllerPredicate) {
                 if (!layout.isExcluded(i) && shown.test(controller.getBlock().asItem())) blocks.put(pos, controller);
                 continue;
@@ -201,7 +209,7 @@ public final class StructurePlans {
             if (items[i] == null || !shown.test(items[i])) continue;
             var base = StructureBlocks.stateOf(items[i]);
             if (base == null) continue;
-            var state = StructureBlocks.face(base, layout.outwardPreview(i));
+            var state = StructureBlocks.face(base, layout.outwardPreview(i, flip));
             if (!state.isAir()) blocks.put(pos, state);
         }
         return blocks;

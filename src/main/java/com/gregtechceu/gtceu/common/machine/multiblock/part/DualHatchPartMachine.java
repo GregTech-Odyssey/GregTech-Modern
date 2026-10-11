@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
@@ -59,6 +60,21 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
 
     protected NotifiableInventory<AEFluidKey> createTank(int initialCapacity, int slots, Object... args) {
         return NotifiableInventory.fluids(this, slots, getTankCapacity(initialCapacity, getTier()), io);
+    }
+
+    @Override
+    public boolean hasInputLimitConfig() {
+        return io != IO.OUT && IInputLimitableMachine.configurable(inventory.storage, tank.storage);
+    }
+
+    @Override
+    public void setInputLimit(boolean inputLimit) {
+        if (io != IO.OUT) IInputLimitableMachine.limit(inputLimit, inventory.storage, tank.storage);
+    }
+
+    @Override
+    public boolean isInputLimit() {
+        return IInputLimitableMachine.limited(inventory.storage, tank.storage);
     }
 
     @Override

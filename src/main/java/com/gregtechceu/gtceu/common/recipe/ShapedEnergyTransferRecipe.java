@@ -2,11 +2,13 @@ package com.gregtechceu.gtceu.common.recipe;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
+import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
 
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -55,6 +57,7 @@ public class ShapedEnergyTransferRecipe extends ShapedRecipe {
                         charge += electricItem.getCharge();
                         resultStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
                         resultStack.getOrCreateTag().putLong("Charge", charge);
+                        resultStack.getOrCreateTag().putString(ToolHelper.BATTERY_KEY, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
                         return resultStack;
                     }
                 }
@@ -75,6 +78,7 @@ public class ShapedEnergyTransferRecipe extends ShapedRecipe {
                 charge += electricItem.getCharge();
                 resultStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
                 resultStack.getOrCreateTag().putLong("Charge", charge);
+                resultStack.getOrCreateTag().putString(ToolHelper.BATTERY_KEY, BuiltInRegistries.ITEM.getKey(chargeStack.getItem()).toString());
                 return resultStack;
             }
         }

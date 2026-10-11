@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import net.minecraft.ChatFormatting;
@@ -18,6 +19,26 @@ public interface IInputLimitableMachine extends IFancyUIMachine {
 
     default boolean hasInputLimitConfig() {
         return true;
+    }
+
+    static boolean configurable(KeyInventory<?>... inventories) {
+        for (var inventory : inventories) {
+            if (inventory.size() > 1) return true;
+        }
+        return false;
+    }
+
+    static boolean limited(KeyInventory<?>... inventories) {
+        for (var inventory : inventories) {
+            if (inventory.size() > 1 && inventory.isUniqueKeys()) return true;
+        }
+        return false;
+    }
+
+    static void limit(boolean inputLimit, KeyInventory<?>... inventories) {
+        for (var inventory : inventories) {
+            if (inventory.size() > 1) inventory.setUniqueKeys(inputLimit);
+        }
     }
 
     static List<Component> antiClogTooltips(boolean enabled) {

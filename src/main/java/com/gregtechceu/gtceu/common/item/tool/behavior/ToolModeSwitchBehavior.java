@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item.tool.behavior;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -56,7 +57,7 @@ public class ToolModeSwitchBehavior implements IToolBehavior {
         var tagCompound = getBehaviorsTag(stack);
         var toolTypes = ToolHelper.getToolTypes(stack);
         if (toolTypes.contains(GTToolType.WRENCH)) {
-            tooltip.add(Component.translatable("metaitem.machine_configuration.mode", WrenchModeType.values()[tagCompound.getByte("Mode")].getName()));
+            tooltip.add(Tips.stat(Component.translatable("metaitem.machine_configuration.mode", WrenchModeType.values()[tagCompound.getByte("Mode")].getName())));
         }
     }
 

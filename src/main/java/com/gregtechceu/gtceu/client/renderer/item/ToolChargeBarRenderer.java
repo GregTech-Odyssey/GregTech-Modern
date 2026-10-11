@@ -1,14 +1,16 @@
 package com.gregtechceu.gtceu.client.renderer.item;
 
+import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.tooltip.TipTheme;
 import com.gregtechceu.gtceu.client.util.DrawUtil;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.FastColor;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
@@ -17,17 +19,13 @@ public final class ToolChargeBarRenderer {
 
     private static final int BAR_W = 12;
 
-    private static final int colorShadow = FastColor.ARGB32.color(255, 0, 0, 0);
-    private static final int colorBG = FastColor.ARGB32.color(255, 0x0E, 0x01, 0x16);
+    private static final int colorShadow = TipTheme.ENERGY_BAR_SHADOW;
 
-    private static final int colorBarLeftEnergy = FastColor.ARGB32.color(255, 0, 101, 178);
-    private static final int colorBarRightEnergy = FastColor.ARGB32.color(255, 217, 238, 255);
+    private static final int colorBarLeftDurability = TipTheme.DURABILITY_BAR_LEFT;
+    private static final int colorBarRightDurability = TipTheme.DURABILITY_BAR_RIGHT;
 
-    private static final int colorBarLeftDurability = FastColor.ARGB32.color(255, 20, 124, 0);
-    private static final int colorBarRightDurability = FastColor.ARGB32.color(255, 115, 255, 89);
-
-    private static final int colorBarLeftDepleted = FastColor.ARGB32.color(255, 122, 0, 0);
-    private static final int colorBarRightDepleted = FastColor.ARGB32.color(255, 255, 27, 27);
+    private static final int colorBarLeftDepleted = TipTheme.ENERGY_BAR_DEPLETED_LEFT;
+    private static final int colorBarRightDepleted = TipTheme.ENERGY_BAR_DEPLETED_RIGHT;
 
     public static void render(GuiGraphics graphics, int level, int xPosition, int yPosition, int offset, boolean shadow,
                               int left, int right, boolean doDepletedColor) {
@@ -40,7 +38,6 @@ public final class ToolChargeBarRenderer {
         int y = yPosition + 13 - offset;
         graphics.fill(RenderType.guiOverlay(), x, y, x + 13, y + (shadow ? 2 : 1), 400, colorShadow);
         DrawUtil.fillHorizontalGradient(graphics, RenderType.guiOverlay(), x, y, x + level, y + 1, left, right, 400);
-        // graphics.fill(RenderType.guiOverlay(), x + BAR_W, y, x + BAR_W - level, y - 1, colorBG);
     }
 
     public static void renderBarsTool(GuiGraphics graphics, IGTTool tool, ItemStack stack, int xPosition,
@@ -51,20 +48,22 @@ public final class ToolChargeBarRenderer {
             renderedDurability = renderDurabilityBar(graphics, stack.getBarWidth(), xPosition, yPosition);
         }
         if (tool.isElectric()) {
-            renderElectricBar(graphics, tool.getCharge(stack), tool.getMaxCharge(stack), xPosition, yPosition,
-                    renderedDurability);
+            IElectricItem electricItem = GTCapabilityHelper.getElectricItem(stack);
+            if (electricItem != null) {
+                renderElectricBar(graphics, electricItem.getCharge(), electricItem.getMaxCharge(), xPosition, yPosition,
+                        renderedDurability);
+            }
         }
     }
 
     public static boolean renderElectricBar(GuiGraphics graphics, long charge, long maxCharge, int xPosition,
                                             int yPosition, boolean renderedDurability) {
-        if (charge > 0 && maxCharge > 0) {
-            int level = Math.round(charge * 13.0F / maxCharge);
-            render(graphics, level, xPosition, yPosition, renderedDurability ? 2 : 0, true, colorBarLeftEnergy,
-                    colorBarRightEnergy, true);
-            return true;
-        }
-        return false;
+        int level = maxCharge > 0 ? Math.round(Math.max(0, charge) * 13.0F / maxCharge) : 0;
+        boolean depleted = TipTheme.energyDepleted(charge, maxCharge);
+        render(graphics, level, xPosition, yPosition, renderedDurability ? 2 : 0, true,
+                depleted ? TipTheme.ENERGY_BAR_DEPLETED_LEFT : TipTheme.ENERGY_BAR_LEFT,
+                depleted ? TipTheme.ENERGY_BAR_DEPLETED_RIGHT : TipTheme.ENERGY_BAR_RIGHT, false);
+        return true;
     }
 
     public static boolean renderDurabilityBar(GuiGraphics graphics, ItemStack stack, IDurabilityBar manager,

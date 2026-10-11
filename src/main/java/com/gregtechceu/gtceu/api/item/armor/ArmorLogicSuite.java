@@ -299,10 +299,9 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
     public void addInfo(ItemStack itemStack, List<Component> lines) {
         IElectricItem cont = GTCapabilityHelper.getElectricItem(itemStack);
         if (cont != null) {
-            ElectricStats.addCurrentChargeTooltip(lines, cont.getCharge(), cont.getMaxCharge(), cont.getTier(), false);
+            ElectricStats.addCurrentChargeTooltip(lines, cont.getCharge(), cont.getMaxCharge(), cont.getTier());
         }
         if (getDamageAbsorption() <= 0) return;
-        // 电容量与防护数值只取决于本逻辑的常量与是否有电，两种状态各生成一次后复用
         boolean charged = cont != null && cont.getCharge() >= energyPerUse;
         int state = charged ? 1 : 0;
         if (staticInfo[state] == null) {
@@ -330,12 +329,6 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
      * 防护数值按当前是否有电取值：有电为绿；断电为黄并注明电量不足，Shift 说明给出另一状态的数值
      */
     private void buildStaticInfo(List<Component> info, List<Component> details, boolean charged) {
-        long voltage = GTValues.V[tier];
-        double hours = maxCapacity / (voltage * 20D * 3600D);
-        String hoursText = Math.abs(hours - Math.rint(hours)) < 0.01 ? String.valueOf(Math.round(hours)) :
-                String.format("%.2f", hours);
-        info.add(ArmorTooltips.info("metaarmor.gto.capacity", ArmorTooltips.value(hoursText), GTValues.VNF[tier]));
-
         float baseToughness = GTArmorMaterials.ARMOR.getToughness();
         ChatFormatting color = charged ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
         info.add(ArmorTooltips.section("metaarmor.gto.section.protection"));

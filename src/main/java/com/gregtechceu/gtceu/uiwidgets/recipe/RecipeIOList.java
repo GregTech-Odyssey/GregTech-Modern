@@ -3,10 +3,12 @@ package com.gregtechceu.gtceu.uiwidgets.recipe;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.UIIngredient;
+import com.gregtechceu.gtceu.uipro.animation.UIClock;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.render.UIText;
@@ -21,8 +23,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -60,10 +66,16 @@ public class RecipeIOList extends UIElement {
     private static final int SECTION_GAP = 3;
     private static final int FULL_CHANCE = ContentList.MAX_CHANCE;
 
-    public record Entry(boolean output, ItemStack item, FluidStack fluid, long amount, int chance, boolean blocked) {
+    public record Entry(boolean output, ItemStack item, FluidStack fluid, @Nullable ResourceLocation tag, long amount, int chance, boolean blocked) {
 
         boolean isFluid() {
             return !fluid.isEmpty();
+        }
+
+        @Nullable
+        TagKey<?> tagKey() {
+            if (tag == null) return null;
+            return isFluid() ? TagKey.create(Registries.FLUID, tag) : TagKey.create(Registries.ITEM, tag);
         }
     }
 
@@ -88,6 +100,8 @@ public class RecipeIOList extends UIElement {
                 } else {
                     buf.writeItem(entry.item.copyWithCount(1));
                 }
+                buf.writeBoolean(entry.tag != null);
+                if (entry.tag != null) buf.writeResourceLocation(entry.tag);
                 buf.writeVarLong(entry.amount);
                 buf.writeVarInt(entry.chance);
                 buf.writeBoolean(entry.blocked);
@@ -106,7 +120,8 @@ public class RecipeIOList extends UIElement {
                 FluidStack fluidStack = FluidStack.EMPTY;
                 if (fluid) fluidStack = FluidStack.readFromPacket(buf);
                 else item = buf.readItem();
-                list.add(new Entry(output, item, fluidStack, buf.readVarLong(), buf.readVarInt(), buf.readBoolean()));
+                var tag = buf.readBoolean() ? buf.readResourceLocation() : null;
+                list.add(new Entry(output, item, fluidStack, tag, buf.readVarLong(), buf.readVarInt(), buf.readBoolean()));
             }
             return new Snapshot(duration, list);
         }
@@ -116,7 +131,9 @@ public class RecipeIOList extends UIElement {
     private static final int TONE_LABEL = 1;
     private static final int TONE_ERROR = 2;
 
-    private record Row(@Nullable Entry entry, int y, int height, String name, String amount, String rate, int tone) {}
+    private static final long TAG_CYCLE_MS = 1000;
+
+    private record Row(@Nullable Entry entry, int y, int height, String name, String amount, String rate, int tone, List<?> members) {}
 
     private final RecipeLogic logic;
     private final SyncValue<Snapshot> snapshot;
@@ -194,18 +211,48 @@ public class RecipeIOList extends UIElement {
 
     private static void addItems(List<Entry> list, boolean output, ContentList contents, long scale) {
         for (int i = 0; i < contents.size(); i++) {
-            if (contents.ingredient(i).displayKey() instanceof AEItemKey key) {
-                list.add(new Entry(output, Keys.displayStack(key), FluidStack.EMPTY, contents.effective(i, scale), contents.chance(i), false));
+            var ingredient = contents.ingredient(i);
+            if (ingredient.displayKey() instanceof AEItemKey key) {
+                list.add(new Entry(output, Keys.displayStack(key), FluidStack.EMPTY, tagOf(ingredient), contents.effective(i, scale), contents.chance(i), false));
             }
         }
     }
 
     private static void addFluids(List<Entry> list, boolean output, ContentList contents, long scale, long blocked) {
         for (int i = 0; i < contents.size(); i++) {
-            if (contents.ingredient(i).displayKey() instanceof AEFluidKey key) {
-                list.add(new Entry(output, ItemStack.EMPTY, Keys.displayFluid(key), contents.effective(i, scale), contents.chance(i), i < Long.SIZE && (blocked >>> i & 1) != 0));
+            var ingredient = contents.ingredient(i);
+            if (ingredient.displayKey() instanceof AEFluidKey key) {
+                list.add(new Entry(output, ItemStack.EMPTY, Keys.displayFluid(key), tagOf(ingredient), contents.effective(i, scale), contents.chance(i), i < Long.SIZE && (blocked >>> i & 1) != 0));
             }
         }
+    }
+
+    @Nullable
+    private static ResourceLocation tagOf(KeyIngredient ingredient) {
+        if (ingredient.kind() != KeyIngredient.TAG) return null;
+        var tag = ingredient.tagKey();
+        return tag == null ? null : tag.location();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static List<?> members(Entry entry) {
+        if (entry.tag == null) return Collections.emptyList();
+        var list = new ArrayList<Object>();
+        if (entry.isFluid()) {
+            BuiltInRegistries.FLUID.getTag(TagKey.create(Registries.FLUID, entry.tag)).ifPresent(set -> set.forEach(holder -> {
+                if (holder.value().isSource(holder.value().defaultFluidState())) list.add(new FluidStack(holder.value(), 1000));
+            }));
+        } else {
+            BuiltInRegistries.ITEM.getTag(TagKey.create(Registries.ITEM, entry.tag)).ifPresent(set -> set.forEach(holder -> list.add(new ItemStack(holder))));
+        }
+        return list;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static Object shown(Row row) {
+        var members = row.members;
+        if (members.isEmpty()) return row.entry.isFluid() ? row.entry.fluid : row.entry.item;
+        return members.get((int) (UIClock.millis() / TAG_CYCLE_MS % members.size()));
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -214,7 +261,7 @@ public class RecipeIOList extends UIElement {
         var list = new ArrayList<Row>(value.entries.size() + 2);
         int y = TOP;
         if (value.entries.isEmpty()) {
-            list.add(new Row(null, TOP, HEADER, Component.translatable(NONE).getString(), "", "", TONE_LABEL));
+            list.add(new Row(null, TOP, HEADER, Component.translatable(NONE).getString(), "", "", TONE_LABEL, Collections.emptyList()));
         }
         int rateWidth = 0;
         var rates = new String[value.entries.size()];
@@ -231,7 +278,7 @@ public class RecipeIOList extends UIElement {
             if (section == null || section != entry.output) {
                 if (section != null) y += SECTION_GAP;
                 section = entry.output;
-                list.add(new Row(null, y, HEADER, Component.translatable(entry.output ? OUTPUTS : INPUTS).getString(), "", "", TONE_TEXT));
+                list.add(new Row(null, y, HEADER, Component.translatable(entry.output ? OUTPUTS : INPUTS).getString(), "", "", TONE_TEXT, Collections.emptyList()));
                 y += HEADER;
             }
             String amount;
@@ -248,9 +295,10 @@ public class RecipeIOList extends UIElement {
                 rate = rates[i];
             }
             int valueWidth = UIText.width(amount) + (rate.isEmpty() ? 0 : UISizes.TEXT_PADDING + rateWidth);
-            String name = entry.isFluid() ? entry.fluid.getDisplayName().getString() : entry.item.getHoverName().getString();
+            var tag = entry.tagKey();
+            String name = tag != null ? UIIngredient.tagName(tag).getString() : entry.isFluid() ? entry.fluid.getDisplayName().getString() : entry.item.getHoverName().getString();
             name = UIText.fit(name, width - SLOT - UISizes.GAP - valueWidth - UISizes.TEXT_PADDING);
-            list.add(new Row(entry, y, ROW, name, amount, rate, tone));
+            list.add(new Row(entry, y, ROW, name, amount, rate, tone, members(entry)));
             y += ROW;
         }
         rows = list;
@@ -316,12 +364,13 @@ public class RecipeIOList extends UIElement {
             }
             var entry = row.entry;
             UIDraw.bevel(graphics, x, y, SLOT, SLOT, UITheme.SCREEN_TRACK, UITheme.SCREEN_DIVIDER, UITheme.SCREEN_TRACK);
-            if (entry.isFluid()) {
-                var fluid = entry.fluid.copy();
+            var shown = shown(row);
+            if (shown instanceof FluidStack stack) {
+                var fluid = stack.copy();
                 fluid.setAmount(1000);
                 DrawerHelper.drawFluidForGui(graphics, FluidHelperImpl.toFluidStack(fluid), 1000, x + 1, y + 1, ICON, ICON);
-            } else {
-                graphics.renderItem(entry.item, x + 1, y + 1);
+            } else if (shown instanceof ItemStack stack) {
+                UIDraw.item(graphics, stack, x + 1, y + 1);
             }
             if (entry.blocked) UIDraw.disabledHatch(graphics, x, y, SLOT, SLOT);
             if (row == hovered) UIDraw.hoverOverlay(graphics, x, y, SLOT, SLOT);
@@ -345,7 +394,12 @@ public class RecipeIOList extends UIElement {
         var tooltips = new ArrayList<Component>();
         var itemStack = ItemStack.EMPTY;
         String exact;
-        if (entry.isFluid()) {
+        var tag = entry.tagKey();
+        if (tag != null) {
+            tooltips.add(UIIngredient.tagName(tag));
+            tooltips.add(Component.literal("#" + tag.location()).withStyle(ChatFormatting.DARK_GRAY));
+            exact = entry.isFluid() ? FormattingUtil.formatNumbers(entry.amount) + " mB" : FormattingUtil.formatNumbers(entry.amount);
+        } else if (entry.isFluid()) {
             tooltips.add(entry.fluid.getDisplayName());
             exact = FormattingUtil.formatNumbers(entry.amount) + " mB";
         } else {
@@ -366,6 +420,11 @@ public class RecipeIOList extends UIElement {
         var row = rowAt(mouseX, mouseY);
         if (row == null || row.entry == null) return super.getXEIIngredientOverMouse(mouseX, mouseY);
         var entry = row.entry;
+        var tag = entry.tagKey();
+        if (tag != null) {
+            var ingredient = UIIngredient.ofTag(tag, entry.amount);
+            if (ingredient != null) return ingredient;
+        }
         return UIIngredient.of(entry.isFluid() ? AEFluidKey.of(entry.fluid) : AEItemKey.of(entry.item), entry.amount);
     }
 }

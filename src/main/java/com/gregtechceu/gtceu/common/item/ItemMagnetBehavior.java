@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IItemLifeCycle;
 import com.gregtechceu.gtceu.api.item.component.IItemUIFactory;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Form;
@@ -289,8 +290,9 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
     @Override
     public void appendTooltips(ItemStack itemStack, @Nullable Level level, List<Component> lines,
                                TooltipFlag isAdvanced) {
-        lines.add(Component
-                .translatable(isActive(itemStack) ? "behavior.item_magnet.enabled" : "behavior.item_magnet.disabled"));
+        lines.add(isActive(itemStack) ?
+                Tips.supported(Component.translatable("behavior.item_magnet.enabled")) :
+                Tips.unsupported(Component.translatable("behavior.item_magnet.disabled")));
     }
 
     private static class CuriosUtils {

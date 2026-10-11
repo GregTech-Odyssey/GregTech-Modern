@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ItemPipeProperties;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.model.PipeModel;
 import com.gregtechceu.gtceu.common.blockentity.ItemPipeBlockEntity;
 import com.gregtechceu.gtceu.common.data.GTBlockEntities;
@@ -70,14 +71,14 @@ public class ItemPipeBlock extends MaterialPipeBlock<ItemPipeType, ItemPipePrope
         ItemPipeProperties properties = createProperties(defaultBlockState(), stack);
 
         if (properties.getTransferRate() % 1 != 0) {
-            tooltip.add(Component.translatable("gtceu.universal.tooltip.item_transfer_rate",
-                    (int) ((properties.getTransferRate() * 64) + 0.5)));
+            tooltip.add(Tips.stat(Component.translatable("gtceu.universal.tooltip.item_transfer_rate",
+                    (int) ((properties.getTransferRate() * 64) + 0.5))));
         } else {
-            tooltip.add(Component.translatable("gtceu.universal.tooltip.item_transfer_rate_stacks",
-                    (int) properties.getTransferRate()));
+            tooltip.add(Tips.stat(Component.translatable("gtceu.universal.tooltip.item_transfer_rate_stacks",
+                    (int) properties.getTransferRate())));
         }
 
-        tooltip.add(Component.translatable("gtceu.item_pipe.priority", properties.getPriority()));
+        tooltip.add(Tips.stat(Component.translatable("gtceu.item_pipe.priority", properties.getPriority())));
     }
 
     @Override

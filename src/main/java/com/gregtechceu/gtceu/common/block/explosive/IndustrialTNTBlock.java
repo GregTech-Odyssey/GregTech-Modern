@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.block.explosive;
 
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.entity.GTExplosiveEntity;
 import com.gregtechceu.gtceu.common.entity.IndustrialTNTEntity;
 
@@ -26,7 +27,7 @@ public class IndustrialTNTBlock extends GTExplosiveBlock {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.translatable("block.gtceu.itnt.drops_tooltip"));
+        tooltip.add(Tips.warning(Component.translatable("block.gtceu.itnt.drops_tooltip")));
         super.appendHoverText(stack, level, tooltip, flag);
     }
 

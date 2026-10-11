@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.item;
 
+import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.capability.CombinedCapabilityProvider;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
@@ -18,6 +19,7 @@ import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolUIBehavior;
 import com.gregtechceu.gtceu.api.sound.SoundEntry;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
@@ -33,7 +35,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -565,90 +566,78 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
 
         IGTToolDefinition toolStats = tool.getToolStats();
 
-        // electric info
-        if (this.isElectric()) {
-            ElectricStats.addCurrentChargeTooltip(tooltip, getCharge(stack), getMaxCharge(stack), getElectricTier(),
-                    false);
+        IElectricItem electricItem = this.isElectric() ? GTCapabilityHelper.getElectricItem(stack) : null;
+        boolean breakable = !tagCompound.getBoolean(UNBREAKABLE_KEY);
+        boolean details = GTUtil.isShiftDown();
+        if (electricItem != null) {
+            ElectricStats.addCurrentChargeTooltip(tooltip, electricItem.getCharge(), electricItem.getMaxCharge(),
+                    getElectricTier());
+            if (details) tooltip.add(Tips.detail(Component.translatable("gtceu.tip.detail.charge")));
         }
-
-        // durability info
-        if (!tagCompound.getBoolean(UNBREAKABLE_KEY)) {
-            // Plus 1 to match vanilla behavior where tools can still be used once at zero durability. We want to not
-            // show this
+        if (breakable) {
+            int maxDurability = tool.getTotalMaxDurability(stack);
+            tooltip.add(Tips.durability(maxDurability - stack.getDamageValue(), maxDurability));
+            if (details) tooltip.add(Tips.detail(Component.translatable("gtceu.tip.detail.durability")));
+        }
+        if (electricItem != null) {
+            ElectricStats.addBatteryTooltip(tooltip, stack, electricItem.getMaxCharge(), getElectricTier(), true);
+        }
+        if (breakable && toolStats.isSuitableForCrafting(stack)) {
             int damageRemaining = tool.getTotalMaxDurability(stack) - stack.getDamageValue() + 1;
-            if (toolStats.isSuitableForCrafting(stack)) {
-                tooltip.add(Component.translatable("item.gtceu.tool.tooltip.crafting_uses", FormattingUtil
-                        .formatNumbers(damageRemaining / Math.max(1, toolStats.getToolDamagePerCraft(stack)))));
-            }
-            tooltip.add(Component.translatable("item.gtceu.tool.tooltip.max_uses",
-                    FormattingUtil.formatNumbers(tool.getTotalMaxDurability(stack))));
-            tooltip.add(Component.translatable("item.gtceu.tool.tooltip.general_uses",
-                    FormattingUtil.formatNumbers(damageRemaining)));
-
+            tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.crafting_uses", FormattingUtil
+                    .formatNumbers(damageRemaining / Math.max(1, toolStats.getToolDamagePerCraft(stack))))));
         }
 
         // attack info
         if (toolStats.isSuitableForAttacking(stack)) {
-            tooltip.add(Component.translatable("item.gtceu.tool.tooltip.attack_damage",
-                    FormattingUtil.formatNumbers(2 + tool.getTotalAttackDamage(stack))));
-            tooltip.add(Component.translatable("item.gtceu.tool.tooltip.attack_speed",
-                    FormattingUtil.formatNumbers(4 + tool.getTotalAttackSpeed(stack))));
+            tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.attack_damage",
+                    FormattingUtil.formatNumbers(2 + tool.getTotalAttackDamage(stack)))));
+            tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.attack_speed",
+                    FormattingUtil.formatNumbers(4 + tool.getTotalAttackSpeed(stack)))));
         }
 
         // mining info
         if (toolStats.isSuitableForBlockBreak(stack)) {
-            tooltip.add(Component.translatable("item.gtceu.tool.tooltip.mining_speed",
-                    FormattingUtil.formatNumbers(tool.getTotalToolSpeed(stack))));
+            tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.mining_speed",
+                    FormattingUtil.formatNumbers(tool.getTotalToolSpeed(stack)))));
 
             int harvestLevel = tool.getTotalHarvestLevel(stack);
             String harvestName = "item.gtceu.tool.harvest_level." + harvestLevel;
             if (Language.getInstance().has(harvestName)) { // if there's a defined name for the harvest level, use it
-                tooltip.add(Component.translatable("item.gtceu.tool.tooltip.harvest_level_extra", harvestLevel,
-                        Component.translatable(harvestName)));
+                tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.harvest_level_extra", harvestLevel,
+                        Component.translatable(harvestName))));
             } else {
-                tooltip.add(Component.translatable("item.gtceu.tool.tooltip.harvest_level", harvestLevel));
+                tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.harvest_level", harvestLevel)));
             }
         }
 
         // behaviors
-        boolean addedBehaviorNewLine = false;
         AoESymmetrical aoeDefinition = getAoEDefinition(stack);
 
         if (!aoeDefinition.isZero()) {
-            addedBehaviorNewLine = tooltip.add(CommonComponents.EMPTY);
-            tooltip.add(Component.translatable("item.gtceu.tool.behavior.aoe_mining",
-                    aoeDefinition.column() * 2 + 1, aoeDefinition.row() * 2 + 1, aoeDefinition.layer() + 1));
+            tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.behavior.aoe_mining",
+                    aoeDefinition.column() * 2 + 1, aoeDefinition.row() * 2 + 1, aoeDefinition.layer() + 1)));
         }
 
         if (isMagnetic()) {
-            if (!addedBehaviorNewLine) {
-                addedBehaviorNewLine = true;
-                tooltip.add(CommonComponents.EMPTY);
-            }
-            tooltip.add(Component.translatable("item.gtceu.tool.behavior.relocate_mining"));
+            tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.relocate_mining")));
         }
 
-        if (!addedBehaviorNewLine && !toolStats.getBehaviors().isEmpty()) {
-            tooltip.add(CommonComponents.EMPTY);
-        }
         toolStats.getBehaviors().forEach(behavior -> behavior.addInformation(stack, world, tooltip, flag));
 
         // unique tooltip
         String uniqueTooltip = this.getToolType().getUnlocalizedName() + ".tooltip";
         if (Language.getInstance().has(uniqueTooltip)) {
-            tooltip.add(CommonComponents.EMPTY);
-            tooltip.add(Component.translatable(uniqueTooltip));
+            tooltip.add(Tips.plain(Component.translatable(uniqueTooltip)));
         }
 
-        tooltip.add(CommonComponents.EMPTY);
-
         // valid tools
-        tooltip.add(Component.translatable("item.gtceu.tool.usable_as",
+        tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.usable_as",
                 getToolClassNames(stack).stream()
                         .filter(s -> Language.getInstance().has("gtceu.tool.class." + s))
                         .map(s -> Component.translatable("gtceu.tool.class." + s))
                         .collect(Component::empty, FormattingUtil::combineComponents,
-                                FormattingUtil::combineComponents)));
+                                FormattingUtil::combineComponents))));
 
         // repair info
         if (!tagCompound.getBoolean(UNBREAKABLE_KEY)) {
@@ -667,16 +656,16 @@ public interface IGTTool extends HeldItemUIFactory.IHeldItemUIHolder, ItemLike {
                     repairItems.add(TagPrefix.plate.getLocalizedName(material));
                 }
                 if (!repairItems.isEmpty()) {
-                    tooltip.add(Component.translatable("item.gtceu.tool.tooltip.repair_material", repairItems.stream()
+                    tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.repair_material", repairItems.stream()
                             .collect(Component::empty, FormattingUtil::combineComponents,
-                                    FormattingUtil::combineComponents)));
+                                    FormattingUtil::combineComponents))));
                 }
             } else {
-                tooltip.add(Component.translatable("item.gtceu.tool.tooltip.repair_info"));
+                tooltip.add(Tips.control(Component.translatable("item.gtceu.tool.tooltip.repair_info")));
             }
         }
         if (this.isElectric()) {
-            tooltip.add(Component.translatable("item.gtceu.tool.replace_tool_head"));
+            tooltip.add(Tips.control(Component.translatable("item.gtceu.tool.replace_tool_head")));
 
         }
     }

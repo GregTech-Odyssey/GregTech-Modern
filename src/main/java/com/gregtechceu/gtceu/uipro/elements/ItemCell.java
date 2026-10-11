@@ -76,7 +76,7 @@ public class ItemCell extends UIElement {
         int x = getPositionX(), y = getPositionY();
         if (!plain) UITheme.ITEM_SLOT.draw(graphics, mouseX, mouseY, x, y, SIZE, SIZE);
         var stack = getStack();
-        if (!stack.isEmpty()) graphics.renderItem(stack, x + 1, y + 1);
+        UIDraw.item(graphics, stack, x + 1, y + 1);
         boolean disabled = click != null && isDisabled();
         if (!plain && !disabled && isMouseOverElement(mouseX, mouseY)) UIDraw.hoverOverlay(graphics, x, y, SIZE, SIZE);
         if (disabled) UIDraw.disabledHatch(graphics, x, y, SIZE, SIZE);

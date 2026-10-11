@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.common.block;
 
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.renderer.block.LampRenderer;
 
 import com.lowdragmc.lowdraglib.client.renderer.IBlockRendererProvider;
@@ -171,11 +172,11 @@ public class LampBlock extends Block implements IBlockRendererProvider {
         if (stack.hasTag()) {
             var tag = stack.getTag();
             if (isInverted(tag))
-                tooltip.add(Component.translatable("block.gtceu.lamp.tooltip.inverted"));
+                tooltip.add(Tips.attention(Component.translatable("block.gtceu.lamp.tooltip.inverted")));
             if (!isBloomEnabled(tag))
-                tooltip.add(Component.translatable("block.gtceu.lamp.tooltip.no_bloom"));
+                tooltip.add(Tips.unsupported(Component.translatable("block.gtceu.lamp.tooltip.no_bloom")));
             if (!isLightEnabled(tag))
-                tooltip.add(Component.translatable("block.gtceu.lamp.tooltip.no_light"));
+                tooltip.add(Tips.unsupported(Component.translatable("block.gtceu.lamp.tooltip.no_light")));
         }
     }
 

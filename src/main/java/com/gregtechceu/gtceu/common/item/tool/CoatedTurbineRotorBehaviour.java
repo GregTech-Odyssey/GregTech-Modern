@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlags;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 
@@ -31,20 +32,20 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         super.appendTooltips(stack, level, tooltipComponents, isAdvanced);
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating", getCoatMaterial(stack).getLocalizedName()));
+                .add(Tips.stat(Component.translatable("metaitem.tool.tooltip.rotor.coating", getCoatMaterial(stack).getLocalizedName())));
         int i = 0;
         boolean isMagic = isCoatingMagical(stack);
         // 机制说明标题
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : "")));
+                .add(Tips.heading(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : ""))));
         // 当转子A有镀层B，镀层B的耐久为max(B/10, min(B, A + B/2))，
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : "")));
+                .add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : ""))));
         // 每次转子损坏时95%概率优先消耗镀层耐久，镀层耐久耗尽后再消耗本体耐久
         tooltipComponents
-                .add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : "")));
+                .add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : ""))));
         if (isMagic) {
-            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.3.magic"));
+            tooltipComponents.add(Tips.formula(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.3.magic")));
         }
     }
 

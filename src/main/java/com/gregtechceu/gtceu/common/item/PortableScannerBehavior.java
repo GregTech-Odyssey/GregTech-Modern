@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
@@ -109,7 +110,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
             if (!level.isClientSide) {
                 setNextMode(heldItem);
                 var mode = getMode(heldItem);
-                player.sendSystemMessage(Component.translatable("behavior.portable_scanner.mode.caption", Component.translatable(mode.getLangKey())));
+                player.sendSystemMessage(Tips.stat(Component.translatable("behavior.portable_scanner.mode.caption", Component.translatable(mode.getLangKey()))));
             }
             return InteractionResultHolder.success(heldItem);
         }
@@ -147,32 +148,32 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
         // General information
         if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_BLOCK_INFO) {
             // Coordinates of the block
-            list.add(Component.translatable("behavior.portable_scanner.position", Component.translatable(FormattingUtil.formatNumbers(pos.getX())).withStyle(ChatFormatting.AQUA), Component.translatable(FormattingUtil.formatNumbers(pos.getY())).withStyle(ChatFormatting.AQUA), Component.translatable(FormattingUtil.formatNumbers(pos.getZ())).withStyle(ChatFormatting.AQUA), Component.translatable(level.dimension().location().toString()).withStyle(ChatFormatting.AQUA)));
+            list.add(Tips.heading(Component.translatable("behavior.portable_scanner.position", Component.translatable(FormattingUtil.formatNumbers(pos.getX())).withStyle(ChatFormatting.AQUA), Component.translatable(FormattingUtil.formatNumbers(pos.getY())).withStyle(ChatFormatting.AQUA), Component.translatable(FormattingUtil.formatNumbers(pos.getZ())).withStyle(ChatFormatting.AQUA), Component.translatable(level.dimension().location().toString()).withStyle(ChatFormatting.AQUA))));
             // Hardness and blast resistance
-            list.add(Component.translatable("behavior.portable_scanner.block_hardness", Component.translatable(FormattingUtil.formatNumbers(block.defaultDestroyTime())).withStyle(ChatFormatting.YELLOW), Component.translatable(FormattingUtil.formatNumbers(block.getExplosionResistance())).withStyle(ChatFormatting.YELLOW)));
+            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.block_hardness", Component.translatable(FormattingUtil.formatNumbers(block.defaultDestroyTime())).withStyle(ChatFormatting.YELLOW), Component.translatable(FormattingUtil.formatNumbers(block.getExplosionResistance())).withStyle(ChatFormatting.YELLOW))));
             // Possible block states
             if (debugLevel > 2) {
-                state.getProperties().forEach(property -> list.add(Component.translatable("behavior.portable_scanner.state", Component.translatable(property.getName()), Component.translatable(state.getValue(property).toString()).withStyle(ChatFormatting.AQUA))));
+                state.getProperties().forEach(property -> list.add(Tips.stat(Component.translatable("behavior.portable_scanner.state", Component.translatable(property.getName()), Component.translatable(state.getValue(property).toString()).withStyle(ChatFormatting.AQUA)))));
             }
         }
         switch (tileEntity) {
             case MetaMachineBlockEntity machineBlockEntity -> {
                 MetaMachine machine = machineBlockEntity.getMetaMachine();
-                list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
+                list.add(Tips.heading(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE)));
                 // General machine information
                 if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_MACHINE_INFO) {
                     if (machine.getOwner() != null) {
                         machine.getOwner().displayInfo(list);
                     }
                     if (machine.getDefinition().isAllowExtendedFacing()) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
-                        list.add(Component.translatable("behavior.portable_scanner.machine_front_facing", machine.getFrontFacing().getSerializedName()));
-                        list.add(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName()));
+                        list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
+                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.machine_front_facing", machine.getFrontFacing().getSerializedName())));
+                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.machine_upwards_facing", machineBlockEntity.getBlockState().getValue(MetaMachineBlock.UPWARDS_FACING_PROPERTY).getSerializedName())));
                     }
                     // Fluid tanks
                     var fluidHandler = machine.getFluidHandlerCap(null, true);
                     if (fluidHandler != null) {
-                        list.add(Component.translatable("behavior.portable_scanner.divider"));
+                        list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
                         boolean allTanksEmpty = true;
                         for (int i = 0; i < fluidHandler.size(); i++) {
                             var fluidKey = fluidHandler.keyAt(i);
@@ -182,18 +183,18 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                             }
                             energyCost += 500;
                             allTanksEmpty = false;
-                            list.add(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidAmount)).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.slotLimit(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(Keys.displayFluid(fluidKey).getTranslationKey()).withStyle(ChatFormatting.GOLD)));
+                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidAmount)).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.slotLimit(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(Keys.displayFluid(fluidKey).getTranslationKey()).withStyle(ChatFormatting.GOLD))));
                         }
                         if (allTanksEmpty) {
-                            list.add(Component.translatable("behavior.portable_scanner.tanks_empty"));
+                            list.add(Tips.note(Component.translatable("behavior.portable_scanner.tanks_empty")));
                         }
                     }
                     // Sound muffling
                     if (machine instanceof IMufflableMachine mufflableMachine) {
                         energyCost += 500;
                         if (mufflableMachine.isMuffled()) {
-                            list.add(Component.translatable("behavior.portable_scanner.divider"));
-                            list.add(Component.translatable("behavior.portable_scanner.muffled").withStyle(ChatFormatting.GREEN));
+                            list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
+                            list.add(Tips.supported(Component.translatable("behavior.portable_scanner.muffled").withStyle(ChatFormatting.GREEN)));
                         }
                     }
                 }
@@ -203,14 +204,14 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     var energyContainer = GTCapabilityHelper.getEnergyContainer(tileEntity, null);
                     if (energyContainer != null) {
                         if (energyContainer.getInputVoltage() > 0) {
-                            list.add(Component.translatable("behavior.portable_scanner.divider"));
-                            list.add(Component.translatable("behavior.portable_scanner.energy_container_in", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getInputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputAmperage())).withStyle(ChatFormatting.RED)));
+                            list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
+                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_in", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getInputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputAmperage())).withStyle(ChatFormatting.RED))));
                         }
                         if (energyContainer.getOutputVoltage() > 0) {
-                            list.add(Component.translatable("behavior.portable_scanner.divider"));
-                            list.add(Component.translatable("behavior.portable_scanner.energy_container_out", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getOutputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputAmperage())).withStyle(ChatFormatting.RED)));
+                            list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
+                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_out", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getOutputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputAmperage())).withStyle(ChatFormatting.RED))));
                         }
-                        list.add(Component.translatable("behavior.portable_scanner.energy_container_storage", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyStored())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyCapacity())).withStyle(ChatFormatting.YELLOW)));
+                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_storage", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyStored())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyCapacity())).withStyle(ChatFormatting.YELLOW))));
                     }
                 }
                 // Recipe related information
@@ -219,12 +220,12 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     if (machine instanceof IWorkable workableMachine) {
                         energyCost += 400;
                         if (!workableMachine.isWorkingEnabled()) {
-                            list.add(Component.translatable("behavior.portable_scanner.divider"));
-                            list.add(Component.translatable("behavior.portable_scanner.machine_disabled").withStyle(ChatFormatting.RED));
+                            list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
+                            list.add(Tips.attention(Component.translatable("behavior.portable_scanner.machine_disabled").withStyle(ChatFormatting.RED)));
                         }
                         if (workableMachine.getMaxProgress() > 0) {
-                            list.add(Component.translatable("behavior.portable_scanner.divider"));
-                            list.add(Component.translatable("behavior.portable_scanner.machine_progress", Component.translatable(FormattingUtil.formatNumbers(workableMachine.getProgress())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(workableMachine.getMaxProgress())).withStyle(ChatFormatting.YELLOW)));
+                            list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
+                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.machine_progress", Component.translatable(FormattingUtil.formatNumbers(workableMachine.getProgress())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(workableMachine.getMaxProgress())).withStyle(ChatFormatting.YELLOW))));
                         }
                     }
                 }
@@ -233,16 +234,16 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 if (tileEntity instanceof IDataInfoProvider) provider = (IDataInfoProvider) tileEntity;
                 else if (machine instanceof IDataInfoProvider) provider = (IDataInfoProvider) machine;
                 if (provider != null) {
-                    list.add(Component.translatable("behavior.portable_scanner.divider"));
+                    list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
                     list.addAll(provider.getDataInfo(mode));
                 }
             }
             case PipeBlockEntity<?, ?> pipe -> {
                 // Pipes need special name handling
-                list.add(pipe.getPipeBlock().getName().withStyle(ChatFormatting.BLUE));
+                list.add(Tips.heading(pipe.getPipeBlock().getName().withStyle(ChatFormatting.BLUE)));
                 // Pipe-specific info
                 if (tileEntity instanceof IDataInfoProvider dataInfoProvider) {
-                    list.add(Component.translatable("behavior.portable_scanner.divider"));
+                    list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
                     list.addAll(dataInfoProvider.getDataInfo(mode));
                 }
                 if (tileEntity instanceof FluidPipeBlockEntity) {
@@ -251,16 +252,16 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                 }
             }
             case IDataInfoProvider dataInfoProvider -> {
-                list.add(Component.translatable("behavior.portable_scanner.divider"));
+                list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
                 list.addAll(dataInfoProvider.getDataInfo(mode));
             }
-            case null, default -> list.add(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE));
+            case null, default -> list.add(Tips.heading(Component.translatable(state.getBlock().getDescriptionId()).withStyle(ChatFormatting.BLUE)));
         }
         // Environmental information
         if (mode == DisplayMode.SHOW_ALL || mode == DisplayMode.SHOW_ENVIRONMENTAL_INFO) {
             // Bedrock fluids
             if (level instanceof ServerLevel serverLevel) {
-                list.add(Component.translatable("behavior.portable_scanner.divider"));
+                list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
                 var veinData = BedrockFluidVeinSavedData.getOrCreate(serverLevel);
                 int chunkX = pos.getX() >> 4;
                 int chunkZ = pos.getZ() >> 4;
@@ -272,12 +273,12 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     var packet = new SPacketProspectBedrockFluid(level.dimension(), pos, fluidInfo);
                     GTNetwork.NETWORK.sendToPlayer(packet, (ServerPlayer) player);
                     if (player.isCreative()) {
-                        list.add(Component.translatable("behavior.portable_scanner.bedrock_fluid.amount", Component.translatable(stack.getTranslationKey()).withStyle(ChatFormatting.GOLD), Component.translatable(String.valueOf(veinData.getFluidYield(chunkX, chunkZ))).withStyle(ChatFormatting.GOLD), Component.translatable(String.valueOf(fluidPercent)).withStyle(ChatFormatting.YELLOW)));
+                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.bedrock_fluid.amount", Component.translatable(stack.getTranslationKey()).withStyle(ChatFormatting.GOLD), Component.translatable(String.valueOf(veinData.getFluidYield(chunkX, chunkZ))).withStyle(ChatFormatting.GOLD), Component.translatable(String.valueOf(fluidPercent)).withStyle(ChatFormatting.YELLOW))));
                     } else {
-                        list.add(Component.translatable("behavior.portable_scanner.bedrock_fluid.amount_unknown", Component.translatable(String.valueOf(fluidPercent)).withStyle(ChatFormatting.YELLOW)));
+                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.bedrock_fluid.amount_unknown", Component.translatable(String.valueOf(fluidPercent)).withStyle(ChatFormatting.YELLOW))));
                     }
                 } else {
-                    list.add(Component.translatable("behavior.portable_scanner.bedrock_fluid.nothing"));
+                    list.add(Tips.stat(Component.translatable("behavior.portable_scanner.bedrock_fluid.nothing")));
                 }
             }
         }
@@ -293,7 +294,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
 
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component.translatable("metaitem.behavior.mode_switch.tooltip"));
-        tooltipComponents.add(Component.translatable("behavior.portable_scanner.mode.caption", Component.translatable(getMode(stack).getLangKey()).withStyle(ChatFormatting.AQUA)));
+        tooltipComponents.add(Tips.rightClick(Component.translatable("metaitem.behavior.mode_switch.tooltip")));
+        tooltipComponents.add(Tips.stat(Component.translatable("behavior.portable_scanner.mode.caption", Component.translatable(getMode(stack).getLangKey()).withStyle(ChatFormatting.AQUA))));
     }
 }

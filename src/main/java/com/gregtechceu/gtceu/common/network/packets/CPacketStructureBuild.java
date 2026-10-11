@@ -22,13 +22,21 @@ public class CPacketStructureBuild implements IPacket {
     private BlockPos pos = BlockPos.ZERO;
     private int[] values = new int[0];
     private int upload;
+    private int flags;
+    private boolean[] demolishNodes = new boolean[0];
 
     public CPacketStructureBuild() {}
 
-    public CPacketStructureBuild(BlockPos pos, int[] values, int upload) {
+    public CPacketStructureBuild(BlockPos pos, int[] values, int upload, int flags, boolean[] demolishNodes) {
+        this(pos, values, upload, flags);
+        this.demolishNodes = demolishNodes;
+    }
+
+    public CPacketStructureBuild(BlockPos pos, int[] values, int upload, int flags) {
         this.pos = pos;
         this.values = values;
         this.upload = upload;
+        this.flags = flags;
     }
 
     @Override
@@ -36,6 +44,9 @@ public class CPacketStructureBuild implements IPacket {
         buf.writeBlockPos(pos);
         buf.writeVarIntArray(values);
         buf.writeVarInt(upload);
+        buf.writeVarInt(flags);
+        buf.writeVarInt(demolishNodes.length);
+        for (boolean node : demolishNodes) buf.writeBoolean(node);
     }
 
     @Override
@@ -43,6 +54,11 @@ public class CPacketStructureBuild implements IPacket {
         pos = buf.readBlockPos();
         values = buf.readVarIntArray(BuildUpload.MAX_VALUES);
         upload = buf.readVarInt();
+        flags = buf.readVarInt() & (StructureBuild.FLAG_MIRROR | StructureBuild.FLAG_NETWORK | StructureBuild.FLAG_DEMOLISH);
+        int nodes = buf.readVarInt();
+        if (nodes < 0 || nodes > BuildUpload.MAX_VALUES) throw new IllegalArgumentException("Too many structure nodes: " + nodes);
+        demolishNodes = new boolean[nodes];
+        for (int i = 0; i < nodes; i++) demolishNodes[i] = buf.readBoolean();
     }
 
     @Override
@@ -62,6 +78,6 @@ public class CPacketStructureBuild implements IPacket {
             player.sendSystemMessage(Component.translatable(StructureBuild.INVALID));
             return;
         }
-        StructureBuild.build(player, controller, layout, choices);
+        StructureBuild.build(player, controller, layout, choices, flags, demolishNodes.length == 0 ? null : demolishNodes);
     }
 }

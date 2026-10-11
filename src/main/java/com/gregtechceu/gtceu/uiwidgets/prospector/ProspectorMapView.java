@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.uipro.canvas.CanvasPainter;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasRect;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasView;
 import com.gregtechceu.gtceu.uipro.canvas.ItemLayer;
+import com.gregtechceu.gtceu.uipro.data.RPC;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.InfoIcon;
 import com.gregtechceu.gtceu.uipro.elements.ItemView;
@@ -35,17 +36,21 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +63,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 
 @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -67,6 +73,10 @@ public class ProspectorMapView extends UIElement {
     private static final String OUT_OF_RANGE = "gtceu.prospector.ui.out_of_range";
     private static final String HELP_WAYPOINT = "gtceu.prospector.ui.help.waypoint";
     private static final String HELP_FILTER = "gtceu.prospector.ui.help.filter";
+    private static final String HELP_PICK = "gtceu.prospector.ui.help.pick";
+    private static final int REGION_FILL = 0x3055FF55;
+    private static final int REGION_EDGE = 0xFF2E9E3A;
+    private static final int PENDING_COLOR = 0xC0FFD24A;
     public static final int MAP_CHUNKS = 11;
     private static final int SIDE_WIDTH = 120;
     private static final int ROW_HEIGHT = 16;
@@ -81,6 +91,52 @@ public class ProspectorMapView extends UIElement {
     private final int scanSide;
     private final int displaySide;
     private final int scanOffset;
+
+    public record Region(int minX, int minZ, int maxX, int maxZ) {
+
+        public static final Region NONE = new Region(0, 0, -1, -1);
+        public static final StreamCodec<FriendlyByteBuf, Region> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, Region::minX,
+                ByteBufCodecs.VAR_INT, Region::minZ,
+                ByteBufCodecs.VAR_INT, Region::maxX,
+                ByteBufCodecs.VAR_INT, Region::maxZ,
+                Region::new);
+
+        public static Region of(int x1, int z1, int x2, int z2) {
+            return new Region(Math.min(x1, x2), Math.min(z1, z2), Math.max(x1, x2), Math.max(z1, z2));
+        }
+
+        public boolean isEmpty() {
+            return maxX < minX || maxZ < minZ;
+        }
+    }
+
+    public interface RegionPicker {
+
+        Region current();
+
+        void pick(Player player, Region region);
+    }
+
+    public record Options(Function<Player, BlockPos> center, boolean sideList, boolean drainHeld, int maxSize, int minChunks,
+                          @Nullable RegionPicker picker) {
+
+        public static final Options HELD = new Options(Player::blockPosition, true, true, Integer.MAX_VALUE, MAP_CHUNKS, null);
+
+        public static Options machine(BlockPos center, int minChunks, RegionPicker picker) {
+            var fixed = center.immutable();
+            return new Options(player -> fixed, false, false, UISizes.CONTENT_WIDTH, minChunks | 1, picker);
+        }
+    }
+
+    private final Options options;
+    private int mapSize;
+    @Nullable
+    private final SyncValue<Region> region;
+    @Nullable
+    private final RPC<Region> pickRequest;
+    private boolean hasPending;
+    private int pendingX, pendingZ;
     private final ProspectorMode<?>[] modes;
     private final IntSupplier modeSource;
     private final BooleanSupplier darkSource;
@@ -94,7 +150,7 @@ public class ProspectorMapView extends UIElement {
     private String query = "";
     private String selected = ProspectingTexture.SELECTED_ALL;
     private boolean dark;
-    private int playerChunkX, playerChunkZ, playerBlockX, playerBlockZ;
+    private int centerChunkX, centerChunkZ, centerBlockX, centerBlockZ;
     private int chunkIndex;
     @Nullable
     @OnlyIn(Dist.CLIENT)
@@ -102,9 +158,15 @@ public class ProspectorMapView extends UIElement {
     private boolean textureLoaded;
 
     public ProspectorMapView(MachineWindow window, int chunkRadius, ProspectorMode<?>[] modes, IntSupplier modeSource, BooleanSupplier darkSource) {
+        this(window, chunkRadius, modes, modeSource, darkSource, Options.HELD);
+    }
+
+    public ProspectorMapView(MachineWindow window, int chunkRadius, ProspectorMode<?>[] modes, IntSupplier modeSource, BooleanSupplier darkSource,
+                             Options options) {
+        this.options = options;
         this.chunkRadius = chunkRadius;
         this.scanSide = chunkRadius * 2 - 1;
-        this.displaySide = Math.max(scanSide, MAP_CHUNKS);
+        this.displaySide = Math.max(scanSide, options.minChunks());
         this.scanOffset = (displaySide - scanSide) / 2;
         this.modes = modes;
         this.modeSource = modeSource;
@@ -112,9 +174,11 @@ public class ProspectorMapView extends UIElement {
         this.modeIndex = currentMode();
         this.mode = modes[modeIndex];
         this.dark = darkSource.getAsBoolean();
-        int height = window.isRemote() ? Mth.clamp(MachineWindow.clientPageHeightLimit(false), UISizes.CANVAS_MIN_SIZE, MAP_SIZE) : MAP_SIZE;
+        int limit = Math.min(MAP_SIZE, options.maxSize());
+        int height = window.isRemote() ? Mth.clamp(MachineWindow.clientPageHeightLimit(false), Math.min(UISizes.CANVAS_MIN_SIZE, limit), limit) : limit;
         layout(l -> l.row().height(height).gapAll(UISizes.SECTION_GAP).alignCenter());
 
+        mapSize = height;
         canvas = new MapCanvas(height);
         var search = TextField.of(SIDE_WIDTH, () -> query, this::search).setPlaceholder(Component.translatable(SEARCH));
         list = new ScrollerView("prospector.list", SIDE_WIDTH, ROW_HEIGHT);
@@ -128,13 +192,27 @@ public class ProspectorMapView extends UIElement {
         var side = UIElement.column(SIDE_WIDTH).layout(l -> l.height(height).gapAll(UISizes.GAP)).addChildren(
                 TextLine.translatable(SIDE_WIDTH, mode.unlocalizedName),
                 search, list);
-        addChildren(canvas, side);
+        if (options.sideList()) addChildren(canvas, side);
+        else addChild(canvas);
         addSyncValue(SyncValue.ofBool(darkSource, dark)).onChanged(this::setDark);
         addSyncValue(SyncValue.ofInt(() -> modeIndex, modeIndex)).onChanged(this::applyMode);
+        var picker = options.picker();
+        if (picker != null) {
+            region = addSyncValue(SyncValue.of(picker::current, Region.CODEC, Region.NONE));
+            pickRequest = addRPC(Region.CODEC, picker::pick).limit(1);
+        } else {
+            region = null;
+            pickRequest = null;
+        }
 
         window.addTitleTool(() -> ZoomBar.title(canvas));
-        window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
-                Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
+        if (picker != null) {
+            window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, Component.translatable(HELP_PICK),
+                    Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
+        } else {
+            window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
+                    Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
+        }
     }
 
     private int currentMode() {
@@ -175,7 +253,7 @@ public class ProspectorMapView extends UIElement {
     @OnlyIn(Dist.CLIENT)
     private void createTexture() {
         if (texture != null) RenderSystem.recordRenderCall(texture::releaseId);
-        texture = new ProspectingTexture(playerChunkX, playerChunkZ, playerBlockX, playerBlockZ,
+        texture = new ProspectingTexture(centerChunkX, centerChunkZ, centerBlockX, centerBlockZ,
                 gui.entityPlayer.getVisualRotationYInDegrees(), mode, chunkRadius, dark);
         textureLoaded = false;
     }
@@ -199,21 +277,21 @@ public class ProspectorMapView extends UIElement {
 
     @Override
     public void writeInitialData(FriendlyByteBuf buffer) {
-        var player = gui.entityPlayer;
-        buffer.writeVarInt(playerChunkX = player.chunkPosition().x);
-        buffer.writeVarInt(playerChunkZ = player.chunkPosition().z);
-        buffer.writeVarInt(playerBlockX = player.getBlockX());
-        buffer.writeVarInt(playerBlockZ = player.getBlockZ());
+        var center = options.center().apply(gui.entityPlayer);
+        buffer.writeVarInt(centerChunkX = SectionPos.blockToSectionCoord(center.getX()));
+        buffer.writeVarInt(centerChunkZ = SectionPos.blockToSectionCoord(center.getZ()));
+        buffer.writeVarInt(centerBlockX = center.getX());
+        buffer.writeVarInt(centerBlockZ = center.getZ());
         super.writeInitialData(buffer);
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void readInitialData(FriendlyByteBuf buffer) {
-        playerChunkX = buffer.readVarInt();
-        playerChunkZ = buffer.readVarInt();
-        playerBlockX = buffer.readVarInt();
-        playerBlockZ = buffer.readVarInt();
+        centerChunkX = buffer.readVarInt();
+        centerChunkZ = buffer.readVarInt();
+        centerBlockX = buffer.readVarInt();
+        centerBlockZ = buffer.readVarInt();
         createTexture();
         super.readInitialData(buffer);
     }
@@ -237,15 +315,15 @@ public class ProspectorMapView extends UIElement {
         while (chunkIndex < scanSide * scanSide) {
             int ox = chunkIndex % scanSide - chunkRadius + 1;
             int oz = chunkIndex / scanSide - chunkRadius + 1;
-            var chunk = level.getChunk(playerChunkX + ox, playerChunkZ + oz);
+            var chunk = level.getChunk(centerChunkX + ox, centerChunkZ + oz);
             if (mode == ProspectorMode.ORE) {
                 ServerCache.instance.prospectAllInChunk(level.dimension(), chunk.getPos(), (ServerPlayer) player);
             }
-            var packet = new PacketProspecting(playerChunkX + ox, playerChunkZ + oz, mode);
+            var packet = new PacketProspecting(centerChunkX + ox, centerChunkZ + oz, mode);
             mode.scan(packet.data, chunk);
             writeUpdateInfo(-1, packet::writePacketData);
             chunkIndex++;
-            if (!player.isCreative() && held.getItem() instanceof IComponentItem componentItem) {
+            if (options.drainHeld() && !player.isCreative() && held.getItem() instanceof IComponentItem componentItem) {
                 for (var component : componentItem.getComponents()) {
                     if (component instanceof ProspectorScannerBehavior prospector && !prospector.drainEnergy(held, false)) {
                         player.closeContainer();
@@ -264,7 +342,7 @@ public class ProspectorMapView extends UIElement {
             return;
         }
         var packet = PacketProspecting.readPacketData(mode, buffer);
-        if (Math.abs(packet.chunkX - playerChunkX) >= chunkRadius || Math.abs(packet.chunkZ - playerChunkZ) >= chunkRadius) return;
+        if (Math.abs(packet.chunkX - centerChunkX) >= chunkRadius || Math.abs(packet.chunkZ - centerChunkZ) >= chunkRadius) return;
         packets.add(packet);
         var dimension = gui.entityPlayer.level().dimension();
         if (mode == ProspectorMode.FLUID && packet.data[0][0].length > 0) {
@@ -343,17 +421,41 @@ public class ProspectorMapView extends UIElement {
             setLodThresholds(0, 0);
             setScaleRange(0.01f, MAX_SCALE);
             setMinScaleFits(true);
-            setInitialView(view -> view.fitContent(false));
+            setMaxFitScale(MAX_SCALE);
+            setInitialView(view -> {
+                if (options.picker() == null) view.fitContent(false);
+                else view.fit(CanvasRect.of(displaySide * 8 - mapSize / 2f, displaySide * 8 - mapSize / 2f, mapSize, mapSize), 0, 1, false);
+            });
             setScene(view -> {
                 var cells = new ItemLayer<ChunkCell>();
                 for (int cz = 0; cz < displaySide; cz++) {
                     for (int cx = 0; cx < displaySide; cx++) cells.add(new ChunkCell(cx, cz, inScan(cx, cz)));
                 }
                 view.addLayer(new MapLayer()).addLayer(cells);
+                if (options.picker() != null) view.addLayer(new RegionLayer());
             });
             setOnClientItemClick((item, button, worldX, worldZ) -> {
-                if (button == 0 && item instanceof ChunkCell cell && cell.inScan) addWaypoint(worldX, worldZ);
+                if (!(item instanceof ChunkCell cell) || !cell.inScan) return;
+                if (options.picker() != null) pickCorner(button, worldX, worldZ);
+                else if (button == 0) addWaypoint(worldX, worldZ);
             });
+        }
+
+        @OnlyIn(Dist.CLIENT)
+        private void pickCorner(int button, float worldX, float worldZ) {
+            if (button != 0) {
+                hasPending = false;
+                return;
+            }
+            int x = toBlockX(worldX), z = toBlockZ(worldZ);
+            if (!hasPending) {
+                hasPending = true;
+                pendingX = x;
+                pendingZ = z;
+                return;
+            }
+            hasPending = false;
+            if (pickRequest != null) pickRequest.send(Region.of(pendingX, pendingZ, x, z));
         }
 
         @OnlyIn(Dist.CLIENT)
@@ -374,8 +476,8 @@ public class ProspectorMapView extends UIElement {
         private Waypoint waypointAt(int localX, int localZ) {
             int cx = localX >> 4, cz = localZ >> 4;
             int offsetX = localX & 15, offsetZ = localZ & 15;
-            int xPos = ((playerChunkX + cx - (chunkRadius - 1)) << 4) + offsetX;
-            int zPos = ((playerChunkZ + cz - (chunkRadius - 1)) << 4) + offsetZ;
+            int xPos = ((centerChunkX + cx - (chunkRadius - 1)) << 4) + offsetX;
+            int zPos = ((centerChunkZ + cz - (chunkRadius - 1)) << 4) + offsetZ;
             var level = gui.entityPlayer.level();
             var pos = new BlockPos(xPos, level.getHeight(Heightmap.Types.WORLD_SURFACE, xPos, zPos), zPos);
             if (!texture.getSelected().equals(ProspectingTexture.SELECTED_ALL)) {
@@ -474,6 +576,43 @@ public class ProspectorMapView extends UIElement {
                 mode.appendTooltips(cell, tooltips, texture.getSelected());
             }
             return tooltips;
+        }
+    }
+
+    private int originX() {
+        return (centerChunkX - (chunkRadius - 1) - scanOffset) << 4;
+    }
+
+    private int originZ() {
+        return (centerChunkZ - (chunkRadius - 1) - scanOffset) << 4;
+    }
+
+    private int toBlockX(float worldX) {
+        return originX() + Mth.floor(worldX);
+    }
+
+    private int toBlockZ(float worldZ) {
+        return originZ() + Mth.floor(worldZ);
+    }
+
+    private final class RegionLayer implements CanvasLayer {
+
+        @Override
+        @OnlyIn(Dist.CLIENT)
+        public void draw(CanvasPainter painter, @Nullable CanvasItem hovered) {
+            var current = region == null ? Region.NONE : region.getValue();
+            if (!current.isEmpty()) {
+                var rect = CanvasRect.of(current.minX() - originX(), current.minZ() - originZ(), current.maxX() - current.minX() + 1, current.maxZ() - current.minZ() + 1);
+                painter.fill(rect, REGION_FILL);
+                painter.outline(rect, 1, REGION_EDGE);
+            }
+            if (hasPending) painter.fill(CanvasRect.of(pendingX - originX(), pendingZ - originZ(), 1, 1), PENDING_COLOR);
+            painter.flush();
+        }
+
+        @Override
+        public CanvasRect bounds() {
+            return CanvasRect.of(0, 0, displaySide * 16, displaySide * 16);
         }
     }
 

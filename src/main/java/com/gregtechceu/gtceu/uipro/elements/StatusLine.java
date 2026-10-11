@@ -233,7 +233,7 @@ public class StatusLine extends UIElement {
         graphics.drawString(font, shownValue, valueX, textY, valueColor, false);
         if (underline) UIDraw.underline(graphics, valueX, textY + 9, font.width(shownValue), valueColor);
         iconX = stack.isEmpty() ? Integer.MIN_VALUE : valueX - iconSpace;
-        if (!stack.isEmpty()) graphics.renderItem(stack, iconX, UIPixels.center(y, height, ICON_SIZE));
+        UIDraw.item(graphics, stack, iconX, UIPixels.center(y, height, ICON_SIZE));
         if (current.hasLamp()) UIDraw.lamp(graphics, valueX - lampSpace, UIPixels.center(y, height, LAMP_SIZE), LAMP_SIZE, current.getLampColor());
     }
 

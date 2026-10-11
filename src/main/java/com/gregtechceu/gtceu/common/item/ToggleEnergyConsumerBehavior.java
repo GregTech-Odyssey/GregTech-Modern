@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.item.component.IItemLifeCycle;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -63,7 +64,7 @@ public class ToggleEnergyConsumerBehavior implements IInteractionItem, IItemLife
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                TooltipFlag isAdvanced) {
-        tooltipComponents.add(Component.translatable("behavior.toggle_energy_consumer.tooltip"));
+        tooltipComponents.add(Tips.rightClick(Component.translatable("behavior.toggle_energy_consumer.tooltip")));
     }
 
     public static boolean isItemActive(ItemStack itemStack) {

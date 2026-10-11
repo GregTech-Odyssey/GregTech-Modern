@@ -77,6 +77,7 @@ public class ToolHelper {
     // Electric item keys
     public static final String MAX_CHARGE_KEY = "MaxCharge";
     public static final String CHARGE_KEY = "Charge";
+    public static final String BATTERY_KEY = "Battery";
 
     // Vanilla keys
     public static final String UNBREAKABLE_KEY = "Unbreakable";
