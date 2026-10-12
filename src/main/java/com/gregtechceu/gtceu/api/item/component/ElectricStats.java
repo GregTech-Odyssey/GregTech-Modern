@@ -5,7 +5,8 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
+import com.gregtechceu.gtceu.api.item.capability.ElectricItem;
 import com.gregtechceu.gtceu.api.tooltip.StatKind;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.renderer.item.ToolChargeBarRenderer;
@@ -14,9 +15,7 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -36,8 +35,6 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class ElectricStats implements IInteractionItem, IAddInformation, IItemLifeCycle, IItemDecoratorComponent {
 
@@ -193,16 +190,11 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
     }
 
     @Nullable
-    private static Map<Long, Item> batteries;
+    private static Long2ObjectOpenHashMap<Item> batteries;
 
     public static void addBatteryTooltip(List<Component> tooltip, ItemStack stack, long maxCharge, int tier, boolean infer) {
         if (maxCharge <= 0) return;
-        Item battery = null;
-        var tag = stack.getTag();
-        if (tag != null && tag.contains(ToolHelper.BATTERY_KEY, Tag.TAG_STRING)) {
-            ResourceLocation id = ResourceLocation.tryParse(tag.getString(ToolHelper.BATTERY_KEY));
-            if (id != null && BuiltInRegistries.ITEM.containsKey(id)) battery = BuiltInRegistries.ITEM.get(id);
-        }
+        Item battery = IDataComponentItem.get(stack, ElectricItem.BATTERY);
         if (battery == null && infer) battery = findBattery(maxCharge, tier);
         if (battery != null) tooltip.add(Tips.stat(StatKind.BATTERY, battery.getDescription()));
     }
@@ -210,8 +202,8 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
     @Nullable
     private static Item findBattery(long maxCharge, int tier) {
         if (batteries == null) {
-            Map<Long, Item> map = new Long2ObjectOpenHashMap<>();
-            Set<Long> duplicated = new LongOpenHashSet();
+            var map = new Long2ObjectOpenHashMap<Item>();
+            var duplicated = new LongOpenHashSet();
             for (Item item : BuiltInRegistries.ITEM) {
                 if (!(item instanceof IComponentItem componentItem)) continue;
                 for (var component : componentItem.getComponents()) {
@@ -221,7 +213,7 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
                     }
                 }
             }
-            for (long key : duplicated) map.remove(key);
+            for (var it = duplicated.iterator(); it.hasNext();) map.remove(it.nextLong());
             batteries = map;
         }
         return batteries.get(maxCharge * 32 + tier);

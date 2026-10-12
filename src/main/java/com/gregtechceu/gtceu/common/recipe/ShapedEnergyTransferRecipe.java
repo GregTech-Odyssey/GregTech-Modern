@@ -2,14 +2,14 @@ package com.gregtechceu.gtceu.common.recipe;
 
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
+import com.gregtechceu.gtceu.api.item.capability.ElectricItem;
 import com.gregtechceu.gtceu.core.mixins.ShapedRecipeAccessor;
 
 import net.minecraft.FieldsAreNonnullByDefault;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -55,9 +55,9 @@ public class ShapedEnergyTransferRecipe extends ShapedRecipe {
                     if (electricItem != null) {
                         maxCharge += electricItem.getMaxCharge();
                         charge += electricItem.getCharge();
-                        resultStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
-                        resultStack.getOrCreateTag().putLong("Charge", charge);
-                        resultStack.getOrCreateTag().putString(ToolHelper.BATTERY_KEY, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+                        IDataComponentItem.set(resultStack, ElectricItem.MAX_CHARGE, maxCharge);
+                        IDataComponentItem.set(resultStack, ElectricItem.CHARGE, charge);
+                        IDataComponentItem.set(resultStack, ElectricItem.BATTERY, stack.getItem());
                         return resultStack;
                     }
                 }
@@ -76,9 +76,9 @@ public class ShapedEnergyTransferRecipe extends ShapedRecipe {
             if (electricItem != null) {
                 maxCharge += electricItem.getMaxCharge();
                 charge += electricItem.getCharge();
-                resultStack.getOrCreateTag().putLong("MaxCharge", maxCharge);
-                resultStack.getOrCreateTag().putLong("Charge", charge);
-                resultStack.getOrCreateTag().putString(ToolHelper.BATTERY_KEY, BuiltInRegistries.ITEM.getKey(chargeStack.getItem()).toString());
+                IDataComponentItem.set(resultStack, ElectricItem.MAX_CHARGE, maxCharge);
+                IDataComponentItem.set(resultStack, ElectricItem.CHARGE, charge);
+                IDataComponentItem.set(resultStack, ElectricItem.BATTERY, chargeStack.getItem());
                 return resultStack;
             }
         }

@@ -6,13 +6,18 @@ import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class ElectricItem implements IElectricItem {
 
     public static final ItemDataComponentKey<Long, LongTag> CHARGE = ItemDataComponentKey.create(ToolHelper.CHARGE_KEY, ElectricItem::write, ElectricItem::read);
     public static final ItemDataComponentKey<Long, LongTag> MAX_CHARGE = ItemDataComponentKey.create(ToolHelper.MAX_CHARGE_KEY, ElectricItem::write, ElectricItem::read);
+    public static final ItemDataComponentKey<Item, StringTag> BATTERY = ItemDataComponentKey.create(ToolHelper.BATTERY_KEY, ElectricItem::writeItem, ElectricItem::readItem);
 
     protected final ItemStack itemStack;
 
@@ -44,6 +49,15 @@ public class ElectricItem implements IElectricItem {
 
     private static long read(LongTag tag) {
         return tag.getAsLong();
+    }
+
+    private static StringTag writeItem(Item item) {
+        return StringTag.valueOf(BuiltInRegistries.ITEM.getKey(item).toString());
+    }
+
+    private static Item readItem(StringTag tag) {
+        ResourceLocation id = ResourceLocation.tryParse(tag.getAsString());
+        return id != null && BuiltInRegistries.ITEM.containsKey(id) ? BuiltInRegistries.ITEM.get(id) : null;
     }
 
     public void setCharge(long change) {
