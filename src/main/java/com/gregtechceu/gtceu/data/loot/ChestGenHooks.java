@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.core.mixins.LootPoolAccessor;
 import com.gregtechceu.gtceu.utils.GTMath;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -27,7 +26,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonDeserializationContext;
@@ -36,6 +34,7 @@ import com.google.gson.JsonSerializationContext;
 import com.gto.datasynclib.util.ItemStackHashStrategy;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import lombok.Getter;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -87,7 +86,7 @@ public final class ChestGenHooks {
 
     public static void addItem(@NotNull ResourceLocation lootTable, @NotNull ItemStack stack, int minAmount, int maxAmount, int weight) {
         RandomWeightLootFunction lootFunction = new RandomWeightLootFunction(stack, minAmount, maxAmount);
-        String modid = Objects.requireNonNull(GTUtil.ITEM_ID.apply(stack.getItem())).getNamespace();
+        String modid = Objects.requireNonNull(RegistryEntry.get(stack.getItem())).getNamespace();
         String entryName = createEntryName(stack, modid, weight, lootFunction);
         GTLootEntryItem itemEntry = new GTLootEntryItem(stack, weight, lootFunction, entryName);
         lootEntryItems.computeIfAbsent(lootTable, $ -> new ArrayList<>()).add(itemEntry);
@@ -181,7 +180,7 @@ public final class ChestGenHooks {
                 json.add("min", serializationContext.serialize(setItemCountFunction.minAmount));
                 json.add("max", serializationContext.serialize(setItemCountFunction.maxAmount));
                 JsonObject stack = new JsonObject();
-                stack.addProperty("item", ForgeRegistries.ITEMS.getKey(setItemCountFunction.stack.getItem()).toString());
+                stack.addProperty("item", RegistryEntry.get(setItemCountFunction.stack.getItem()).toString());
                 stack.addProperty("count", setItemCountFunction.stack.getCount());
                 if (setItemCountFunction.stack.hasTag()) stack.addProperty("nbt", setItemCountFunction.stack.getTag().toString());
                 json.add("stack", stack);

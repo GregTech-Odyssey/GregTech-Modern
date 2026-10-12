@@ -3,13 +3,13 @@ package com.gregtechceu.gtceu.client.renderer.item;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconSet;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.data.models.model.DelegatedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Set;
 
@@ -23,7 +23,7 @@ public class TagPrefixItemRenderer {
 
     public static void reinitModels() {
         for (TagPrefixItemRenderer model : MODELS) {
-            ResourceLocation itemId = GTUtil.ITEM_ID.apply(model.item);
+            ResourceLocation itemId = RegistryEntry.get(model.item);
             GTDynamicResourcePack.addItemModel(itemId, new DelegatedModel(model.type.getItemModelPath(model.iconSet)));
         }
     }

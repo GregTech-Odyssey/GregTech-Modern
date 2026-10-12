@@ -19,6 +19,7 @@ dependencies {
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
     modImplementation("org.appliedenergistics:guideme:20.1.13")
+    modImplementation("curse.maven:duplicationless-1380105:8646420")
 
     modRuntimeOnly("curse.maven:spark-361579:4738952")
     modRuntimeOnly("curse.maven:modernfix-790626:7928686")

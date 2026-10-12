@@ -45,6 +45,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,6 @@ import static com.gregtechceu.gtceu.api.data.chemical.material.properties.Proper
 
 public class GTUtil {
 
-    public static Function<Item, ResourceLocation> ITEM_ID = ForgeRegistries.ITEMS::getKey;
     public static Function<Fluid, ResourceLocation> FLUID_ID = ForgeRegistries.FLUIDS::getKey;
 
     public static Function<ResourceLocation, Item> ITEM_VALUE = ForgeRegistries.ITEMS::getValue;
@@ -534,7 +534,7 @@ public class GTUtil {
     }
 
     public static CompoundTag saveItemStack(ItemStack itemStack, CompoundTag compoundTag) {
-        ResourceLocation resourceLocation = GTUtil.ITEM_ID.apply(itemStack.getItem());
+        ResourceLocation resourceLocation = RegistryEntry.get(itemStack.getItem());
         compoundTag.putString("id", resourceLocation.toString());
         compoundTag.putInt("Count", itemStack.getCount());
         if (itemStack.getTag() != null) {

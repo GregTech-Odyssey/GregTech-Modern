@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.item.LampBlockItem;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -21,6 +20,7 @@ import appeng.api.stacks.AEItemKey;
 import de.mari_023.ae2wtlib.wct.CraftingTerminalHandler;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 
@@ -83,7 +83,7 @@ public final class PlayerSupply {
     }
 
     private static boolean isBackpack(ItemStack stack) {
-        return !stack.isEmpty() && BACKPACK_MOD.equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace());
+        return !stack.isEmpty() && BACKPACK_MOD.equals(RegistryEntry.get(stack.getItem()).getNamespace());
     }
 
     private static boolean usable(ItemStack stack) {

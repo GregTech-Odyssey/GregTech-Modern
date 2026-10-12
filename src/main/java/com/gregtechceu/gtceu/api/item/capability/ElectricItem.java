@@ -13,6 +13,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import me.kall.duplicationless.ext.RegistryEntry;
+
 public class ElectricItem implements IElectricItem {
 
     public static final ItemDataComponentKey<Long, LongTag> CHARGE = ItemDataComponentKey.create(ToolHelper.CHARGE_KEY, ElectricItem::write, ElectricItem::read);
@@ -52,7 +54,7 @@ public class ElectricItem implements IElectricItem {
     }
 
     private static StringTag writeItem(Item item) {
-        return StringTag.valueOf(BuiltInRegistries.ITEM.getKey(item).toString());
+        return StringTag.valueOf(RegistryEntry.get(item).toString());
     }
 
     private static Item readItem(StringTag tag) {

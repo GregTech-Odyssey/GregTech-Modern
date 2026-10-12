@@ -165,7 +165,7 @@ public class TaskHandler {
     }
 
     public TickableSubscription enqueueTick(BooleanSupplier isRemove, Runnable runnable, int cycle, int delay) {
-        var entry = new TaskRunnableEntry(runnable, isRemove, false, delay);
+        var entry = new TaskRunnableEntry(runnable, isRemove, false, delay + (cycle >> 2));
         entry.cycle = cycle;
         synchronized (this) {
             waitingTasks.addLast(entry);

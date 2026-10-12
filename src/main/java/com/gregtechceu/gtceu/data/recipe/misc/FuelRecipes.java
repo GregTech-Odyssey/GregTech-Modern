@@ -11,6 +11,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public class FuelRecipes {
         Set<Item> addedItems = new ReferenceOpenHashSet<>();
         for (var fuelEntry : FurnaceBlockEntity.getFuel().entrySet()) {
             addedItems.add(fuelEntry.getKey());
-            var resLoc = GTUtil.ITEM_ID.apply(fuelEntry.getKey());
+            var resLoc = RegistryEntry.get(fuelEntry.getKey());
             STEAM_BOILER_RECIPES.recipeBuilder(GTCEu.id(resLoc.getNamespace() + "_" + resLoc.getPath()))
                     .inputItems(fuelEntry.getKey())
                     .duration(fuelEntry.getValue() * 12) // remove the * 12 if SteamBoilerMachine:240 is uncommented
@@ -35,7 +36,7 @@ public class FuelRecipes {
         for (Item item : BuiltInRegistries.ITEM) {
             var burnTime = GTUtil.getItemBurnTime(item);
             if (burnTime > 0 && !addedItems.contains(item)) {
-                var resLoc = GTUtil.ITEM_ID.apply(item);
+                var resLoc = RegistryEntry.get(item);
                 STEAM_BOILER_RECIPES.recipeBuilder(GTCEu.id(resLoc.getNamespace() + "_" + resLoc.getPath()))
                         .inputItems(item)
                         .duration(burnTime * 12)

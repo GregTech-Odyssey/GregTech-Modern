@@ -188,7 +188,9 @@ public final class ItemDataComponentMap extends DataKey2ObjectMap<ItemDataCompon
                 }
             }
         } else {
-            tag.tags.remove(dataKey.name);
+            if (tag.tags.remove(dataKey.name) != null && tag.tags.isEmpty()) {
+                stack.setTag(null);
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, ShapedEnergyTransferRecipeBuilder> {
@@ -117,7 +118,7 @@ public class ShapedEnergyTransferRecipeBuilder extends Builder<Ingredient, Shape
     }
 
     protected ResourceLocation defaultId() {
-        return GTUtil.ITEM_ID.apply(output.getItem());
+        return RegistryEntry.get(output.getItem());
     }
 
     public void save() {

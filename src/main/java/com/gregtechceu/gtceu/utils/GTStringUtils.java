@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.NotNull;
 
 public class GTStringUtils {
@@ -17,7 +18,7 @@ public class GTStringUtils {
      */
     @NotNull
     public static String itemStackToString(@NotNull ItemStack stack) {
-        ResourceLocation itemId = GTUtil.ITEM_ID.apply(stack.getItem());
+        ResourceLocation itemId = RegistryEntry.get(stack.getItem());
         return stack.getCount() + "x_" + itemId.getNamespace() + "_" + itemId.getPath();
     }
 

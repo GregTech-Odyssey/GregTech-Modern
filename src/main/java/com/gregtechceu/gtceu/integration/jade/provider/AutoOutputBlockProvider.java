@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.apache.commons.lang3.StringUtils;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -73,7 +74,7 @@ public class AutoOutputBlockProvider implements IBlockComponentProvider, IServer
         var level = blockAccessor.getLevel();
         var pos = blockAccessor.getPosition().relative(direction);
         if (level != null) {
-            var key = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock());
+            var key = RegistryEntry.get(level.getBlockState(pos).getBlock());
             compoundTag.putString("block", key.toString());
         }
         compoundTag.putBoolean("allowInput", allowInput);

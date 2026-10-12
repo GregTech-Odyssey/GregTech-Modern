@@ -29,13 +29,13 @@ import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ModelBuilder;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.client.model.generators.ModelProvider;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.gson.JsonObject;
 import com.gto.registrate.providers.DataGenContext;
 import com.gto.registrate.providers.RegistrateBlockstateProvider;
 import com.gto.registrate.providers.RegistrateItemModelProvider;
 import com.gto.registrate.util.nullness.NonNullBiConsumer;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class GTModels {
 
     public static void createCrossBlockState(DataGenContext<Block, ? extends Block> ctx,
                                              RegistrateBlockstateProvider prov) {
-        prov.simpleBlock(ctx.getEntry(), prov.models().cross(ForgeRegistries.BLOCKS.getKey(ctx.getEntry()).getPath(),
+        prov.simpleBlock(ctx.getEntry(), prov.models().cross(RegistryEntry.get(ctx.getEntry()).getPath(),
                 prov.blockTexture(ctx.getEntry())));
     }
 
@@ -317,7 +317,7 @@ public class GTModels {
                 // bucket models.
                 Fluid fluid = storage.get(key);
                 if (fluid instanceof GTFluid gtFluid) {
-                    GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(gtFluid.getBucket()), () -> {
+                    GTDynamicResourcePack.addItemModel(RegistryEntry.get(gtFluid.getBucket()), () -> {
                         JsonObject original;
                         try (BufferedReader reader = Minecraft.getInstance().getResourceManager()
                                 .openAsReader(GTCEu.id("models/item/bucket/bucket.json"))) {

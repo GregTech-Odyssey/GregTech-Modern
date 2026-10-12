@@ -8,10 +8,10 @@ import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelFile.UncheckedModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import com.gto.registrate.AbstractRegistrate;
 import com.gto.registrate.util.nullness.NonNullSupplier;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 public class RegistrateItemModelProvider extends ItemModelProvider implements RegistrateProvider {
 
@@ -38,11 +38,11 @@ public class RegistrateItemModelProvider extends ItemModelProvider implements Re
     }
 
     public String modid(NonNullSupplier<? extends ItemLike> item) {
-        return ForgeRegistries.ITEMS.getKey(item.get().asItem()).getNamespace();
+        return RegistryEntry.get(item.get().asItem()).getNamespace();
     }
 
     public String name(NonNullSupplier<? extends ItemLike> item) {
-        return ForgeRegistries.ITEMS.getKey(item.get().asItem()).getPath();
+        return RegistryEntry.get(item.get().asItem()).getPath();
     }
 
     public ResourceLocation itemTexture(NonNullSupplier<? extends ItemLike> item) {

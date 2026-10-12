@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.item;
 
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Function;
@@ -8,6 +9,8 @@ import java.util.function.Function;
 public interface IDataComponentItem {
 
     ItemDataComponentMap gtceu$getDataComponents();
+
+    Item gtceu$getItem();
 
     static ItemDataComponentMap getDataComponents(ItemStack stack) {
         return ((IDataComponentItem) (Object) stack).gtceu$getDataComponents();

@@ -5,13 +5,13 @@ import com.gregtechceu.gtceu.common.data.GTParticleTypes;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Locale;
 
@@ -55,7 +55,7 @@ public record HazardParticleOptions(int color, float scale) implements ParticleO
     @Override
     public String writeToString() {
         return String.format(
-                Locale.ROOT, "%s %d %.2f", BuiltInRegistries.PARTICLE_TYPE.getKey(this.getType()), this.color,
+                Locale.ROOT, "%s %d %.2f", RegistryEntry.get(this.getType()), this.color,
                 this.scale);
     }
 }

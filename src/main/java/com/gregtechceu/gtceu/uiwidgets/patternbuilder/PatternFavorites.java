@@ -8,6 +8,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public final class PatternFavorites {
     public static void toggle(Item item) {
         var set = favorites();
         if (!set.remove(item)) set.add(item);
-        UIPreferences.put(KEY, set.stream().map(i -> BuiltInRegistries.ITEM.getKey(i).toString()).collect(Collectors.joining(",")));
+        UIPreferences.put(KEY, set.stream().map(i -> RegistryEntry.get(i).toString()).collect(Collectors.joining(",")));
     }
 
     public static <T> int preferred(List<T> options, Function<T, Item> item) {

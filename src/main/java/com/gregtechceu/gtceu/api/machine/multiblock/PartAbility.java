@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
@@ -8,6 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.*;
@@ -101,7 +101,7 @@ public class PartAbility {
             for (var entry : entries) {
                 result.addAll(entry.getValue());
             }
-            result.sort(Comparator.comparingInt(b -> BuiltInRegistries.BLOCK.getKey(b).getNamespace().length()));
+            result.sort(Comparator.comparingInt(b -> RegistryEntry.get(b).getNamespace().length()));
             allBlocks = result;
             return result;
         }

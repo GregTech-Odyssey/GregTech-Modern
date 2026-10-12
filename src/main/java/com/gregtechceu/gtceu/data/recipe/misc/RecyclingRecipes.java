@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -25,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,7 +119,7 @@ public class RecyclingRecipes {
         if (outputs.isEmpty()) return;
 
         // Build the final Recipe.
-        ResourceLocation itemPath = GTUtil.ITEM_ID.apply(input.getItem());
+        ResourceLocation itemPath = RegistryEntry.get(input.getItem());
         GTRecipeBuilder builder = GTRecipeTypes.MACERATOR_RECIPES.recipeBuilder("macerate_" + itemPath.getPath())
                 .outputItems(outputs.toArray(ItemStack[]::new))
                 .duration(calculateDuration(outputs))
@@ -166,7 +166,7 @@ public class RecyclingRecipes {
                 return;
             }
 
-            ResourceLocation itemPath = GTUtil.ITEM_ID.apply(input.getItem());
+            ResourceLocation itemPath = RegistryEntry.get(input.getItem());
             GTRecipeBuilder builder = GTRecipeTypes.EXTRACTOR_RECIPES.recipeBuilder("extract_" + itemPath.getPath())
                     .outputFluids(m.getFluid((int) (ms.amount() * L / M)))
                     .duration((int) Math.max(1, ms.amount() * ms.material().getMass() / M))
@@ -203,7 +203,7 @@ public class RecyclingRecipes {
         duration = Math.max(1L, duration / M);
 
         // Build the final Recipe.
-        ResourceLocation itemPath = GTUtil.ITEM_ID.apply(input.getItem());
+        ResourceLocation itemPath = RegistryEntry.get(input.getItem());
         GTRecipeBuilder extractorBuilder = GTRecipeTypes.EXTRACTOR_RECIPES
                 .recipeBuilder("extract_" + itemPath.getPath())
                 .outputFluids(fluidMs.material().getFluid((int) (fluidMs.amount() * L / M)))
@@ -244,7 +244,7 @@ public class RecyclingRecipes {
                 ItemStack output = ChemicalHelper.get(TagPrefix.ingot,
                         ms.material().getProperty(PropertyKey.INGOT).getArcSmeltingInto(),
                         (int) (TagPrefix.block.getMaterialAmount(ms.material()) / GTValues.M));
-                ResourceLocation itemPath = GTUtil.ITEM_ID.apply(input.getItem());
+                ResourceLocation itemPath = RegistryEntry.get(input.getItem());
                 GTRecipeBuilder builder = GTRecipeTypes.ARC_FURNACE_RECIPES.recipeBuilder("arc_" + itemPath.getPath())
                         .outputItems(output)
                         .duration(calculateDuration(Collections.singletonList(output)))
@@ -282,7 +282,7 @@ public class RecyclingRecipes {
         if (outputs.isEmpty()) return;
 
         // Build the final Recipe.
-        ResourceLocation itemPath = GTUtil.ITEM_ID.apply(input.getItem());
+        ResourceLocation itemPath = RegistryEntry.get(input.getItem());
         GTRecipeBuilder builder = GTRecipeTypes.ARC_FURNACE_RECIPES.recipeBuilder("arc_" + itemPath.getPath())
                 .outputItems(outputs.toArray(ItemStack[]::new))
                 .duration(calculateDuration(outputs))

@@ -2,12 +2,12 @@ package com.gregtechceu.gtceu.client.renderer.item;
 
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.data.models.model.DelegatedModel;
 import net.minecraft.world.item.Item;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Set;
 
@@ -17,7 +17,7 @@ public class ToolItemRenderer {
 
     public static void reinitModels() {
         for (ToolItemRenderer model : MODELS) {
-            GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(model.item), new DelegatedModel(model.toolType.modelLocation));
+            GTDynamicResourcePack.addItemModel(RegistryEntry.get(model.item), new DelegatedModel(model.toolType.modelLocation));
         }
     }
 

@@ -7,11 +7,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.OreProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.BlockModelGenerators;
 import net.minecraft.data.models.model.DelegatedModel;
 import net.minecraft.data.models.model.ModelLocationUtils;
@@ -20,6 +18,7 @@ import net.minecraft.util.GsonHelper;
 
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,11 +41,11 @@ public class OreBlockRenderer {
 
     public static void reinitModels() {
         for (OreBlockRenderer model : MODELS) {
-            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(model.block);
+            ResourceLocation blockId = RegistryEntry.get(model.block);
             ResourceLocation modelId = blockId.withPrefix("block/");
             OreBlockRenderer.cloneBlockModel(modelId, model.block.tagPrefix, model.block.material);
             GTDynamicResourcePack.addBlockState(blockId, () -> BlockModelGenerators.createSimpleBlock(model.block, modelId).get());
-            GTDynamicResourcePack.addItemModel(GTUtil.ITEM_ID.apply(model.block.asItem()), new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
+            GTDynamicResourcePack.addItemModel(RegistryEntry.get(model.block.asItem()), new DelegatedModel(ModelLocationUtils.getModelLocation(model.block)));
         }
     }
 

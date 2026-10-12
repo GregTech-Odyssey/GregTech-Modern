@@ -25,7 +25,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -46,6 +45,7 @@ import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
 import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import lombok.Getter;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
             if (key != null) totals.addTo(key, storage.amountAt(i));
         }
         var keys = new ArrayList<>(totals.keySet());
-        keys.sort(Comparator.comparing((AEItemKey key) -> BuiltInRegistries.ITEM.getKey(key.getItem()))
+        keys.sort(Comparator.comparing((AEItemKey key) -> RegistryEntry.get(key.getItem()))
                 .thenComparing(key -> Objects.toString(key.getTag(), "")));
         int slot = 0;
         for (var key : keys) {

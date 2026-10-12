@@ -27,13 +27,13 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
 import com.gto.registrate.AbstractRegistrate;
 import com.gto.registrate.util.DataIngredient;
 import com.gto.registrate.util.nullness.NonNullSupplier;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -85,7 +85,7 @@ public class RegistrateRecipeProvider extends RecipeProvider implements Registra
     }
 
     public ResourceLocation safeId(ItemLike registryEntry) {
-        return safeId(ForgeRegistries.ITEMS.getKey(registryEntry.asItem()));
+        return safeId(RegistryEntry.get(registryEntry.asItem()));
     }
 
     public String safeName(ResourceLocation id) {
@@ -97,7 +97,7 @@ public class RegistrateRecipeProvider extends RecipeProvider implements Registra
     }
 
     public String safeName(ItemLike registryEntry) {
-        return safeName(ForgeRegistries.ITEMS.getKey(registryEntry.asItem()));
+        return safeName(RegistryEntry.get(registryEntry.asItem()));
     }
 
     public static final int DEFAULT_SMELT_TIME = 200;

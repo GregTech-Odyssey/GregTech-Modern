@@ -10,13 +10,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.IIngredientSerializer;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import com.google.common.collect.ObjectArrays;
 import com.gto.registrate.providers.RegistrateRecipeProvider;
 import com.gto.registrate.util.nullness.NonNullSupplier;
 import lombok.Getter;
 import lombok.experimental.Delegate;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Arrays;
 import java.util.function.Function;
@@ -57,7 +57,7 @@ public final class DataIngredient extends Ingredient {
     private DataIngredient(Ingredient parent, ItemLike item) {
         super(Stream.empty());
         this.parent = parent;
-        this.id = ForgeRegistries.ITEMS.getKey(item.asItem());
+        this.id = RegistryEntry.get(item.asItem());
         this.criteriaFactory = prov -> RegistrateRecipeProvider.has(item);
     }
 

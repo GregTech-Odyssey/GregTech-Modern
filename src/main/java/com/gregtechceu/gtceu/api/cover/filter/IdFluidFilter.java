@@ -1,9 +1,10 @@
 package com.gregtechceu.gtceu.api.cover.filter;
 
+import com.gregtechceu.gtceu.utils.GTUtil;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import appeng.hooks.IAEFluid;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
@@ -49,7 +50,7 @@ public class IdFluidFilter extends IdFilter<FluidStack, FluidFilter> implements 
     }
 
     private boolean matchesAny(FluidStack fluidStack) {
-        var id = ForgeRegistries.FLUIDS.getKey(fluidStack.getFluid());
+        var id = GTUtil.FLUID_ID.apply(fluidStack.getFluid());
         return id != null && super.matchesAny(id);
     }
 

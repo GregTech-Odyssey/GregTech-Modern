@@ -20,6 +20,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -132,7 +133,7 @@ public class ShapedRecipeBuilder extends Builder<Ingredient, ShapedRecipeBuilder
     }
 
     protected ResourceLocation defaultId() {
-        return GTUtil.ITEM_ID.apply(output.getItem());
+        return RegistryEntry.get(output.getItem());
     }
 
     public void save() {

@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
+import com.gregtechceu.gtceu.utils.GTUtil;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -16,6 +18,7 @@ import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.util.NbtUtil;
 import io.netty.buffer.Unpooled;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -98,11 +101,11 @@ final class KeyInventoryCodec {
         if (items) {
             var k = (AEItemKey) key;
             tag = k.getTag();
-            id = BuiltInRegistries.ITEM.getKey(k.getItem()).toString();
+            id = RegistryEntry.get(k.getItem()).toString();
         } else if (fluids) {
             var k = (AEFluidKey) key;
             tag = k.getTag();
-            id = BuiltInRegistries.FLUID.getKey(k.getFluid()).toString();
+            id = GTUtil.FLUID_ID.apply(k.getFluid()).toString();
         } else {
             buf.writeVarInt(tableSize);
             NbtUtil.write(key.toTag(), buf);

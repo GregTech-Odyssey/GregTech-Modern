@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
@@ -49,7 +50,7 @@ public class ExhaustVentBlockProvider extends BlockInfoProvider<IExhaustVentMach
         var level = blockAccessor.getLevel();
         var pos = blockAccessor.getPosition().relative(direction);
         if (level != null) {
-            var key = BuiltInRegistries.BLOCK.getKey(level.getBlockState(pos).getBlock());
+            var key = RegistryEntry.get(level.getBlockState(pos).getBlock());
             compoundTag.putString("ventBlock", key.toString());
         }
         compoundTag.putBoolean("ventBlocked", iExhaustVentMachine.isVentingBlocked());

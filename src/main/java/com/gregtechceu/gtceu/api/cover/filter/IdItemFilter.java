@@ -2,10 +2,10 @@ package com.gregtechceu.gtceu.api.cover.filter;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import appeng.hooks.IAEItem;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -48,7 +48,7 @@ public class IdItemFilter extends IdFilter<ItemStack, ItemFilter> implements Ite
     }
 
     private boolean matchesAny(ItemStack itemStack) {
-        var id = ForgeRegistries.ITEMS.getKey(itemStack.getItem());
+        var id = RegistryEntry.get(itemStack.getItem());
         return id != null && super.matchesAny(id);
     }
 

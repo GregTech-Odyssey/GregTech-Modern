@@ -38,6 +38,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,7 +62,7 @@ public abstract class ProspectorMode<T> {
                         var state = chunk.getBlockState(pos);
                         if (state.is(oreTag)) {
                             var itemName = BLOCK_CACHE.computeIfAbsent(state, blockState -> {
-                                var name = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString();
+                                var name = RegistryEntry.get(blockState.getBlock()).toString();
                                 var entry = ChemicalHelper.getMaterialEntry(blockState.getBlock());
                                 if (!entry.isEmpty()) {
                                     name = "material_" + entry.material();

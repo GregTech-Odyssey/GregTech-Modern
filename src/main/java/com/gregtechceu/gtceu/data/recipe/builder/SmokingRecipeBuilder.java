@@ -14,6 +14,7 @@ import net.minecraft.world.item.crafting.SmokingRecipe;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.crafting.StrictNBTIngredient;
 
+import me.kall.duplicationless.ext.RegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 public class SmokingRecipeBuilder {
@@ -66,7 +67,7 @@ public class SmokingRecipeBuilder {
     }
 
     protected ResourceLocation defaultId() {
-        return GTUtil.ITEM_ID.apply(output.getItem());
+        return RegistryEntry.get(output.getItem());
     }
 
     public ResourceLocation getId() {

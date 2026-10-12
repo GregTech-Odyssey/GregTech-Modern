@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.data.models.blockstates.PropertyDispatch;
 import net.minecraft.data.models.blockstates.Variant;
@@ -16,6 +15,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+import me.kall.duplicationless.ext.RegistryEntry;
 
 import java.util.Set;
 
@@ -33,7 +33,7 @@ public class SurfaceRockRenderer {
 
     public static void reinitModels() {
         for (SurfaceRockRenderer model : MODELS) {
-            ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(model.block);
+            ResourceLocation blockId = RegistryEntry.get(model.block);
             ResourceLocation modelId = blockId.withPrefix("block/");
 
             GTDynamicResourcePack.addBlockModel(modelId, new DelegatedModel(GTCEu.id("block/surface_rock")));
