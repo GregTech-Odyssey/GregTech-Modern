@@ -90,10 +90,8 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        for (var part : getWorkableParts()) {
-            if (part instanceof IMaintenanceMachine maintenanceMachine) {
-                this.maintenance = maintenanceMachine;
-            }
+        for (var part : getParts(IMaintenanceMachine.class)) {
+            this.maintenance = part;
         }
         this.inputHatches = new EnergyContainerList(getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER));
         this.outputHatches = new EnergyContainerList(getCapabilitiesFlat(IO.OUT, GTCapability.ENERGY_CONTAINER));
@@ -224,11 +222,9 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     public long getPassiveDrain() {
         if (ConfigHolder.INSTANCE.machines.enableMaintenance) {
             if (maintenance == null) {
-                for (IMultiPart part : getParts()) {
-                    if (part instanceof IMaintenanceMachine maintenanceMachine) {
-                        this.maintenance = maintenanceMachine;
-                        break;
-                    }
+                for (var part : getParts(IMaintenanceMachine.class)) {
+                    this.maintenance = part;
+                    break;
                 }
             }
             int multiplier = 1 + maintenance.getNumMaintenanceProblems();
@@ -275,7 +271,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
 
     @Override
     public List<IFancyUIProvider> getSubTabs() {
-        return Arrays.stream(getParts()).map(IFancyUIProvider.class::cast).toList();
+        return Arrays.asList(getParts(IFancyUIProvider.class));
     }
 
     @Override

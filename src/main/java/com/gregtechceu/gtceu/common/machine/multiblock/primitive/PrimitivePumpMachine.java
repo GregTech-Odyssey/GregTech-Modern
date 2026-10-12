@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -46,7 +47,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     }
 
     private void initializeTank() {
-        for (var part : getWorkableParts()) {
+        for (var part : getParts(IWorkableMultiPart.class)) {
             var handlerList = part.getHandlerUnit();
             if (!handlerList.isValid(IO.OUT)) continue;
             for (var handler : handlerList.fluidHandlers) {

@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -52,10 +51,7 @@ import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -112,13 +108,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     }
 
     public void refreshHPCAComponents() {
-        List<IHPCAComponentHatch> componentHatches = new ArrayList<>();
-        for (IMultiPart part : getParts()) {
-            if (part instanceof IHPCAComponentHatch componentHatch) {
-                componentHatches.add(componentHatch);
-            }
-        }
-        this.hpcaHandler.onStructureForm(componentHatches);
+        this.hpcaHandler.onStructureForm(getParts(IHPCAComponentHatch.class));
     }
 
     @Override
@@ -322,7 +312,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
 
         public HPCAGridHandler() {}
 
-        public void onStructureForm(Collection<IHPCAComponentHatch> components) {
+        public void onStructureForm(IHPCAComponentHatch[] components) {
             reset();
             for (var component : components) {
                 this.components.add(component);

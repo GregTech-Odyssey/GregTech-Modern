@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -214,7 +215,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     protected void initializeAbilities() {
         List<IEnergyContainer> energyContainers = new ArrayList<>();
-        for (var part : getWorkableParts()) {
+        for (var part : getParts(IWorkableMultiPart.class)) {
             if (isPartIgnored(part)) continue;
             for (var handlerList : part.getRecipeHandlers()) {
                 energyContainers.addAll(handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER));

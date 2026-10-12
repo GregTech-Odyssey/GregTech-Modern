@@ -164,6 +164,8 @@ public interface IMultiController extends IMachineFeature {
      */
     IMultiPart[] getParts();
 
+    <T> T[] getParts(Class<T> type);
+
     /**
      * Get lock for pattern checking.
      */

@@ -25,7 +25,7 @@ public interface IDistillationTower extends IWorkableMultiController {
 
     default boolean addOutputs() {
         final int startY = self().getPos().getY() + getYOffset();
-        List<IWorkableMultiPart> parts = Arrays.stream(getParts()).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).filter(part -> PartAbility.EXPORT_FLUIDS.isApplicable(part.self().getBlockState().getBlock())).filter(part -> part.self().getPos().getY() >= startY).toList();
+        List<IWorkableMultiPart> parts = Arrays.stream(getParts(IWorkableMultiPart.class)).filter(part -> PartAbility.EXPORT_FLUIDS.isApplicable(part.self().getBlockState().getBlock())).filter(part -> part.self().getPos().getY() >= startY).toList();
         if (!parts.isEmpty()) {
             // Loop from controller y + offset -> the highest output hatch
             int maxY = parts.getLast().self().getPos().getY();

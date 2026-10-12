@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiModule;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.misc.TickTimeSampler;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
@@ -37,15 +36,12 @@ import com.google.common.collect.Multimap;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.RemoteCall;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.recipesearch.IteratorUtil;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -58,6 +54,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState multiblockState;
     protected IMultiPart[] parts = new IMultiPart[0];
     protected final List<IMultiModule<?>> modules = new ArrayList<>();
+    protected final Reference2ReferenceOpenHashMap<Class<?>, Object[]> partByClass = new Reference2ReferenceOpenHashMap<>();
 
     @Getter
     @SyncToClient(listener = "onPartsUpdated")
@@ -155,6 +152,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             }
         }
         parts = list.toArray(new IMultiPart[0]);
+        partByClass.clear();
     }
 
     protected void updatePartPositions() {
@@ -164,8 +162,20 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
-    public Iterable<IWorkableMultiPart> getWorkableParts() {
-        return IteratorUtil.asIterable(Arrays.stream(parts).filter(IWorkableMultiPart.class::isInstance).map(IWorkableMultiPart.class::cast).iterator());
+    @Override
+    public <T> T[] getParts(Class<T> type) {
+        var arr = partByClass.get(type);
+        if (arr == null) {
+            var list = new ArrayList<>();
+            for (var part : parts) {
+                if (type.isInstance(part)) {
+                    list.add(part);
+                }
+            }
+            arr = list.isEmpty() ? new IMultiPart[0] : list.toArray(new Object[0]);
+            partByClass.put(type, arr);
+        }
+        return (T[]) arr;
     }
 
     @Override
@@ -304,6 +314,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         if (sorter != null) {
             Arrays.sort(parts, sorter);
         }
+        partByClass.clear();
         updatePartPositions();
     }
 
@@ -330,6 +341,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
         modules.clear();
         this.parts = new IMultiPart[0];
+        partByClass.clear();
         updatePartPositions();
         if (getLevel() instanceof ServerLevel serverLevel) {
             TaskHandler.enqueueTask(serverLevel, this::onStructureInvalidAfter, 0);

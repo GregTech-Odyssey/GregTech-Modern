@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IObjectHolder;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -50,12 +49,10 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        for (IMultiPart part : getParts()) {
-            if (part instanceof IObjectHolder iObjectHolder) {
-                this.objectHolder = iObjectHolder;
-                addHandlerList(RecipeHandlerUnit.of(IO.IN, iObjectHolder.getAsHandler()));
-                break;
-            }
+        for (var part : getParts(IObjectHolder.class)) {
+            this.objectHolder = part;
+            addHandlerList(RecipeHandlerUnit.of(IO.IN, part.getAsHandler()));
+            break;
         }
         // should never happen, but would rather do this than have an obscure NPE
         if (objectHolder == null) {
@@ -66,11 +63,9 @@ public class ResearchStationMachine extends WorkableElectricMultiblockMachine {
     @Override
     public void onStructureInvalid() {
         // recheck the ability to make sure it wasn't the one broken
-        for (IMultiPart part : getParts()) {
-            if (part instanceof IObjectHolder holder) {
-                if (holder == objectHolder) {
-                    objectHolder.setLocked(false);
-                }
+        for (var part : getParts(IObjectHolder.class)) {
+            if (part == objectHolder) {
+                objectHolder.setLocked(false);
             }
         }
         objectHolder = null;

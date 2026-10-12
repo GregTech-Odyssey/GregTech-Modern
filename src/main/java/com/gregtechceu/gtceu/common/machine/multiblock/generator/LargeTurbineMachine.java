@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.generator;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -43,10 +42,8 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
 
     @Nullable
     private IRotorHolderMachine getRotorHolder() {
-        for (IMultiPart part : getParts()) {
-            if (part instanceof IRotorHolderMachine rotorHolder) {
-                return rotorHolder;
-            }
+        for (var part : getParts(IRotorHolderMachine.class)) {
+            return part;
         }
         return null;
     }

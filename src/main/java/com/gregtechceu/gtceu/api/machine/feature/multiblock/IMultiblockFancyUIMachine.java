@@ -14,7 +14,6 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 带标准多方块主页的控制器：机器窗口、部件页签、"详细信息"页签、部件悬浮提示、背包让出主页滚动条位置。
@@ -28,7 +27,7 @@ public interface IMultiblockFancyUIMachine extends IFancyUIMachine, IDisplayUIMa
 
     @Override
     default List<IFancyUIProvider> getSubTabs() {
-        return Arrays.stream(getParts()).filter(Objects::nonNull).map(IFancyUIProvider.class::cast).toList();
+        return Arrays.asList(getParts(IFancyUIProvider.class));
     }
 
     @Override

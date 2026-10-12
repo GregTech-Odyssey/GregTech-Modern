@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.feature.IDummyEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
@@ -89,7 +90,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     }
 
     protected void addSteamEnergy() {
-        for (var part : getWorkableParts()) {
+        for (var part : getParts(IWorkableMultiPart.class)) {
             if (!PartAbility.STEAM.isApplicable(part.self().getDefinition().get())) continue;
             var handlers = part.getRecipeHandlers();
             for (var hl : handlers) {

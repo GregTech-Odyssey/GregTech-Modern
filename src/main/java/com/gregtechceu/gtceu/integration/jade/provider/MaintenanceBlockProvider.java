@@ -38,10 +38,8 @@ public class MaintenanceBlockProvider extends CapabilityBlockProvider<IMaintenan
             return cap;
         }
         if (MetaMachine.getMachine(level, blockPos) instanceof IMultiController controller) {
-            for (var part : controller.getParts()) {
-                if (part instanceof IMaintenanceMachine maintenanceMachine) {
-                    return maintenanceMachine;
-                }
+            for (var part : controller.getParts(IMaintenanceMachine.class)) {
+                return part;
             }
         }
         return null;
