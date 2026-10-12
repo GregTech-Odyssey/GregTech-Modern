@@ -41,6 +41,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -166,16 +167,24 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public <T> T[] getParts(Class<T> type) {
         var arr = partByClass.get(type);
         if (arr == null) {
-            var list = new ArrayList<>();
-            for (var part : parts) {
-                if (type.isInstance(part)) {
-                    list.add(part);
-                }
-            }
-            arr = list.isEmpty() ? new IMultiPart[0] : list.toArray(new Object[0]);
-            partByClass.put(type, arr);
+            arr = getTypeParts(type);
         }
         return (T[]) arr;
+    }
+
+    private <T> T[] getTypeParts(Class<T> type) {
+        var arr = (T[]) Array.newInstance(type, 0);
+        var list = new ArrayList<>();
+        for (var part : parts) {
+            if (type.isInstance(part)) {
+                list.add(part);
+            }
+        }
+        if (!list.isEmpty()) {
+            arr = list.toArray(arr);
+        }
+        partByClass.put(type, arr);
+        return arr;
     }
 
     @Override
