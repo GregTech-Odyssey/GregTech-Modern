@@ -186,7 +186,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                             list.add(Tips.stat(Component.translatable("behavior.portable_scanner.tank", i, Component.translatable(FormattingUtil.formatNumbers(fluidAmount)).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(fluidHandler.slotLimit(i))).withStyle(ChatFormatting.YELLOW), Component.translatable(Keys.displayFluid(fluidKey).getTranslationKey()).withStyle(ChatFormatting.GOLD))));
                         }
                         if (allTanksEmpty) {
-                            list.add(Tips.note(Component.translatable("behavior.portable_scanner.tanks_empty")));
+                            list.add(Tips.feature(Component.translatable("behavior.portable_scanner.tanks_empty")));
                         }
                     }
                     // Sound muffling

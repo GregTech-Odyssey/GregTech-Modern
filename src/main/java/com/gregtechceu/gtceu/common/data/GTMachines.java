@@ -131,7 +131,7 @@ public class GTMachines {
                     .nonYAxisRotation()
                     .recipeType(DUMMY_RECIPES)
                     .tips(Tips.requirement(Component.translatable("gtceu.universal.tooltip.uses_per_tick_steam", isHP ? 32 : 16)
-                            .append(ChatFormatting.GRAY + ", ")
+                            .append(", ")
                             .append(Component.translatable("gtceu.machine.miner.per_block",
                                     isHP ? 240 / 20 : 280 / 20))))
                     .tooltipBuilder((item, tooltip) -> {
@@ -364,7 +364,7 @@ public class GTMachines {
                         int tickSpeed = ConfigHolder.INSTANCE.machines.minerSpeed / (tier * 2);
                         tooltip.add(Tips.requirement(Component.translatable("gtceu.machine.miner.tooltip", maxArea, maxArea)));
                         tooltip.add(Tips.requirement(Component.translatable("gtceu.universal.tooltip.uses_per_tick", energyPerTick)
-                                .append(Component.literal(", ").withStyle(ChatFormatting.GRAY))
+                                .append(", ")
                                 .append(Component.translatable("gtceu.machine.miner.per_block", tickSpeed / 20))));
                         tooltip.add(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in",
                                 FormattingUtil.formatNumbers(GTValues.V[tier]),

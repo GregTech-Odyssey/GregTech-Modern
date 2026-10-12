@@ -284,10 +284,6 @@ public final class TipSpec implements Supplier<List<Component>> {
             return line(TipRole.UNSUPPORTED, body);
         }
 
-        public Lines note(Component body) {
-            return line(TipRole.NOTE, body);
-        }
-
         public Lines detail(Component body) {
             return line(TipRole.DETAIL, body);
         }

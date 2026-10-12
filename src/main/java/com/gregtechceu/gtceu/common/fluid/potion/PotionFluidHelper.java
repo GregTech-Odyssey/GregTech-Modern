@@ -109,7 +109,7 @@ public class PotionFluidHelper {
         List<MobEffectInstance> list = PotionUtils.getAllEffects(fs.getOrCreateTag());
         List<Tuple<String, AttributeModifier>> modifiers = new ArrayList<>();
         if (list.isEmpty()) {
-            tooltip.accept(Tips.note(Component.translatable("effect.none")));
+            tooltip.accept(Tips.feature(Component.translatable("effect.none")));
         } else {
             for (MobEffectInstance effectInstance : list) {
                 MutableComponent name = Component.translatable(effectInstance.getDescriptionId());

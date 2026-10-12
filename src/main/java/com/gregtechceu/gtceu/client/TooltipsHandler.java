@@ -17,7 +17,6 @@ import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.Event;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -52,7 +51,7 @@ public class TooltipsHandler {
         if (!materialEntry.isEmpty()) {
             var formula = materialEntry.material().getChemicalFormula();
             if (formula != null) {
-                tooltips.add(1, Tips.plain(Component.empty().append(formula).withStyle(ChatFormatting.YELLOW)));
+                tooltips.add(1, Tips.formula(formula));
             }
         }
         if (stack.getItem() instanceof BucketItem bucket) {
@@ -102,7 +101,7 @@ public class TooltipsHandler {
         if (!material.isNull()) {
             var formula = material.getChemicalFormula();
             if (formula != null) {
-                tooltips.accept(Tips.plain(Component.empty().append(formula).withStyle(ChatFormatting.YELLOW)));
+                tooltips.accept(Tips.formula(formula));
             }
 
             if (material.hasProperty(PropertyKey.INGOT)) {

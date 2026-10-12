@@ -243,7 +243,7 @@ public class GTMultiMachines {
             })
             .workableCasingRenderer(GTCEu.id("block/casings/voltage/ulv/side"),
                     GTCEu.id("block/multiblock/pyrolyse_oven"))
-            .tips(Tips.note(Component.translatable("gtceu.machine.pyrolyse_oven.tooltip.1")))
+            .tips(Tips.feature(Component.translatable("gtceu.machine.pyrolyse_oven.tooltip.1")))
             .additionalDisplay((controller, components) -> {
                 if (controller instanceof CoilWorkableElectricMultiblockMachine coilMachine && controller.isFormed()) {
                     components.add(Component.translatable("gtceu.multiblock.pyrolyse_oven.speed",
@@ -537,7 +537,7 @@ public class GTMultiMachines {
                     .recipeModifiers(FusionReactorMachine::recipeModifier)
                     .tips(
                             Tips.energy(StatKind.ENERGY_CAPACITY, FusionReactorMachine.calculateEnergyStorageFactor(tier, 16), tier),
-                            Tips.note(Component.translatable("gtceu.machine.fusion_reactor.overclocking")),
+                            Tips.feature(Component.translatable("gtceu.machine.fusion_reactor.overclocking")),
                             Tips.feature(Component.translatable("gtceu.multiblock.%s_fusion_reactor.description"
                                     .formatted(VN[tier].toLowerCase(Locale.ROOT)))))
                     .appearanceBlock(() -> FusionReactorMachine.getCasingState(tier))
@@ -675,14 +675,12 @@ public class GTMultiMachines {
                     Tips.stat(Component.translatable("gtceu.machine.cleanroom.tooltip.3")))
             .tooltipBuilder((stack, tooltip) -> {
                 if (GTUtil.isCtrlDown()) {
-                    tooltip.add(Component.empty());
                     tooltip.add(Tips.requirement(Component.translatable("gtceu.machine.cleanroom.tooltip.4")));
                     tooltip.add(Tips.requirement(Component.translatable("gtceu.machine.cleanroom.tooltip.5")));
                     tooltip.add(Tips.unsupported(Component.translatable("gtceu.machine.cleanroom.tooltip.6")));
                     tooltip.add(Tips.feature(Component.translatable("gtceu.machine.cleanroom.tooltip.7")));
                     // tooltip.add(Component.translatable("gtceu.machine.cleanroom.tooltip.8"));
                     tooltip.add(Tips.feature(Component.translatable(AEConfig.instance().getChannelMode() == ChannelMode.INFINITE ? "gtceu.machine.cleanroom.tooltip.ae2.no_channels" : "gtceu.machine.cleanroom.tooltip.ae2.channels")));
-                    tooltip.add(Component.empty());
                 } else {
                     tooltip.add(Tips.control(Component.translatable("gtceu.machine.cleanroom.tooltip.hold_ctrl")));
                 }

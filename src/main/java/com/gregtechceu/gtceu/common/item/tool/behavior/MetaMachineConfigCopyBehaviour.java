@@ -174,7 +174,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             header.append(Component.literal(" · ").append(Component.translatable("behaviour.memory_card.gto.empty"))
                     .withStyle(ChatFormatting.GRAY));
         }
-        tooltipComponents.add(Tips.heading(header.withStyle(ChatFormatting.GOLD)));
+        tooltipComponents.add(Tips.heading(header));
 
         Direction origFront = data == null ? null : tagToDirection(data.get(ORIGINAL_FRONT));
         addSetting(tooltipComponents, Component.translatable("behaviour.memory_card.gto.setting.output_side"), data,
@@ -191,29 +191,21 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
                 data == null ? null : data.contains(MUFFLED) ? onOff(data.getBoolean(MUFFLED)) : notRecorded())));
 
         tooltipComponents.add(Tips.heading(Component.literal("◆ ")
-                .append(Component.translatable("behaviour.memory_card.gto.section.usage"))
-                .withStyle(ChatFormatting.GOLD)));
-        tooltipComponents.add(Tips.rightClick(Component.literal(" ").append(Component.translatable("behaviour.memory_card.gto.usage.copy"))
-                .withStyle(ChatFormatting.GRAY)));
+                .append(Component.translatable("behaviour.memory_card.gto.section.usage"))));
+        tooltipComponents.add(Tips.rightClick(Component.literal(" ").append(Component.translatable("behaviour.memory_card.gto.usage.copy"))));
         tooltipComponents.add(Tips.rightClick(Component.literal(" ")
-                .append(Component.translatable("behaviour.memory_card.gto.usage.paste"))
-                .withStyle(ChatFormatting.GRAY)));
+                .append(Component.translatable("behaviour.memory_card.gto.usage.paste"))));
         tooltipComponents.add(Tips.rightClick(Component.literal(" ")
-                .append(Component.translatable("behaviour.memory_card.gto.usage.clear"))
-                .withStyle(ChatFormatting.GRAY)));
+                .append(Component.translatable("behaviour.memory_card.gto.usage.clear"))));
         if (Screen.hasShiftDown()) {
-            tooltipComponents.add(Tips.note(Component.literal(" ")
-                    .append(Component.translatable("behaviour.memory_card.gto.details.relative"))
-                    .withStyle(ChatFormatting.DARK_GRAY)));
-            tooltipComponents.add(Tips.note(Component.literal(" ")
-                    .append(Component.translatable("behaviour.memory_card.gto.details.skip"))
-                    .withStyle(ChatFormatting.DARK_GRAY)));
-            tooltipComponents.add(Tips.note(Component.literal(" ")
-                    .append(Component.translatable("behaviour.memory_card.gto.details.not_copied"))
-                    .withStyle(ChatFormatting.DARK_GRAY)));
+            tooltipComponents.add(Tips.feature(Component.literal(" ")
+                    .append(Component.translatable("behaviour.memory_card.gto.details.relative"))));
+            tooltipComponents.add(Tips.feature(Component.literal(" ")
+                    .append(Component.translatable("behaviour.memory_card.gto.details.skip"))));
+            tooltipComponents.add(Tips.feature(Component.literal(" ")
+                    .append(Component.translatable("behaviour.memory_card.gto.details.not_copied"))));
         } else {
-            tooltipComponents.add(Tips.control(Component.translatable("metaarmor.gto.hint.shift")
-                    .withStyle(ChatFormatting.DARK_GRAY)));
+            tooltipComponents.add(Tips.control(Component.translatable("metaarmor.gto.hint.shift")));
         }
     }
 

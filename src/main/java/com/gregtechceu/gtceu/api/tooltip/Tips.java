@@ -68,10 +68,6 @@ public final class Tips {
         return line(TipRole.UNSUPPORTED, body);
     }
 
-    public static MutableComponent note(Component body) {
-        return line(TipRole.NOTE, body);
-    }
-
     public static MutableComponent detail(Component body) {
         return line(TipRole.DETAIL, body);
     }

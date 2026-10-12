@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.component.ElectricStats;
 import com.gregtechceu.gtceu.api.item.component.IItemHUDProvider;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.item.armor.ArmorSuiteFeatures;
 import com.gregtechceu.gtceu.common.item.armor.ArmorTooltips;
 import com.gregtechceu.gtceu.common.item.armor.GTArmorMaterials;
@@ -370,7 +371,7 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
     }
 
     private static Component detail(String key, Object... args) {
-        return Component.literal("     ").append(Component.translatable(key, args)).withStyle(ChatFormatting.DARK_GRAY);
+        return Tips.feature(Component.translatable(key, args));
     }
 
     /**

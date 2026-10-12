@@ -267,7 +267,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         isFormed = true;
     }
 
-    @OnlyIn(Dist.CLIENT)
     @RemoteCall(side = LogicalSide.CLIENT)
     @MustBeInvokedByOverriders
     public void onStructureFormedClient() {
@@ -308,7 +307,6 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         updatePartPositions();
     }
 
-    @OnlyIn(Dist.CLIENT)
     @RemoteCall(side = LogicalSide.CLIENT)
     @MustBeInvokedByOverriders
     public void onStructureInvalidClient() {

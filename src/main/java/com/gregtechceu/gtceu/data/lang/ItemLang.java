@@ -145,10 +145,10 @@ public class ItemLang {
         provider.add("item.gtceu.energy_module.tooltip", "§7Reusable Battery");
         provider.add("item.gtceu.energy_cluster.tooltip", "§7Reusable Battery");
         provider.add("item.gtceu.max_battery.tooltip", "§7Fill this to win Minecraft");
-        provider.add("item.gtceu.electric.pump.tooltip", "§7Transfers §fFluids§7 at specific rates as §fCover§7.");
-        provider.add("item.gtceu.fluid.regulator.tooltip", "§7Limits §fFluids§7 to specific quantities as §fCover§7.");
-        provider.add("item.gtceu.conveyor.module.tooltip", "§7Transfers §fItems§7 at specific rates as §fCover§7.");
-        provider.add("item.gtceu.robot.arm.tooltip", "§7Limits §fItems§7 to specific quantities as §fCover§7.");
+        provider.add("item.gtceu.electric.pump.tooltip", "Transfers §fFluids§r at specific rates as §fCover§r.");
+        provider.add("item.gtceu.fluid.regulator.tooltip", "Limits §fFluids§r to specific quantities as §fCover§r.");
+        provider.add("item.gtceu.conveyor.module.tooltip", "Transfers §fItems§r at specific rates as §fCover§r.");
+        provider.add("item.gtceu.robot.arm.tooltip", "Limits §fItems§r to specific quantities as §fCover§r.");
         provider.add("item.gtceu.data_stick.tooltip", "§7A Low Capacity Data Storage");
         provider.add("item.gtceu.data_orb.tooltip", "§7A High Capacity Data Storage");
         multilineLang(provider, "item.gtceu.programmed_circuit.tooltip",
@@ -333,7 +333,7 @@ public class ItemLang {
         provider.add("item.gtceu.shutter_module_cover.tooltip",
                 "§fBlocks Transfer§7 through attached Side as §fCover§7.");
         multilineLang(provider, "item.gtceu.solar_panel.tooltip",
-                "§7May the Sun be with you.\nProduces §fEnergy§7 from the §eSun§7 as §fCover§7.");
+                "May the Sun be with you.\nProduces §fEnergy§r from the §eSun§r as §fCover§r.");
         provider.add("item.gtceu.infinite_water_cover.tooltip",
                 "§7Fills attached containers with §9Water§7 as §fCover§7.");
         provider.add("item.gtceu.gelled_toluene.tooltip", "§7Raw Explosive");

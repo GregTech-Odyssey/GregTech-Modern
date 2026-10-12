@@ -17,9 +17,7 @@ import com.lowdragmc.lowdraglib.gui.factory.HeldItemUIFactory;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -133,8 +131,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
         tooltipComponents.add(Tips.stat(Component.translatable("metaitem.prospector.tooltip.radius", radius)));
         tooltipComponents.add(Tips.heading(Component.translatable("metaitem.prospector.tooltip.modes")));
         for (ProspectorMode<?> mode : modes) {
-            tooltipComponents.add(Tips.feature(Component.literal(" -").append(Component.translatable(mode.unlocalizedName))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))));
+            tooltipComponents.add(Tips.feature(Component.literal(" -").append(Component.translatable(mode.unlocalizedName))));
         }
     }
 }

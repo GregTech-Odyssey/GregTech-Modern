@@ -87,11 +87,11 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
                 .add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip." + i++ + (isMagic ? ".magic" : ""))));
         if (isMagic) {
             tooltipComponents.add(Tips.formula(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.3.magic")));
-            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.4.magic"));
-            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.5.magic"));
-            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.6.magic"));
-            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.7.magic"));
-            tooltipComponents.add(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.8.magic"));
+            tooltipComponents.add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.4.magic")));
+            tooltipComponents.add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.5.magic")));
+            tooltipComponents.add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.6.magic")));
+            tooltipComponents.add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.7.magic")));
+            tooltipComponents.add(Tips.feature(Component.translatable("metaitem.tool.tooltip.rotor.coating.tooltip.8.magic")));
         }
     }
 

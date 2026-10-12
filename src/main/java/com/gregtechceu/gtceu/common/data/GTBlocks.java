@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.api.item.LampBlockItem;
 import com.gregtechceu.gtceu.api.item.LaserPipeBlockItem;
 import com.gregtechceu.gtceu.api.item.OpticalPipeBlockItem;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.block.*;
 import com.gregtechceu.gtceu.common.block.explosive.IndustrialTNTBlock;
 import com.gregtechceu.gtceu.common.block.explosive.PowderbarrelBlock;
@@ -1142,8 +1143,8 @@ public class GTBlocks {
                 public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                             TooltipFlag isAdvanced) {
                     super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
-                    tooltipComponents.add(1, Component.translatable("tile.gtceu.brittle_charcoal.tooltip.0"));
-                    tooltipComponents.add(2, Component.translatable("tile.gtceu.brittle_charcoal.tooltip.1"));
+                    tooltipComponents.add(1, Tips.feature(Component.translatable("tile.gtceu.brittle_charcoal.tooltip.0")));
+                    tooltipComponents.add(2, Tips.feature(Component.translatable("tile.gtceu.brittle_charcoal.tooltip.1")));
                 }
             })
             .build()

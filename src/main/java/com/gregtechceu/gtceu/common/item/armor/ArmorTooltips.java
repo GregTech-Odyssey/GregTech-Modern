@@ -62,7 +62,7 @@ public final class ArmorTooltips {
 
     public static void addDetail(List<Component> lines, String key, Object... args) {
         if (showDetails()) {
-            lines.add(Tips.note(Component.translatable(key, args)));
+            lines.add(Tips.feature(Component.translatable(key, args)));
         }
     }
 

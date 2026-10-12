@@ -91,7 +91,7 @@ public class TurbineRotorBehaviour implements ITurbineRotorBehavior {
         if (mgc && stack.getEnchantmentLevel(Enchantments.UNBREAKING) > 0) {
             var value = 100f / (stack.getEnchantmentLevel(Enchantments.UNBREAKING) + 1);
             tooltipComponents.add(
-                    Component.translatable("metaitem.tool.tooltip.rotor.coating.ench.unbreaking", FormattingUtil.formatNumber2Places(value)).withStyle(ChatFormatting.DARK_PURPLE));
+                    Tips.stat(Component.translatable("metaitem.tool.tooltip.rotor.coating.ench.unbreaking", FormattingUtil.formatNumber2Places(value))));
 
         }
     }

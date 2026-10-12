@@ -50,7 +50,7 @@ public final class TipTooltipLayout {
         for (int i = 0; i < elements.size(); i++) {
             var left = elements.get(i).left();
             if (left.isPresent() && left.get() instanceof Component c && c.getContents() instanceof TipContents tip) {
-                if (i < firstHeading && (tip.role() == TipRole.FEATURE || tip.role() == TipRole.NOTE)) tip = (TipContents) TipContents.line(TipRole.SUMMARY, tip.body()).getContents();
+                if (i < firstHeading && tip.role() == TipRole.FEATURE) tip = (TipContents) TipContents.line(TipRole.SUMMARY, tip.body()).getContents();
                 TipRole role = tip.role();
                 int pad = 0;
                 if (i > 1 && (role == TipRole.HEADING || role == TipRole.FOOTER ||
