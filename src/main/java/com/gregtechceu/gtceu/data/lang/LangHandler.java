@@ -923,16 +923,9 @@ public class LangHandler {
         provider.add("behaviour.paintspray.red.tooltip", "Can paint things in Red");
         provider.add("behaviour.paintspray.black.tooltip", "Can paint things in Black");
         provider.add("behaviour.paintspray.uses", "Remaining Uses: %d");
-        provider.add("behaviour.infinite_spray_can.select", "Select Color");
         provider.add("behaviour.infinite_spray_can.solvent", "Solvent");
         provider.add("behaviour.infinite_spray_can.solvent_hint", "Strip paint from blocks");
-        provider.add("behaviour.infinite_spray_can.preview_hint", "Selected color preview");
-        provider.add("behaviour.infinite_spray_can.current", "Current: %s");
         provider.add("behaviour.infinite_spray_can.current_color", "Current color");
-        provider.add("behaviour.infinite_spray_can.left", "§7Sneak + Scroll: Cycle Color");
-        provider.add("behaviour.infinite_spray_can.middle", "§7Right-Click Air: Open Palette");
-        provider.add("behaviour.infinite_spray_can.right", "§7Right-Click Block: Paint");
-        provider.add("behaviour.infinite_spray_can.ultimine", "§7Hold Ultimine key: Chain Paint");
         provider.add("behaviour.prospecting", "Usable for Prospecting");
         provider.add("behaviour.memory_card.gto.section.copied", "Currently Copied Data");
         provider.add("behaviour.memory_card.gto.section.usage", "Usage");
