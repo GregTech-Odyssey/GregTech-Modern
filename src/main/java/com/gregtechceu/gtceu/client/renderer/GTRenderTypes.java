@@ -11,6 +11,14 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 @OnlyIn(Dist.CLIENT)
 public class GTRenderTypes extends RenderType {
 
+    private static final RenderType ASSEMBLY_LINE = RenderType.create("assembly_line",
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false,
+            RenderType.CompositeState.builder()
+                    .setCullState(CULL)
+                    .setShaderState(POSITION_COLOR_SHADER)
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .createCompositeState(false));
+
     private static final RenderType LIGHT_RING = RenderType.create("light_ring",
             DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLE_STRIP, 256, false, false,
             RenderType.CompositeState.builder()
@@ -26,5 +34,9 @@ public class GTRenderTypes extends RenderType {
 
     public static RenderType getLightRing() {
         return LIGHT_RING;
+    }
+
+    public static RenderType assemblyLine() {
+        return ASSEMBLY_LINE;
     }
 }

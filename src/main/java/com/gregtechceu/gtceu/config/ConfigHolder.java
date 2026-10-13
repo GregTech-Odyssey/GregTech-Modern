@@ -774,6 +774,12 @@ public class ConfigHolder {
     public static class RendererConfigs {
 
         @Configurable
+        @Configurable.Comment({ "The color of the assembly line lasers", "Default: #1FA1FC" })
+        @Configurable.StringPattern(value = "#[0-9a-fA-F]{1,6}")
+        @Configurable.Gui.ColorValue
+        public String assemblyLineLaser = "#1FA1FC";
+
+        @Configurable
         @Configurable.Comment({ "Render fluids in multiblocks that support them?", "Default: true" })
         public boolean renderFluids = true;
 
