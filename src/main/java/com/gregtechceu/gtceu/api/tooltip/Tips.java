@@ -1,8 +1,11 @@
 package com.gregtechceu.gtceu.api.tooltip;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.client.tooltip.TipKeyText;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
@@ -15,6 +18,7 @@ import java.util.function.Supplier;
 
 /**
  * 单行提示的静态工厂：用于直接往 tooltips(Component...) 或提示列表里放带角色的行。
+ * 只用于物品/方块 tooltip；机器界面显示行、聊天消息等要过网络或存盘的文字不能用，原版无法序列化 TipContents。
  */
 public final class Tips {
 
@@ -90,6 +94,28 @@ public final class Tips {
 
     public static MutableComponent middleClick(Component body) {
         return line(TipRole.CONTROL_MIDDLE, body);
+    }
+
+    public static MutableComponent hotkey(KeyBind key, Component action) {
+        return control(keyAction(keyName(key), action));
+    }
+
+    public static MutableComponent keyAction(Component key, Component action) {
+        return Component.translatable("gtceu.tip.key_action", key, action);
+    }
+
+    public static Component keyName(KeyBind key) {
+        return GTCEu.isClientSide() ? TipKeyText.of(key) :
+                Component.translatable("gtceu.tip.key.unbound").withStyle(Style.EMPTY.withColor(TipTheme.ATTENTION));
+    }
+
+    public static MutableComponent toggle(Component name, boolean on) {
+        return Component.translatable("gtceu.tip.toggle", name, onOff(on));
+    }
+
+    public static MutableComponent onOff(boolean on) {
+        return on ? Component.translatable("gtceu.tip.state.on").withStyle(Style.EMPTY.withColor(TipTheme.VALUE)) :
+                Component.translatable("gtceu.tip.state.off").withStyle(Style.EMPTY.withColor(TipTheme.NOTE));
     }
 
     public static MutableComponent lore(Component body) {

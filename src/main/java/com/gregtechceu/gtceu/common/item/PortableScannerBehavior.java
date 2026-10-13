@@ -110,7 +110,7 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
             if (!level.isClientSide) {
                 setNextMode(heldItem);
                 var mode = getMode(heldItem);
-                player.sendSystemMessage(Tips.stat(Component.translatable("behavior.portable_scanner.mode.caption", Component.translatable(mode.getLangKey()))));
+                player.sendSystemMessage(Component.translatable("behavior.portable_scanner.mode.caption", Component.translatable(mode.getLangKey())));
             }
             return InteractionResultHolder.success(heldItem);
         }

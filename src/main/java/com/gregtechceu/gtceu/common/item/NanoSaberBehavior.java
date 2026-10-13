@@ -12,9 +12,7 @@ import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.common.item.armor.ArmorSuiteFeatures;
 import com.gregtechceu.gtceu.common.item.armor.ArmorTooltips;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -213,44 +211,25 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
         event.setAmount(event.getAmount() + (float) (target.getMaxHealth() * saber.getHealthPercent() / 100));
     }
 
-    /**
-     * 武器性能按当前状态取值：能量刃生效为绿；已开启但电量不足为黄、已关闭为红，并在行尾注明原因。
-     * 攻击速度不受能量刃影响。
-     */
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag isAdvanced) {
         boolean enabled = isItemActive(stack);
-        boolean hasEnergy = ArmorTooltips.canUse(stack, energyUsagePerTick);
-        boolean powered = enabled && hasEnergy;
-        ChatFormatting color = powered ? ChatFormatting.GREEN :
-                enabled ? ChatFormatting.YELLOW : ChatFormatting.RED;
-        Component reason = powered ? null : ArmorTooltips.reason(
-                Component.translatable(enabled ? "metaarmor.gto.state.no_energy" : "metaarmor.gto.state.blade_off"), color);
-
-        lines.add(ArmorTooltips.section("metaarmor.gto.section.weapon"));
-        lines.add(stateLine("metaarmor.gto.saber.damage", ArmorTooltips.amps(getAttackDamage(powered)), color, reason));
-        lines.add(stateLine("metaarmor.gto.saber.health_percent", ArmorTooltips.amps(powered ? getHealthPercent() : 0) + "%",
-                color, reason));
-        // I、II 没有攻击距离加成，按常量显示
-        lines.add(ATTACK_RANGE[grade] > PLAYER_ENTITY_REACH ?
-                stateLine("metaarmor.gto.saber.range", ArmorTooltips.amps(getAttackRange(powered)), color, reason) :
-                ArmorTooltips.info("metaarmor.gto.saber.range", ArmorTooltips.value(ArmorTooltips.amps(PLAYER_ENTITY_REACH))));
-        lines.add(ArmorTooltips.info("metaarmor.gto.saber.speed", ArmorTooltips.value(ArmorTooltips.amps(ATTACK_SPEED[grade]))));
-        lines.add(ArmorTooltips.section("metaarmor.gto.section.features"));
-        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.energy_blade", ArmorTooltips.shiftUseToggle(enabled, hasEnergy),
-                ArmorTooltips.ampsPerSecond(ACTIVE_AMPS));
+        boolean powered = enabled && ArmorTooltips.canUse(stack, energyUsagePerTick);
+        if (enabled && !powered) lines.add(ArmorTooltips.noEnergy());
+        lines.add(ArmorTooltips.heading("metaarmor.gto.section.weapon"));
+        lines.add(ArmorTooltips.stat("metaarmor.gto.saber.damage_speed", ArmorTooltips.value(ArmorTooltips.amps(getAttackDamage(powered))),
+                ArmorTooltips.value(ArmorTooltips.amps(ATTACK_SPEED[grade]))));
+        lines.add(ArmorTooltips.stat("metaarmor.gto.saber.range", ArmorTooltips.value(ArmorTooltips.amps(getAttackRange(powered)))));
+        if (powered) {
+            lines.add(ArmorTooltips.stat("metaarmor.gto.saber.health_percent", ArmorTooltips.value(ArmorTooltips.amps(getHealthPercent()) + "%")));
+        }
+        lines.add(ArmorTooltips.heading("metaarmor.gto.section.controls"));
+        lines.add(ArmorTooltips.shiftUse("metaarmor.gto.name.energy_blade", enabled));
         ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.energy_blade", ArmorTooltips.amps(getActiveDamage()),
-                ArmorTooltips.amps(getHealthPercent()) + "%", ArmorTooltips.amps(ATTACK_RANGE[grade]),
-                ArmorTooltips.amps(getInactiveDamage()), ArmorTooltips.amps(PLAYER_ENTITY_REACH));
-        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.energy_blade_drain");
-        if (grade >= 2) ArmorSuiteFeatures.addGaiaItemFeatures(tier, stack, lines);
+                ArmorTooltips.amps(ATTACK_RANGE[grade]), ArmorTooltips.amps(getHealthPercent()) + "%", ArmorTooltips.amps(getInactiveDamage()));
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.energy_blade_drain", ArmorTooltips.ampsPerSecond(ACTIVE_AMPS));
+        if (grade >= 2) ArmorSuiteFeatures.addGaiaItemInfo(lines);
         if (!ArmorTooltips.showDetails()) lines.add(ArmorTooltips.SHIFT_HINT);
-    }
-
-    private static Component stateLine(String key, String value, ChatFormatting color, @Nullable Component reason) {
-        MutableComponent line = ArmorTooltips.info(key, ArmorTooltips.value(value, color));
-        if (reason != null) line.append(reason);
-        return line;
     }
 
     @Override

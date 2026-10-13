@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 
 /**
  * 一件物品或机器的完整提示规格：按槽位排序的分组，静态部分构建一次，按住 Shift 展开详情。
+ * 只用于物品/方块 tooltip，产出的行不能进网络包或存盘。
  */
 public final class TipSpec implements Supplier<List<Component>> {
 

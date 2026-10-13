@@ -29,7 +29,7 @@ public final class Circuits {
         private static final int UID = IUnique.getUid(ITEM);
 
         static {
-            for (int i = 0; i < MAX; i++) {
+            for (int i = 0; i <= MAX; i++) {
                 var k = AEItemKey.of(IntCircuitBehaviour.stack(i));
                 KEYS[i] = k;
                 CONFIGURATIONS.put(k, i);

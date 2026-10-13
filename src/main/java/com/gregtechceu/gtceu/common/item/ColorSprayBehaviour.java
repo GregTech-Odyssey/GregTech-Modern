@@ -41,6 +41,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.util.TriPredicate;
 
+import appeng.api.implementations.blockentities.IColorableBlockEntity;
 import appeng.api.util.AEColor;
 import appeng.blockentity.networking.CableBusBlockEntity;
 import com.google.common.collect.ImmutableMap;
@@ -248,6 +249,12 @@ public class ColorSprayBehaviour implements IDurabilityBar, IInteractionItem, IA
                 if (!charge.consume()) {
                     break;
                 }
+            }
+        } else if (first instanceof IColorableBlockEntity colorable) {
+            var ae2Color = color == null ? AEColor.TRANSPARENT : AEColor.values()[color.ordinal()];
+            if (!first.getLevel().isClientSide && colorable.getColor() != ae2Color &&
+                    colorable.recolourBlock(context.getClickedFace(), ae2Color, player)) {
+                charge.consume();
             }
         } else if (first instanceof PipeBlockEntity pipe) {
             var collected = BreadthFirstBlockSearch.conditionalSearch(PipeBlockEntity.class, pipe,

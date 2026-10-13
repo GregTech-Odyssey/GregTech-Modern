@@ -130,16 +130,18 @@ public class NanoMuscleSuite extends ArmorLogicSuite implements IStepAssist {
     }
 
     @Override
-    protected void addFeatures(ItemStack itemStack, List<Component> features) {
-        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.damage_drain", ArmorTooltips.piecePassive(),
-                ArmorTooltips.ampHours("metaarmor.gto.cost.per_damage", DAMAGE_COST_PARTS));
+    protected void addPassives(ItemStack itemStack, List<Component> passives) {
+        passives.add(ArmorTooltips.passive("metaarmor.gto.ability.damage_drain"));
+        ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.damage_drain", ArmorTooltips.ampSeconds(DAMAGE_COST_PARTS));
         if (type == ArmorItem.Type.HELMET) {
-            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.no_nightvision");
-        } else if (type == ArmorItem.Type.LEGGINGS) {
-            ArmorTooltips.addSpeedFeature(itemStack, this, features);
+            ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.no_nightvision");
         } else if (type == ArmorItem.Type.BOOTS) {
-            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.step_assist", ArmorTooltips.piecePassive(), null);
-            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.step_assist");
+            passives.add(ArmorTooltips.passive("metaarmor.gto.ability.step_assist"));
         }
+    }
+
+    @Override
+    protected void addControls(ItemStack itemStack, List<Component> controls) {
+        if (type == ArmorItem.Type.LEGGINGS) ArmorTooltips.addSpeedControl(itemStack, this, controls);
     }
 }

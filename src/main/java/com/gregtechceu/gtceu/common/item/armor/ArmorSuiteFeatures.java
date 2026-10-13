@@ -270,73 +270,50 @@ public final class ArmorSuiteFeatures {
 
     // tooltip
 
-    /**
-     * 四套共有的功能行，追加在各套装自身功能之后
-     */
-    public static void addCommonFeatures(ArmorLogicSuite suite, ItemStack stack, List<Component> features) {
-        CompoundTag data = stack.getTag();
-        long lifeCost = lifeBoostCostPerSecond(suite);
-        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.life_boost",
-                ArmorTooltips.keyToggle(KeyBind.ARMOR_LIFE, isLifeBoostEnabled(stack), ArmorTooltips.canUse(stack, lifeCost)),
-                ArmorTooltips.ampsPerSecond(LIFE_AMPS));
-        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.life_boost", ArmorTooltips.amps(suite.getPieceHealthBoost()),
-                suite.getGrade() * 10);
-        boolean canAbsorb = ArmorTooltips.canUse(stack, suite.ampHourParts(NanoMuscleSuite.DAMAGE_COST_PARTS));
-        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.env_instant", ArmorTooltips.piecePassive(canAbsorb),
-                ArmorTooltips.ampHours("metaarmor.gto.cost.per_damage", NanoMuscleSuite.DAMAGE_COST_PARTS));
-        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.env_instant");
-        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.env_continuous", ArmorTooltips.piecePassive(canAbsorb),
-                ArmorTooltips.ampHours("metaarmor.gto.cost.per_damage", NanoMuscleSuite.DAMAGE_COST_PARTS));
-        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.env_continuous");
+    public static void addCommonPassives(ArmorLogicSuite suite, List<Component> passives) {
+        passives.add(ArmorTooltips.passive("metaarmor.gto.ability.environment"));
+        ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.environment", ArmorTooltips.ampSeconds(NanoMuscleSuite.DAMAGE_COST_PARTS));
         ArmorItem.Type type = suite.getArmorType();
         if (type == ArmorItem.Type.HELMET) {
-            ArmorTooltips.addFeature(features, "metaarmor.gto.feature.timed_cleanse",
-                    ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, suite.ampHourParts(CLEANSE_PARTS))),
-                    ArmorTooltips.ampHours("metaarmor.gto.cost.per_level", CLEANSE_PARTS));
-            ArmorTooltips.addDetail(features, "metaarmor.gto.detail.timed_cleanse");
+            passives.add(ArmorTooltips.passive("metaarmor.gto.ability.timed_cleanse"));
+            ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.timed_cleanse", ArmorTooltips.ampSeconds(CLEANSE_PARTS));
         }
         if (type == ArmorItem.Type.CHESTPLATE) {
             if (suite.getGrade() >= 3) {
-                ArmorTooltips.addFeature(features, "metaarmor.gto.feature.regen",
-                        ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, suite.ampHourParts(REGEN_PARTS))),
-                        ArmorTooltips.ampHours("metaarmor.gto.cost.per_heal", REGEN_PARTS));
-                ArmorTooltips.addDetail(features, "metaarmor.gto.detail.regen");
+                passives.add(ArmorTooltips.passive("metaarmor.gto.ability.regen"));
+                ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.regen", ArmorTooltips.ampSeconds(REGEN_PARTS));
             }
             if (suite.getGrade() >= 2) {
-                ArmorTooltips.addFeature(features, "metaarmor.gto.feature.mech_assist",
-                        ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, getMechAssistCost(suite))),
-                        ArmorTooltips.ampHours("metaarmor.gto.cost.per_damage", MECH_ASSIST_PARTS_PER_DAMAGE));
-                ArmorTooltips.addDetail(features, "metaarmor.gto.detail.mech_assist", ArmorTooltips.amps(getMechAssistDamage(suite)));
+                passives.add(ArmorTooltips.passive("metaarmor.gto.ability.mech_assist", ArmorTooltips.value(ArmorTooltips.amps(getMechAssistDamage(suite)))));
+                ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.mech_assist",
+                        ArmorTooltips.ampSeconds(MECH_ASSIST_PARTS_PER_DAMAGE * getMechAssistDamage(suite)));
             }
         }
+    }
+
+    public static void addCommonControls(ArmorLogicSuite suite, ItemStack stack, List<Component> controls) {
+        controls.add(ArmorTooltips.hotkey(KeyBind.ARMOR_LIFE, "metaarmor.gto.name.life_boost", isLifeBoostEnabled(stack)));
+        ArmorTooltips.addDetail(controls, "metaarmor.gto.detail.life_boost", ArmorTooltips.amps(suite.getPieceHealthBoost()),
+                suite.getGrade() * 10, ArmorTooltips.ampsPerSecond(LIFE_AMPS));
     }
 
     /**
      * II 起：盖亚守护者 III 对抗
      */
-    public static void addGaiaFeatures(ArmorLogicSuite suite, ItemStack stack, List<Component> lines) {
+    public static void addGaiaInfo(ArmorLogicSuite suite, List<Component> lines) {
         if (suite.getGrade() < 2) return;
-        addGaiaItemFeatures(suite.getTier(), stack, lines);
+        addGaiaItemInfo(lines);
         if (suite.getArmorType() == ArmorItem.Type.CHESTPLATE) {
-            ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_mine",
-                    ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, suite.ampHourParts(GAIA_MINE_PARTS))),
-                    ArmorTooltips.ampHours("metaarmor.gto.cost.per_use", GAIA_MINE_PARTS));
-            ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_mine");
+            lines.add(ArmorTooltips.passive("metaarmor.gto.ability.gaia_mine"));
+            ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_mine", ArmorTooltips.ampSeconds(GAIA_MINE_PARTS));
         }
     }
 
-    /**
-     * 盖亚对抗一节的召唤限制破解与缴械魔法破解，四套装备与能量剑共用
-     */
-    public static void addGaiaItemFeatures(int tier, ItemStack stack, List<Component> lines) {
-        lines.add(ArmorTooltips.section("metaarmor.gto.section.gaia"));
-        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_inventory",
-                ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, gaiaInventoryCost(tier))),
-                ArmorTooltips.ampHours("metaarmor.gto.cost.per_summon", GAIA_INVENTORY_PARTS));
-        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_inventory");
-        ArmorTooltips.addFeature(lines, "metaarmor.gto.feature.gaia_disarm",
-                ArmorTooltips.piecePassive(ArmorTooltips.canUse(stack, gaiaDisarmCost(tier))),
-                ArmorTooltips.ampsPerSecond(GAIA_DISARM_AMPS));
-        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_disarm");
+    public static void addGaiaItemInfo(List<Component> lines) {
+        lines.add(ArmorTooltips.heading("metaarmor.gto.section.gaia"));
+        lines.add(ArmorTooltips.passive("metaarmor.gto.ability.gaia_inventory"));
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_inventory", ArmorTooltips.ampSeconds(GAIA_INVENTORY_PARTS));
+        lines.add(ArmorTooltips.passive("metaarmor.gto.ability.gaia_disarm"));
+        ArmorTooltips.addDetail(lines, "metaarmor.gto.detail.gaia_disarm", ArmorTooltips.ampsPerSecond(GAIA_DISARM_AMPS));
     }
 }

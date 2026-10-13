@@ -11,10 +11,8 @@ import com.gregtechceu.gtceu.common.item.armor.ArmorTooltips;
 import com.gregtechceu.gtceu.common.item.armor.GTArmorMaterials;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -304,80 +302,68 @@ public abstract class ArmorLogicSuite implements IArmorLogic, IItemHUDProvider {
         }
         if (getDamageAbsorption() <= 0) return;
         boolean charged = cont != null && cont.getCharge() >= energyPerUse;
+        boolean showDetails = ArmorTooltips.showDetails();
+        if (!charged) lines.add(ArmorTooltips.noEnergy());
         int state = charged ? 1 : 0;
         if (staticInfo[state] == null) {
-            List<Component> info = new ArrayList<>(4);
-            List<Component> details = new ArrayList<>(5);
+            List<Component> info = new ArrayList<>(3);
+            List<Component> details = new ArrayList<>(3);
             buildStaticInfo(info, details, charged);
             staticDetails[state] = details;
             staticInfo[state] = info;
         }
-        boolean showDetails = ArmorTooltips.showDetails();
         lines.addAll(staticInfo[state]);
         if (showDetails) lines.addAll(staticDetails[state]);
-        List<Component> features = new ArrayList<>(24);
-        addFeatures(itemStack, features);
-        if (getGrade() > 0) ArmorSuiteFeatures.addCommonFeatures(this, itemStack, features);
-        if (!features.isEmpty()) {
-            lines.add(ArmorTooltips.section("metaarmor.gto.section.features"));
-            lines.addAll(features);
+        List<Component> passives = new ArrayList<>(12);
+        addPassives(itemStack, passives);
+        if (getGrade() > 0) ArmorSuiteFeatures.addCommonPassives(this, passives);
+        if (!passives.isEmpty()) {
+            lines.add(ArmorTooltips.heading("metaarmor.gto.section.abilities"));
+            lines.addAll(passives);
         }
-        ArmorSuiteFeatures.addGaiaFeatures(this, itemStack, lines);
+        List<Component> controls = new ArrayList<>(10);
+        addControls(itemStack, controls);
+        if (getGrade() > 0) ArmorSuiteFeatures.addCommonControls(this, itemStack, controls);
+        if (!controls.isEmpty()) {
+            lines.add(ArmorTooltips.heading("metaarmor.gto.section.controls"));
+            lines.addAll(controls);
+        }
+        ArmorSuiteFeatures.addGaiaInfo(this, lines);
         if (!showDetails) lines.add(ArmorTooltips.SHIFT_HINT);
     }
 
-    /**
-     * 防护数值按当前是否有电取值：有电为绿；断电为黄并注明电量不足，Shift 说明给出另一状态的数值
-     */
     private void buildStaticInfo(List<Component> info, List<Component> details, boolean charged) {
         float baseToughness = GTArmorMaterials.ARMOR.getToughness();
-        ChatFormatting color = charged ? ChatFormatting.GREEN : ChatFormatting.YELLOW;
-        info.add(ArmorTooltips.section("metaarmor.gto.section.protection"));
-        MutableComponent piece = ArmorTooltips.info("metaarmor.gto.protection.piece",
-                ArmorTooltips.value(formatValue(getArmorPoints(charged)), color),
-                ArmorTooltips.value(formatValue(baseToughness + (charged ? getExtraToughness() : 0)), color),
-                ArmorTooltips.value(formatPercent(charged ? getExtraKnockbackResistance() : 0), color));
-        if (!charged) piece.append(ArmorTooltips.reason(Component.translatable("metaarmor.gto.state.no_energy"), color));
-        info.add(piece);
-        details.add(detail("metaarmor.gto.detail.full_power"));
-        if (charged) {
-            details.add(detail("metaarmor.gto.detail.unpowered_piece", formatValue(getArmorPoints(false)),
-                    formatValue(baseToughness)));
-        } else {
-            details.add(detail("metaarmor.gto.detail.powered_piece", formatValue(getArmorPoints(true)),
-                    formatValue(baseToughness + getExtraToughness()), formatPercent(getExtraKnockbackResistance())));
+        info.add(ArmorTooltips.heading("metaarmor.gto.section.protection"));
+        Component armor = ArmorTooltips.value(formatValue(getArmorPoints(charged)));
+        Component toughness = ArmorTooltips.value(formatValue(baseToughness + (charged ? getExtraToughness() : 0)));
+        Component knockback = ArmorTooltips.value(formatPercent(charged ? getExtraKnockbackResistance() : 0));
+        String otherKey = charged ? "metaarmor.gto.protection.unpowered" : "metaarmor.gto.protection.powered";
+        if (type != ArmorItem.Type.CHESTPLATE) {
+            info.add(ArmorTooltips.stat("metaarmor.gto.protection", armor, toughness, knockback));
+            details.add(detail(otherKey, formatValue(getArmorPoints(!charged)),
+                    formatValue(baseToughness + (charged ? 0 : getExtraToughness())), formatPercent(charged ? 0 : getExtraKnockbackResistance())));
+            return;
         }
-        if (type == ArmorItem.Type.CHESTPLATE) {
-            float setArmor = getSetArmorPoints(charged);
-            float setToughness = getSetToughness(charged);
-            MutableComponent set = ArmorTooltips.info("metaarmor.gto.protection.set",
-                    ArmorTooltips.value(formatValue(setArmor), color),
-                    ArmorTooltips.value(formatValue(setToughness), color),
-                    ArmorTooltips.value(formatPercent(charged ? getSetKnockbackResistance() : 0), color));
-            if (!charged) set.append(ArmorTooltips.reason(Component.translatable("metaarmor.gto.state.no_energy"), color));
-            info.add(set);
-            if (charged) {
-                details.add(detail("metaarmor.gto.detail.unpowered_set", formatValue(getSetArmorPoints(false)),
-                        formatValue(getSetToughness(false))));
-            } else {
-                details.add(detail("metaarmor.gto.detail.powered_set", formatValue(getSetArmorPoints(true)),
-                        formatValue(getSetToughness(true)), formatPercent(getSetKnockbackResistance())));
-            }
-            details.add(detail("metaarmor.gto.detail.set_definition"));
-            // Apothic Attributes 默认公式：单次伤害 < 20 时承受 10 / (10 + 护甲)；每点韧性抵抗 2% 破甲，60% 封顶
-            details.add(detail("metaarmor.gto.detail.set_effect", formatPercent(10.0F / (10.0F + setArmor)),
-                    formatPercent(Math.min(setToughness * 0.02F, 0.6F))));
-        }
+        info.add(ArmorTooltips.stat("metaarmor.gto.protection.piece", armor, toughness, knockback));
+        float setArmor = getSetArmorPoints(charged);
+        float setToughness = getSetToughness(charged);
+        info.add(ArmorTooltips.stat("metaarmor.gto.protection.set", ArmorTooltips.value(formatValue(setArmor)),
+                ArmorTooltips.value(formatValue(setToughness)), ArmorTooltips.value(formatPercent(charged ? getSetKnockbackResistance() : 0))));
+        details.add(detail(charged ? "metaarmor.gto.protection.set_unpowered" : "metaarmor.gto.protection.set_powered", formatValue(getSetArmorPoints(!charged)), formatValue(getSetToughness(!charged)),
+                formatPercent(charged ? 0 : getSetKnockbackResistance())));
+        // Apothic Attributes 默认公式：单次伤害 < 20 时承受 10 / (10 + 护甲)；每点韧性抵抗 2% 破甲，60% 封顶
+        details.add(detail("metaarmor.gto.protection.set_effect", formatPercent(10.0F / (10.0F + setArmor)),
+                formatPercent(Math.min(setToughness * 0.02F, 0.6F))));
     }
 
     private static Component detail(String key, Object... args) {
-        return Tips.feature(Component.translatable(key, args));
+        return Tips.detail(Component.translatable(key, args));
     }
 
-    /**
-     * 功能列表，用 {@link ArmorTooltips#addFeature} 添加
-     */
-    protected void addFeatures(ItemStack itemStack, List<Component> features) {}
+    protected void addPassives(ItemStack itemStack, List<Component> passives) {}
+
+    protected void addControls(ItemStack itemStack, List<Component> controls) {}
 
     private static String formatValue(float value) {
         return Math.abs(value - Math.round(value)) < 0.01F ? String.valueOf(Math.round(value)) :

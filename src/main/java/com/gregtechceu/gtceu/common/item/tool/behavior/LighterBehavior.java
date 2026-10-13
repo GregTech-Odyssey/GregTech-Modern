@@ -249,7 +249,9 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         tooltipComponents.add(Tips.feature(Component
                 .translatable(usesFluid ? "behaviour.lighter.fluid.tooltip" : "behaviour.lighter.tooltip.description")));
-        tooltipComponents.add(Tips.rightClick(Component.translatable("behaviour.lighter.tooltip.usage")));
+        if (canOpen) {
+            tooltipComponents.add(Tips.rightClick(Component.translatable("behaviour.lighter.tooltip.usage")));
+        }
         if (hasMultipleUses && !usesFluid) {
             tooltipComponents.add(Tips.stat(Component.translatable("behaviour.lighter.uses", getUsesLeft(stack))));
         }

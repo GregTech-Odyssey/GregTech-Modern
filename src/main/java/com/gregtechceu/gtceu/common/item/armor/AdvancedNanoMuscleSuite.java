@@ -48,15 +48,16 @@ public class AdvancedNanoMuscleSuite extends NanoMuscleSuite implements IJetpack
     }
 
     @Override
-    protected void addFeatures(ItemStack itemStack, List<Component> features) {
-        super.addFeatures(itemStack, features);
-        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.ppe", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE), null);
-        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.ppe");
-        // GTO: 放射性材料危害要求四个部位均为防护装备，II 及以上每件都算
-        ArmorTooltips.addFeature(features, "metaarmor.gto.feature.radiation", ArmorTooltips.setPassive(itemStack, ArmorTooltips::isPPE),
-                null);
-        ArmorTooltips.addDetail(features, "metaarmor.gto.detail.radiation");
-        if (type == ArmorItem.Type.CHESTPLATE) ArmorTooltips.addJetpackFeatures(itemStack, this, features);
+    protected void addPassives(ItemStack itemStack, List<Component> passives) {
+        super.addPassives(itemStack, passives);
+        passives.add(ArmorTooltips.passive("metaarmor.gto.ability.hazard"));
+        ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.hazard");
+    }
+
+    @Override
+    protected void addControls(ItemStack itemStack, List<Component> controls) {
+        super.addControls(itemStack, controls);
+        if (type == ArmorItem.Type.CHESTPLATE) ArmorTooltips.addJetpackControls(itemStack, controls);
     }
 
     @Override

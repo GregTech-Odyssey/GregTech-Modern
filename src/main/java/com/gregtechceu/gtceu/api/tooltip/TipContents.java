@@ -11,7 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 /**
- * 带角色标记的提示行内容：客户端提示框按像素对齐绘制，其余场合按纯文本回退。
+ * 带角色标记的提示行内容：客户端提示框按像素对齐绘制，其余本地渲染场合按纯文本回退。
+ * 原版 Component.Serializer 不认此内容类型，进网络包或存盘会抛异常，只能留在客户端 tooltip 里。
  */
 public final class TipContents implements ComponentContents {
 
