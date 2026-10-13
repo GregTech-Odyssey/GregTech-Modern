@@ -555,10 +555,10 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
 
     final class RecipeHandlerCache {
 
-        private final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy = new EnumMap<>(IO.class);
-        private final Map<IO, List<IRecipeHandler>> capabilitiesFlat = new EnumMap<>(IO.class);
-        private final List<ISubscription> traitSubscriptions = new ArrayList<>();
-        private final Map<IO, ClassInstanceCache<IRecipeHandler>> handlerByClass = new EnumMap<>(IO.class);
+        public final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy = new EnumMap<>(IO.class);
+        public final Map<IO, List<IRecipeHandler>> capabilitiesFlat = new EnumMap<>(IO.class);
+        public final List<ISubscription> traitSubscriptions = new ArrayList<>();
+        public final Map<IO, ClassInstanceCache<IRecipeHandler>> handlerByClass = new EnumMap<>(IO.class);
 
         public void addHandlerLists(IRecipeHandlerHolder holder, Map<IO, List<IRecipeHandler>> ioMap, @Nullable Runnable listener) {
             for (var entry : ioMap.entrySet()) {
@@ -572,7 +572,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         public <T> T[] getCapabilitiesFlat(IO io, Class<T> capability) {
             var cache = handlerByClass.get(io);
             if (cache == null) {
-                var all = capabilitiesFlat.get(io);
+                var all = capabilitiesFlat.getOrDefault(io, Collections.emptyList());
                 cache = new ClassInstanceCache<>(() -> all);
                 handlerByClass.put(io, cache);
             }
