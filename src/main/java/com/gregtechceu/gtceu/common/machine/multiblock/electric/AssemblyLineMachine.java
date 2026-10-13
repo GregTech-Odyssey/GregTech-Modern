@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.electric;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IAssemblyLine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
@@ -21,22 +21,15 @@ import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachin
 import com.gregtechceu.gtceu.common.machine.multiblock.part.ItemBusPartMachine;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import com.gto.datasynclib.AbstractDataSerializable;
-import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.datasynclib.datastream.codec.ValueOps;
+import lombok.Getter;
 
 import java.util.*;
 
-public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
+public class AssemblyLineMachine extends WorkableElectricMultiblockMachine implements IAssemblyLine {
 
     public static final PortKey SECTION_IN = PortKey.IN;
     public static final PortKey SECTION_OUT = PortKey.OUT;
@@ -45,75 +38,12 @@ public class AssemblyLineMachine extends WorkableElectricMultiblockMachine {
     private List<KeyInventory<AEItemKey>> itemStackTransfers = new ArrayList<>();
     private List<KeyInventory<AEFluidKey>> fluidStackTransfers = new ArrayList<>();
 
+    @Getter
     @SyncToClient
-    private final RenderState renderState = new RenderState();
+    private final RenderState renderState = new RenderState(getRecipeLogic());
 
     public AssemblyLineMachine(MetaMachineBlockEntity holder) {
         super(holder);
-    }
-
-    @Override
-    public void beforeWorking(RecipeHandlerUnit unit, GTRecipe recipe) {
-        super.beforeWorking(unit, recipe);
-        renderState.markAsChanged();
-        requestSync();
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    public float getRendererLineCount(float partialTick) {
-        if (renderState.duration <= 0) return 0;
-        float progress = renderState.progress + Math.max(0, GTValues.CLIENT_TIME - renderState.syncTime) + partialTick;
-        return Mth.clamp(progress / renderState.duration, 0, 1) * renderState.inputs;
-    }
-
-    /** A render-only snapshot sampled by the existing block entity sync, without a recipe tick hook. */
-    private final class RenderState extends AbstractDataSerializable {
-
-        private int progress;
-        private int duration;
-        private int inputs;
-        private int syncTime;
-
-        @Override
-        public boolean detectChange() {
-            return changed || recipeLogic.getMaxProgress() > 0 || duration > 0;
-        }
-
-        @Override
-        public void writeBuffer(LogicalSide side, FriendlyByteBuf buffer) {
-            progress = recipeLogic.getProgress();
-            duration = recipeLogic.getMaxProgress();
-            var recipe = recipeLogic.getLastRecipe();
-            inputs = recipe == null ? 0 : Math.min(17, Math.max(recipe.itemInputs.size(), recipe.fluidInputs.size()));
-            buffer.writeVarInt(progress);
-            buffer.writeVarInt(duration);
-            buffer.writeVarInt(inputs);
-        }
-
-        @Override
-        public void readBuffer(LogicalSide side, FriendlyByteBuf buffer) {
-            progress = buffer.readVarInt();
-            duration = buffer.readVarInt();
-            inputs = buffer.readVarInt();
-            syncTime = GTValues.CLIENT_TIME;
-        }
-
-        @Override
-        public Object writeValue(ValueOps ops) {
-            var data = new ArrayList<Object>(3);
-            ops.addInt(data, progress);
-            ops.addInt(data, duration);
-            ops.addInt(data, inputs);
-            return ops.createList(data);
-        }
-
-        @Override
-        public void readValue(Object data, ValueOps ops) {
-            var list = ops.getList(data);
-            progress = ops.getInt(list, 0);
-            duration = ops.getInt(list, 1);
-            inputs = ops.getInt(list, 2);
-        }
     }
 
     @Override

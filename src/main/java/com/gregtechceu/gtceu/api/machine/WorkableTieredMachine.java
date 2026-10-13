@@ -8,12 +8,9 @@ import com.gregtechceu.gtceu.api.machine.trait.*;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
-import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.utils.GTUtil;
-
-import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
@@ -62,14 +59,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public final NotifiableInventory<AEFluidKey> exportFluids;
 
     @Getter
-    protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
-    @Getter
-    protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
+    protected final RecipeHandlerCache recipeHandlerCache = new RecipeHandlerCache();
 
     @Getter
     @SaveToDisk(defaultValueGetter = "getMaxOverclockTier")
     protected int overclockTier;
-    protected final List<ISubscription> traitSubscriptions;
+
     @Getter
     @Setter
     @SaveToDisk(defaultValue = "false")
@@ -80,9 +75,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         super(holder, tier, args);
         this.overclockTier = getMaxOverclockTier();
         this.tankScalingFunction = tankScalingFunction;
-        this.capabilitiesProxy = new EnumMap<>(IO.class);
-        this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ArrayList<>();
         this.recipeLogic = createRecipeLogic(args);
         this.importItems = createImportItemHandler(args);
         this.exportItems = createExportItemHandler(args);
@@ -138,25 +130,18 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         super.onLoad();
         // attach self traits
         Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
-        for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
+        for (var trait : getTraits(IRecipeHandlerTrait.class)) {
+            if (trait.isAvailable() && trait.getHandlerIO() != IO.NONE) {
+                ioTraits.computeIfAbsent(trait.getHandlerIO(), i -> new ArrayList<>()).add(trait);
             }
         }
-        for (var entry : ioTraits.entrySet()) {
-            var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
-            this.addHandlerList(handlerList);
-            traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
-        }
+        recipeHandlerCache.addHandlerLists(this, ioTraits, recipeLogic::updateTickSubscription);
     }
 
     @Override
     public void onUnload() {
         super.onUnload();
-        traitSubscriptions.forEach(ISubscription::unsubscribe);
-        traitSubscriptions.clear();
-        capabilitiesProxy.clear();
-        capabilitiesFlat.clear();
+        recipeHandlerCache.clear();
     }
 
     //////////////////////////////////////

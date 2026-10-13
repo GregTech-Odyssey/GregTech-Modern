@@ -67,7 +67,6 @@ public final class ArmorTooltips {
                 Tips.toggle(Component.translatable(nameKey), enabled)));
     }
 
-
     public static Component ampsPerSecond(double amps) {
         return Component.translatable("metaarmor.gto.unit.amps_per_second", amps(amps));
     }

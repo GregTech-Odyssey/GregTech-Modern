@@ -1,15 +1,17 @@
 package com.gregtechceu.gtceu.client.renderer.machine;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IAssemblyLine;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.client.renderer.GTRenderTypes;
-import com.gregtechceu.gtceu.common.machine.multiblock.electric.AssemblyLineMachine;
+import com.gregtechceu.gtceu.client.renderer.IRenderBoundingBox;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -18,7 +20,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Matrix4f;
 
 /** Adapts the upstream AssemblyLineRender to the fork's casing renderer API. */
-public class AssemblyLineRenderer extends WorkableCasingMachineRenderer {
+public class AssemblyLineRenderer extends WorkableCasingMachineRenderer implements IRenderBoundingBox {
 
     private static final int[] CROSS_A = { 0, -1, 0, 1 };
     private static final int[] CROSS_B = { 1, 0, -1, 0 };
@@ -34,8 +36,8 @@ public class AssemblyLineRenderer extends WorkableCasingMachineRenderer {
     public void render(BlockEntity blockEntity, float partialTick, PoseStack stack, MultiBufferSource buffers,
                        int packedLight, int packedOverlay) {
         if (!(blockEntity instanceof MetaMachineBlockEntity holder) ||
-                !(holder.getMetaMachine() instanceof AssemblyLineMachine machine) ||
-                !machine.isFormed() || !machine.recipeLogic.isWorking())
+                !(holder.getMetaMachine() instanceof IAssemblyLine machine) ||
+                !machine.isFormed() || !machine.getRecipeLogic().isWorking())
             return;
 
         var color = ConfigHolder.INSTANCE.client.renderer.assemblyLineLaser;
@@ -43,9 +45,9 @@ public class AssemblyLineRenderer extends WorkableCasingMachineRenderer {
             configuredColor = color;
             laserColor = Integer.decode(color) & 0xFFFFFF;
         }
-        var front = machine.getFrontFacing();
-        var upwards = machine.getUpwardsFacing();
-        boolean flipped = machine.isFlipped();
+        var front = machine.self().getFrontFacing();
+        var upwards = machine.self().getUpwardsFacing();
+        boolean flipped = machine.self().isFlipped();
         var down = RelativeDirection.DOWN.getRelative(front, upwards, flipped);
         var back = RelativeDirection.BACK.getRelative(front, upwards, flipped);
         var right = RelativeDirection.RIGHT.getRelative(front, upwards, flipped);
@@ -116,5 +118,21 @@ public class AssemblyLineRenderer extends WorkableCasingMachineRenderer {
     @OnlyIn(Dist.CLIENT)
     public boolean hasTESR(BlockEntity blockEntity) {
         return true;
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(BlockEntity blockEntity) {
+        if (!(blockEntity instanceof MetaMachineBlockEntity holder) || !(holder.getMetaMachine() instanceof IAssemblyLine machine)) return null;
+        var front = machine.self().getFrontFacing();
+        var upwards = machine.self().getUpwardsFacing();
+        boolean flipped = machine.self().isFlipped();
+        var down = RelativeDirection.DOWN.getRelative(front, upwards, flipped);
+        var back = RelativeDirection.BACK.getRelative(front, upwards, flipped);
+        var right = RelativeDirection.RIGHT.getRelative(front, upwards, flipped);
+        return new AABB(machine.self().getPos())
+                .expandTowards(down.getStepX() << 1, down.getStepY() << 1, down.getStepZ() << 1)
+                .expandTowards(-down.getStepX(), -down.getStepY(), -down.getStepZ())
+                .expandTowards(back.getStepX() << 1, back.getStepY() << 1, back.getStepZ() << 1)
+                .expandTowards(right.getStepX() * 17, right.getStepY() * 17, right.getStepZ() * 17);
     }
 }

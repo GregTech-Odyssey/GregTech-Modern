@@ -115,8 +115,8 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
     }
 
     private void subscribeEnergyHandlers(IO io) {
-        for (var handlerList : getCapabilitiesProxy().getOrDefault(io, Collections.emptyList())) {
-            traitSubscriptions.add(handlerList.subscribe(tickSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
+        for (var handlerList : getCapabilitiesProxy(io)) {
+            this.addSubscription(handlerList.subscribe(tickSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
         }
     }
 

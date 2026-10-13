@@ -32,7 +32,6 @@ import it.unimi.dsi.fastutil.longs.Long2IntSortedMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -101,10 +100,10 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     public void onStructureFormed() {
         super.onStructureFormed();
         this.inputEnergyContainers = super.energyContainer;
-        int energyInputCount = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER).size();
+        int energyInputCount = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER).length;
         energyContainer.resetBasicInfo(calculateEnergyStorageFactor(getTier(), energyInputCount), 0, 0, 0, 0);
-        for (var handlerList : getCapabilitiesProxy().getOrDefault(IO.IN, Collections.emptyList())) {
-            traitSubscriptions.add(handlerList.subscribe(this::updatePreHeatSubscription, GTCapability.ENERGY_CONTAINER));
+        for (var handlerList : getCapabilitiesProxy(IO.IN)) {
+            this.addSubscription(handlerList.subscribe(this::updatePreHeatSubscription, GTCapability.ENERGY_CONTAINER));
         }
         updatePreHeatSubscription();
     }

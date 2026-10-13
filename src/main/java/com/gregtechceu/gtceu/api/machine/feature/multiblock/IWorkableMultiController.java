@@ -80,8 +80,8 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
             TaskHandler.enqueueTask(serverLevel, getRecipeLogic()::updateTickSubscription, 0);
         }
         getOutputColorMap().clear();
-        var outputs = getCapabilitiesProxy().get(IO.OUT);
-        if (outputs == null) {
+        var outputs = getCapabilitiesProxy(IO.OUT);
+        if (outputs.isEmpty()) {
             setOutputUnits(Collections.emptyList());
         } else {
             for (var unit : outputs) {
@@ -123,8 +123,8 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
             distinct.sort(RecipeHandlerUnit.PRIORITY_COMPARATOR);
             setOutputUnits(distinct);
         }
-        var inputs = getCapabilitiesProxy().get(IO.IN);
-        if (inputs == null) {
+        var inputs = getCapabilitiesProxy(IO.IN);
+        if (inputs.isEmpty()) {
             setInputUnits(Collections.emptyList());
         } else {
             for (var unit : inputs) {

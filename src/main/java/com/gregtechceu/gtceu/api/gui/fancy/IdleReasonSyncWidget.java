@@ -43,8 +43,8 @@ public final class IdleReasonSyncWidget extends Widget implements UIChannel.Host
         RecipeLogic main = machine instanceof IRecipeLogicMachine recipeLogicMachine ? recipeLogicMachine.getRecipeLogic() : null;
         var list = new ArrayList<RecipeLogic>(1);
         if (main != null) list.add(main);
-        for (var trait : machine.getTraits()) {
-            if (trait instanceof RecipeLogic logic && logic != main) list.add(logic);
+        for (var trait : machine.getTraits(RecipeLogic.class)) {
+            if (trait != main) list.add(trait);
         }
         return list;
     }

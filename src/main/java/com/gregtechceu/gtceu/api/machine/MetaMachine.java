@@ -36,6 +36,7 @@ import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
 import com.gregtechceu.gtceu.common.machine.owner.PlayerOwner;
 import com.gregtechceu.gtceu.core.Iblock;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.utils.cache.ClassInstanceCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -121,6 +122,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     private int paintingColor = -1;
     @Getter
     protected final List<MachineTrait> traits = new ArrayList<>();
+    public final ClassInstanceCache<MachineTrait> traitsByClass = new ClassInstanceCache<>(() -> traits);
 
     protected final DirectionCache<IKeyHandler<AEItemKey>> itemHandlerModifiableCache = DirectionCache.create();
     protected final DirectionCache<IKeyHandler<AEFluidKey>> fluidHandlerModifiableCache = DirectionCache.create();
@@ -227,13 +229,13 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
      * @param forDrop if the save is done for dropping the machine as an item.
      */
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
-        for (MachineTrait trait : this.getTraits()) {
+        for (MachineTrait trait : this.traits) {
             trait.saveCustomPersistedData(tag, forDrop);
         }
     }
 
     public void loadCustomPersistedData(CompoundTag tag) {
-        for (MachineTrait trait : this.getTraits()) {
+        for (MachineTrait trait : this.traits) {
             trait.loadCustomPersistedData(tag);
         }
     }
@@ -416,7 +418,12 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
      */
     public void attachTraits(MachineTrait trait) {
         traits.add(trait);
+        traitsByClass.clear();
         clearDirectionCache();
+    }
+
+    public <T> T[] getTraits(Class<T> capability) {
+        return traitsByClass.getInstance(capability);
     }
 
     public void clearDirectionCache() {
@@ -730,9 +737,9 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     @SuppressWarnings("unchecked")
     private <K extends AEKey> List<IKeyHandler<K>> keyTraits(@Nullable Direction side, AEKeyType type) {
         var list = new ArrayList<IKeyHandler<K>>();
-        for (var trait : traits) {
-            if (trait instanceof ICapabilityTrait capabilityTrait && trait instanceof IKeyHandler<?> handler && handler.keyType() == type && capabilityTrait.hasCapability(side)) {
-                list.add((IKeyHandler<K>) handler);
+        for (var trait : getTraits(IKeyHandler.class)) {
+            if (trait instanceof ICapabilityTrait capabilityTrait && trait.keyType() == type && capabilityTrait.hasCapability(side)) {
+                list.add((IKeyHandler<K>) trait);
             }
         }
         return list;

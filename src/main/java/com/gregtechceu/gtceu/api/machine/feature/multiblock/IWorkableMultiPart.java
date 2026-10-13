@@ -96,10 +96,10 @@ public interface IWorkableMultiPart extends IMultiPart {
         if (list == null) {
             List<IRecipeHandler> handlers = new ArrayList<>();
             IO handlerIO = null;
-            for (var trait : self().getTraits()) {
-                if (trait instanceof IRecipeHandlerTrait rht && rht.isAvailable() && rht.getHandlerIO() != IO.NONE) {
-                    if (handlerIO == null) handlerIO = rht.getHandlerIO();
-                    handlers.add(rht);
+            for (var trait : self().getTraits(IRecipeHandlerTrait.class)) {
+                if (trait.isAvailable() && trait.getHandlerIO() != IO.NONE) {
+                    if (handlerIO == null) handlerIO = trait.getHandlerIO();
+                    handlers.add(trait);
                 }
             }
 

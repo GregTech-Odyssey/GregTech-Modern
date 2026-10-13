@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
 import net.minecraft.MethodsReturnNonnullByDefault;
 
 import java.math.BigInteger;
-import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -13,9 +12,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class EnergyInfoProviderList implements IEnergyInfoProvider {
 
-    private final List<? extends IEnergyInfoProvider> list;
+    private final IEnergyInfoProvider[] list;
 
-    public EnergyInfoProviderList(List<? extends IEnergyInfoProvider> list) {
+    public EnergyInfoProviderList(IEnergyInfoProvider... list) {
         this.list = list;
     }
 
@@ -54,6 +53,6 @@ public class EnergyInfoProviderList implements IEnergyInfoProvider {
 
     @Override
     public boolean supportsBigIntEnergyValues() {
-        return list.size() > 1;
+        return list.length > 1;
     }
 }

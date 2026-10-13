@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.client.renderer.GTRendererProvider;
+import com.gregtechceu.gtceu.client.renderer.IRenderBoundingBox;
 
 import com.lowdragmc.lowdraglib.client.renderer.IRenderer;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -131,6 +132,12 @@ public class MetaMachineBlockEntity extends GTBlockEntity implements IToolGridHi
         if (instance != null) {
             IRenderer renderer = instance.getRenderer(this);
             if (renderer != null) {
+                if (renderer instanceof IRenderBoundingBox box) {
+                    var aabb = box.getRenderBoundingBox(this);
+                    if (aabb != null) {
+                        return aabb;
+                    }
+                }
                 if (renderer.getViewDistance() == 64 /* the default */) {
                     return new AABB(worldPosition.offset(-1, 0, -1), worldPosition.offset(2, 2, 2));
                 }

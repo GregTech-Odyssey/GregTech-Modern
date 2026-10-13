@@ -218,7 +218,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         for (var part : getParts(IWorkableMultiPart.class)) {
             if (isPartIgnored(part)) continue;
             for (var handlerList : part.getRecipeHandlers()) {
-                energyContainers.addAll(handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER));
+                energyContainers.addAll(Arrays.asList(handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER)));
             }
             if (part instanceof IMaintenanceMachine maintenanceMachine) {
                 getRecipeLogic().setMaintenanceMachine(maintenanceMachine);

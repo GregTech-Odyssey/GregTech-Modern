@@ -95,13 +95,12 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
                 var containers = handlerList.getCapabilities(GTCapability.ENERGY_CONTAINER);
 
                 if (handlerList.handlerIO == IO.IN) {
-                    powerInput.addAll(containers);
+                    powerInput.addAll(Arrays.asList(containers));
                 } else if (handlerList.handlerIO == IO.OUT) {
-                    powerOutput.addAll(containers);
+                    powerOutput.addAll(Arrays.asList(containers));
                 }
 
-                traitSubscriptions
-                        .add(handlerList.subscribe(converterSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
+                this.addSubscription(handlerList.subscribe(converterSubscription::updateSubscription, GTCapability.ENERGY_CONTAINER));
             }
         }
 

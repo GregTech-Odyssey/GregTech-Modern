@@ -61,10 +61,10 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     public void onStructureFormed() {
         super.onStructureFormed();
         var containers = getCapabilitiesFlat(IO.IN, GTCapability.ENERGY_CONTAINER);
-        if (containers.isEmpty()) containers = getCapabilitiesFlat(IO.OUT, GTCapability.ENERGY_CONTAINER);
-        List<IOpticalComputationProvider> providers = getCapabilitiesFlat(IO.IN, GTCapability.COMPUTATION_PROVIDER);
-        if (!containers.isEmpty()) energyContainer = new EnergyContainerList(containers);
-        if (!providers.isEmpty()) computationProviderList = new ComputationProviderList(providers);
+        if (containers.length == 0) containers = getCapabilitiesFlat(IO.OUT, GTCapability.ENERGY_CONTAINER);
+        var providers = getCapabilitiesFlat(IO.IN, GTCapability.COMPUTATION_PROVIDER);
+        if (containers.length > 0) energyContainer = new EnergyContainerList(containers);
+        if (providers.length > 0) computationProviderList = new ComputationProviderList(providers);
         this.tier = GTUtil.getFloorTierByVoltage(getMaxVoltage());
     }
 

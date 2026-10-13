@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.trait.IRecipeHandlerTrait;
-import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -26,8 +25,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.IMultiblockPageMachine;
-
-import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
@@ -75,14 +72,11 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected boolean recipeLogicAvailable;
 
     @Getter
-    protected final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy;
-    @Getter
-    protected final Map<IO, List<IRecipeHandler>> capabilitiesFlat;
+    protected final RecipeHandlerCache recipeHandlerCache = new RecipeHandlerCache();
 
     @Getter
     protected final Int2ReferenceOpenHashMap<RecipeHandlerUnit> outputColorMap;
 
-    protected final List<ISubscription> traitSubscriptions;
     @Getter
     @Setter
     @SaveToDisk(defaultValue = "false")
@@ -136,9 +130,6 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public WorkableMultiblockMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder);
         this.recipeLogic = createRecipeLogic(args);
-        this.capabilitiesProxy = new EnumMap<>(IO.class);
-        this.capabilitiesFlat = new EnumMap<>(IO.class);
-        this.traitSubscriptions = new ArrayList<>();
         this.outputColorMap = new Int2ReferenceOpenHashMap<>();
         this.inputUnits = Collections.emptyList();
         this.outputUnits = Collections.emptyList();
@@ -150,8 +141,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         super.onUnload();
         activeState = ActiveBlock.State.UNKNOWN;
         activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
-        traitSubscriptions.forEach(ISubscription::unsubscribe);
-        traitSubscriptions.clear();
+        recipeHandlerCache.clear();
     }
 
     @Override
@@ -268,28 +258,22 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         activeBlocks = getMultiblockState().getMatchContext().getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET);
 
         // attach parts' traits
-        capabilitiesProxy.clear();
-        capabilitiesFlat.clear();
-        traitSubscriptions.forEach(ISubscription::unsubscribe);
-        traitSubscriptions.clear();
+        Runnable listener = recipeLogic::updateTickSubscription;
+        recipeHandlerCache.clear();
         for (var part : workableMultiPart) {
             for (var handlerList : part.getRecipeHandlers()) {
                 this.addHandlerList(handlerList);
-                traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
+                this.addSubscription(handlerList.subscribe(listener));
             }
         }
         // attach self traits
         Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
-        for (MachineTrait trait : getTraits()) {
-            if (trait instanceof IRecipeHandlerTrait handlerTrait && handlerTrait.isAvailable() && handlerTrait.getHandlerIO() != IO.NONE) {
-                ioTraits.computeIfAbsent(handlerTrait.getHandlerIO(), i -> new ArrayList<>()).add(handlerTrait);
+        for (var trait : getTraits(IRecipeHandlerTrait.class)) {
+            if (trait.isAvailable() && trait.getHandlerIO() != IO.NONE) {
+                ioTraits.computeIfAbsent(trait.getHandlerIO(), i -> new ArrayList<>()).add(trait);
             }
         }
-        for (var entry : ioTraits.entrySet()) {
-            var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
-            this.addHandlerList(handlerList);
-            traitSubscriptions.add(handlerList.subscribe(recipeLogic::updateTickSubscription));
-        }
+        recipeHandlerCache.addHandlerLists(this, ioTraits, listener);
     }
 
     @Override
@@ -305,11 +289,8 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         beforeWorkingPart = new IWorkableMultiPart[0];
         afterWorkingPart = new IWorkableMultiPart[0];
         modifyRecipePart = new IWorkableMultiPart[0];
-        capabilitiesProxy.clear();
-        capabilitiesFlat.clear();
         outputColorMap.clear();
-        traitSubscriptions.forEach(ISubscription::unsubscribe);
-        traitSubscriptions.clear();
+        recipeHandlerCache.clear();
         inputUnits = Collections.emptyList();
         outputUnits = Collections.emptyList();
         // reset recipe Logic

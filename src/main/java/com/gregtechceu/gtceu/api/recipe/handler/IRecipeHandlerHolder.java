@@ -5,6 +5,9 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.feature.ITieredMachine;
 import com.gregtechceu.gtceu.api.recipe.*;
 import com.gregtechceu.gtceu.api.recipe.info.*;
+import com.gregtechceu.gtceu.utils.cache.ClassInstanceCache;
+
+import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -19,6 +22,7 @@ import appeng.api.stacks.AEKeyType;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -60,19 +64,21 @@ import java.util.function.Supplier;
  */
 public interface IRecipeHandlerHolder extends IMachineFeature {
 
+    RecipeHandlerCache getRecipeHandlerCache();
+
     /** 是否已经挂载了任何处理器分组。 */
     default boolean hasCapabilityProxies() {
-        return !getCapabilitiesProxy().isEmpty();
+        return !getRecipeHandlerCache().capabilitiesProxy.isEmpty();
     }
 
     /** 该机器全部<b>输入</b>方向的分组。 */
     default List<RecipeHandlerUnit> getInputUnits() {
-        return getCapabilitiesProxy().getOrDefault(IO.IN, Collections.emptyList());
+        return getRecipeHandlerCache().capabilitiesProxy.getOrDefault(IO.IN, Collections.emptyList());
     }
 
     /** 该机器全部<b>输出</b>方向的分组。 */
     default List<RecipeHandlerUnit> getOutputUnits() {
-        return getCapabilitiesProxy().getOrDefault(IO.OUT, Collections.emptyList());
+        return getRecipeHandlerCache().capabilitiesProxy.getOrDefault(IO.OUT, Collections.emptyList());
     }
 
     /**
@@ -85,47 +91,19 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
      * 找不到才退回全部输出组。
      */
     default List<RecipeHandlerUnit> getOutputUnits(GTRecipe recipe) {
-        return getCapabilitiesProxy().getOrDefault(IO.OUT, Collections.emptyList());
+        return getRecipeHandlerCache().capabilitiesProxy.getOrDefault(IO.OUT, Collections.emptyList());
     }
 
-    /** @return 方向 → 处理器分组；分组由机器在装配时填充 */
+    /** 取某个方向上扁平化的 unit 列表。 */
     @NotNull
-    Map<IO, List<RecipeHandlerUnit>> getCapabilitiesProxy();
-
-    /** @return 方向 → 扁平化的 handler 列表，用于按能力类型检索 */
-    @NotNull
-    Map<IO, List<IRecipeHandler>> getCapabilitiesFlat();
+    default List<RecipeHandlerUnit> getCapabilitiesProxy(IO io) {
+        return getRecipeHandlerCache().capabilitiesProxy.getOrDefault(io, Collections.emptyList());
+    }
 
     /** 取某个方向上扁平化的 handler 列表。 */
     @NotNull
     default List<IRecipeHandler> getCapabilitiesFlat(IO io) {
-        return getCapabilitiesFlat().getOrDefault(io, Collections.emptyList());
-    }
-
-    @NotNull
-    default List<IRecipeHandler> getItemCapabilitiesFlat(IO io) {
-        var all = getCapabilitiesFlat(io);
-        if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>(all.size());
-        for (var handler : all) {
-            if (handler.handlesItems()) {
-                list.add(handler);
-            }
-        }
-        return list;
-    }
-
-    @NotNull
-    default List<IRecipeHandler> getFluidCapabilitiesFlat(IO io) {
-        var all = getCapabilitiesFlat(io);
-        if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<IRecipeHandler>(all.size());
-        for (var handler : all) {
-            if (handler.handlesFluids()) {
-                list.add(handler);
-            }
-        }
-        return list;
+        return getRecipeHandlerCache().capabilitiesFlat.getOrDefault(io, Collections.emptyList());
     }
 
     /**
@@ -135,16 +113,12 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
      * @return 匹配的 handler；没有时返回空列表
      */
     @NotNull
-    default <T> List<T> getCapabilitiesFlat(IO io, Class<T> capability) {
-        var all = getCapabilitiesFlat(io);
-        if (all.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<T>(all.size());
-        for (var handler : all) {
-            if (capability.isInstance(handler)) {
-                list.add(capability.cast(handler));
-            }
-        }
-        return list;
+    default <T> T[] getCapabilitiesFlat(IO io, Class<T> capability) {
+        return getRecipeHandlerCache().getCapabilitiesFlat(io, capability);
+    }
+
+    default void addSubscription(ISubscription listener) {
+        getRecipeHandlerCache().traitSubscriptions.add(listener);
     }
 
     /**
@@ -155,8 +129,8 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
      */
     default void addHandlerList(RecipeHandlerUnit unit) {
         if (unit == RecipeHandlerUnit.NO_DATA || unit.handlerIO == IO.NONE || unit.allHandlers.length == 0) return;
-        getCapabilitiesProxy().computeIfAbsent(unit.handlerIO, i -> new ArrayList<>()).add(unit);
-        var list = getCapabilitiesFlat().computeIfAbsent(unit.handlerIO, i -> new ArrayList<>());
+        getRecipeHandlerCache().capabilitiesProxy.computeIfAbsent(unit.handlerIO, i -> new ArrayList<>()).add(unit);
+        var list = getRecipeHandlerCache().capabilitiesFlat.computeIfAbsent(unit.handlerIO, i -> new ArrayList<>());
         for (var handler : unit.allHandlers) {
             if (list.contains(handler)) continue;
             list.add(handler);
@@ -577,5 +551,44 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             if (handler.matchFluid(fluid, amount)) return true;
         }
         return false;
+    }
+
+    final class RecipeHandlerCache {
+
+        private final Map<IO, List<RecipeHandlerUnit>> capabilitiesProxy = new EnumMap<>(IO.class);
+        private final Map<IO, List<IRecipeHandler>> capabilitiesFlat = new EnumMap<>(IO.class);
+        private final List<ISubscription> traitSubscriptions = new ArrayList<>();
+        private final Map<IO, ClassInstanceCache<IRecipeHandler>> handlerByClass = new EnumMap<>(IO.class);
+
+        public void addHandlerLists(IRecipeHandlerHolder holder, Map<IO, List<IRecipeHandler>> ioMap, @Nullable Runnable listener) {
+            for (var entry : ioMap.entrySet()) {
+                var handlerList = RecipeHandlerUnit.of(entry.getKey(), entry.getValue());
+                holder.addHandlerList(handlerList);
+                if (listener != null) traitSubscriptions.add(handlerList.subscribe(listener));
+            }
+        }
+
+        @NotNull
+        public <T> T[] getCapabilitiesFlat(IO io, Class<T> capability) {
+            var cache = handlerByClass.get(io);
+            if (cache == null) {
+                var all = capabilitiesFlat.get(io);
+                cache = new ClassInstanceCache<>(() -> all);
+                handlerByClass.put(io, cache);
+            }
+            return cache.getInstance(capability);
+        }
+
+        public void clear() {
+            unsubscribe();
+            capabilitiesFlat.clear();
+            capabilitiesProxy.clear();
+            traitSubscriptions.clear();
+            handlerByClass.clear();
+        }
+
+        public void unsubscribe() {
+            traitSubscriptions.forEach(ISubscription::unsubscribe);
+        }
     }
 }

@@ -2,10 +2,8 @@ package com.gregtechceu.gtceu.common.data.machines;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
-import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CoilWorkableElectricMultiblockMachine;
@@ -24,7 +22,6 @@ import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.renderer.machine.*;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.block.BoilerFireboxType;
-import com.gregtechceu.gtceu.common.blockentity.AssemblyLineBlockEntity;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.*;
 import com.gregtechceu.gtceu.common.machine.multiblock.primitive.CharcoalPileIgniterMachine;
@@ -402,8 +399,7 @@ public class GTMultiMachines {
             .register();
 
     public static final MultiblockMachineDefinition ASSEMBLY_LINE = REGISTRATE
-            .multiblock("assembly_line", AssemblyLineMachine::new, MetaMachineBlock::new,
-                    MetaMachineItem::new, AssemblyLineBlockEntity::new)
+            .multiblock("assembly_line", AssemblyLineMachine::new)
             .allRotation()
             .recipeType(GTRecipeTypes.ASSEMBLY_LINE_RECIPES)
             .recipeModifiers(RecipeModifier.OVERCLOCKING)

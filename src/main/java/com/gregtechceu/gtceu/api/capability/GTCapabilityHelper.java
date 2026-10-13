@@ -14,7 +14,6 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMaintenanceMachine;
 import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
-import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyInfoProviderList;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
@@ -106,9 +105,9 @@ public class GTCapabilityHelper {
             if (metaMachineBlock.metaMachine instanceof IEnergyInfoProvider provider) {
                 return provider;
             }
-            var list = forceGetCapabilitiesFromTraits(metaMachineBlock.metaMachine.getTraits(), GTCapability.ENERGY_INFO_PROVIDER);
-            if (!list.isEmpty()) {
-                return list.size() == 1 ? list.getFirst() : new EnergyInfoProviderList(list);
+            var list = metaMachineBlock.metaMachine.getTraits(GTCapability.ENERGY_INFO_PROVIDER);
+            if (list.length > 0) {
+                return list.length == 1 ? list[0] : new EnergyInfoProviderList(list);
             }
         }
         return null;
@@ -129,10 +128,8 @@ public class GTCapabilityHelper {
             if (machine instanceof IWorkable workable) {
                 return workable;
             }
-            for (MachineTrait trait : machine.getTraits()) {
-                if (trait instanceof IWorkable workable) {
-                    return workable;
-                }
+            for (var trait : machine.getTraits(IWorkable.class)) {
+                return trait;
             }
             return null;
         }
@@ -146,10 +143,8 @@ public class GTCapabilityHelper {
             if (machine instanceof IControllable controllable) {
                 return controllable;
             }
-            for (MachineTrait trait : machine.getTraits()) {
-                if (trait instanceof IControllable controllable) {
-                    return controllable;
-                }
+            for (var trait : machine.getTraits(IControllable.class)) {
+                return trait;
             }
             return null;
         }
@@ -201,23 +196,13 @@ public class GTCapabilityHelper {
         return null;
     }
 
-    public static <T> List<T> forceGetCapabilitiesFromTraits(List<MachineTrait> traits, Class<T> capability) {
-        if (traits.isEmpty()) return Collections.emptyList();
+    public static <T> List<T> getCapabilitiesFromTraits(MetaMachine machine, Direction accessSide, Class<T> capability) {
+        var traits = machine.getTraits(capability);
+        if (traits.length == 0) return Collections.emptyList();
         var list = new ArrayList<T>();
-        for (MachineTrait trait : traits) {
-            if (capability.isInstance(trait)) {
-                list.add((T) trait);
-            }
-        }
-        return list;
-    }
-
-    public static <T> List<T> getCapabilitiesFromTraits(List<MachineTrait> traits, Direction accessSide, Class<T> capability) {
-        if (traits.isEmpty()) return Collections.emptyList();
-        var list = new ArrayList<T>();
-        for (MachineTrait trait : traits) {
-            if (trait instanceof ICapabilityTrait capabilityTrait && capability.isInstance(trait) && capabilityTrait.hasCapability(accessSide)) {
-                list.add((T) trait);
+        for (var trait : traits) {
+            if (trait instanceof ICapabilityTrait capabilityTrait && capabilityTrait.hasCapability(accessSide)) {
+                list.add(trait);
             }
         }
         return list;

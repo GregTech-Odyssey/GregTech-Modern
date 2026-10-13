@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
+import com.gregtechceu.gtceu.utils.cache.ClassInstanceCache;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -36,12 +37,10 @@ import com.google.common.collect.Multimap;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.RemoteCall;
 import com.gto.datasynclib.annotations.SyncToClient;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -55,7 +54,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     protected MultiblockState multiblockState;
     protected IMultiPart[] parts = new IMultiPart[0];
     protected final List<IMultiModule<?>> modules = new ArrayList<>();
-    protected final Reference2ReferenceOpenHashMap<Class<?>, Object[]> partByClass = new Reference2ReferenceOpenHashMap<>();
+    protected final ClassInstanceCache<IMultiPart> partByClass = new ClassInstanceCache<>(() -> Arrays.asList(parts));
 
     @Getter
     @SyncToClient(listener = "onPartsUpdated")
@@ -165,26 +164,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public <T> T[] getParts(Class<T> type) {
-        var arr = partByClass.get(type);
-        if (arr == null) {
-            arr = getTypeParts(type);
-        }
-        return (T[]) arr;
-    }
-
-    private <T> T[] getTypeParts(Class<T> type) {
-        var arr = (T[]) Array.newInstance(type, 0);
-        var list = new ArrayList<>();
-        for (var part : parts) {
-            if (type.isInstance(part)) {
-                list.add(part);
-            }
-        }
-        if (!list.isEmpty()) {
-            arr = list.toArray(arr);
-        }
-        partByClass.put(type, arr);
-        return arr;
+        return partByClass.getInstance(type);
     }
 
     @Override

@@ -15,11 +15,9 @@ import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
 import com.gregtechceu.gtceu.api.recipe.content.FluidTagIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.ItemTagIngredient;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
-import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.utils.cache.ClassInstanceCache;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
@@ -40,7 +38,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiPredicate;
@@ -73,6 +70,7 @@ public class RecipeHandlerUnit {
     public final IRecipeHandler[] contentHandlers;
     public final IRecipeHandler[] allHandlers;
     public final IRecipeHandlerTrait[] allHandlerTraits;
+    public final ClassInstanceCache<IRecipeHandler> handlerByClass;
     public final IO handlerIO;
     public int color = -1;
     public boolean isDistinct;
@@ -93,6 +91,7 @@ public class RecipeHandlerUnit {
         this.part = part;
         Arrays.sort(handlers, IFilteredHandler.PRIORITY_COMPARATOR);
         this.allHandlers = handlers;
+        this.handlerByClass = new ClassInstanceCache<>(() -> Arrays.asList(allHandlers));
         var items = new ArrayList<IRecipeHandler>();
         var fluids = new ArrayList<IRecipeHandler>();
         var searchs = new ArrayList<IRecipeHandler>();
@@ -218,30 +217,15 @@ public class RecipeHandlerUnit {
 
     public <T> ISubscription subscribe(Runnable listener, Class<T> capability) {
         var subs = new ArrayList<ISubscription>(allHandlerTraits.length);
-        for (IRecipeHandlerTrait trait : allHandlerTraits) {
-            if (capability.isInstance(trait)) subs.add(trait.addChangedListener(listener));
+        for (var trait : getCapabilities(capability)) {
+            if (trait instanceof IRecipeHandlerTrait handlerTrait) subs.add(handlerTrait.addChangedListener(listener));
         }
         return () -> subs.forEach(ISubscription::unsubscribe);
     }
 
     @NotNull
-    public <T> List<T> getCapabilities(RecipeInfo key, Class<T> capability) {
-        var all = key == ItemRecipeInfo.INSTANCE ? itemHandlers : key == FluidRecipeInfo.INSTANCE ? fluidHandlers : allHandlers;
-        return filter(all, capability);
-    }
-
-    @NotNull
-    public <T> List<T> getCapabilities(Class<T> capability) {
-        return filter(allHandlers, capability);
-    }
-
-    private static <T> List<T> filter(IRecipeHandler[] all, Class<T> capability) {
-        if (all.length == 0) return Collections.emptyList();
-        var list = new ArrayList<T>(all.length);
-        for (var handler : all) {
-            if (capability.isInstance(handler)) list.add(capability.cast(handler));
-        }
-        return list;
+    public <T> T[] getCapabilities(Class<T> capability) {
+        return handlerByClass.getInstance(capability);
     }
 
     public boolean findRecipe(GTRecipeType recipeType, BiPredicate<RecipeHandlerUnit, GTRecipeDefinition> canHandle) {
