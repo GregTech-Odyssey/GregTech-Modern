@@ -37,6 +37,8 @@ import net.minecraftforge.registries.NewRegistryEvent;
 import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryBuilder;
 
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import com.gto.fastcollection.map.MultiMap;
 import com.gto.fastcollection.map.NestedMap;
 import com.gto.registrate.builders.BlockBuilder;
@@ -67,6 +69,7 @@ import com.gto.registrate.util.nullness.NonNullUnaryOperator;
 import com.gto.registrate.util.nullness.NonnullType;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
@@ -76,6 +79,7 @@ import org.apache.logging.log4j.Level;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -162,8 +166,9 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
     private final MultiMap<ResourceKey<? extends Registry<?>>, Runnable> afterRegisterCallbacks = MultiMap.createIdentity(ArrayList::new);
     private final Set<ResourceKey<? extends Registry<?>>> completedRegistrations = new ReferenceOpenHashSet<>();
 
-    public final NestedMap<ProviderType<?>, Pair<String, ResourceKey<? extends Registry<?>>>, Consumer<? extends RegistrateProvider>> datagensByEntry = NestedMap.createIdentity(HashMap::new);
-    public final MultiMap<ProviderType<?>, @NonnullType Consumer<? extends RegistrateProvider>> datagens = MultiMap.create(new Reference2ReferenceLinkedOpenHashMap<>(), ReferenceLinkedOpenHashSet::new);
+    public final NestedMap<ProviderType<?>, Pair<String, ResourceKey<? extends Registry<?>>>, Consumer<? extends RegistrateProvider>> datagensByEntry = NestedMap.create(Collections.synchronizedMap(new Reference2ReferenceOpenHashMap<>()), ConcurrentHashMap::new);
+    // Synchronize the whole multimap so empty-key cleanup cannot race with insertion. Preserve identity and order.
+    public final SetMultimap<ProviderType<?>, @NonnullType Consumer<? extends RegistrateProvider>> datagens = Multimaps.synchronizedSetMultimap(Multimaps.newSetMultimap(new Reference2ReferenceLinkedOpenHashMap<>(), ReferenceLinkedOpenHashSet::new));
     public final MultiMap<ResourceKey<CreativeModeTab>, Consumer<CreativeModeTabModifier>> creativeModeTabModifiers = MultiMap.createIdentity(ArrayList::new);
 
     @Nullable
@@ -518,12 +523,15 @@ public abstract class AbstractRegistrate<S extends AbstractRegistrate<S>> {
      */
     public <P extends RegistrateProvider, R> S setDataGenerator(String entry, ResourceKey<? extends Registry<R>> registryType, ProviderType<? extends P> type, NonNullConsumer<? extends P> cons) {
         if (!GTCEu.isDataGen()) return self();
-        @SuppressWarnings("null")
-        Consumer<? extends RegistrateProvider> existing = datagensByEntry.put(type, Pair.of(entry, registryType), cons);
-        if (existing != null) {
-            datagens.remove(type, existing);
+        // Replacing an entry must update both indexes atomically, including concurrent replacements of the same entry.
+        synchronized (datagens) {
+            @SuppressWarnings("null")
+            Consumer<? extends RegistrateProvider> existing = datagensByEntry.put(type, Pair.of(entry, registryType), cons);
+            if (existing != null) {
+                datagens.remove(type, existing);
+            }
+            return addDataGenerator(type, cons);
         }
-        return addDataGenerator(type, cons);
     }
 
     /**
