@@ -90,8 +90,6 @@ import java.util.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import static com.gregtechceu.gtceu.api.item.tool.ToolHelper.getBehaviorsTag;
-
 /**
  * an abstract layer of gregtech machine.
  * Because I have to implement BlockEntities for both fabric and forge platform.
@@ -321,8 +319,7 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         } else {
             if (isRemote()) return InteractionResult.SUCCESS;
             var itemStack = playerIn.getItemInHand(hand);
-            var tagCompound = getBehaviorsTag(itemStack);
-            ToolModeSwitchBehavior.WrenchModeType type = ToolModeSwitchBehavior.WrenchModeType.values()[tagCompound.getByte("Mode")];
+            ToolModeSwitchBehavior.WrenchModeType type = ToolModeSwitchBehavior.getMode(itemStack);
             if (type.isItem()) {
                 if (this instanceof IAutoOutputItem autoOutputItem && (!hasFrontFacing() || gridSide != getFrontFacing())) {
                     autoOutputItem.setOutputFacingItems(gridSide);

@@ -19,15 +19,18 @@ import net.minecraft.client.renderer.*;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.BlockDestructionProgress;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -52,6 +55,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.SortedSet;
 
 @Mixin(value = LevelRenderer.class, priority = 500)
@@ -74,7 +79,42 @@ public abstract class LevelRendererMixin {
     private @Nullable ClientLevel level;
 
     @Unique
-    private final RandomSource gtceu$modelRandom = RandomSource.create();
+    private RandomSource gtceu$modelRandom;
+    @Unique
+    private long gtceu$aoeTick;
+    @Unique
+    private BlockPos gtceu$aoePos;
+    @Unique
+    private Direction gtceu$aoeFace;
+    @Unique
+    private Direction gtceu$aoeFacing;
+    @Unique
+    private AoESymmetrical gtceu$aoeShape;
+    @Unique
+    private Item gtceu$aoeItem;
+    @Unique
+    private List<BlockPos> gtceu$aoeBlocks;
+
+    @Unique
+    private List<BlockPos> gtceu$harvestableBlocks(ItemStack held, BlockHitResult hit, AoESymmetrical aoe) {
+        long tick = level.getGameTime();
+        Direction facing = minecraft.player.getDirection();
+        if (tick == gtceu$aoeTick && held.getItem() == gtceu$aoeItem && hit.getDirection() == gtceu$aoeFace &&
+                facing == gtceu$aoeFacing && aoe.equals(gtceu$aoeShape) && hit.getBlockPos().equals(gtceu$aoePos)) {
+            return gtceu$aoeBlocks;
+        }
+        var blocks = ToolHelper.getHarvestableBlocks(aoe, new UseOnContext(minecraft.player, InteractionHand.MAIN_HAND, hit));
+        var level = this.level;
+        blocks.sort(Comparator.comparingInt(pos -> level.getBlockState(pos).getBlock() instanceof MaterialBlock ? 1 : 0));
+        gtceu$aoeTick = tick;
+        gtceu$aoeItem = held.getItem();
+        gtceu$aoeFace = hit.getDirection();
+        gtceu$aoeFacing = facing;
+        gtceu$aoeShape = aoe;
+        gtceu$aoePos = hit.getBlockPos();
+        gtceu$aoeBlocks = blocks;
+        return blocks;
+    }
 
     @Inject(method = "renderLevel", at = @At("HEAD"))
     private void renderLevel(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline,
@@ -84,8 +124,7 @@ public abstract class LevelRendererMixin {
 
         ItemStack mainHandItem = minecraft.player.getMainHandItem();
         if (minecraft.player.isShiftKeyDown() ||
-                !ToolHelper.hasBehaviorsTag(mainHandItem) ||
-                !(minecraft.hitResult instanceof BlockHitResult hitResult)) {
+                !(minecraft.hitResult instanceof BlockHitResult hitResult) || hitResult.getType() != HitResult.Type.BLOCK) {
             return;
         }
         AoESymmetrical aoeDefinition = ToolHelper.getAoEDefinition(mainHandItem);
@@ -98,8 +137,7 @@ public abstract class LevelRendererMixin {
         if (progresses == null || progresses.isEmpty() || !mainHandItem.isCorrectToolForDrops(hitState)) return;
         BlockDestructionProgress progress = progresses.last();
 
-        UseOnContext context = new UseOnContext(minecraft.player, InteractionHand.MAIN_HAND, hitResult);
-        var positions = ToolHelper.getHarvestableBlocks(aoeDefinition, context);
+        var positions = gtceu$harvestableBlocks(mainHandItem, hitResult, aoeDefinition);
 
         Vec3 vec3 = camera.getPosition();
         double camX = vec3.x();
@@ -138,30 +176,25 @@ public abstract class LevelRendererMixin {
 
         ItemStack mainHandItem = minecraft.player.getMainHandItem();
 
-        if (state.isAir() || minecraft.player.isShiftKeyDown() || !level.isInWorldBounds(pos) ||
-                !mainHandItem.isCorrectToolForDrops(state) || !ToolHelper.hasBehaviorsTag(mainHandItem) ||
-                !(minecraft.hitResult instanceof BlockHitResult hitResult)) {
+        AoESymmetrical aoe = ToolHelper.getAoEDefinition(mainHandItem);
+        if (aoe.isZero() || state.isAir() || minecraft.player.isShiftKeyDown() || !level.isInWorldBounds(pos) ||
+                !(minecraft.hitResult instanceof BlockHitResult hitResult) || hitResult.getType() != HitResult.Type.BLOCK ||
+                !mainHandItem.isCorrectToolForDrops(state)) {
             gtceu$renderContextAwareOutline(instance, poseStack, consumer, entity, camX, camY, camZ,
                     pos, state, original);
             return;
         }
-
-        UseOnContext context = new UseOnContext(minecraft.player, InteractionHand.MAIN_HAND, hitResult);
-        var blocks = ToolHelper.getHarvestableBlocks(ToolHelper.getAoEDefinition(mainHandItem), context);
-        blocks.sort((o1, o2) -> {
-            if (level.getBlockState(o1).getBlock() instanceof MaterialBlock) {
-                if (level.getBlockState(o2).getBlock() instanceof MaterialBlock) {
-                    return 0;
-                }
-                return 1;
-            }
-            if (level.getBlockState(o2).getBlock() instanceof MaterialBlock) {
-                return -1;
-            }
-            return 0;
-        });
-        blocks.forEach(blockPos -> gtceu$renderContextAwareOutline(instance, poseStack, consumer, entity,
-                camX, camY, camZ, blockPos, level.getBlockState(blockPos), original));
+        var blocks = gtceu$harvestableBlocks(mainHandItem, hitResult, aoe);
+        if (blocks.isEmpty()) {
+            gtceu$renderContextAwareOutline(instance, poseStack, consumer, entity, camX, camY, camZ,
+                    pos, state, original);
+            return;
+        }
+        for (int i = 0; i < blocks.size(); i++) {
+            BlockPos blockPos = blocks.get(i);
+            gtceu$renderContextAwareOutline(instance, poseStack, consumer, entity,
+                    camX, camY, camZ, blockPos, level.getBlockState(blockPos), original);
+        }
     }
 
     @Unique
@@ -218,6 +251,7 @@ public abstract class LevelRendererMixin {
         BakedModel blockModel = minecraft.getBlockRenderer().getBlockModel(state);
         ModelData modelData = level.getModelDataManager().getAt(pos);
         if (modelData == null) modelData = ModelData.EMPTY;
+        if (gtceu$modelRandom == null) gtceu$modelRandom = RandomSource.create();
         gtceu$modelRandom.setSeed(state.getSeed(pos));
         if (blockModel.getRenderTypes(state, gtceu$modelRandom, modelData).contains(RenderType.translucent())) {
             return ChemicalHelper.getMaterialEntry(state.getBlock());

@@ -10,7 +10,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.data.recipe.builder.*;
 
 import net.minecraft.resources.ResourceLocation;
@@ -263,14 +263,13 @@ public class VanillaRecipeHelper {
                                        @NotNull Object... recipe) {
         var builder = new ShapedRecipeBuilder(regName).output(result);
         builder.isStrict(isStrict);
-        final CharSet tools = ToolHelper.getToolSymbols();
         CharSet foundTools = new CharArraySet(9);
         for (int i = 0; i < recipe.length; i++) {
             var o = recipe[i];
             if (o instanceof String pattern) {
                 builder.pattern(pattern);
                 for (char c : pattern.toCharArray()) {
-                    if (tools.contains(c)) {
+                    if (GTToolType.isToolSymbol(c)) {
                         foundTools.add(c);
                     }
                 }
@@ -279,7 +278,7 @@ public class VanillaRecipeHelper {
                 for (String s : pattern) {
                     builder.pattern(s);
                     for (char c : s.toCharArray()) {
-                        if (tools.contains(c)) {
+                        if (GTToolType.isToolSymbol(c)) {
                             foundTools.add(c);
                         }
                     }
@@ -310,7 +309,7 @@ public class VanillaRecipeHelper {
         }
         for (var it = foundTools.iterator(); it.hasNext();) {
             char c = it.nextChar();
-            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
+            builder.define(c, GTToolType.fromSymbol(c).mainTag());
         }
         builder.save();
 
@@ -374,14 +373,13 @@ public class VanillaRecipeHelper {
                                                      @NotNull Object... recipe) {
         var builder = new ShapedEnergyTransferRecipeBuilder(regName).output(result);
         builder.chargeIngredient(chargeIngredient).overrideCharge(overrideCharge).transferMaxCharge(transferMaxCharge);
-        final CharSet tools = ToolHelper.getToolSymbols();
         CharSet foundTools = new CharArraySet(9);
         for (int i = 0; i < recipe.length; i++) {
             var o = recipe[i];
             if (o instanceof String pattern) {
                 builder.pattern(pattern);
                 for (char c : pattern.toCharArray()) {
-                    if (tools.contains(c)) {
+                    if (GTToolType.isToolSymbol(c)) {
                         foundTools.add(c);
                     }
                 }
@@ -390,7 +388,7 @@ public class VanillaRecipeHelper {
                 for (String s : pattern) {
                     builder.pattern(s);
                     for (char c : s.toCharArray()) {
-                        if (tools.contains(c)) {
+                        if (GTToolType.isToolSymbol(c)) {
                             foundTools.add(c);
                         }
                     }
@@ -416,7 +414,7 @@ public class VanillaRecipeHelper {
         }
         for (var it = foundTools.iterator(); it.hasNext();) {
             char c = it.nextChar();
-            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
+            builder.define(c, GTToolType.fromSymbol(c).mainTag());
         }
         builder.save();
 
@@ -439,14 +437,13 @@ public class VanillaRecipeHelper {
                                                      @NotNull Object... recipe) {
         var builder = new ShapedFluidContainerRecipeBuilder(regName).output(result);
         builder.isStrict(isStrict);
-        final CharSet tools = ToolHelper.getToolSymbols();
         CharSet foundTools = new CharArraySet(9);
         for (int i = 0; i < recipe.length; i++) {
             var o = recipe[i];
             if (o instanceof String pattern) {
                 builder.pattern(pattern);
                 for (char c : pattern.toCharArray()) {
-                    if (tools.contains(c)) {
+                    if (GTToolType.isToolSymbol(c)) {
                         foundTools.add(c);
                     }
                 }
@@ -455,7 +452,7 @@ public class VanillaRecipeHelper {
                 for (String s : pattern) {
                     builder.pattern(s);
                     for (char c : s.toCharArray()) {
-                        if (tools.contains(c)) {
+                        if (GTToolType.isToolSymbol(c)) {
                             foundTools.add(c);
                         }
                     }
@@ -486,7 +483,7 @@ public class VanillaRecipeHelper {
         }
         for (var it = foundTools.iterator(); it.hasNext();) {
             char c = it.nextChar();
-            builder.define(c, ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
+            builder.define(c, GTToolType.fromSymbol(c).mainTag());
         }
 
         builder.save();
@@ -552,7 +549,7 @@ public class VanillaRecipeHelper {
                         builder.requires(tag);
                     } else builder.requires(ChemicalHelper.getItem(tagPrefix, material));
                 }
-                case Character c -> builder.requires(ToolHelper.getToolFromSymbol(c).itemTags.getFirst());
+                case Character c -> builder.requires(GTToolType.fromSymbol(c).mainTag());
                 default -> {}
             }
         }
@@ -574,7 +571,7 @@ public class VanillaRecipeHelper {
         int itr = 0;
         while (recipe[itr] instanceof String s) {
             for (char c : s.toCharArray()) {
-                if (ToolHelper.getToolFromSymbol(c) != null) continue; // skip tools
+                if (GTToolType.isToolSymbol(c)) continue; // skip tools
                 inputCountMap.addTo(c, 1);
             }
             itr++;

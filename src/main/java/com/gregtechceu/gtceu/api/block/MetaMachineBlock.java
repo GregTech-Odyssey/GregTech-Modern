@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.block;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.RotationState;
-import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.MetaMachineItem;
+import com.gregtechceu.gtceu.api.item.tool.GTToolItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
@@ -311,8 +311,8 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
         if (itemStack.is(GTItems.PORTABLE_SCANNER.get())) {
             return itemStack.getItem().use(world, player, hand).getResult();
         }
-        if (itemStack.getItem() instanceof IGTTool gtToolItem) {
-            shouldOpenUi = gtToolItem.definition$shouldOpenUIAfterUse(new UseOnContext(player, hand, hit));
+        if (itemStack.getItem() instanceof GTToolItem gtToolItem) {
+            shouldOpenUi = gtToolItem.shouldOpenUIAfterUse(new UseOnContext(player, hand, hit));
         }
         if (machine instanceof IInteractedMachine interactedMachine) {
             var result = interactedMachine.onUse(state, world, pos, player, hand, hit);

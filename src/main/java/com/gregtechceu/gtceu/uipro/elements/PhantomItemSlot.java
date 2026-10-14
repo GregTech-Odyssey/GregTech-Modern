@@ -22,6 +22,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * 标准虚拟物品槽（设置用：只记录"是哪种物品"，不存放真实物品，如黑名单、过滤、标记），18 见方，底图 {@link UITheme#ITEM_SLOT}。
@@ -45,6 +48,62 @@ public class PhantomItemSlot extends PhantomSlotWidget implements ElementState.H
     protected PhantomItemSlot(IItemTransfer handler, int index) {
         super(handler, index, 0, 0);
         if (GTCEu.isClientThread()) setBackgroundTexture(slotState.background(UITheme.ITEM_SLOT, false, this::isXeiPhantom));
+    }
+
+    public static PhantomItemSlot of(Supplier<ItemStack> getter, Consumer<ItemStack> setter, Predicate<ItemStack> validator) {
+        return new PhantomItemSlot(new Bound(getter, setter, validator), 0);
+    }
+
+    private record Bound(Supplier<ItemStack> getter, Consumer<ItemStack> setter, Predicate<ItemStack> validator) implements IItemTransfer {
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return getter.get();
+        }
+
+        @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+            if (stack.isEmpty()) setter.accept(ItemStack.EMPTY);
+            else if (validator.test(stack)) setter.accept(stack.copyWithCount(1));
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate, boolean notifyChanges) {
+            if (!stack.isEmpty() && validator.test(stack) && !simulate) setter.accept(stack.copyWithCount(1));
+            return stack;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate, boolean notifyChanges) {
+            ItemStack current = getter.get();
+            if (!simulate) setter.accept(ItemStack.EMPTY);
+            return current.copy();
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return validator.test(stack);
+        }
+
+        @Override
+        public Object createSnapshot() {
+            return getter.get().copy();
+        }
+
+        @Override
+        public void restoreFromSnapshot(Object snapshot) {
+            if (snapshot instanceof ItemStack stack) setter.accept(stack);
+        }
     }
 
     @Override

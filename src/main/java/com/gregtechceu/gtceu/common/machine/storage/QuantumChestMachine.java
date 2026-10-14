@@ -3,10 +3,6 @@ package com.gregtechceu.gtceu.common.machine.storage;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.LongInputWidget;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
@@ -19,20 +15,30 @@ import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.Button;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.IconToggle;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.PhantomItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 import com.gregtechceu.gtceu.utils.*;
 
-import com.lowdragmc.lowdraglib.gui.editor.Icons;
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -57,12 +63,13 @@ import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.fastcollection.fastutil.O2LOpenCacheHashMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import dev.vfyjxf.taffy.style.AlignItems;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -96,7 +103,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @SaveToDisk(defaultValueGetter = "getMax")
     @Getter
-    @Setter
     private long maxAmount;
     @AdditionalHolder
     protected final ItemCache cache;
@@ -406,30 +412,59 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     // *********** GUI ***********//
     //////////////////////////////////////
     public Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 109, 87);
-        var importItems = createImportItems(group);
-        group.addWidget(new ImageWidget(4, 4, 82, 55, GuiTextures.DISPLAY)).addWidget(new LabelWidget(8, 8, "gtceu.machine.quantum_chest.items_stored")).addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatNumbers(getStoredAmount())).setTextColor(-1).setDropShadow(true)).addWidget(new SlotWidget(new MenuItemAdapter(importItems), 0, 87, 4, false, true).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.IN_SLOT_OVERLAY))).addWidget(new SlotWidget(new MenuItemAdapter(display), 0, 87, 22, false, false).setBackgroundTexture(GuiTextures.SLOT)).addWidget(new ButtonWidget(87, 41, 18, 18, new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, Icons.DOWN.scale(0.7F)), cd -> {
-            if (!cd.isRemote) {
-                var key = cache.storage.keyAt(0);
-                if (key != null) {
-                    long extracted = cache.extract(0, key, key.getMaxStackSize(), false);
-                    if (extracted > 0) {
-                        var player = group.getGui().entityPlayer;
-                        var stack = Keys.toStack(key, extracted);
-                        if (!player.addItem(stack)) {
-                            Block.popResource(player.level(), player.getOnPos(), stack);
-                        }
-                    }
-                }
-            }
-        })).addWidget(new PhantomSlotWidget(lockedItem, 0, 58, 41, this::canLockTo).setMaxStackSize(1)).addWidget(new ToggleButtonWidget(4, 41, 18, 18, GuiTextures.BUTTON_ITEM_OUTPUT, this::isAutoOutputItems, this::setAutoOutputItems).setShouldUseBaseBackground().setTooltipText("gtceu.gui.item_auto_output.tooltip")).addWidget(new ToggleButtonWidget(22, 41, 18, 18, GuiTextures.BUTTON_LOCK, this::isLocked, this::setLocked).setShouldUseBaseBackground().setTooltipText("gtceu.gui.item_lock.tooltip")).addWidget(new ToggleButtonWidget(40, 41, 18, 18, GuiTextures.BUTTON_VOID, () -> isVoiding, b -> isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.item_voiding_partial.tooltip"));
-        group.addWidget(new LongInputWidget(4, 62, 101, 20, this::getMaxAmount, this::setMaxAmount).setMax(max).setMin(1L).setHoverTooltips(Component.translatable("ldlib.gui.editor.name.maxCount")));
-        group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        return group;
+        var importItems = KeyInventory.items(1);
+        var importSlot = ItemSlot.of(importItems, 0, false, true);
+        configureImportItems(importItems, () -> importSlot.getGui() == null ? null : importSlot.getGui().entityPlayer);
+        importSlot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.IN_SLOT_OVERLAY));
+        var storedSlot = ItemSlot.of(display, 0, false, false);
+        var extract = Button.icon(UISizes.SLOT_SIZE, UITheme.ARROW_DOWN).tooltips(HatchViews.EXTRACT_STACK);
+        extract.setOnServerClick(() -> extractStack(extract.getGui() == null ? null : extract.getGui().entityPlayer));
+        var lock = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, this::isLocked, this::setLocked)
+                .onOffTooltips("gtceu.gui.item_lock.tooltip.enabled", "gtceu.gui.item_lock.tooltip.disabled");
+        var lockSlot = PhantomItemSlot.of(this::getLockedItem, this::setLockedItem, this::canLockTo).xeiPhantom();
+        var output = IconToggle.of(WidgetIcons.EXPORT, this::isAutoOutputItems, this::setAutoOutputItems)
+                .onOffTooltips("gtceu.gui.item_auto_output.tooltip.enabled", "gtceu.gui.item_auto_output.tooltip.disabled");
+        var voiding = IconToggle.of(WidgetIcons.VOID_OVERFLOW, this::isVoiding, this::setVoiding)
+                .onOffTooltips("gtceu.gui.item_voiding_partial.tooltip.enabled", "gtceu.gui.item_voiding_partial.tooltip.disabled");
+        var limit = Form.numberRow(HatchViews.CAPACITY_LIMIT,
+                NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, 1, max), HatchViews.CAPACITY_LIMIT_TIP);
+        limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
+        var status = new StatusPanel();
+        status.addLine(HatchViews.ITEM, HatchViews.keyName(() -> storedKey, HatchViews.EMPTY));
+        status.addLine(HatchViews.STORED, HatchViews.amountText(this::getStoredAmount, this::getMaxAmount, null));
+        status.addLine(HatchViews.LOCKED_ITEM, HatchViews.keyName(() -> lockedItem.keyAt(0), HatchViews.NOT_LOCKED));
+        var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
+                HatchViews.operations(importSlot, HatchViews.group(storedSlot, extract), HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)),
+                limit);
+        return HatchViews.page(operations, status);
     }
 
-    private KeyInventory<AEItemKey> createImportItems(WidgetGroup group) {
-        var importItems = KeyInventory.items(1);
+    public boolean isVoiding() {
+        return isVoiding;
+    }
+
+    public void setVoiding(boolean voiding) {
+        isVoiding = voiding;
+        onChanged();
+    }
+
+    public void setMaxAmount(long maxAmount) {
+        this.maxAmount = Math.max(1, Math.min(max, maxAmount));
+        onChanged();
+    }
+
+    private void extractStack(@Nullable Player player) {
+        if (player == null) return;
+        var key = cache.storage.keyAt(0);
+        if (key == null) return;
+        long extracted = cache.extract(0, key, key.getMaxStackSize(), false);
+        if (extracted <= 0) return;
+        var stack = Keys.toStack(key, extracted);
+        player.getInventory().add(stack);
+        if (!stack.isEmpty()) player.drop(stack, false);
+    }
+
+    private void configureImportItems(KeyInventory<AEItemKey> importItems, Supplier<Player> player) {
         importItems.setFilter(key -> key instanceof AEItemKey itemKey && cache.canInsert(itemKey));
         importItems.setOnChanged(() -> {
             if (isRemote()) return;
@@ -438,11 +473,19 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             long amount = importItems.amountAt(0);
             importItems.set(0, null, 0);
             long left = amount - cache.insert(0, key, amount, false);
-            if (left > 0 && group.getGui() != null) {
-                ItemHandlerHelper.giveItemToPlayer(group.getGui().entityPlayer, Keys.toStack(key, left));
+            Player target = player.get();
+            if (left > 0 && target != null) {
+                ItemHandlerHelper.giveItemToPlayer(target, Keys.toStack(key, left));
             }
         });
-        return importItems;
+    }
+
+    private void setLockedItem(ItemStack stack) {
+        if (stack.isEmpty()) {
+            lockedItem.set(0, null, 0);
+        } else if (canLockTo(stack)) {
+            lockedItem.set(0, AEItemKey.of(stack), 1);
+        }
     }
 
     //////////////////////////////////////

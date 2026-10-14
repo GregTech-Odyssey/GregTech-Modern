@@ -528,6 +528,7 @@ public class GTUtil {
             tooltipComponents.add(Tips.feature(Component.translatable("gtceu.hazard_trigger.description")));
             tooltipComponents.add(Tips.feature(Component
                     .translatable("gtceu.hazard_trigger." + material.getProperty(HAZARD).hazardTrigger.name())));
+            tooltipComponents.add(Tips.detail(Component.translatable("gtceu.tip.detail.hazard")));
             return;
         }
         tooltipComponents.add(Tips.warning(Component.translatable("gtceu.medical_condition.description")));

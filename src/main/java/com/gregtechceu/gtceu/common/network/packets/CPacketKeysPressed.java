@@ -7,6 +7,7 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 
 import net.minecraft.network.FriendlyByteBuf;
 
+import io.netty.handler.codec.DecoderException;
 import it.unimi.dsi.fastutil.booleans.BooleanBooleanPair;
 
 import java.util.List;
@@ -36,8 +37,17 @@ public class CPacketKeysPressed implements IPacket {
         this.updateKeys = new BooleanBooleanPair[KeyBind.VALUES.length];
         BooleanBooleanPair[] updateKeys = (BooleanBooleanPair[]) this.updateKeys;
         int size = buf.readVarInt();
+        if (size < 0 || size > KeyBind.VALUES.length) {
+            throw new DecoderException("Invalid key count " + size);
+        }
         for (int i = 0; i < size; i++) {
-            updateKeys[buf.readVarInt()] = BooleanBooleanPair.of(buf.readBoolean(), buf.readBoolean());
+            int index = buf.readVarInt();
+            boolean pressed = buf.readBoolean();
+            boolean down = buf.readBoolean();
+            if (index < 0 || index >= updateKeys.length) {
+                throw new DecoderException("Invalid key index " + index);
+            }
+            updateKeys[index] = BooleanBooleanPair.of(pressed, down);
         }
     }
 

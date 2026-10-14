@@ -45,8 +45,8 @@ public enum KeyBind {
     ARMOR_SPEED("gtceu.key.armor_speed", KeyConflictContext.IN_GAME, InputConstants.KEY_K),
     // GTO: 盔甲生命强化开关，默认不绑定（-1 即 GLFW_KEY_UNKNOWN；不引用 InputConstants.UNKNOWN，避免服务端加载客户端类）
     ARMOR_LIFE("gtceu.key.armor_life", KeyConflictContext.IN_GAME, -1),
-    TOOL_AOE_CHANGE("gtceu.key.tool_aoe_change", KeyConflictContext.IN_GAME, InputConstants.KEY_V),
     ACTION("gtceu.key.action", KeyConflictContext.GUI, InputConstants.KEY_DELETE),
+    TOOL_SETTING("gtceu.key.tool_setting", KeyConflictContext.IN_GAME, InputConstants.KEY_J),
     ;
 
     public static final KeyBind[] VALUES = values();

@@ -39,8 +39,12 @@ public class ItemLang {
             provider.add(tagPrefix.getUnlocalizedName(), tagPrefix.langValue);
         }
         // GTToolType
-        for (GTToolType toolType : GTToolType.getTypes().values()) {
-            provider.add(toolType.getUnlocalizedName(), toEnglishName(toolType.name));
+        var classKeys = new java.util.HashSet<String>();
+        for (GTToolType toolType : GTToolType.all()) {
+            provider.add(toolType.descriptionId, toolType.englishName != null ? toolType.englishName : "%s " + toEnglishName(toolType.name));
+            if (toolType.classKey != null && classKeys.add(toolType.classKey)) {
+                provider.add(toolType.classKey, toolType.classEnglishName);
+            }
         }
 
         provider.add("tagprefix.polymer.plate", "%s Sheet");

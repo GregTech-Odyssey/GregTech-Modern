@@ -26,11 +26,9 @@ public class MultiPlayerGameModeMixin {
 
     @Inject(method = "destroyBlock", at = @At("HEAD"), cancellable = true)
     private void gtceu$destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+        if (minecraft.player == null || minecraft.level == null) return;
         ItemStack mainHandItem = minecraft.player.getMainHandItem();
-        if (minecraft.player == null ||
-                minecraft.level == null ||
-                !ToolHelper.hasBehaviorsTag(mainHandItem) ||
-                ToolHelper.getAoEDefinition(mainHandItem).isZero() ||
+        if (ToolHelper.getAoEDefinition(mainHandItem).isZero() ||
                 minecraft.player.isShiftKeyDown() ||
                 !mainHandItem.isCorrectToolForDrops(minecraft.level.getBlockState(pos)))
             return;

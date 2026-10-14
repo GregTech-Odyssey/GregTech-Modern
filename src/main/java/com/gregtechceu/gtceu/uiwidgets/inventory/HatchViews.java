@@ -33,6 +33,7 @@ import dev.vfyjxf.taffy.style.AlignItems;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.IntFunction;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -64,10 +65,13 @@ public final class HatchViews {
     public static final String EXTRACT_STACK = "gtceu.gui.hatch.extract_stack";
     /** 显示区里物品 / 流体为空时的"空"。 */
     public static final String EMPTY = "gtceu.gui.hatch.empty";
-    private static final String FLUID = "gtceu.gui.hatch.fluid";
-    private static final String AMOUNT = "gtceu.gui.hatch.amount";
-    private static final String LOCKED = "gtceu.gui.hatch.locked";
-    private static final String NOT_LOCKED = "gtceu.gui.hatch.not_locked";
+    public static final String FLUID = "gtceu.gui.hatch.fluid";
+    public static final String AMOUNT = "gtceu.gui.hatch.amount";
+    public static final String LOCKED = "gtceu.gui.hatch.locked";
+    public static final String LOCKED_ITEM = "gtceu.gui.hatch.locked_item";
+    public static final String NOT_LOCKED = "gtceu.gui.hatch.not_locked";
+    public static final String CAPACITY_LIMIT = "gtceu.gui.hatch.capacity_limit";
+    public static final String CAPACITY_LIMIT_TIP = "gtceu.gui.hatch.capacity_limit.tooltip";
     private static final String LOCK_ON = "gtceu.gui.hatch.lock_on";
     private static final String LOCK_OFF = "gtceu.gui.hatch.lock_off";
     private static final String LOCK_NEED_EMPTY = "gtceu.gui.hatch.lock_need_empty";
@@ -210,6 +214,67 @@ public final class HatchViews {
             status.addLine(LOCKED, new FluidName(() -> lockedFluid(tank), NOT_LOCKED));
         }
         return status;
+    }
+
+    public static Supplier<Component> keyName(Supplier<? extends AEKey> key, String emptyKey) {
+        return new KeyName(key, emptyKey);
+    }
+
+    public static Supplier<Component> amountText(LongSupplier amount, LongSupplier capacity, @Nullable String unit) {
+        return new LimitText(amount, capacity, unit);
+    }
+
+    private static final class KeyName implements Supplier<Component> {
+
+        private final Supplier<? extends AEKey> key;
+        private final Component empty;
+        @Nullable
+        private AEKey last;
+        private Component text;
+
+        private KeyName(Supplier<? extends AEKey> key, String emptyKey) {
+            this.key = key;
+            this.empty = Component.translatable(emptyKey);
+            this.text = empty;
+        }
+
+        @Override
+        public Component get() {
+            AEKey current = key.get();
+            if (current != last) {
+                last = current;
+                text = current == null ? empty : current.getDisplayName();
+            }
+            return text;
+        }
+    }
+
+    private static final class LimitText implements Supplier<Component> {
+
+        private final LongSupplier amount;
+        private final LongSupplier capacity;
+        @Nullable
+        private final String unit;
+        private long lastAmount = -1, lastCapacity = -1;
+        private Component text = Component.empty();
+
+        private LimitText(LongSupplier amount, LongSupplier capacity, @Nullable String unit) {
+            this.amount = amount;
+            this.capacity = capacity;
+            this.unit = unit;
+        }
+
+        @Override
+        public Component get() {
+            long currentAmount = amount.getAsLong(), currentCapacity = capacity.getAsLong();
+            if (currentAmount != lastAmount || currentCapacity != lastCapacity) {
+                lastAmount = currentAmount;
+                lastCapacity = currentCapacity;
+                text = unit == null ? Component.translatable("gtceu.gui.hatch.amount_of", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity)) :
+                        Component.translatable("gtceu.gui.hatch.amount_of_unit", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity), unit);
+            }
+            return text;
+        }
     }
 
     /** 流体名称，没有流体时显示 {@code emptyKey}。流体不变时复用上次的文字。 */

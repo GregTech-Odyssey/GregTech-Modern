@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.api.misc.forge.VoidFluidHandlerItemStack;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class PlungerBehavior implements IToolBehavior, IComponentCapability, IInteractionItem {
+public class PlungerBehavior implements IToolBehavior, IComponentCapability {
 
     public static final PlungerBehavior INSTANCE = PlungerBehavior.create();
 
@@ -50,6 +50,9 @@ public class PlungerBehavior implements IToolBehavior, IComponentCapability, IIn
         if (player != null && !player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
 
         IFluidHandler fluidHandler;
         if (level.getBlockEntity(context.getClickedPos()) instanceof MetaMachineBlockEntity mmbe) {
@@ -64,7 +67,7 @@ public class PlungerBehavior implements IToolBehavior, IComponentCapability, IIn
                 if (keyHandler.extract(key, FluidType.BUCKET_VOLUME, true) > 0) {
                     keyHandler.extract(key, FluidType.BUCKET_VOLUME, false);
                     ToolHelper.onActionDone(player, stack, level, context.getClickLocation());
-                    return InteractionResult.sidedSuccess(level.isClientSide);
+                    return InteractionResult.CONSUME;
                 }
             }
             return InteractionResult.PASS;
@@ -81,7 +84,7 @@ public class PlungerBehavior implements IToolBehavior, IComponentCapability, IIn
         if (!drained.isEmpty()) {
             fluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.EXECUTE);
             ToolHelper.onActionDone(player, stack, level, context.getClickLocation());
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
     }
@@ -90,6 +93,7 @@ public class PlungerBehavior implements IToolBehavior, IComponentCapability, IIn
     public void addInformation(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
         tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.plunger")));
+        if (GTUtil.isShiftDown()) tooltip.add(Tips.detail(Component.translatable("item.gtceu.tool.behavior.plunger.detail")));
     }
 
     @Override

@@ -193,7 +193,7 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
         var isMagic = isCoatingMagical(itemStack);
         if (resultDamage > getPartDamage(itemStack) &&
                 getCoatDamage(itemStack) < getCoatMaxDamage(itemStack) &&
-                rd.nextInt(100) < 95 && isMagic) {
+                rd.nextInt(100) < 95 && !isMagic) {
             setCoatDamage(itemStack, Math.min(getCoatDamage(itemStack) + resultDamage - getPartDamage(itemStack), getCoatMaxDamage(itemStack)));
             return;
         } else if (isMagic) {

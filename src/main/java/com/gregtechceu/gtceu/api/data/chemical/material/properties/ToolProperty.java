@@ -3,14 +3,12 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
-import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -202,9 +200,6 @@ public class ToolProperty implements IMaterialProperty {
     @Getter
     private final Object2IntMap<Enchantment> enchantments = new Object2IntArrayMap<>();
 
-    @Getter
-    private final ReferenceSet<IToolBehavior> behaviors = new it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet<>();
-
     public ToolProperty(float harvestSpeed, float attackDamage, int durability, int harvestLevel, GTToolType[] types) {
         this.harvestSpeed = harvestSpeed;
         this.attackDamage = attackDamage;
@@ -214,7 +209,7 @@ public class ToolProperty implements IMaterialProperty {
     }
 
     public ToolProperty() {
-        this(1.0F, 1.0F, 100, 2, GTToolType.getTypes().values().toArray(GTToolType[]::new));
+        this(1.0F, 1.0F, 100, 2, GTToolType.all().toArray(GTToolType[]::new));
     }
 
     @Override
@@ -231,10 +226,11 @@ public class ToolProperty implements IMaterialProperty {
     }
 
     public MaterialToolTier getTier(Material material) {
-        if (toolTier == null) {
-            toolTier = new MaterialToolTier(material);
+        MaterialToolTier tier = toolTier;
+        if (tier == null || tier.material != material) {
+            tier = toolTier = new MaterialToolTier(material);
         }
-        return toolTier;
+        return tier;
     }
 
     public boolean hasType(GTToolType toolType) {
@@ -315,11 +311,6 @@ public class ToolProperty implements IMaterialProperty {
 
         public Builder durabilityMultiplier(int multiplier) {
             toolProperty.durabilityMultiplier = multiplier;
-            return this;
-        }
-
-        public Builder behaviors(IToolBehavior... behaviors) {
-            toolProperty.behaviors.addAll(Arrays.asList(behaviors));
             return this;
         }
 

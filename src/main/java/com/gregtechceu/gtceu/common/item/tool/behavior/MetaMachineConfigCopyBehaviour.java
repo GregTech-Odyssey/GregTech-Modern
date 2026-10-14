@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
+import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -12,9 +14,9 @@ import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NumericTag;
@@ -45,6 +47,8 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     public static final String NONE_DIRECTION = "null";
 
     public static final String CONFIG_DATA = "config_data";
+    public static final ItemDataComponentKey<CompoundTag, Tag> CONFIG = ItemDataComponentKey.create(CONFIG_DATA, CompoundTag::copy,
+            t -> t instanceof CompoundTag compound ? compound.copy() : null);
     public static final String ORIGINAL_FRONT = "front";
     public static final String ITEM_CONFIG = "item";
     public static final String FLUID_CONFIG = "fluid";
@@ -94,7 +98,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     public InteractionResultHolder<ItemStack> use(Item item, Level level, Player player, InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
         if (player.isShiftKeyDown()) {
-            stack.removeTagKey(CONFIG_DATA);
+            if (!level.isClientSide) IDataComponentItem.set(stack, CONFIG, null);
             return InteractionResultHolder.success(stack);
         }
         return IInteractionItem.super.use(item, level, player, usedHand);
@@ -108,17 +112,16 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             if (!MachineOwner.canOpenOwnerMachine(context.getPlayer(), machine)) {
                 return InteractionResult.FAIL;
             }
+            if (context.getLevel().isClientSide) return InteractionResult.SUCCESS;
             if (context.isSecondaryUseActive()) {
                 return handleCopy(stack, machine);
-            } else if (stack.getTagElement(CONFIG_DATA) != null) {
+            } else if (IDataComponentItem.get(stack, CONFIG) != null) {
                 return handlePaste(stack, machine);
             }
-        } else if (context.isSecondaryUseActive() && context.getLevel().getBlockState(context.getClickedPos()).isAir()) {
-            stack.removeTagKey(CONFIG_DATA);
             return InteractionResult.SUCCESS;
         }
         // spotless:on
-        return InteractionResult.SUCCESS;
+        return InteractionResult.PASS;
     }
 
     public static InteractionResult handleCopy(ItemStack stack, MetaMachine machine) {
@@ -136,13 +139,13 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
             configData.putBoolean(MUFFLED, mufflableMachine.isMuffled());
         }
         if (!configData.isEmpty()) {
-            stack.getOrCreateTag().put(CONFIG_DATA, configData);
+            IDataComponentItem.set(stack, CONFIG, configData);
         }
         return InteractionResult.SUCCESS;
     }
 
     public static InteractionResult handlePaste(ItemStack stack, MetaMachine machine) {
-        CompoundTag configData = stack.getTagElement(CONFIG_DATA);
+        CompoundTag configData = IDataComponentItem.get(stack, CONFIG);
         if (configData == null) return InteractionResult.PASS;
         Direction originalFront = tagToDirection(configData.get(ORIGINAL_FRONT));
         if (configData.contains(ITEM_CONFIG) && machine instanceof IAutoOutputItem autoOutputItem) {
@@ -167,7 +170,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
     @Override
     public void appendTooltips(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents,
                                TooltipFlag isAdvanced) {
-        CompoundTag data = stack.getTagElement(CONFIG_DATA);
+        CompoundTag data = IDataComponentItem.get(stack, CONFIG);
         MutableComponent header = Component.literal("◆ ")
                 .append(Component.translatable("behaviour.memory_card.gto.section.copied"));
         if (data == null) {
@@ -197,7 +200,7 @@ public class MetaMachineConfigCopyBehaviour implements IInteractionItem, IAddInf
                 .append(Component.translatable("behaviour.memory_card.gto.usage.paste"))));
         tooltipComponents.add(Tips.rightClick(Component.literal(" ")
                 .append(Component.translatable("behaviour.memory_card.gto.usage.clear"))));
-        if (Screen.hasShiftDown()) {
+        if (GTUtil.isShiftDown()) {
             tooltipComponents.add(Tips.feature(Component.literal(" ")
                     .append(Component.translatable("behaviour.memory_card.gto.details.relative"))));
             tooltipComponents.add(Tips.feature(Component.literal(" ")

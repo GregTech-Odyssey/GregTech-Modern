@@ -4,13 +4,12 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
+import com.gregtechceu.gtceu.api.item.tool.ToolData;
 import com.gregtechceu.gtceu.api.tooltip.TipTheme;
 import com.gregtechceu.gtceu.client.util.DrawUtil;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
@@ -43,8 +42,7 @@ public final class ToolChargeBarRenderer {
     public static void renderBarsTool(GuiGraphics graphics, IGTTool tool, ItemStack stack, int xPosition,
                                       int yPosition) {
         boolean renderedDurability = false;
-        CompoundTag tag = stack.getOrCreateTag();
-        if (!tag.getBoolean(ToolHelper.UNBREAKABLE_KEY)) {
+        if (!ToolData.isUnbreakable(stack)) {
             renderedDurability = renderDurabilityBar(graphics, stack.getBarWidth(), xPosition, yPosition);
         }
         if (tool.isElectric()) {

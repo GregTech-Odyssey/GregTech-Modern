@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.item.tool.rotation.CustomBlockRotations;
 import com.gregtechceu.gtceu.common.item.tool.rotation.ICustomRotationBehavior;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.utils.RayTraceHelper;
 
@@ -62,14 +63,16 @@ public class BlockRotatingBehavior implements IToolBehavior {
             // Special cases for vanilla blocks where the default rotation behavior is less than ideal
             ICustomRotationBehavior behavior = CustomBlockRotations.getCustomRotation(b);
             if (behavior != null) {
-                if (behavior.customRotate(state, level, pos, retraceBlock(level, player, pos))) {
+                BlockHitResult hit = player == null ? context.getHitResult() : retraceBlock(level, player, pos);
+                if (hit != null && behavior.customRotate(state, level, pos, hit)) {
                     ToolHelper.onActionDone(player, stack, level, context.getClickLocation());
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }
             } else {
                 Rotation rot = player == null || player.getDirection().getClockWise() == context.getClickedFace() ?
                         Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90;
-                if (state.rotate(level, pos, rot) != state) {
+                BlockState rotated = state.rotate(level, pos, rot);
+                if (rotated != state && level.setBlock(pos, rotated, Block.UPDATE_ALL)) {
                     ToolHelper.onActionDone(player, stack, level, context.getClickLocation());
                     return InteractionResult.sidedSuccess(level.isClientSide);
                 }
@@ -82,6 +85,7 @@ public class BlockRotatingBehavior implements IToolBehavior {
     public void addInformation(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
         tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.block_rotation")));
+        if (GTUtil.isShiftDown()) tooltip.add(Tips.detail(Component.translatable("item.gtceu.tool.behavior.block_rotation.detail")));
     }
 
     public static BlockHitResult retraceBlock(BlockGetter level, Player player, BlockPos pos) {

@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
 import com.gregtechceu.gtceu.api.item.IComponentItem;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
@@ -73,6 +74,7 @@ import com.gto.registrate.util.nullness.NonNullFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -413,7 +415,7 @@ public class GTItems {
             .onRegister(attach(new LighterBehavior(true, true, true)))
             .onRegister(attach(new FilteredFluidContainer(100, true, x -> x.getFluid().is(CustomTags.LIGHTER_FLUIDS))))
             .onRegister(modelPredicate(GTCEu.id("lighter_open"),
-                    (itemStack) -> itemStack.getOrCreateTag().getBoolean(LighterBehavior.LIGHTER_OPEN) ? 1.0f : 0.0f))
+                    (itemStack) -> IDataComponentItem.getBoolean(itemStack, LighterBehavior.OPEN) ? 1.0f : 0.0f))
             .tag(CustomTags.TOOLS_IGNITER)
             .register();
     public static ItemEntry<ComponentItem> TOOL_LIGHTER_PLATINUM = REGISTRATE
@@ -424,7 +426,7 @@ public class GTItems {
             .onRegister(attach(new LighterBehavior(true, true, true)))
             .onRegister(attach(new FilteredFluidContainer(1000, true, x -> x.getFluid().is(CustomTags.LIGHTER_FLUIDS))))
             .onRegister(modelPredicate(GTCEu.id("lighter_open"),
-                    (itemStack) -> itemStack.getOrCreateTag().getBoolean(LighterBehavior.LIGHTER_OPEN) ? 1.0f : 0.0f))
+                    (itemStack) -> IDataComponentItem.getBoolean(itemStack, LighterBehavior.OPEN) ? 1.0f : 0.0f))
             .tag(CustomTags.TOOLS_IGNITER)
             .register();
 
@@ -2116,6 +2118,19 @@ public class GTItems {
             .model((ctx, prov) -> prov.generated(ctx, prov.modLoc("item/tools/power_unit_iv")))
             .onRegister(attach(ElectricStats.createElectricItem(25600000L, GTValues.IV)))
             .register();
+
+    @SuppressWarnings("unchecked")
+    private static final ItemEntry<ComponentItem>[] POWER_UNITS = new ItemEntry[] { null, POWER_UNIT_LV, POWER_UNIT_MV,
+            POWER_UNIT_HV, POWER_UNIT_EV, POWER_UNIT_IV };
+
+    public static int powerUnitTierCount() {
+        return POWER_UNITS.length;
+    }
+
+    @Nullable
+    public static ItemEntry<ComponentItem> powerUnit(int tier) {
+        return tier >= 0 && tier < POWER_UNITS.length ? POWER_UNITS[tier] : null;
+    }
 
     public static ItemEntry<Item> MASK_FILTER = REGISTRATE.item("mask_filter", Item::new)
             .lang("Gas Mask Filter")

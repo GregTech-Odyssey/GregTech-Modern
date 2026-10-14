@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.recipe;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
@@ -21,27 +20,24 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraft.world.level.Level;
 
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class ToolHeadReplaceRecipe extends CustomRecipe {
 
     public static SimpleCraftingRecipeSerializer<ToolHeadReplaceRecipe> SERIALIZER = new SimpleCraftingRecipeSerializer<>(
             ToolHeadReplaceRecipe::new);
 
-    private static final Map<TagPrefix, GTToolType[]> TOOL_HEAD_TO_TOOL_MAP = new Reference2ObjectOpenHashMap<>();
-    private static final Set<GTToolType> REPLACEABLE_TOOLS = new ReferenceOpenHashSet<>();
-
-    public static void setToolHeadForTool(TagPrefix toolHead, GTToolType tool) {
-        if (!(tool.electricTier > -1)) return;
-        TOOL_HEAD_TO_TOOL_MAP.computeIfAbsent(toolHead, p -> new GTToolType[GTValues.MAX])[tool.electricTier] = tool;
-        REPLACEABLE_TOOLS.add(tool);
+    @Nullable
+    private static GTToolType replacement(GTToolType current, TagPrefix toolHead) {
+        if (!current.isElectric() || current.toolHead() == null) return null;
+        for (GTToolType type : GTToolType.all()) {
+            if (type.electricTier == current.electricTier && type.toolHead() == toolHead) return type;
+        }
+        return null;
     }
 
     public ToolHeadReplaceRecipe(ResourceLocation id, CraftingBookCategory category) {
@@ -76,11 +72,9 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
                 toolHead = ChemicalHelper.getMaterialEntry(stack1.getItem());
             } else return false;
 
-            if (!tool.isElectric()) return false;
-            if (!REPLACEABLE_TOOLS.contains(tool.getToolType())) return false;
             if (toolHead.isEmpty()) return false;
-            GTToolType[] output = TOOL_HEAD_TO_TOOL_MAP.get(toolHead.tagPrefix());
-            return output != null && output[tool.getElectricTier()] != null;
+            GTToolType output = replacement(tool.getToolType(), toolHead.tagPrefix());
+            return output != null && GTMaterialItems.TOOL_ITEMS.get(toolHead.material(), output) != null;
         }
         return false;
     }
@@ -112,16 +106,13 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
                 toolHead = ChemicalHelper.getMaterialEntry(first.getItem());
                 realTool = second;
             } else return ItemStack.EMPTY;
-            if (!tool.isElectric()) return ItemStack.EMPTY;
-            if (!REPLACEABLE_TOOLS.contains(tool.getToolType())) return ItemStack.EMPTY;
             IElectricItem powerUnit = GTCapabilityHelper.getElectricItem(realTool);
             if (toolHead.isEmpty() || powerUnit == null) return ItemStack.EMPTY;
-            GTToolType[] toolArray = TOOL_HEAD_TO_TOOL_MAP.get(toolHead.tagPrefix());
-            ItemStack newTool = GTMaterialItems.TOOL_ITEMS.get(toolHead.material(), toolArray[tool.getElectricTier()])
-                    .get().get(powerUnit.getCharge(), powerUnit.getMaxCharge());
-            if (newTool == null) return ItemStack.EMPTY;
-
-            return newTool;
+            GTToolType output = replacement(tool.getToolType(), toolHead.tagPrefix());
+            if (output == null) return ItemStack.EMPTY;
+            var entry = GTMaterialItems.TOOL_ITEMS.get(toolHead.material(), output);
+            if (entry == null) return ItemStack.EMPTY;
+            return entry.get().get(powerUnit.getCharge(), powerUnit.getMaxCharge());
         }
         return ItemStack.EMPTY;
     }

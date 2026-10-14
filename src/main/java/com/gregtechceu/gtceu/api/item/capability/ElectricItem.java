@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
-import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.LongTag;
@@ -17,9 +16,13 @@ import me.kall.duplicationless.ext.RegistryEntry;
 
 public class ElectricItem implements IElectricItem {
 
-    public static final ItemDataComponentKey<Long, LongTag> CHARGE = ItemDataComponentKey.create(ToolHelper.CHARGE_KEY, ElectricItem::write, ElectricItem::read);
-    public static final ItemDataComponentKey<Long, LongTag> MAX_CHARGE = ItemDataComponentKey.create(ToolHelper.MAX_CHARGE_KEY, ElectricItem::write, ElectricItem::read);
-    public static final ItemDataComponentKey<Item, StringTag> BATTERY = ItemDataComponentKey.create(ToolHelper.BATTERY_KEY, ElectricItem::writeItem, ElectricItem::readItem);
+    public static final String CHARGE_KEY = "Charge";
+    public static final String MAX_CHARGE_KEY = "MaxCharge";
+    public static final String BATTERY_KEY = "Battery";
+
+    public static final ItemDataComponentKey<Long, LongTag> CHARGE = ItemDataComponentKey.create(CHARGE_KEY, ElectricItem::write, ElectricItem::read);
+    public static final ItemDataComponentKey<Long, LongTag> MAX_CHARGE = ItemDataComponentKey.create(MAX_CHARGE_KEY, ElectricItem::write, ElectricItem::read);
+    public static final ItemDataComponentKey<Item, StringTag> BATTERY = ItemDataComponentKey.create(BATTERY_KEY, ElectricItem::writeItem, ElectricItem::readItem);
 
     protected final ItemStack itemStack;
 

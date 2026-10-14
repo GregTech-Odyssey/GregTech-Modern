@@ -11,7 +11,9 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.item.tool.ToolData;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
@@ -19,14 +21,10 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import com.gto.registrate.util.entry.ItemEntry;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,11 +32,6 @@ import static com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialFlag
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 
 public final class ToolRecipeHandler {
-
-    public static final Int2ReferenceMap<ItemEntry<? extends Item>> powerUnitItems = new Int2ReferenceArrayMap<>(
-            GTValues.tiersBetween(GTValues.LV, GTValues.IV),
-            new ItemEntry[] { GTItems.POWER_UNIT_LV, GTItems.POWER_UNIT_MV, GTItems.POWER_UNIT_HV,
-                    GTItems.POWER_UNIT_EV, GTItems.POWER_UNIT_IV });
 
     public static final Material[] softMaterials = new Material[] {
             GTMaterials.Wood, GTMaterials.Rubber, GTMaterials.Polyethylene,
@@ -69,71 +62,71 @@ public final class ToolRecipeHandler {
                 material.hasProperty(PropertyKey.GEM) ? TagPrefix.gem : TagPrefix.ingot, material);
 
         if (material.hasFlag(GENERATE_PLATE)) {
-            addToolRecipe(material, GTToolType.MINING_HAMMER, true,
+            addToolRecipe(material, GTToolType.MINING_HAMMER,
                     "PPf", "PPS", "PPh",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.SPADE, false,
+            addToolRecipe(material, GTToolType.SPADE,
                     "fPh", "PSP", " S ",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.SAW, false,
+            addToolRecipe(material, GTToolType.SAW,
                     "PPS", "fhS",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.AXE, false,
+            addToolRecipe(material, GTToolType.AXE,
                     "PIh", "PS ", "fS ",
                     'P', plate,
                     'I', ingot,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.HOE, false,
+            addToolRecipe(material, GTToolType.HOE,
                     "PIh", "fS ", " S ",
                     'P', plate,
                     'I', ingot,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.PICKAXE, false,
+            addToolRecipe(material, GTToolType.PICKAXE,
                     "PII", "fSh", " S ",
                     'P', plate,
                     'I', ingot,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.SCYTHE, false,
+            addToolRecipe(material, GTToolType.SCYTHE,
                     "PPI", "fSh", " S ",
                     'P', plate,
                     'I', ingot,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.SHOVEL, false,
+            addToolRecipe(material, GTToolType.SHOVEL,
                     "fPh", " S ", " S ",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.SWORD, false,
+            addToolRecipe(material, GTToolType.SWORD,
                     " P ", "fPh", " S ",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.HARD_HAMMER, true,
+            addToolRecipe(material, GTToolType.HARD_HAMMER,
                     "II ", "IIS", "II ",
                     'I', ingot,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.FILE, true,
+            addToolRecipe(material, GTToolType.FILE,
                     " P ", " P ", " S ",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.KNIFE, false,
+            addToolRecipe(material, GTToolType.KNIFE,
                     "fPh", " S ",
                     'P', plate,
                     'S', stick);
 
-            addToolRecipe(material, GTToolType.WRENCH, false,
+            addToolRecipe(material, GTToolType.WRENCH,
                     "PhP", " P ", " P ",
                     'P', plate);
         } else {
@@ -146,13 +139,13 @@ public final class ToolRecipeHandler {
             MaterialEntry rod = new MaterialEntry(TagPrefix.rod, material);
 
             if (material.hasFlag(GENERATE_PLATE)) {
-                addToolRecipe(material, GTToolType.BUTCHERY_KNIFE, false,
+                addToolRecipe(material, GTToolType.BUTCHERY_KNIFE,
                         "PPf", "PP ", "Sh ",
                         'P', plate,
                         'S', rod);
 
                 if (material.hasFlag(GENERATE_BOLT_SCREW)) {
-                    addToolRecipe(material, GTToolType.WIRE_CUTTER, false,
+                    addToolRecipe(material, GTToolType.WIRE_CUTTER,
                             "PfP", "hPd", "STS",
                             'P', plate,
                             'T', new MaterialEntry(TagPrefix.screw, material),
@@ -166,12 +159,12 @@ public final class ToolRecipeHandler {
                         material.getName());
             }
 
-            addToolRecipe(material, GTToolType.SCREWDRIVER, true,
+            addToolRecipe(material, GTToolType.SCREWDRIVER,
                     " fS", " Sh", "W  ",
                     'S', rod,
                     'W', stick);
 
-            addDyeableToolRecipe(material, GTToolType.CROWBAR, true,
+            addDyeableToolRecipe(material, GTToolType.CROWBAR,
                     "hDS", "DSD", "SDf",
                     'S', rod);
         } else if (!ArrayUtils.contains(softMaterials, material)) {
@@ -204,8 +197,7 @@ public final class ToolRecipeHandler {
                         'X', plate,
                         'S', steelPlate);
 
-                addElectricToolRecipe(toolPrefix, new GTToolType[] { GTToolType.DRILL_LV, GTToolType.DRILL_MV,
-                        GTToolType.DRILL_HV, GTToolType.DRILL_EV, GTToolType.DRILL_IV }, material);
+                addElectricToolRecipe(toolPrefix, material);
             }
 
             // chainsaw
@@ -218,15 +210,13 @@ public final class ToolRecipeHandler {
                         'S', steelPlate,
                         'R', steelRing);
 
-                addElectricToolRecipe(toolPrefix, new GTToolType[] { GTToolType.CHAINSAW_LV }, material);
+                addElectricToolRecipe(toolPrefix, material);
             }
 
             // wrench
             if (property.hasType(GTToolType.WRENCH_LV)) {
                 toolPrefix = TagPrefix.toolHeadWrench;
-                addElectricToolRecipe(toolPrefix,
-                        new GTToolType[] { GTToolType.WRENCH_LV, GTToolType.WRENCH_HV, GTToolType.WRENCH_IV },
-                        material);
+                addElectricToolRecipe(toolPrefix, material);
 
                 VanillaRecipeHelper.addShapedRecipe(String.format("wrench_head_%s", material.getName()),
                         ChemicalHelper.get(toolPrefix, material),
@@ -239,10 +229,7 @@ public final class ToolRecipeHandler {
             // electric wire cutters
             if (property.hasType(GTToolType.WIRE_CUTTER_LV)) {
                 toolPrefix = toolHeadWireCutter;
-                addElectricToolRecipe(toolPrefix,
-                        new GTToolType[] { GTToolType.WIRE_CUTTER_LV, GTToolType.WIRE_CUTTER_HV,
-                                GTToolType.WIRE_CUTTER_IV },
-                        material);
+                addElectricToolRecipe(toolPrefix, material);
 
                 VanillaRecipeHelper.addShapedRecipe(String.format("wirecutter_head_%s", material.getName()),
                         ChemicalHelper.get(toolPrefix, material),
@@ -255,7 +242,7 @@ public final class ToolRecipeHandler {
             // buzzsaw
             if (property.hasType(GTToolType.BUZZSAW)) {
                 toolPrefix = TagPrefix.toolHeadBuzzSaw;
-                addElectricToolRecipe(toolPrefix, new GTToolType[] { GTToolType.BUZZSAW }, material);
+                addElectricToolRecipe(toolPrefix, material);
 
                 VanillaRecipeHelper.addShapedRecipe(String.format("buzzsaw_blade_%s", material.getName()),
                         ChemicalHelper.get(toolPrefix, material),
@@ -283,7 +270,7 @@ public final class ToolRecipeHandler {
         if (property.hasType(GTToolType.SCREWDRIVER_LV)) {
             if (material.hasFlag(GENERATE_LONG_ROD)) {
                 toolPrefix = TagPrefix.toolHeadScrewdriver;
-                addElectricToolRecipe(toolPrefix, new GTToolType[] { GTToolType.SCREWDRIVER_LV }, material);
+                addElectricToolRecipe(toolPrefix, material);
 
                 VanillaRecipeHelper.addShapedRecipe(String.format("screwdriver_tip_%s", material.getName()),
                         ChemicalHelper.get(toolPrefix, material),
@@ -296,16 +283,15 @@ public final class ToolRecipeHandler {
         }
     }
 
-    private static void addElectricToolRecipe(@NotNull TagPrefix toolHead,
-                                              @NotNull GTToolType @NotNull [] toolItems,
-                                              @NotNull Material material) {
-        for (GTToolType toolType : toolItems) {
-            if (!material.getProperty(PropertyKey.TOOL).hasType(toolType)) continue;
-
-            int tier = toolType.electricTier;
-            ItemStack powerUnitStack = powerUnitItems.get(tier).asStack();
-            IElectricItem powerUnit = GTCapabilityHelper.getElectricItem(powerUnitStack);
-            ItemStack tool = GTMaterialItems.TOOL_ITEMS.get(material, toolType).get().get(0, powerUnit.getMaxCharge());
+    private static void addElectricToolRecipe(@NotNull TagPrefix toolHead, @NotNull Material material) {
+        ToolProperty property = material.getProperty(PropertyKey.TOOL);
+        for (GTToolType toolType : GTToolType.all()) {
+            if (toolType.toolHead() != toolHead || !property.hasType(toolType)) continue;
+            var powerUnit = GTItems.powerUnit(toolType.electricTier);
+            if (powerUnit == null) continue;
+            ItemStack powerUnitStack = powerUnit.asStack();
+            IElectricItem electricItem = GTCapabilityHelper.getElectricItem(powerUnitStack);
+            ItemStack tool = GTMaterialItems.TOOL_ITEMS.get(material, toolType).get().get(0, electricItem.getMaxCharge());
             VanillaRecipeHelper.addShapedEnergyTransferRecipe(
                     true, true, true,
                     String.format("%s_%s", material.getName(), toolType.name),
@@ -317,40 +303,25 @@ public final class ToolRecipeHandler {
         }
     }
 
-    public static void addToolRecipe(@NotNull Material material,
-                                     @NotNull GTToolType tool, boolean mirrored, Object... recipe) {
+    public static void addToolRecipe(@NotNull Material material, @NotNull GTToolType tool, Object... recipe) {
         ItemStack toolStack = ToolHelper.get(tool, material);
         if (toolStack.isEmpty()) return;
-        if (mirrored) { // todo mirrored
-            VanillaRecipeHelper.addShapedRecipe(String.format("%s_%s", tool.name, material.getName()),
-                    toolStack, recipe);
-        } else {
-            VanillaRecipeHelper.addShapedRecipe(String.format("%s_%s", tool.name, material.getName()),
-                    toolStack, recipe);
-        }
+        VanillaRecipeHelper.addShapedRecipe(String.format("%s_%s", tool.name, material.getName()), toolStack, recipe);
     }
 
     /**
      * {@code D} is inferred as the dye key
      */
-    public static void addDyeableToolRecipe(@NotNull Material material,
-                                            @NotNull GTToolType tool, boolean mirrored, Object... recipe) {
+    public static void addDyeableToolRecipe(@NotNull Material material, @NotNull GTToolType tool, Object... recipe) {
         ItemStack toolStack = ToolHelper.get(tool, material);
         if (toolStack.isEmpty()) return;
         for (var color : MarkerMaterials.Color.COLORS.entrySet()) {
-            ToolHelper.getToolTag(toolStack).putInt(ToolHelper.TINT_COLOR_KEY, color.getKey().getTextColor());
-            Object[] recipeWithDye = ArrayUtils.addAll(recipe, 'D',
-                    new MaterialEntry(TagPrefix.dye, color.getValue()));
-
-            if (mirrored) { // todo mirrored
-                VanillaRecipeHelper.addShapedRecipe(
-                        String.format("%s_%s_%s", tool.name, material.getName(), color.getKey().getSerializedName()),
-                        toolStack, recipeWithDye);
-            } else {
-                VanillaRecipeHelper.addShapedRecipe(
-                        String.format("%s_%s_%s", tool.name, material.getName(), color.getKey().getSerializedName()),
-                        toolStack, recipeWithDye);
-            }
+            ItemStack dyed = toolStack.copy();
+            IDataComponentItem.set(dyed, ToolData.TINT_COLOR, color.getKey().getTextColor());
+            Object[] recipeWithDye = ArrayUtils.addAll(recipe, 'D', new MaterialEntry(TagPrefix.dye, color.getValue()));
+            VanillaRecipeHelper.addShapedRecipe(
+                    String.format("%s_%s_%s", tool.name, material.getName(), color.getKey().getSerializedName()),
+                    dyed, recipeWithDye);
         }
     }
 }

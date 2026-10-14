@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.common.item.tool.behavior;
 
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
+import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDurabilityBar;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
@@ -12,7 +14,10 @@ import com.gregtechceu.gtceu.utils.GradientUtil;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ByteTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -51,8 +56,10 @@ import static net.minecraft.world.level.block.AbstractCandleBlock.LIT;
 
 public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddInformation {
 
-    public static final String LIGHTER_OPEN = "lighterOpen";
-    private static final String USES_LEFT = "usesLeft";
+    public static final ItemDataComponentKey<Boolean, Tag> OPEN = ItemDataComponentKey.create("lighterOpen", ByteTag::valueOf,
+            t -> t instanceof NumericTag n ? n.getAsByte() != 0 : null);
+    private static final ItemDataComponentKey<Integer, Tag> USES_LEFT = ItemDataComponentKey.create("usesLeft", IntTag::valueOf,
+            t -> t instanceof NumericTag n ? n.getAsInt() : null);
     private static final IntIntPair DURABILITY_BAR_COLORS = GradientUtil.getGradient(0xF07F1D, 10);
     private final boolean usesFluid;
     private final boolean hasMultipleUses;
@@ -77,17 +84,14 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
     @Override
     public InteractionResultHolder<ItemStack> use(Item item, Level level, Player player, InteractionHand usedHand) {
         ItemStack itemStack = player.getItemInHand(usedHand);
-        CompoundTag tag = itemStack.getOrCreateTag();
         if (canOpen && player.isCrouching()) {
-            tag.putBoolean(LIGHTER_OPEN, !tag.getBoolean(LIGHTER_OPEN));
-            itemStack.setTag(tag);
+            IDataComponentItem.set(itemStack, OPEN, !IDataComponentItem.getBoolean(itemStack, OPEN));
         }
         return IInteractionItem.super.use(item, level, player, usedHand);
     }
 
     @Override
     public InteractionResult onItemUseFirst(ItemStack itemStack, UseOnContext context) {
-        CompoundTag tag = itemStack.getOrCreateTag();
         Level level = context.getLevel();
         Player player = context.getPlayer();
         BlockPos pos = context.getClickedPos();
@@ -95,7 +99,7 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
 
-        if ((!canOpen || tag.getBoolean(LIGHTER_OPEN)) && (player == null || !player.isShiftKeyDown())) {
+        if (isReady(itemStack) && (player == null || !player.isShiftKeyDown())) {
             // check if it's "tnt-like" in that it implements the same method for igniting it
             if (classImplementsOnCaughtFire(block.getClass())) {
                 if (!consumeFuel(player, itemStack)) return InteractionResult.PASS;
@@ -127,7 +131,6 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
 
                 if (player instanceof ServerPlayer serverPlayer) {
                     CriteriaTriggers.PLACED_BLOCK.trigger(serverPlayer, offset, itemStack);
-                    itemStack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(context.getHand()));
                 }
                 return InteractionResult.sidedSuccess(level.isClientSide);
             }
@@ -138,10 +141,9 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player,
                                                   LivingEntity interactionTarget, InteractionHand usedHand) {
-        CompoundTag tag = stack.getOrCreateTag();
         Level level = player.level();
 
-        if ((!canOpen || tag.getBoolean(LIGHTER_OPEN)) && !player.isShiftKeyDown()) {
+        if (isReady(stack) && !player.isShiftKeyDown()) {
             if (interactionTarget instanceof Creeper creeper) {
                 if (!consumeFuel(player, stack)) return InteractionResult.PASS;
                 level.playSound(player, creeper, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS,
@@ -153,6 +155,10 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
             }
         }
         return InteractionResult.PASS;
+    }
+
+    private boolean isReady(ItemStack stack) {
+        return !canOpen || IDataComponentItem.getBoolean(stack, OPEN);
     }
 
     public boolean consumeFuel(@Nullable Player player, ItemStack stack) {
@@ -176,13 +182,8 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
             FluidStack fluid = handler.get().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
             return fluid.getAmount();
         } else if (hasMultipleUses) {
-            CompoundTag compound = stack.getOrCreateTag();
-            if (compound.contains(USES_LEFT)) {
-                return compound.getInt(USES_LEFT);
-            }
-            compound.putInt(USES_LEFT, maxUses);
-            // no need to get the value from the tag here when we set it just above
-            return maxUses;
+            Integer usesLeft = IDataComponentItem.get(stack, USES_LEFT);
+            return usesLeft == null ? maxUses : usesLeft;
         } else {
             return stack.getCount();
         }
@@ -200,11 +201,11 @@ public class LighterBehavior implements IDurabilityBar, IInteractionItem, IAddIn
             if (usesLeft <= 0) {
                 stack.shrink(1);
                 ItemStack brokenStack = this.destroyItem.get();
-                if (!player.addItem(brokenStack)) {
+                if (player != null && !player.addItem(brokenStack)) {
                     player.drop(brokenStack, true);
                 }
             } else {
-                stack.getOrCreateTag().putInt(USES_LEFT, usesLeft);
+                IDataComponentItem.set(stack, USES_LEFT, usesLeft);
             }
         } else {
             stack.setCount(usesLeft);

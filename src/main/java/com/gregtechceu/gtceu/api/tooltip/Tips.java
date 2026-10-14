@@ -170,6 +170,14 @@ public final class Tips {
         return TipContents.segments(body, ratios, colors);
     }
 
+    public static MutableComponent mana(long current, long max) {
+        long shown = Math.max(0, Math.min(current, max));
+        Component value = Component.translatable("gtceu.tip.unit.durability", FormattingUtil.formatNumbers(shown),
+                FormattingUtil.formatNumbers(max));
+        float ratio = max <= 0 ? 0 : (float) shown / max;
+        return TipContents.meter(StatKind.MANA.line(value), ratio, TipTheme.MANA_BAR_LEFT, TipTheme.MANA_BAR_RIGHT);
+    }
+
     public static MutableComponent durability(long remaining, long max) {
         long shown = Math.max(0, Math.min(remaining, max));
         Component value = Component.translatable("gtceu.tip.unit.durability", FormattingUtil.formatNumbers(shown),

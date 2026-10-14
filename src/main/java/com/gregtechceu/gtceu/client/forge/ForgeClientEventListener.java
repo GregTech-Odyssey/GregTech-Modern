@@ -10,11 +10,13 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.item.InfiniteSprayCanBehaviour;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
+import com.gregtechceu.gtceu.common.network.packets.CPacketToolSetting;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
 import com.gregtechceu.gtceu.uiwidgets.structure.PartCellsOverlay;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureProjection;
+import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -67,10 +69,20 @@ public class ForgeClientEventListener {
     @SubscribeEvent
     public static void onClientTickEvent(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
+            sendToolSettingKeys();
             TooltipHelper.onClientTick();
             StructureProjection.tick();
             PartCellsOverlay.tick();
             GTValues.CLIENT_TIME++;
+        }
+    }
+
+    private static void sendToolSettingKeys() {
+        Minecraft mc = Minecraft.getInstance();
+        while (KeyBind.TOOL_SETTING.toMinecraft().consumeClick()) {
+            if (mc.player != null && mc.screen == null) {
+                GTNetwork.NETWORK.sendToServer(new CPacketToolSetting(mc.player.isShiftKeyDown()));
+            }
         }
     }
 

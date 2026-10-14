@@ -22,7 +22,7 @@ public record TipRole(String id, TipMarker marker, int bodyColor, int markerColo
     public static final TipRole SUPPORTED = new TipRole("supported", TipMarker.CHECK, TipTheme.BODY, TipTheme.POSITIVE, 1);
     public static final TipRole UNSUPPORTED = new TipRole("unsupported", TipMarker.CROSS, TipTheme.BODY, TipTheme.NEGATIVE, 1);
     public static final TipRole DETAIL = new TipRole("detail", TipMarker.NONE, TipTheme.NOTE, 0, 1);
-    public static final TipRole FORMULA = new TipRole("formula", TipMarker.DOT, TipTheme.BODY, TipTheme.MARK_DIM, 1);
+    public static final TipRole FORMULA = new TipRole("formula", TipMarker.NONE, TipTheme.BODY, 0, 0);
     public static final TipRole CONTROL_LEFT = new TipRole("control_left", TipMarker.MOUSE_LEFT, TipTheme.BODY, TipTheme.ACCENT, 1);
     public static final TipRole CONTROL_RIGHT = new TipRole("control_right", TipMarker.MOUSE_RIGHT, TipTheme.BODY, TipTheme.ACCENT, 1);
     public static final TipRole CONTROL_MIDDLE = new TipRole("control_middle", TipMarker.MOUSE_MIDDLE, TipTheme.BODY, TipTheme.ACCENT, 1);

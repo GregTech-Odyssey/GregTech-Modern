@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item.tool.behavior;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -46,5 +47,6 @@ public class RotateRailBehavior implements IToolBehavior {
     public void addInformation(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
         tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.rail_rotation")));
+        if (GTUtil.isShiftDown()) tooltip.add(Tips.detail(Component.translatable("item.gtceu.tool.behavior.rail_rotation.detail")));
     }
 }

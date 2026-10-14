@@ -55,7 +55,7 @@ public class GTMaterialItems {
             GTCEuAPI.materialManager.getRegisteredMaterials().stream()
                     .filter(mat -> mat.hasProperty(PropertyKey.TOOL))
                     .toList(),
-            GTToolType.getTypes().values().stream().toList());
+            GTToolType.all());
 
     // Material Items
     public static void generateMaterialItems() {
@@ -91,7 +91,7 @@ public class GTMaterialItems {
     // Material Tools
     public static void generateTools() {
         REGISTRATE.defaultCreativeTab(TOOL);
-        for (GTToolType toolType : GTToolType.getTypes().values()) {
+        for (GTToolType toolType : GTToolType.all()) {
             for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
                 GTRegistrate registrate = registry.getRegistrate();
                 for (Material material : registry.getAllMaterials()) {
@@ -111,8 +111,7 @@ public class GTMaterialItems {
         var tier = material.getToolTier();
         TOOL_ITEMS.put(material, toolType, (ItemProviderEntry<IGTTool>) (ItemProviderEntry<?>) registrate
                 .item(toolType.idFormat.formatted(tier.material.getName()),
-                        p -> toolType.constructor.apply(toolType, tier, material,
-                                toolType.toolDefinition, p).asItem())
+                        p -> toolType.constructor.apply(toolType, tier, material, p).asItem())
                 .properties(p -> p.craftRemainder(Items.AIR))
                 .setData(ProviderType.LANG, NonNullBiConsumer.noop())
                 .model(NonNullBiConsumer.noop())

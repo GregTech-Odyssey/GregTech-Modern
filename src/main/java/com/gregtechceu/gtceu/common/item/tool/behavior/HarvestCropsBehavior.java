@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.item.tool.aoe.AoESymmetrical;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -33,36 +34,26 @@ public class HarvestCropsBehavior implements IToolBehavior {
     @NotNull
     @Override
     public InteractionResult onItemUse(UseOnContext context) {
-        BlockPos pos = context.getClickedPos();
-        ItemStack stack = context.getItemInHand();
-        AoESymmetrical aoeDefinition = ToolHelper.getAoEDefinition(stack);
-
-        List<BlockPos> blocks;
-        if (aoeDefinition.isZero()) {
-            blocks = List.of(pos);
-        } else {
-            blocks = ToolHelper.iterateAoE(aoeDefinition, HarvestCropsBehavior::isBlockCrops, context);
-            if (isBlockCrops(context)) {
-                blocks.addFirst(context.getClickedPos());
-            }
+        Level level = context.getLevel();
+        if (level.isClientSide) {
+            BlockState state = level.getBlockState(context.getClickedPos());
+            return state.getBlock() instanceof CropBlock crop && crop.isMaxAge(state) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         }
-
+        ItemStack stack = context.getItemInHand();
+        AoESymmetrical aoe = ToolHelper.getAoEDefinition(stack);
+        List<BlockPos> blocks = aoe.isZero() ? List.of(context.getClickedPos()) :
+                ToolHelper.iterateAoE(aoe, context, HarvestCropsBehavior::isCrop);
         boolean harvested = false;
         for (BlockPos blockPos : blocks) {
             harvested |= harvestBlockRoutine(blockPos, context);
             if (stack.isEmpty()) break;
         }
-        return harvested ? InteractionResult.sidedSuccess(context.getLevel().isClientSide) : InteractionResult.PASS;
+        return harvested ? InteractionResult.CONSUME : InteractionResult.PASS;
     }
 
-    private static boolean isBlockCrops(UseOnContext context) {
+    private static boolean isCrop(UseOnContext context, BlockPos pos) {
         Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        if (level.getBlockState(pos.above()).isAir()) {
-            Block block = level.getBlockState(pos).getBlock();
-            return block instanceof CropBlock;
-        }
-        return false;
+        return level.getBlockState(pos.above()).isAir() && level.getBlockState(pos).getBlock() instanceof CropBlock;
     }
 
     private static boolean harvestBlockRoutine(BlockPos pos, UseOnContext context) {
@@ -75,17 +66,15 @@ public class HarvestCropsBehavior implements IToolBehavior {
 
         ItemStack seed = blockState.getCloneItemStack(context.getHitResult().withPosition(pos), level, pos, player);
         if (cropBlock.isMaxAge(blockState)) {
-            if (!level.isClientSide) {
-                var drops = Block.getDrops(blockState, (ServerLevel) level, pos, null);
-                boolean removedSeed = false;
-                for (ItemStack drop : drops) {
-                    if (!removedSeed && ItemStack.isSameItemSameTags(drop, seed)) {
-                        drop.shrink(1);
-                        removedSeed = true;
-                        if (drop.isEmpty()) continue;
-                    }
-                    Block.popResource(level, pos, drop);
+            var drops = Block.getDrops(blockState, (ServerLevel) level, pos, null);
+            boolean removedSeed = false;
+            for (ItemStack drop : drops) {
+                if (!removedSeed && ItemStack.isSameItemSameTags(drop, seed)) {
+                    drop.shrink(1);
+                    removedSeed = true;
+                    if (drop.isEmpty()) continue;
                 }
+                Block.popResource(level, pos, drop);
             }
             level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(blockState));
             level.setBlock(pos, cropBlock.getStateForAge(0), Block.UPDATE_ALL_IMMEDIATE);
@@ -100,5 +89,6 @@ public class HarvestCropsBehavior implements IToolBehavior {
     public void addInformation(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip,
                                @NotNull TooltipFlag flag) {
         tooltip.add(Tips.feature(Component.translatable("item.gtceu.tool.behavior.crop_harvesting")));
+        if (GTUtil.isShiftDown()) tooltip.add(Tips.detail(Component.translatable("item.gtceu.tool.behavior.crop_harvesting.detail")));
     }
 }

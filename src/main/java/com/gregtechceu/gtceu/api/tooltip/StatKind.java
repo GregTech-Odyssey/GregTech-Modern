@@ -31,6 +31,7 @@ public record StatKind(String id, String labelKey, int color, @Nullable String u
     public static final StatKind STORAGE_BYTES = new StatKind("storage_bytes", "gtceu.tip.stat.storage_bytes", TipTheme.ITEM, null);
     public static final StatKind STORAGE_TYPES = new StatKind("storage_types", "gtceu.tip.stat.storage_types", TipTheme.ITEM, null);
     public static final StatKind CHARGE = new StatKind("charge", "gtceu.tip.stat.charge", TipTheme.ENERGY_STORAGE, null);
+    public static final StatKind MANA = new StatKind("mana", "gtceu.tip.stat.mana", TipTheme.MANA, null);
     public static final StatKind RECIPE_TYPE = new StatKind("recipe_type", "gtceu.tip.stat.recipe_type", TipTheme.PRODUCTION, null);
 
     public MutableComponent value(Object... args) {

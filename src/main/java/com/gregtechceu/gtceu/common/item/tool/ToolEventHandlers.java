@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.event.AnvilUpdateEvent;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -52,7 +53,7 @@ public class ToolEventHandlers {
     public static void onPlayerDestroyItem(ItemStack original, InteractionHand hand, Player player) {
         Item item = original.getItem();
         if (item instanceof IGTTool def) {
-            ItemStack brokenStack = def.getToolStats().getBrokenStack();
+            ItemStack brokenStack = def.getToolStats().brokenStack();
             // Transfer over remaining charge to power units
             if (GTCapabilityHelper.getElectricItem(brokenStack) != null && def.isElectric()) {
                 long remainingCharge = def.getCharge(original);
@@ -89,7 +90,7 @@ public class ToolEventHandlers {
          */
         if (item instanceof IGTTool def) {
             if (target instanceof ItemFrame itemFrame) {
-                ItemStack brokenStack = def.getToolStats().getBrokenStack();
+                ItemStack brokenStack = def.getToolStats().brokenStack();
                 if (!brokenStack.isEmpty()) {
                     itemFrame.interact(player, hand);
 
@@ -169,6 +170,11 @@ public class ToolEventHandlers {
             return !leftTool.isElectric() && !rightTool.isElectric();
         }
         return true;
+    }
+
+    @SubscribeEvent
+    public static void onTagsUpdated(TagsUpdatedEvent event) {
+        ToolHelper.clearTagCache();
     }
 
     @SubscribeEvent

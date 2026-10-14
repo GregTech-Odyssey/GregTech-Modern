@@ -131,7 +131,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
         tooltipComponents.add(Tips.stat(Component.translatable("metaitem.prospector.tooltip.radius", radius)));
         tooltipComponents.add(Tips.heading(Component.translatable("metaitem.prospector.tooltip.modes")));
         for (ProspectorMode<?> mode : modes) {
-            tooltipComponents.add(Tips.feature(Component.literal(" -").append(Component.translatable(mode.unlocalizedName))));
+            tooltipComponents.add(Tips.feature(Component.translatable(mode.unlocalizedName)));
         }
     }
 }

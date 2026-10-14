@@ -19,6 +19,7 @@ public class GTNetwork {
         NETWORK.registerC2S(CPacketBuildUpload.class);
         NETWORK.registerC2S(CPacketStructureBuild.class);
         NETWORK.registerC2S(CPacketCarriedStock.class);
+        NETWORK.registerC2S(CPacketToolSetting.class);
 
         NETWORK.registerS2C(SPacketProspectOre.class);
         NETWORK.registerS2C(SPacketProspectBedrockFluid.class);

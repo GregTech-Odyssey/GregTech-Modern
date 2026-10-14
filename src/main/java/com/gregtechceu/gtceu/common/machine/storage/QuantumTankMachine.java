@@ -3,10 +3,6 @@ package com.gregtechceu.gtceu.common.machine.storage;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.LongInputWidget;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
@@ -26,14 +22,21 @@ import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.IconToggle;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 import com.gregtechceu.gtceu.utils.*;
 
-import com.lowdragmc.lowdraglib.gui.editor.ColorPattern;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,9 +59,9 @@ import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import dev.vfyjxf.taffy.style.AlignItems;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -91,7 +94,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @SaveToDisk(defaultValueGetter = "getMax")
     @Getter
-    @Setter
     private long maxAmount;
     @AdditionalHolder
     protected final FluidCache cache;
@@ -351,18 +353,38 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     // *********** GUI ***********//
     //////////////////////////////////////
     public Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 109, 87);
-        group.addWidget(new ImageWidget(4, 4, 101, 55, GuiTextures.DISPLAY))
-                .addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"))
-                .addWidget(new LabelWidget(8, 18, () -> FormattingUtil.formatBuckets(getStoredAmount())).setTextColor(-1).setDropShadow(false))
-                .addWidget(new TankWidget(new ForgeFluidAdapter(cache), 0, 87, 23, true, true).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT))
-                .addWidget(new PhantomFluidWidget(new ForgeFluidAdapter(lockedFluid), 0, 87, 41, 18, 18, this::getLockedFluid, this::setLocked).setShowAmount(false).setBackground(ColorPattern.T_GRAY.rectTexture()))
-                .addWidget(new ToggleButtonWidget(4, 41, 18, 18, GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_auto_output.tooltip"))
-                .addWidget(new ToggleButtonWidget(22, 41, 18, 18, GuiTextures.BUTTON_LOCK, this::isLocked, this::setLocked).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_lock.tooltip"))
-                .addWidget(new ToggleButtonWidget(40, 41, 18, 18, GuiTextures.BUTTON_VOID, () -> isVoiding, b -> isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_voiding_partial.tooltip"));
-        group.addWidget(new LongInputWidget(4, 62, 101, 20, this::getMaxAmount, this::setMaxAmount).setMax(max).setMin(1L).setHoverTooltips(Component.translatable("ldlib.gui.editor.name.maxCount")));
-        group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        return group;
+        var tank = FluidSlot.of(new ForgeFluidAdapter(cache), 0, true, true);
+        var lock = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, this::isLocked, this::setLocked)
+                .onOffTooltips("gtceu.gui.fluid_lock.tooltip.enabled", "gtceu.gui.fluid_lock.tooltip.disabled");
+        var lockSlot = PhantomFluidSlot.of(null, 0, this::getLockedFluid, this::setLocked).xeiPhantom();
+        var output = IconToggle.of(WidgetIcons.EXPORT, this::isAutoOutputFluids, this::setAutoOutputFluids)
+                .onOffTooltips("gtceu.gui.fluid_auto_output.tooltip.enabled", "gtceu.gui.fluid_auto_output.tooltip.disabled");
+        var voiding = IconToggle.of(WidgetIcons.VOID_OVERFLOW, this::isVoiding, this::setVoiding)
+                .onOffTooltips("gtceu.gui.fluid_voiding_partial.tooltip.enabled", "gtceu.gui.fluid_voiding_partial.tooltip.disabled");
+        var limit = Form.numberRow(HatchViews.CAPACITY_LIMIT,
+                NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, 1, max), HatchViews.CAPACITY_LIMIT_TIP);
+        limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
+        var status = new StatusPanel();
+        status.addLine(HatchViews.FLUID, HatchViews.keyName(() -> storedKey, HatchViews.EMPTY));
+        status.addLine(HatchViews.AMOUNT, HatchViews.amountText(this::getStoredAmount, this::getMaxAmount, "mB"));
+        status.addLine(HatchViews.LOCKED, HatchViews.keyName(() -> lockedFluid.keyAt(0), HatchViews.NOT_LOCKED));
+        var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
+                HatchViews.operations(tank, HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)), limit);
+        return HatchViews.page(operations, status);
+    }
+
+    public boolean isVoiding() {
+        return isVoiding;
+    }
+
+    public void setVoiding(boolean voiding) {
+        isVoiding = voiding;
+        onChanged();
+    }
+
+    public void setMaxAmount(long maxAmount) {
+        this.maxAmount = Math.max(1, Math.min(max, maxAmount));
+        onChanged();
     }
 
     //////////////////////////////////////

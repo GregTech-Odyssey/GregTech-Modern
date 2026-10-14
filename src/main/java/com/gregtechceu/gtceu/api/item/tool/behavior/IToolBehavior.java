@@ -1,9 +1,8 @@
 package com.gregtechceu.gtceu.api.item.tool.behavior;
 
-import com.gregtechceu.gtceu.api.item.IGTTool;
+import com.gregtechceu.gtceu.api.item.tool.ToolSetting;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -28,14 +27,9 @@ import java.util.List;
  */
 public interface IToolBehavior {
 
-    default void init(IGTTool toolItem) {}
-
-    /**
-     * @param stack    The current ItemStack
-     * @param target   the entity being hit
-     * @param attacker the entity hitting the other
-     */
-    default void hitEntity(@NotNull ItemStack stack, @NotNull LivingEntity target, @NotNull LivingEntity attacker) {}
+    default float getAttackBonus(@NotNull ItemStack stack, @NotNull LivingEntity target) {
+        return 0;
+    }
 
     /**
      * Called before a block is broken.
@@ -59,14 +53,6 @@ public interface IToolBehavior {
      */
     default void onBlockDestroyed(@NotNull ItemStack stack, @NotNull Level world, @NotNull BlockState state,
                                   @NotNull BlockPos pos, @NotNull LivingEntity entityLiving) {}
-
-    /**
-     * Called when an entity tries to play the 'swing' animation.
-     *
-     * @param entityLiving The entity swinging the item.
-     * @param stack        The Item stack
-     */
-    default void onEntitySwing(@NotNull LivingEntity entityLiving, @NotNull ItemStack stack) {}
 
     /**
      *
@@ -133,5 +119,9 @@ public interface IToolBehavior {
      * @param stack the tool
      * @param tag   the nbt tag to add to
      */
-    default void addBehaviorNBT(@NotNull ItemStack stack, @NotNull CompoundTag tag) {}
+    default void addBehaviorNBT(@NotNull ItemStack stack) {}
+
+    default ToolSetting[] getSettings() {
+        return ToolSetting.NONE;
+    }
 }
