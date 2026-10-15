@@ -70,7 +70,7 @@ public final class PlanScratch {
 
         PlanScratch acquire() {
             int d = depth;
-            if (d == scratches.length) scratches = Arrays.copyOf(scratches, d * 2);
+            if (d == scratches.length) scratches = Arrays.copyOf(scratches, d << 1);
             var scratch = scratches[d];
             if (scratch == null) {
                 scratch = new PlanScratch();
@@ -83,7 +83,7 @@ public final class PlanScratch {
 
     void begin(int slots) {
         if (slots > reserved.length) {
-            int n = Math.max(slots, reserved.length * 2);
+            int n = Math.max(slots, reserved.length << 1);
             reserved = new long[n];
             claim = new int[n];
             stamp = new int[n];
@@ -130,27 +130,27 @@ public final class PlanScratch {
 
     void ensureMembers(int items, int fluids) {
         if (items > itemOffsets.length) {
-            itemOffsets = new int[items * 2];
-            itemVersions = new int[items * 2];
+            itemOffsets = new int[(items << 1)];
+            itemVersions = new int[(items << 1)];
         }
         if (fluids > fluidOffsets.length) {
-            fluidOffsets = new int[fluids * 2];
-            fluidVersions = new int[fluids * 2];
+            fluidOffsets = new int[(fluids << 1)];
+            fluidVersions = new int[(fluids << 1)];
         }
-        if (items + fluids > touched.length) touched = new int[(items + fluids) * 2];
+        if (items + fluids > touched.length) touched = new int[((items + fluids) << 1)];
     }
 
     long[] need(boolean fluid, int size) {
         if (fluid) {
-            if (fluidNeed.length < size) fluidNeed = new long[Math.max(size, fluidNeed.length * 2)];
+            if (fluidNeed.length < size) fluidNeed = new long[Math.max(size, fluidNeed.length << 1)];
             return fluidNeed;
         }
-        if (itemNeed.length < size) itemNeed = new long[Math.max(size, itemNeed.length * 2)];
+        if (itemNeed.length < size) itemNeed = new long[Math.max(size, itemNeed.length << 1)];
         return itemNeed;
     }
 
     long[] outLeft(int size) {
-        if (outLeft.length < size) outLeft = new long[Math.max(size, outLeft.length * 2)];
+        if (outLeft.length < size) outLeft = new long[Math.max(size, outLeft.length << 1)];
         return outLeft;
     }
 
@@ -163,7 +163,7 @@ public final class PlanScratch {
     void log(int member, int slot, int entry, long amount, byte flags) {
         int n = logSize;
         if (n == logMember.length) {
-            int c = n * 2;
+            int c = n << 1;
             logMember = Arrays.copyOf(logMember, c);
             logSlot = Arrays.copyOf(logSlot, c);
             logEntry = Arrays.copyOf(logEntry, c);

@@ -28,6 +28,7 @@
     "BlockPropertiesAccessor",
     "ChunkGeneratorMixin",
     "EntityMixin",
+    "FriendlyByteBufMixin",
     "IFoliagePlacerTypeAccessor",
     "InventoryMixin",
     "ItemStackMixin",

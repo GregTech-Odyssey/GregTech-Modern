@@ -16,7 +16,8 @@ import java.util.function.Supplier;
 
 /**
  * 一件物品或机器的完整提示规格：按槽位排序的分组，静态部分构建一次，按住 Shift 展开详情。
- * 只用于物品/方块 tooltip，产出的行不能进网络包或存盘。
+ * 只用于物品/方块 tooltip，产出的行能随 DataSyncLib 的二进制组件编码过网络（见
+ * {@link TipContents#STREAM_CODEC}），但不能落盘：原版 JSON 不认 TipContents。
  */
 public final class TipSpec implements Supplier<List<Component>> {
 

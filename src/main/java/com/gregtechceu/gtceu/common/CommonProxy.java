@@ -25,6 +25,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.tooltip.TipContents;
 import com.gregtechceu.gtceu.api.transfer.key.KeyCodecs;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.common.data.machines.GTMachineUtils;
@@ -68,6 +69,7 @@ import net.minecraftforge.registries.RegisterEvent;
 
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.FieldDefinitionStorage;
+import com.gto.datasynclib.util.ComponentStreamCodecs;
 import com.gto.datasynclib.util.EnumUtil;
 
 public class CommonProxy {
@@ -206,6 +208,9 @@ public class CommonProxy {
 
     private static void initDataSync() {
         KeyCodecs.register();
+        // TipContents 是 GTM 自己的内容类型，原版与库都不认识它；注册之后二进制组件编码才能把带角色的
+        // 提示行写进网络包（存盘走原版 JSON，仍然不支持）
+        ComponentStreamCodecs.register(TipContents.class, TipContents.STREAM_CODEC);
         DataSyncCodec.register(Material.class, Material.STREAM_CODEC, Material.DATA_CODEC);
         DataSyncCodec.register(GTRecipeType.class, GTRegistries.RECIPE_TYPES.streamCodec(), GTRegistries.RECIPE_TYPES.valueCodec());
         DataSyncCodec.register(GTRecipe.class, GTRecipe.STREAM_CODEC, GTRecipe.DATA_CODEC);

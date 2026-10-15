@@ -18,7 +18,9 @@ import java.util.function.Supplier;
 
 /**
  * 单行提示的静态工厂：用于直接往 tooltips(Component...) 或提示列表里放带角色的行。
- * 只用于物品/方块 tooltip；机器界面显示行、聊天消息等要过网络或存盘的文字不能用，原版无法序列化 TipContents。
+ * 这些行现在能过网络：{@link TipContents#STREAM_CODEC} 已在 {@code CommonProxy.initDataSync()} 注册，
+ * 随 DataSyncLib 的二进制组件编码发往客户端，机器界面显示行、聊天消息都能用；
+ * 但原版 JSON（存盘、原版网络包）仍然不认 TipContents，所以这类组件不能落盘。
  */
 public final class Tips {
 
