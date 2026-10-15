@@ -64,7 +64,6 @@ public final class ClassInstanceCache<T> extends Reference2ReferenceOpenHashMap<
         if (!list.isEmpty()) {
             arr = list.toArray(arr);
         }
-        super.put(type, arr);
         return arr;
     }
 }
