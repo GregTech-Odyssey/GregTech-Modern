@@ -49,6 +49,7 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
      * GTO: 每 tick 最多可充入 / 放出的安培数，默认 1A
      */
     public long transferAmps = 1;
+    public boolean tierFromBattery;
 
     protected ElectricStats(long maxCharge, int tier, boolean chargeable, boolean dischargeable) {
         this.maxCharge = maxCharge;
@@ -64,6 +65,19 @@ public class ElectricStats implements IInteractionItem, IAddInformation, IItemLi
     public ElectricStats transferAmps(long amps) {
         this.transferAmps = amps;
         return this;
+    }
+
+    public ElectricStats tierFromBattery() {
+        this.tierFromBattery = true;
+        return this;
+    }
+
+    public int tier(ItemStack stack) {
+        if (!tierFromBattery || !(IDataComponentItem.get(stack, ElectricItem.BATTERY) instanceof IComponentItem battery)) return tier;
+        for (var component : battery.getComponents()) {
+            if (component instanceof ElectricStats stats) return Math.max(tier, stats.tier);
+        }
+        return tier;
     }
 
     public static float getStoredPredicate(ItemStack itemStack) {

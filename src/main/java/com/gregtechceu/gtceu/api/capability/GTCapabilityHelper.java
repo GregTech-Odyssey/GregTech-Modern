@@ -54,7 +54,7 @@ public class GTCapabilityHelper {
         if (item instanceof IComponentItem componentItem) {
             for (IItemComponent component : componentItem.getComponents()) {
                 if (component instanceof ElectricStats electricStats) {
-                    return new ElectricItem(itemStack, electricStats.maxCharge, electricStats.tier, electricStats.chargeable, electricStats.dischargeable, electricStats.transferAmps);
+                    return new ElectricItem(itemStack, electricStats.maxCharge, electricStats.tier(itemStack), electricStats.chargeable, electricStats.dischargeable, electricStats.transferAmps);
                 }
             }
         } else if (item instanceof IGTTool tool && tool.isElectric()) {
