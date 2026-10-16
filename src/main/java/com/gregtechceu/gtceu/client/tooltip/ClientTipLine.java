@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.tooltip.TipLineComponent;
 import com.gregtechceu.gtceu.api.tooltip.TipMarker;
 import com.gregtechceu.gtceu.api.tooltip.TipRole;
 import com.gregtechceu.gtceu.api.tooltip.TipTheme;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.util.DrawUtil;
 
 import net.minecraft.client.Minecraft;
@@ -74,7 +75,7 @@ public final class ClientTipLine extends ClientTextTooltip {
     private static List<FormattedCharSequence> split(TipLineComponent component) {
         Font font = Minecraft.getInstance().font;
         int indent = component.contents().role().depth() * INDENT;
-        return font.split(component.contents().styledBody(), Math.max(80, component.maxWidth() - indent));
+        return font.split(Tips.resolveDynamic(component.contents().styledBody()), Math.max(80, component.maxWidth() - indent));
     }
 
     @Override

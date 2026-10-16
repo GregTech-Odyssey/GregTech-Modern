@@ -12,17 +12,17 @@ import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.block.CableBlock;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.pipelike.cable.*;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
+import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,8 +49,6 @@ import java.util.EnumMap;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-
-import static com.gregtechceu.gtceu.utils.FormattingUtil.DECIMAL_FORMAT_1F;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
@@ -188,16 +186,15 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
         return getNodeData().getVoltage();
     }
 
-    /**
-     * Should only be called internally
-     */
-    public void incrementAmperage(long voltage, long amperage) {
-        var time = getOffsetTimer();
+    public void carry(long voltage, long centiAmps, long sourceVoltage) {
+        int time = getOffsetTimer();
         voltageCounter.set(time, voltage);
-        amperageCounter.set(time, amperage);
-        if ((amperageCounter.get(time) > getMaxAmperage() * 100) || voltageCounter.get(time) > getMaxVoltage()) {
-            applyHeat((int) Math.sqrt(amperageCounter.get(time)));
-        }
+        amperageCounter.set(time, centiAmps);
+        var data = getNodeData();
+        int heat = sourceVoltage > data.getVoltage() ? CableTransfer.overvoltageHeat(sourceVoltage, data.getVoltage()) : 0;
+        long over = amperageCounter.get(time) - data.getAmperage() * 100L;
+        if (over > 0) heat = GTMath.saturatedCast(heat + (over + 99) / 100 * CableTransfer.OVERAMP_HEAT_PER_AMP);
+        if (heat > 0) applyHeat(heat);
     }
 
     private void applyHeat(int amount) {
@@ -221,7 +218,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
             unsubscribeHeat();
             return;
         }
-        if (getPipeType().insulationLevel >= 0 && temperature >= 1500 && GTValues.RNG.nextFloat() < 0.1) {
+        if (getPipeType().isCable && temperature >= 1500 && GTValues.RNG.nextFloat() < 0.1) {
             // insulation melted
             uninsulate();
             return;
@@ -237,8 +234,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     private void uninsulate() {
         int temp = temperature;
         setTemperature(defaultTemp);
-        int index = getPipeType().insulationLevel;
-        CableBlock newBlock = GTMaterialBlocks.CABLE_BLOCKS.get(Insulation.values()[index].tagPrefix, getPipeBlock().material).get();
+        CableBlock newBlock = GTMaterialBlocks.CABLE_BLOCKS.get(getPipeType().bare.tagPrefix, getPipeBlock().material).get();
         level.setBlockAndUpdate(getBlockPos(), newBlock.defaultBlockState());
         CableBlockEntity newCable = (CableBlockEntity) level.getBlockEntity(getBlockPos());
         if (newCable != null) {
@@ -289,31 +285,27 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         List<Component> list = new ArrayList<>();
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL || mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
-            list.add(Component.translatable("behavior.portable_scanner.eu_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentVoltage())).withStyle(ChatFormatting.RED)));
-            list.add(Component.translatable("behavior.portable_scanner.amp_per_sec", Component.translatable(FormattingUtil.formatNumbers(getCurrentAmperage())).withStyle(ChatFormatting.RED)));
-            list.add(Component.translatable("gtceu.recipe.temperature", temperature).withStyle(ChatFormatting.RED));
+            list.add(voltageLine(getCurrentVoltage(), getMaxVoltage()));
+            list.add(amperageLine(getCurrentAmperage(), getMaxAmperage()));
+            list.add(Component.translatable("gtceu.recipe.temperature", temperature));
         }
         return list;
+    }
+
+    private static Component voltageLine(long current, long max) {
+        return Component.translatable("gtceu.cable.current_voltage", ElectricText.voltage(current), ElectricText.voltage(max));
+    }
+
+    private static Component amperageLine(double current, long max) {
+        return Component.translatable("gtceu.cable.current_amperage", ElectricText.amps(current), ElectricText.amps(max));
     }
 
     @Override
     public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
         if (data.contains("cableData", Tag.TAG_COMPOUND)) {
             var tag = data.getCompound("cableData");
-            long voltage = tag.getLong("currentVoltage");
-            double amperage = tag.getDouble("currentAmperage");
-            iTooltip.add(Component.translatable("gtceu.top.cable_voltage"));
-            if (voltage != 0) {
-                iTooltip.append(Component.literal(GTValues.VNF[GTUtil.getTierByVoltage(voltage)]));
-                iTooltip.append(Component.literal(" / "));
-            }
-            iTooltip.append(Component.literal(GTValues.VNF[GTUtil.getTierByVoltage(tag.getLong("maxVoltage"))]));
-
-            iTooltip.add(Component.translatable("gtceu.top.cable_amperage"));
-            if (amperage != 0) {
-                iTooltip.append(Component.literal(DECIMAL_FORMAT_1F.format(amperage) + "A / "));
-            }
-            iTooltip.append(Component.literal(DECIMAL_FORMAT_1F.format(tag.getDouble("maxAmperage")) + "A"));
+            iTooltip.add(voltageLine(tag.getLong("currentVoltage"), tag.getLong("maxVoltage")));
+            iTooltip.add(amperageLine(tag.getDouble("currentAmperage"), (long) tag.getDouble("maxAmperage")));
         }
     }
 

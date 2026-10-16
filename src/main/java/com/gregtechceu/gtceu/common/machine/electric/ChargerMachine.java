@@ -179,8 +179,12 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
         @Override
         public long acceptEnergyFromNetwork(Object o, @Nullable Direction side, long voltage, long energyToAdd) {
             if (side == null || inputsEnergy(side)) {
-                long canAccept = Math.min(energyToAdd, getEnergyCapacity() - getEnergyStored());
-                if (canAccept == 0) return 0;
+                if (voltage > getInputVoltage()) {
+                    doExplosion(GTUtil.getExplosionPower(voltage));
+                    return 0;
+                }
+                long canAccept = Math.min(intake.limit(getOffsetTimer(), voltage, getInputAmperage(), energyToAdd), getEnergyCapacity() - getEnergyStored());
+                if (canAccept <= 0) return 0;
                 var electricItems = getNonFullElectricItem();
                 long energyAdded = 0;
                 long distributed = canAccept / electricItems.size();
@@ -200,6 +204,7 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
                     energyAdded += charged;
                 }
                 if (changed) {
+                    intake.consume(voltage, energyAdded);
                     ChargerMachine.this.onChanged();
                     changeState(State.RUNNING);
                 }

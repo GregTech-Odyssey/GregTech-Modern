@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.tooltip;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.network.chat.Component;
@@ -13,11 +12,11 @@ import org.jetbrains.annotations.Nullable;
  */
 public record StatKind(String id, String labelKey, int color, @Nullable String unitKey) {
 
-    public static final StatKind VOLTAGE_IN = new StatKind("voltage_in", "gtceu.tip.stat.voltage_in", TipTheme.ENERGY_VOLTAGE, "gtceu.tip.unit.voltage");
-    public static final StatKind VOLTAGE_OUT = new StatKind("voltage_out", "gtceu.tip.stat.voltage_out", TipTheme.ENERGY_VOLTAGE, "gtceu.tip.unit.voltage");
-    public static final StatKind AMPERAGE_IN = new StatKind("amperage_in", "gtceu.tip.stat.amperage_in", TipTheme.ENERGY_AMPERAGE, "gtceu.tip.unit.amperage");
-    public static final StatKind AMPERAGE_OUT = new StatKind("amperage_out", "gtceu.tip.stat.amperage_out", TipTheme.ENERGY_AMPERAGE, "gtceu.tip.unit.amperage");
-    public static final StatKind ENERGY_CAPACITY = new StatKind("energy_capacity", "gtceu.tip.stat.energy_capacity", TipTheme.ENERGY_STORAGE, "gtceu.tip.unit.eu");
+    public static final StatKind VOLTAGE_IN = new StatKind("voltage_in", "gtceu.tip.stat.voltage_in", TipTheme.ENERGY_VOLTAGE, null);
+    public static final StatKind VOLTAGE_OUT = new StatKind("voltage_out", "gtceu.tip.stat.voltage_out", TipTheme.ENERGY_VOLTAGE, null);
+    public static final StatKind AMPERAGE_IN = new StatKind("amperage_in", "gtceu.tip.stat.amperage_in", TipTheme.ENERGY_AMPERAGE, "gtceu.electric.amps");
+    public static final StatKind AMPERAGE_OUT = new StatKind("amperage_out", "gtceu.tip.stat.amperage_out", TipTheme.ENERGY_AMPERAGE, "gtceu.electric.amps");
+    public static final StatKind ENERGY_CAPACITY = new StatKind("energy_capacity", "gtceu.tip.stat.energy_capacity", TipTheme.ENERGY_STORAGE, "gtceu.electric.energy_exact");
     public static final StatKind FLUID_CAPACITY = new StatKind("fluid_capacity", "gtceu.tip.stat.fluid_capacity", TipTheme.FLUID, "gtceu.tip.unit.mb");
     public static final StatKind ITEM_SLOTS = new StatKind("item_slots", "gtceu.tip.stat.item_slots", TipTheme.ITEM, null);
     public static final StatKind PATTERN_SLOTS = new StatKind("pattern_slots", "gtceu.tip.stat.pattern_slots", TipTheme.ITEM, null);
@@ -54,7 +53,7 @@ public record StatKind(String id, String labelKey, int color, @Nullable String u
     }
 
     public static Object[] voltage(long voltage, int tier) {
-        return new Object[] { FormattingUtil.formatNumbers(voltage), GTValues.VNF[tier] };
+        return new Object[] { ElectricText.voltage(voltage, tier) };
     }
 
     public static String number(long value) {

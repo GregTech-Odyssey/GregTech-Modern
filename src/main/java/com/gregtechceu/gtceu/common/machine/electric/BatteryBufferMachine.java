@@ -238,7 +238,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 boolean changed = false;
                 var outFacing = getFrontFacing();
                 var energyContainer = GTCapabilityHelper.getEnergyContainer(holder.getNeighborBlockEntity(outFacing), outFacing.getOpposite());
-                if (energyContainer != null) {
+                if (energyContainer != null && energyContainer.inputsEnergy(outFacing.getOpposite())) {
                     var voltage = getOutputVoltage();
                     var stored = 0L;
                     for (IElectricItem electricItem : batteries) {
@@ -277,8 +277,8 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 var batteries = getNonFullBatteries();
                 var size = batteries.size();
                 if (size == 0) return 0;
-                long canAccept = Math.min(size * voltage, Math.min(energyToAdd, getEnergyCapacity() - getEnergyStored()));
-                if (canAccept == 0) return 0;
+                long canAccept = Math.min(intake.limit(getOffsetTimer(), voltage, size, energyToAdd), getEnergyCapacity() - getEnergyStored());
+                if (canAccept <= 0) return 0;
                 long distributed = canAccept / size;
                 if (distributed == 0) {
                     distributed = voltage;
@@ -299,6 +299,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                     }
                 }
                 if (energyAdded > 0) {
+                    intake.consume(voltage, energyAdded);
                     changed();
                 }
                 return energyAdded;

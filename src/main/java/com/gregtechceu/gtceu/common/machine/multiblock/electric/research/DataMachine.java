@@ -8,8 +8,8 @@ import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -118,7 +118,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
         if (this.energyContainer.removeEnergy(energyUsage) >= energyUsage) {
             getRecipeLogic().setStatus(RecipeLogic.WORKING);
         } else {
-            getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(energyUsage)));
+            getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", ElectricText.power(energyUsage)));
         }
     }
 

@@ -3,7 +3,7 @@ package com.gregtechceu.gtceu.integration.jade.provider;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyInfoProvider;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -49,9 +49,6 @@ public class ElectricContainerBlockProvider extends CapabilityBlockProvider<IEne
         var energy = new BigInteger(capData.getByteArray("Energy"));
         var maxEnergy = new BigInteger(capData.getByteArray("MaxEnergy"));
         if (maxEnergy.compareTo(BigInteger.ZERO) <= 0) return;
-        var threshold = BigInteger.valueOf((long) 1e12);
-        var energyStr = FormattingUtil.formatNumberOrSic(energy, threshold);
-        var maxEnergyStr = FormattingUtil.formatNumberOrSic(maxEnergy, threshold);
         var progress = getProgress(energy, maxEnergy);
 
         var helper = tooltip.getElementHelper();
@@ -59,7 +56,7 @@ public class ElectricContainerBlockProvider extends CapabilityBlockProvider<IEne
         tooltip.add(
                 helper.progress(
                         progress,
-                        Component.translatable("gtceu.jade.energy_stored", energyStr, maxEnergyStr),
+                        Component.translatable("gtceu.jade.energy_stored", ElectricText.chargeExact(energy, maxEnergy)),
                         helper.progressStyle().color(0xFFEEE600, 0xFFEEE600).textColor(-1),
                         Util.make(BoxStyle.DEFAULT, style -> style.borderColor = 0xFF555555),
                         true));

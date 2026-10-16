@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.tooltip;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.client.tooltip.TipKeyText;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -12,6 +11,7 @@ import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.contents.TranslatableContents;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -137,16 +137,13 @@ public final class Tips {
         if (max <= 0) {
             value = Component.translatable("gtceu.tip.unit.charge_none");
         } else if (GTUtil.isShiftDown()) {
-            value = Component.translatable("gtceu.tip.unit.charge_exact", FormattingUtil.formatNumbers(current),
-                    FormattingUtil.formatNumbers(max));
+            value = ElectricText.chargeExact(current, max);
         } else {
-            boolean hours = useHours(max, tier);
-            value = Component.translatable(hours ? "gtceu.tip.unit.charge_hours" : "gtceu.tip.unit.charge_seconds",
-                    ampTime(current, tier, hours), ampTime(max, tier, hours));
+            value = ElectricText.charge(current, max, tier);
         }
         float ratio = max <= 0 ? 0 : Math.min(1f, (float) current / max);
         boolean depleted = TipTheme.energyDepleted(current, max);
-        return TipContents.meter(StatKind.CHARGE.line(withTier(value, tier)), ratio,
+        return TipContents.meter(StatKind.CHARGE.line(value.withStyle(s -> s.withColor(TipTheme.VALUE))), ratio,
                 depleted ? TipTheme.ENERGY_BAR_DEPLETED_LEFT : TipTheme.ENERGY_BAR_LEFT,
                 depleted ? TipTheme.ENERGY_BAR_DEPLETED_RIGHT : TipTheme.ENERGY_BAR_RIGHT);
     }
@@ -191,26 +188,12 @@ public final class Tips {
                 depleted ? TipTheme.ENERGY_BAR_DEPLETED_RIGHT : TipTheme.DURABILITY_BAR_RIGHT);
     }
 
-    private static MutableComponent withTier(MutableComponent value, int tier) {
-        return value.withStyle(s -> s.withColor(TipTheme.VALUE)).append(Component.translatable("gtceu.tip.unit.tier", GTValues.VNF[tier]));
-    }
-
     public static MutableComponent energy(StatKind kind, long eu, int tier) {
         return stat(energyBody(kind, eu, tier));
     }
 
     static MutableComponent energyBody(StatKind kind, long eu, int tier) {
-        return dynamic(() -> {
-            MutableComponent value;
-            if (GTUtil.isShiftDown()) {
-                value = Component.translatable("gtceu.tip.unit.energy_exact", FormattingUtil.formatNumbers(eu));
-            } else {
-                boolean hours = useHours(eu, tier);
-                value = Component.translatable(hours ? "gtceu.tip.unit.energy_hours" : "gtceu.tip.unit.energy_seconds",
-                        ampTime(eu, tier, hours));
-            }
-            return kind.line(withTier(value, tier));
-        });
+        return dynamic(() -> kind.line(GTUtil.isShiftDown() ? ElectricText.energyExact(eu) : ElectricText.energy(eu, tier)));
     }
 
     public static MutableComponent power(StatKind kind, long euPerTick, int tier) {
@@ -218,30 +201,42 @@ public final class Tips {
     }
 
     static MutableComponent powerBody(StatKind kind, long euPerTick, int tier) {
-        return dynamic(() -> {
-            MutableComponent value;
-            if (GTUtil.isShiftDown()) {
-                value = Component.translatable("gtceu.tip.unit.power_exact", FormattingUtil.formatNumbers(euPerTick));
-            } else {
-                double amps = (double) euPerTick / GTValues.VEX[tier];
-                String text = amps == Math.rint(amps) ? FormattingUtil.formatNumbers((long) amps) : String.format("%,.1f", amps);
-                value = Component.translatable("gtceu.tip.unit.power", text);
-            }
-            return kind.line(withTier(value, tier));
-        });
-    }
-
-    private static boolean useHours(long eu, int tier) {
-        return eu / (GTValues.V[tier] * 20D) >= 3600;
-    }
-
-    private static String ampTime(long eu, int tier, boolean hours) {
-        double seconds = eu / (GTValues.V[tier] * 20D);
-        return hours ? String.format("%,.1f", seconds / 3600) : FormattingUtil.formatNumbers((long) seconds);
+        return dynamic(() -> kind.line(GTUtil.isShiftDown() ? ElectricText.power(euPerTick) : ElectricText.flowOf(euPerTick, tier)));
     }
 
     public static MutableComponent dynamic(Supplier<? extends Component> text) {
         return MutableComponent.create(new DynamicContents(text));
+    }
+
+    public static Component resolveDynamic(Component text) {
+        return hasDynamic(text) ? resolved(text) : text;
+    }
+
+    private static boolean hasDynamic(Component text) {
+        var contents = text.getContents();
+        if (contents instanceof DynamicContents) return true;
+        if (contents instanceof TranslatableContents translatable) {
+            for (Object arg : translatable.getArgs()) if (arg instanceof Component c && hasDynamic(c)) return true;
+        }
+        for (Component sibling : text.getSiblings()) if (hasDynamic(sibling)) return true;
+        return false;
+    }
+
+    private static MutableComponent resolved(Component text) {
+        var contents = text.getContents();
+        MutableComponent out;
+        if (contents instanceof DynamicContents dynamic) {
+            out = Component.empty().append(resolveDynamic(dynamic.text().get()));
+        } else if (contents instanceof TranslatableContents translatable) {
+            Object[] args = translatable.getArgs().clone();
+            for (int i = 0; i < args.length; i++) if (args[i] instanceof Component c) args[i] = resolveDynamic(c);
+            out = MutableComponent.create(new TranslatableContents(translatable.getKey(), translatable.getFallback(), args));
+        } else {
+            out = MutableComponent.create(contents);
+        }
+        out.setStyle(text.getStyle());
+        for (Component sibling : text.getSiblings()) out.append(resolveDynamic(sibling));
+        return out;
     }
 
     private record DynamicContents(Supplier<? extends Component> text) implements ComponentContents {

@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
@@ -96,11 +96,11 @@ public final class EnergyTierPreview implements RecipeTierPreview {
         if (row == 0) {
             long energy = eut * duration(tier, perfect);
             if (isTotalCwu(recipe)) energy /= Math.max(recipe.data.getLong(GTRecipeDataKeys.CWUT), 1);
-            return Component.literal(FormattingUtil.formatNumbers(energy) + " EU");
+            return ElectricText.energyExact(energy);
         }
         int voltageTier = GTUtil.getTierByVoltage(eut);
-        var amperage = Component.translatable("gtceu.recipe.eu.tier", FormattingUtil.formatNumber2Places((float) eut / V[voltageTier]), VN[voltageTier]);
-        return Component.literal(FormattingUtil.formatNumbers(eut) + " EU/t")
+        var amperage = ElectricText.flowOf(eut, voltageTier);
+        return ElectricText.power(eut)
                 .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, amperage)));
     }
 

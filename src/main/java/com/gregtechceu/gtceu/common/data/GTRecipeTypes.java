@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.sound.ExistingSoundEntry;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.machine.multiblock.electric.FusionReactorMachine;
 import com.gregtechceu.gtceu.common.machine.steam.SteamLiquidBoilerMachine;
@@ -23,7 +24,6 @@ import com.gregtechceu.gtceu.common.recipe.*;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
 import com.gregtechceu.gtceu.uiwidgets.recipe.GTRecipeLayouts;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeDisplaySlots;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
@@ -633,7 +633,7 @@ public class GTRecipeTypes {
                 if (euToStart <= 0) return "";
                 int fusionTier = FusionReactorMachine.findCeilingTier(euToStart);
                 int tier = Math.max(FusionReactorMachine.MINIMUM_TIER, Math.max(recipe.tier, fusionTier));
-                return LocalizationUtils.format("gtceu.recipe.eu_to_start", FormattingUtil.formatNumberReadable2F(euToStart, false), FusionReactorMachine.FUSION_NAMES.get(tier));
+                return LocalizationUtils.format("gtceu.recipe.eu_to_start", ElectricText.energyExact(euToStart).getString(), FusionReactorMachine.FUSION_NAMES.get(tier));
             });
 
     public static final GTRecipeType DUMMY_RECIPES = register("dummy", DUMMY)

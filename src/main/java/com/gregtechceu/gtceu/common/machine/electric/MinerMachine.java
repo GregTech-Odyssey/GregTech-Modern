@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
@@ -26,7 +27,6 @@ import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.MinerLogic;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
@@ -350,7 +350,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     @Override
     public boolean drainInput(boolean simulate) {
         if (drainEnergy(simulate)) return true;
-        if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(energyPerTick)));
+        if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", ElectricText.power(energyPerTick)));
         return false;
     }
 

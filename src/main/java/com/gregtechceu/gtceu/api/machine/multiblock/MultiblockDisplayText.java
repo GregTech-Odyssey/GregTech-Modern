@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
@@ -115,15 +116,7 @@ public class MultiblockDisplayText {
                 return this;
             if (energyContainer != null && energyContainer.getEnergyCapacity() > 0) {
                 long maxVoltage = Math.max(energyContainer.getInputVoltage(), energyContainer.getOutputVoltage());
-
-                String energyFormatted = FormattingUtil.formatNumbers(maxVoltage);
-                // wrap in text component to keep it from being formatted
-                byte voltageTier = GTUtil.getFloorTierByVoltage(maxVoltage);
-                Component voltageName = Component.literal(
-                        GTValues.VNF[voltageTier]);
-
-                MutableComponent bodyText = Component.translatable("gtceu.multiblock.max_energy_per_tick",
-                        energyFormatted, voltageName).withStyle(ChatFormatting.GRAY);
+                MutableComponent bodyText = Component.translatable("gtceu.multiblock.max_energy_per_tick", ElectricText.voltage(maxVoltage)).withStyle(ChatFormatting.GRAY);
                 Component hoverText = Component.translatable("gtceu.multiblock.max_energy_per_tick_hover")
                         .withStyle(ChatFormatting.GRAY);
                 textList.add(bodyText.withStyle(
@@ -164,13 +157,7 @@ public class MultiblockDisplayText {
             if (!isStructureFormed)
                 return this;
             if (energyUsage > 0) {
-                String energyFormatted = FormattingUtil.formatNumbers(energyUsage);
-                // wrap in text component to keep it from being formatted
-                Component voltageName = Component.literal(
-                        GTValues.VNF[GTUtil.getTierByVoltage(energyUsage)]);
-
-                textList.add(Component.translatable("gtceu.multiblock.energy_consumption",
-                        energyFormatted, voltageName).withStyle(ChatFormatting.GRAY));
+                textList.add(Component.translatable("gtceu.multiblock.energy_consumption", ElectricText.power(energyUsage), ElectricText.tier(GTUtil.getTierByVoltage(energyUsage))).withStyle(ChatFormatting.GRAY));
             }
             return this;
         }
@@ -184,13 +171,7 @@ public class MultiblockDisplayText {
             if (!isStructureFormed)
                 return this;
             if (maxVoltage != 0 && maxVoltage >= -recipeEUt) {
-                String energyFormatted = FormattingUtil.formatNumbers(maxVoltage);
-                // wrap in text component to keep it from being formatted
-                Component voltageName = Component.literal(
-                        GTValues.VNF[GTUtil.getFloorTierByVoltage(maxVoltage)]);
-
-                textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick",
-                        energyFormatted, voltageName).withStyle(ChatFormatting.GRAY));
+                textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick", ElectricText.voltage(maxVoltage)).withStyle(ChatFormatting.GRAY));
             }
             return this;
         }
@@ -206,13 +187,8 @@ public class MultiblockDisplayText {
             if (!isStructureFormed)
                 return this;
             if (maxVoltage != 0 && amperage != 0) {
-                String energyFormatted = FormattingUtil.formatNumbers(maxVoltage);
-                // wrap in text component to keep it from being formatted
-                Component voltageName = Component.literal(
-                        GTValues.VNF[GTUtil.getFloorTierByVoltage(maxVoltage)]);
-
                 textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick_amps",
-                        energyFormatted, amperage, voltageName).withStyle(ChatFormatting.GRAY));
+                        ElectricText.power(maxVoltage * amperage), ElectricText.flow(amperage, ElectricText.floorTier(maxVoltage))).withStyle(ChatFormatting.GRAY));
             }
             return this;
         }
@@ -618,8 +594,7 @@ public class MultiblockDisplayText {
          * Add a line specifying the current EU/t
          */
         public Builder addCurrentEnergyProductionLine(long euOutput) {
-            textList.add(Component.translatable("gtceu.multiblock.turbine.energy_per_tick_maxed",
-                    FormattingUtil.formatNumbers(euOutput)).withStyle(ChatFormatting.GRAY));
+            textList.add(Component.translatable("gtceu.multiblock.turbine.energy_per_tick_maxed", ElectricText.power(euOutput)).withStyle(ChatFormatting.GRAY));
             return this;
         }
     }

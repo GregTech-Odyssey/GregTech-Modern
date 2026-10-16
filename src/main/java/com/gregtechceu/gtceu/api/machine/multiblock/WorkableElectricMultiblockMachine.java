@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
@@ -11,6 +10,7 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMa
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
 import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
@@ -103,16 +103,16 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
 
     protected void addPageContent(MultiblockPage page) {
         page.addLine(LANG_MAX_POWER, MultiblockPage.cached(this::getMaxVoltage,
-                voltage -> Component.literal(FormattingUtil.formatNumbers(voltage) + " EU/t (" + GTValues.VNF[GTUtil.getFloorTierByVoltage(voltage)] + "§r)")));
+                ElectricText::voltage));
         boolean generator = isGenerator();
         page.addLine(generator ? LANG_ENERGY_OUTPUT : LANG_ENERGY_USAGE, MultiblockPage.cached(() -> getScreenEnergyRate(generator),
-                usage -> Component.literal(FormattingUtil.formatNumbers(usage) + " EU/t")));
+                ElectricText::power));
         page.addLine(MultiblockPage.PARALLEL, MultiblockPage.cached(() -> {
             var recipe = recipeLogic.isIdle() ? null : recipeLogic.getLastRecipe();
             return recipe == null ? 0 : recipe.parallels;
         }, parallels -> Component.literal(FormattingUtil.formatNumbers(parallels))));
         page.addBar(LANG_ENERGY, UITheme::barEnergy, () -> new ProgressBar.Progress(energyContainer.getEnergyStored(), Math.max(1, energyContainer.getEnergyCapacity()), 0)).percent()
-                .bindDetail(MultiblockPage.cached(energyContainer::getEnergyStored, stored -> Component.literal(FormattingUtil.formatNumbers(stored) + " EU")));
+                .bindDetail(MultiblockPage.cached(energyContainer::getEnergyStored, ElectricText::energyExact));
         addScreenReadouts(page);
         page.addText(this::addScreenText, this::handleDisplayClick);
         addControls(page.getControls());

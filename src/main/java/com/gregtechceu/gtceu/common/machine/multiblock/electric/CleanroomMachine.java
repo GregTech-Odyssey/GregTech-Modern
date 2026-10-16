@@ -27,6 +27,7 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.*;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
@@ -368,8 +369,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         if (isFormed()) {
             var maxVoltage = getMaxVoltage();
             if (maxVoltage > 0) {
-                String voltageName = GTValues.VNF[GTUtil.getFloorTierByVoltage(maxVoltage)];
-                textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick", maxVoltage, voltageName));
+                textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick", ElectricText.voltage(maxVoltage)));
             }
             if (cleanroomTier > 0) {
                 textList.add(ICleanroomProvider.getCleanroomTooltip(cleanroomTier));

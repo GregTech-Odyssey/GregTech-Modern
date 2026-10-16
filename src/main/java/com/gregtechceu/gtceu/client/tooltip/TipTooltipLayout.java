@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.client.tooltip;
 import com.gregtechceu.gtceu.api.tooltip.TipContents;
 import com.gregtechceu.gtceu.api.tooltip.TipLineComponent;
 import com.gregtechceu.gtceu.api.tooltip.TipRole;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
@@ -61,6 +62,10 @@ public final class TipTooltipLayout {
                 previousIndented = role.depth() > 0;
                 previousRole = role;
             } else {
+                if (left.isPresent() && left.get() instanceof Component c) {
+                    Component resolved = Tips.resolveDynamic(c);
+                    if (resolved != c) elements.set(i, Either.left(resolved));
+                }
                 previousIndented = false;
                 previousRole = null;
             }

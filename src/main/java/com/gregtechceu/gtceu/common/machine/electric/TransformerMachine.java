@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -112,7 +113,9 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
     protected InteractionResult onScrewdriverClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!isRemote()) {
             setTransformUp(!isTransformUp());
-            playerIn.sendSystemMessage(Component.translatable(isTransformUp() ? "gtceu.machine.transformer.message_transform_up" : "gtceu.machine.transformer.message_transform_down", energyContainer.getInputVoltage(), energyContainer.getInputAmperage(), energyContainer.getOutputVoltage(), energyContainer.getOutputAmperage()));
+            playerIn.sendSystemMessage(Component.translatable(isTransformUp() ? "gtceu.machine.transformer.message_transform_up" : "gtceu.machine.transformer.message_transform_down",
+                    ElectricText.flow(energyContainer.getInputAmperage(), ElectricText.tierOf(energyContainer.getInputVoltage())),
+                    ElectricText.flow(energyContainer.getOutputAmperage(), ElectricText.tierOf(energyContainer.getOutputVoltage()))));
         }
         return InteractionResult.CONSUME;
     }
@@ -123,15 +126,9 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
         int voltage = data.getInt("baseVoltage");
         int amp = data.getInt("baseAmp");
         if (transformUp) {
-            iTooltip.add(Component.translatable("gtceu.top.transform_up",
-                    (GTValues.VNF[voltage] + " §r(" + amp * 4 + "A) -> " + GTValues.VNF[voltage + 1] + " §r(" +
-                            amp +
-                            "A)")));
+            iTooltip.add(Component.translatable("gtceu.top.transform_up", transform(ElectricText.flow(amp * 4, voltage), ElectricText.flow(amp, voltage + 1))));
         } else {
-            iTooltip.add(Component.translatable("gtceu.top.transform_down",
-                    (GTValues.VNF[voltage + 1] + " §r(" + amp + "A) -> " + GTValues.VNF[voltage] + " §r(" +
-                            amp * 4 +
-                            "A)")));
+            iTooltip.add(Component.translatable("gtceu.top.transform_down", transform(ElectricText.flow(amp, voltage + 1), ElectricText.flow(amp * 4, voltage))));
         }
 
         if (blockAccessor.getHitResult().getDirection() ==
@@ -139,13 +136,17 @@ public class TransformerMachine extends TieredEnergyMachine implements IControll
             iTooltip.add(
                     Component.translatable(
                             (transformUp ? "gtceu.top.transform_output" : "gtceu.top.transform_input"),
-                            (GTValues.VNF[voltage + 1] + " §r(" + amp + "A)")));
+                            ElectricText.flow(amp, voltage + 1)));
         } else {
             iTooltip.add(
                     Component.translatable(
                             (transformUp ? "gtceu.top.transform_input" : "gtceu.top.transform_output"),
-                            (GTValues.VNF[voltage] + " §r(" + amp * 4 + "A)")));
+                            ElectricText.flow(amp * 4, voltage)));
         }
+    }
+
+    private static Component transform(Component from, Component to) {
+        return Component.translatable("gtceu.machine.transformer.arrow", from, to);
     }
 
     @Override

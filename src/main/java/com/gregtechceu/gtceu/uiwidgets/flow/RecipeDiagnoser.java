@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -291,10 +292,10 @@ public final class RecipeDiagnoser {
         else if (power < eut) energyIssue = RecipeIssue.LOW_POWER;
         else if (stored < eut) energyIssue = RecipeIssue.LOW_BUFFER;
         else energyIssue = running ? RecipeIssue.ENERGY_ACTIVE : RecipeIssue.ENERGY_READY;
-        energyDetail = List.of(Component.translatable("gtceu.flow.detail.usage", FormattingUtil.formatNumbers(eut)).withStyle(ChatFormatting.GRAY),
+        energyDetail = List.of(Component.translatable("gtceu.flow.detail.usage", ElectricText.power(eut)).withStyle(ChatFormatting.GRAY),
                 Component.translatable("gtceu.flow.detail.tier", tierName(energyTier), GTValues.VNF[tier]).withStyle(ChatFormatting.GRAY),
-                Component.translatable("gtceu.flow.detail.power", FormattingUtil.formatNumbers(power)).withStyle(ChatFormatting.GRAY),
-                Component.translatable("gtceu.flow.detail.buffer", FormattingUtil.formatNumbers(stored), FormattingUtil.formatNumbers(capacity)).withStyle(ChatFormatting.GRAY),
+                Component.translatable("gtceu.flow.detail.power", ElectricText.power(power)).withStyle(ChatFormatting.GRAY),
+                Component.translatable("gtceu.flow.detail.buffer", ElectricText.chargeExact(stored, capacity)).withStyle(ChatFormatting.GRAY),
                 Component.translatable(energyIssue.descriptionKey()).withStyle(style(energyIssue)));
     }
 

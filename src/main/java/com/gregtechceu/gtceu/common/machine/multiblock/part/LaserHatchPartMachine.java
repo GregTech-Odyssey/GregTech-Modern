@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableLaserContainer;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 
 import net.minecraft.core.Direction;
@@ -67,8 +68,7 @@ public class LaserHatchPartMachine extends WorkableTieredIOPartMachine implement
     public List<Component> getDataInfo(PortableScannerBehavior.DisplayMode mode) {
         if (mode == PortableScannerBehavior.DisplayMode.SHOW_ALL ||
                 mode == PortableScannerBehavior.DisplayMode.SHOW_ELECTRICAL_INFO) {
-            return Collections.singletonList(Component.translatable(
-                    String.format("%d/%d EU", buffer.getEnergyStored(), buffer.getEnergyCapacity())));
+            return Collections.singletonList(ElectricText.chargeExact(buffer.getEnergyStored(), buffer.getEnergyCapacity()));
         }
         return new ArrayList<>();
     }

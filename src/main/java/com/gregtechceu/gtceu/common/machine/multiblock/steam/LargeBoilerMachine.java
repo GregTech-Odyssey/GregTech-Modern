@@ -182,13 +182,15 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
         if (machine instanceof LargeBoilerMachine largeBoilerMachine) {
             double duration = recipe.duration * 1600.0D / largeBoilerMachine.maxTemperature;
             if (duration < 1) {
+                long parallels = recipe.parallels;
                 recipe = ParallelLogic.accurateParallel(machine, unit, recipe, (long) (1 / duration));
                 if (recipe == null) return null;
+                duration = duration * recipe.parallels / parallels;
             }
             if (largeBoilerMachine.throttle < 100) {
                 duration = duration * 100 / largeBoilerMachine.throttle;
             }
-            recipe.duration = (int) duration;
+            recipe.duration = Math.max(1, (int) duration);
             return recipe;
         }
         return null;

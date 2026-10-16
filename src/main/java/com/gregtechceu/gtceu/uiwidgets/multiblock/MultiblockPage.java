@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uiwidgets.multiblock;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.Level;
@@ -227,6 +228,17 @@ public final class MultiblockPage {
     }
 
     public static Supplier<Component> fractionText(LongSupplier current, LongSupplier max, String unit) {
+        return pairText(current, max, (c, m) -> {
+            var value = FormattingUtil.formatNumbers(c) + " / " + FormattingUtil.formatNumbers(m);
+            return Component.literal(unit.isEmpty() ? value : value + " " + unit);
+        });
+    }
+
+    public static Supplier<Component> chargeText(LongSupplier current, LongSupplier max) {
+        return pairText(current, max, ElectricText::chargeExact);
+    }
+
+    public static Supplier<Component> pairText(LongSupplier current, LongSupplier max, PairFormat format) {
         return new Supplier<>() {
 
             private long lastCurrent = Long.MIN_VALUE;
@@ -239,12 +251,17 @@ public final class MultiblockPage {
                 if (c != lastCurrent || m != lastMax) {
                     lastCurrent = c;
                     lastMax = m;
-                    var value = FormattingUtil.formatNumbers(c) + " / " + FormattingUtil.formatNumbers(m);
-                    text = Component.literal(unit.isEmpty() ? value : value + " " + unit);
+                    text = format.apply(c, m);
                 }
                 return text;
             }
         };
+    }
+
+    @FunctionalInterface
+    public interface PairFormat {
+
+        Component apply(long current, long max);
     }
 
     public static Supplier<Component> cached(LongSupplier value, LongFunction<Component> format) {

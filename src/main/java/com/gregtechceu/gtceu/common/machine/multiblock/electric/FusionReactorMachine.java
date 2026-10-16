@@ -13,9 +13,9 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.block.FusionCasingBlock;
 import com.gregtechceu.gtceu.common.data.GTRecipeDataKeys;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -139,7 +139,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
         }
         var eu = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
         if (eu > fusionReactorMachine.energyContainer.getEnergyCapacity()) {
-            machine.setIdleReason(Component.translatable("gtceu.issue.start_energy_capacity", FormattingUtil.formatNumbers(eu), FormattingUtil.formatNumbers(fusionReactorMachine.energyContainer.getEnergyCapacity())));
+            machine.setIdleReason(Component.translatable("gtceu.issue.start_energy_capacity", ElectricText.energyExact(eu), ElectricText.energyExact(fusionReactorMachine.energyContainer.getEnergyCapacity())));
             return null;
         }
         long heatDiff = eu - fusionReactorMachine.heat;
@@ -157,7 +157,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     private static Component startEnergyShort(long need, long stored) {
         long percent = stored <= 0 ? 0 : stored >= need ? 100 : stored < Long.MAX_VALUE / 100 ? stored * 100 / need : stored / (need / 100);
         long shown = need / 100 * percent + need % 100 * percent / 100;
-        return Component.translatable("gtceu.issue.start_energy_short", FormattingUtil.formatNumbers(need), FormattingUtil.formatNumbers(shown));
+        return Component.translatable("gtceu.issue.start_energy_short", ElectricText.energyExact(need), ElectricText.energyExact(shown));
     }
 
     @Override

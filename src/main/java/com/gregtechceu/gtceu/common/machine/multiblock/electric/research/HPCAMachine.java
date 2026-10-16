@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
@@ -163,7 +164,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
             if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
                 getRecipeLogic().setStatus(RecipeLogic.WORKING);
             } else {
-                getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(energyToConsume)));
+                getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", ElectricText.power(energyToConsume)));
             }
             // forcibly use active coolers at full rate if temperature is half-way to damaging temperature
             double temperatureChange = hpcaHandler.calculateTemperatureChange(this, overheated || temperature >= SAFE_TEMPERATURE);
@@ -232,7 +233,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         // Provided Computation
         MultiblockDisplayText.builder(textList, isFormed()).setWorkingStatus(true, hpcaHandler.cachedCWUt > 0).setWorkingStatusKeys("gtceu.multiblock.idling", "gtceu.multiblock.idling", "gtceu.multiblock.data_bank.providing").addCustom(tl -> {
             if (isFormed()) {
-                tl.add(Component.translatable("gtceu.multiblock.hpca.energy", FormattingUtil.formatNumbers(hpcaHandler.cachedEUt), FormattingUtil.formatNumbers(hpcaHandler.maximumEUt), GTValues.VNF[GTUtil.getTierByVoltage(hpcaHandler.maximumEUt)]).withStyle(ChatFormatting.GRAY));
+                tl.add(Component.translatable("gtceu.multiblock.hpca.energy", ElectricText.power(hpcaHandler.cachedEUt), ElectricText.power(hpcaHandler.maximumEUt), ElectricText.tier(GTUtil.getTierByVoltage(hpcaHandler.maximumEUt))).withStyle(ChatFormatting.GRAY));
                 Component cwutInfo = Component.literal(hpcaHandler.cachedCWUt + " / " + hpcaHandler.maxCWUt + " CWU/t").withStyle(ChatFormatting.AQUA);
                 tl.add(Component.translatable("gtceu.multiblock.hpca.computation", cwutInfo).withStyle(ChatFormatting.GRAY));
                 Component temperatureInfo = Component.literal(FormattingUtil.formatNumbers(displayedTemperature))

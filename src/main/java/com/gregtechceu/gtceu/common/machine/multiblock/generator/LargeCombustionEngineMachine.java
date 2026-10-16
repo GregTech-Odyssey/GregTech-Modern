@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -111,7 +112,7 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
             var maxParallel = engineMachine.getOverclockVoltage() / EUt; // get maximum parallel
             var actualParallel = ParallelLogic.getMaxParallelAmount(engineMachine, unit, recipe, maxParallel);
             if (actualParallel == 0) {
-                if (maxParallel == 0) machine.setIdleReason(Component.translatable("gtceu.issue.output_power_low", FormattingUtil.formatNumbers(EUt), FormattingUtil.formatNumbers(engineMachine.getOverclockVoltage())));
+                if (maxParallel == 0) machine.setIdleReason(Component.translatable("gtceu.issue.output_power_low", ElectricText.power(EUt), ElectricText.power(engineMachine.getOverclockVoltage())));
                 return null;
             }
             double eutMultiplier = actualParallel * engineMachine.getProductionBoost();

@@ -9,13 +9,13 @@ import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMa
 import com.gregtechceu.gtceu.api.machine.trait.EnchantmentSlotHandler;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.LargeMinerLogic;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
@@ -146,11 +146,11 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
                     energyContainer.changeEnergy(-energyToDrain);
                 }
             } else {
-                if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(GTValues.VA[getEnergyTier()])));
+                if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", ElectricText.power(GTValues.VA[getEnergyTier()])));
                 return false;
             }
         } else {
-            if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", FormattingUtil.formatNumbers(GTValues.VA[getEnergyTier()])));
+            if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", ElectricText.power(GTValues.VA[getEnergyTier()])));
             return false;
         }
         // drain fluid

@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.pipenet.Node;
 import com.gregtechceu.gtceu.api.pipenet.PipeNet;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 import com.gto.fastcollection.LoopIterator;
@@ -20,10 +19,10 @@ public final class FluidPipeNet extends PipeNet<FluidPipeProperties> {
         super(world);
     }
 
-    public LoopIterator<FluidRoutePath> getNetData(long pipePos, BlockPos pos, Direction facing) {
+    public LoopIterator<FluidRoutePath> getNetData(long pipePos, BlockPos pos) {
         var data = netData.get(pipePos);
         if (data == null) {
-            var datas = FluidNetWalker.createNetData(this, pos, facing);
+            var datas = FluidNetWalker.createNetData(this, pos);
             if (datas == null) {
                 // walker failed, don't cache so it tries again on next insertion
                 return LoopIterator.empty();

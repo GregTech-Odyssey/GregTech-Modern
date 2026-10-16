@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.TipRole;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
@@ -68,11 +69,11 @@ public final class ArmorTooltips {
     }
 
     public static Component ampsPerSecond(double amps) {
-        return Component.translatable("metaarmor.gto.unit.amps_per_second", amps(amps));
+        return ElectricText.ampsPerSecond(amps);
     }
 
     public static Component ampSeconds(double amps) {
-        return Component.translatable("metaarmor.gto.unit.amp_seconds", amps(amps));
+        return ElectricText.ampSeconds(amps);
     }
 
     public static Component value(String text, ChatFormatting color) {

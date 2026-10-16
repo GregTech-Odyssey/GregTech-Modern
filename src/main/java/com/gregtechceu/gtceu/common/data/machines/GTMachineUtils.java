@@ -29,6 +29,7 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;
 import com.gregtechceu.gtceu.api.registry.registrate.MultiblockMachineBuilder;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.StatKind;
 import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
@@ -215,14 +216,9 @@ public class GTMachineUtils {
                         .tips(Tips.feature(Component.translatable("gtceu.machine.transformer.description")),
                                 Tips.control(Component.translatable("gtceu.machine.transformer.tooltip_tool_usage")),
                                 Tips.stat(Component.translatable("gtceu.machine.transformer.tooltip_transform_down",
-                                        baseAmp, FormattingUtil.formatNumbers(GTValues.V[tier + 1]),
-                                        GTValues.VNF[tier + 1],
-                                        baseAmp * 4, FormattingUtil.formatNumbers(GTValues.V[tier]),
-                                        GTValues.VNF[tier])),
+                                        ElectricText.flow(baseAmp, tier + 1), ElectricText.flow(baseAmp * 4, tier))),
                                 Tips.stat(Component.translatable("gtceu.machine.transformer.tooltip_transform_up",
-                                        baseAmp * 4, FormattingUtil.formatNumbers(GTValues.V[tier]), GTValues.VNF[tier],
-                                        baseAmp, FormattingUtil.formatNumbers(GTValues.V[tier + 1]),
-                                        GTValues.VNF[tier + 1])))
+                                        ElectricText.flow(baseAmp * 4, tier), ElectricText.flow(baseAmp, tier + 1))))
                         .register(),
                 GTValues.tiersBetween(ULV, GTCEuAPI.isHighTier() ? OpV : UV));
         // UHV not needed, as a UV transformer transforms up to UHV
@@ -270,11 +266,9 @@ public class GTMachineUtils {
                         .tips(
                                 Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_capacity",
                                         batterySlotSize)),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in_out",
-                                        FormattingUtil.formatNumbers(GTValues.V[tier]),
-                                        GTValues.VNF[tier])),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in_till", batterySlotSize)),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_out_till", batterySlotSize)))
+                                Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in_out", ElectricText.voltage(GTValues.V[tier], tier))),
+                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in_till", ElectricText.amps(batterySlotSize))),
+                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_out_till", ElectricText.amps(batterySlotSize))))
                         .register(),
                 ALL_TIERS);
     }
@@ -288,11 +282,8 @@ public class GTMachineUtils {
                         .langValue("%s %s%s".formatted(VCF[tier] + VOLTAGE_NAMES[tier] + ChatFormatting.RESET,
                                 itemSlotSize, "x Turbo Charger"))
                         .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_capacity", itemSlotSize)),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in_out",
-                                        FormattingUtil.formatNumbers(GTValues.V[tier]),
-                                        GTValues.VNF[tier])),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in_till",
-                                        itemSlotSize * ChargerMachine.AMPS_PER_ITEM)))
+                                Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in_out", ElectricText.voltage(GTValues.V[tier], tier))),
+                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in_till", ElectricText.amps(itemSlotSize * ChargerMachine.AMPS_PER_ITEM))))
                         .register(),
                 ALL_TIERS);
     }
@@ -306,9 +297,8 @@ public class GTMachineUtils {
                         .allRotation()
                         .tips(Tips.feature(Component.translatable("gtceu.machine.laser_hatch." + name + ".tooltip")),
                                 Tips.requirement(Component.translatable("gtceu.machine.laser_hatch.both.tooltip")),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_" + (io == IN ? "in" : "out"),
-                                        FormattingUtil.formatNumbers(V[tier]), VNF[tier])),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in", amperage)),
+                                Tips.stat(io == IN ? StatKind.VOLTAGE_IN : StatKind.VOLTAGE_OUT, StatKind.voltage(V[tier], tier)),
+                                Tips.stat(io == IN ? StatKind.AMPERAGE_IN : StatKind.AMPERAGE_OUT, ElectricText.ampsValue(amperage)),
                                 Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, amperage), tier),
                                 Tips.stat(Component.translatable("gtceu.part_sharing.disabled")))
                         .abilities(ability)
@@ -570,14 +560,12 @@ public class GTMachineUtils {
                         () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
                 .workableCasingRenderer(casingTexture, overlayModel)
                 .tips(
-                        Tips.stat(Component.translatable("gtceu.universal.tooltip.base_production_eut", V[tier])),
+                        Tips.stat(Component.translatable("gtceu.universal.tooltip.base_production_eut", ElectricText.power(V[tier]))),
                         Tips.requirement(Component.translatable("gtceu.universal.tooltip.uses_per_hour_lubricant",
                                 FluidType.BUCKET_VOLUME)),
                         tier > EV ?
-                                Tips.bonus(Component.translatable("gtceu.machine.large_combustion_engine.tooltip.boost_extreme",
-                                        V[tier] * 4)) :
-                                Tips.bonus(Component.translatable("gtceu.machine.large_combustion_engine.tooltip.boost_regular",
-                                        V[tier] * 3)))
+                                Tips.bonus(Component.translatable("gtceu.machine.large_combustion_engine.tooltip.boost_extreme", ElectricText.power(V[tier] * 4))) :
+                                Tips.bonus(Component.translatable("gtceu.machine.large_combustion_engine.tooltip.boost_regular", ElectricText.power(V[tier] * 3))))
                 .register();
     }
 
@@ -636,7 +624,7 @@ public class GTMachineUtils {
                         () -> GTMaterialItems.MATERIAL_ITEMS.get(TagPrefix.dustTiny, GTMaterials.Ash).get())
                 .workableCasingRenderer(casingTexture, overlayModel)
                 .tips(
-                        Tips.stat(Component.translatable("gtceu.universal.tooltip.base_production_eut", V[tier] * 2)),
+                        Tips.stat(Component.translatable("gtceu.universal.tooltip.base_production_eut", ElectricText.power(V[tier] * 2))),
                         Tips.bonus(Component.translatable("gtceu.multiblock.turbine.efficiency_tooltip", VNF[tier])))
                 .register();
     }

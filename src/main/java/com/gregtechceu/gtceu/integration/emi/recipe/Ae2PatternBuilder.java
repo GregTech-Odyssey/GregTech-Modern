@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.integration.emi.recipe;
 
+import com.gregtechceu.gtceu.api.item.LampBlockItem;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderModel;
 
@@ -43,7 +44,7 @@ public final class Ae2PatternBuilder {
             if (stack.getItem() instanceof BucketItem bucket && bucket.getFluid() != Fluids.EMPTY) {
                 inputs.add(List.of(new GenericStack(AEFluidKey.of(bucket.getFluid()), input.count() * BUCKET)));
             } else {
-                var key = AEItemKey.of(stack);
+                var key = AEItemKey.of(stack.getItem() instanceof LampBlockItem lamp && !stack.hasTag() ? lamp.getDefaultInstance() : stack);
                 if (key != null) inputs.add(List.of(new GenericStack(key, input.count())));
             }
         }

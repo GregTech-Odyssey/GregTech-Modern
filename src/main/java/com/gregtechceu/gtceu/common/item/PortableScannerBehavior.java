@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.item;
 
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
@@ -14,6 +13,7 @@ import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
@@ -21,7 +21,6 @@ import com.gregtechceu.gtceu.common.data.GTSoundEntries;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.prospecting.SPacketProspectBedrockFluid;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
-import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -205,13 +204,13 @@ public class PortableScannerBehavior implements IInteractionItem, IAddInformatio
                     if (energyContainer != null) {
                         if (energyContainer.getInputVoltage() > 0) {
                             list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
-                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_in", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getInputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getInputAmperage())).withStyle(ChatFormatting.RED))));
+                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_in", ElectricText.voltage(energyContainer.getInputVoltage()), ElectricText.amps(energyContainer.getInputAmperage()))));
                         }
                         if (energyContainer.getOutputVoltage() > 0) {
                             list.add(Tips.plain(Component.translatable("behavior.portable_scanner.divider")));
-                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_out", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputVoltage())).withStyle(ChatFormatting.RED), Component.translatable(GTValues.VN[GTUtil.getTierByVoltage(energyContainer.getOutputVoltage())]).withStyle(ChatFormatting.RED), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getOutputAmperage())).withStyle(ChatFormatting.RED))));
+                            list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_out", ElectricText.voltage(energyContainer.getOutputVoltage()), ElectricText.amps(energyContainer.getOutputAmperage()))));
                         }
-                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_storage", Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyStored())).withStyle(ChatFormatting.GREEN), Component.translatable(FormattingUtil.formatNumbers(energyContainer.getEnergyCapacity())).withStyle(ChatFormatting.YELLOW))));
+                        list.add(Tips.stat(Component.translatable("behavior.portable_scanner.energy_container_storage", ElectricText.chargeExact(energyContainer.getEnergyStored(), energyContainer.getEnergyCapacity()))));
                     }
                 }
                 // Recipe related information

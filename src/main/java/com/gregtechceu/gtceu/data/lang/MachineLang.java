@@ -308,19 +308,14 @@ public class MachineLang {
         provider.add("gtceu.creative_tooltip.3", "§7 to use this");
         provider.add("gtceu.machine.hull.tooltip",
                 "§7You just need §5I§dm§4a§cg§ei§an§ba§3t§7i§1o§5n§7 to use this");
-        provider.add("gtceu.battery_buffer.average_input", "Average input: %s EU/t");
-        provider.add("gtceu.battery_buffer.average_output", "Average output: %s EU/t");
         provider.add("gtceu.machine.transformer.description", "§7Transforms Energy between voltage tiers");
         provider.add("gtceu.machine.transformer.tooltip_tool_usage",
                 "Starts as §fTransform Down§7, use Screwdriver to change");
-        provider.add("gtceu.machine.transformer.tooltip_transform_down",
-                "§aTransform Down: §f%dA %s EU (%s§f) -> %dA %s EU (%s§f)");
-        provider.add("gtceu.machine.transformer.message_transform_down",
-                "Transforming Down, In: %s EU %dA, Out: %s EU %dA");
-        provider.add("gtceu.machine.transformer.tooltip_transform_up",
-                "§cTransform Up: §f%dA %s EU (%s§f) -> %dA %s EU (%s§f)");
-        provider.add("gtceu.machine.transformer.message_transform_up",
-                "Transforming Up, In: %s EU %dA, Out: %s EU %dA");
+        provider.add("gtceu.machine.transformer.tooltip_transform_down", "§aTransform Down: §f%s -> %s");
+        provider.add("gtceu.machine.transformer.message_transform_down", "Transforming Down, In: %s, Out: %s");
+        provider.add("gtceu.machine.transformer.tooltip_transform_up", "§cTransform Up: §f%s -> %s");
+        provider.add("gtceu.machine.transformer.arrow", "%s -> %s");
+        provider.add("gtceu.machine.transformer.message_transform_up", "Transforming Up, In: %s, Out: %s");
 
         provider.add("gtceu.machine.diode.message", "Max Amperage throughput: %s");
         provider.add("gtceu.machine.diode.tooltip_tool_usage",
@@ -436,8 +431,8 @@ public class MachineLang {
         provider.add("gtceu.machine.hpca.advanced_computation_component.damaged.tooltip",
                 "It only cost an arm and a leg");
 
-        provider.add("gtceu.machine.hpca.component_general.upkeep_eut", "§eUpkeep Energy: §f%d EU/t");
-        provider.add("gtceu.machine.hpca.component_general.max_eut", "§6Max Energy: §f%d EU/t");
+        provider.add("gtceu.machine.hpca.component_general.upkeep_eut", "§eUpkeep Energy: §f%s");
+        provider.add("gtceu.machine.hpca.component_general.max_eut", "§6Max Energy: §f%s");
         provider.add("gtceu.machine.hpca.component_type.cooler_passive", "§bCooler Type: §fPassive");
         provider.add("gtceu.machine.hpca.component_type.cooler_active", "§bCooler Type: §fActive");
         provider.add("gtceu.machine.hpca.component_type.cooler_cooling", "§aProvides: §f%d Cooling");
@@ -459,10 +454,8 @@ public class MachineLang {
         provider.add("gtceu.machine.canner.jei_description",
                 "You can fill and empty any fluid containers with the Fluid Canner (e.g. Buckets or Fluid Cells)");
 
-        provider.add("gtceu.machine.large_combustion_engine.tooltip.boost_regular",
-                "Supply §f20 mB/s§7 of Oxygen to produce up to §f%s EU/t§7 at §f2x§7 fuel consumption.");
-        provider.add("gtceu.machine.large_combustion_engine.tooltip.boost_extreme",
-                "Supply §f80 mB/s§7 of Liquid Oxygen to produce up to §f%s EU/t§7 at §f2x§7 fuel consumption.");
+        provider.add("gtceu.machine.large_combustion_engine.tooltip.boost_regular", "Supply §f20 mB/s§7 of Oxygen to produce up to §f%s§7 at §f2x§7 fuel consumption.");
+        provider.add("gtceu.machine.large_combustion_engine.tooltip.boost_extreme", "Supply §f80 mB/s§7 of Liquid Oxygen to produce up to §f%s§7 at §f2x§7 fuel consumption.");
 
         provider.add("gtceu.machine.fusion_reactor.capacity", "§7Maximum Energy Storage: §e%sM EU");
         provider.add("gtceu.machine.fusion_reactor.overclocking",
@@ -657,8 +650,8 @@ public class MachineLang {
                 "Your Personal NAS",
                 "Bulk Data Storage. Transfer with Optical Cables.",
                 "Data Banks can be chained together.",
-                "Uses §f%s EU/t§7 per Data/Optical Hatch normally.",
-                "Uses §f%s EU/t§7 per Data/Optical Hatch when chained.");
+                "Uses §f%s§7 per Data/Optical Hatch normally.",
+                "Uses §f%s§7 per Data/Optical Hatch when chained.");
         provider.add("gtceu.multiblock.data_bank.description",
                 "The Data Bank is a multiblock structure used for sharing Assembly Line Research Data between multiple Assembly Lines. Additionally, it enables Assembly Lines to read more complex research data on Data Modules.");
 
@@ -694,7 +687,7 @@ public class MachineLang {
                 "Ethernet Hub",
                 "Used to route and distribute §fComputation§7.",
                 "Can combine any number of Computation §fReceivers§7 into any number of Computation §fTransmitters§7.",
-                "Uses §f%s EU/t§7 per Computation Data Hatch.");
+                "Uses §f%s§7 per Computation Data Hatch.");
         provider.add("gtceu.multiblock.network_switch.description",
                 "The Network Switch is a multiblock structure used for distributing Computation from many sources to many destinations. It can accept any number of Computation Data Reception or Transmission Hatches. It is necessary for Research Data which requires much higher Computation, as the Research Station can only accept one Computation Data Reception Hatch. HPCAs must have a Bridge Component for the Network Switch to be able to access their Computation.");
 
@@ -875,8 +868,8 @@ public class MachineLang {
         provider.add("gtceu.multiblock.turbine.rotor_speed", "Rotor Speed: %s/%s RPM");
         provider.add("gtceu.multiblock.turbine.rotor_durability", "Rotor Durability: %s%%");
         provider.add("gtceu.multiblock.turbine.efficiency", "Turbine Efficiency: %s%%");
-        provider.add("gtceu.multiblock.turbine.energy_per_tick", "Energy Output: %s/%s EU/t");
-        provider.add("gtceu.multiblock.turbine.energy_per_tick_maxed", "Energy Output: %s EU/t");
+        provider.add("gtceu.multiblock.turbine.energy_per_tick", "Energy Output: %s / %s");
+        provider.add("gtceu.multiblock.turbine.energy_per_tick_maxed", "Energy Output: %s");
         provider.add("gtceu.multiblock.turbine.obstructed", "Turbine Face Obstructed");
         provider.add("gtceu.multiblock.turbine.efficiency_tooltip",
                 "Each Rotor Holder above %s§7 adds §f10%% efficiency and multiplies EU/t by 2§7.");
@@ -914,9 +907,9 @@ public class MachineLang {
         provider.add("gtceu.multiblock.ore_rig.ore_amount", "Drilling Rate: %s");
         provider.add("gtceu.multiblock.pyrolyse_oven.speed", "Processing Speed: %s%%");
         provider.add("gtceu.multiblock.cracking_unit.energy", "Energy Usage: %s%%");
-        provider.add("gtceu.multiblock.power_substation.stored", "§7Stored: %s §7EU");
-        provider.add("gtceu.multiblock.power_substation.capacity", "§7Capacity: %s §7EU");
-        provider.add("gtceu.multiblock.power_substation.passive_drain", "§7Passive Drain: %s §7EU/t");
+        provider.add("gtceu.multiblock.power_substation.stored", "§7Stored: %s");
+        provider.add("gtceu.multiblock.power_substation.capacity", "§7Capacity: %s");
+        provider.add("gtceu.multiblock.power_substation.passive_drain", "§7Passive Drain: %s");
         provider.add("gtceu.multiblock.power_substation.average_in", "§7Avg. Input: %s §7EU/t");
         provider.add("gtceu.multiblock.power_substation.average_in_hover",
                 "The average inserted EU into the Power Substation's internal energy bank");
@@ -933,14 +926,14 @@ public class MachineLang {
         provider.add("gtceu.multiblock.power_substation.time_forever", "Forever");
         provider.add("gtceu.multiblock.power_substation.under_one_hour_left",
                 "Less than 1 hour until fully drained!");
-        provider.add("gtceu.multiblock.active_transformer.average_in", "§bAvg. Input: §f%s EU/t");
-        provider.add("gtceu.multiblock.active_transformer.average_out", "§bAvg. Output: §f%s EU/t");
-        provider.add("gtceu.multiblock.active_transformer.max_input", "§aMax Input: §f%s EU/t");
-        provider.add("gtceu.multiblock.active_transformer.max_output", "§cMax Output: §f%s EU/t");
+        provider.add("gtceu.multiblock.active_transformer.average_in", "§bAvg. Input: §f%s");
+        provider.add("gtceu.multiblock.active_transformer.average_out", "§bAvg. Output: §f%s");
+        provider.add("gtceu.multiblock.active_transformer.max_input", "§aMax Input: §f%s");
+        provider.add("gtceu.multiblock.active_transformer.max_output", "§cMax Output: §f%s");
         provider.add("gtceu.multiblock.active_transformer.danger_enabled", "§c§bDANGER: Explosive");
         provider.add("gtceu.multiblock.data_bank.providing", "Providing data.");
         provider.add("gtceu.multiblock.hpca.computation", "Providing: %s");
-        provider.add("gtceu.multiblock.hpca.energy", "Using: %s / %s EU/t (%s)");
+        provider.add("gtceu.multiblock.hpca.energy", "Using: %s / %s (%s)");
         provider.add("gtceu.multiblock.hpca.temperature", "Temperature: %s");
         provider.add("gtceu.multiblock.hpca.hover_for_info", "Hover for details");
         provider.add("gtceu.multiblock.hpca.error_damaged", "Damaged component in structure!");

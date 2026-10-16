@@ -42,17 +42,12 @@ public final class EnergyNetHandler implements IEnergyContainer {
         long energyUsed = 0;
         var pos = cable.getPipePos();
         for (var path : net.getNetData(cable.getPipeLongPos(), pos)) {
-            long add = energyToAdd - energyUsed;
-            if (add <= 0) break;
-            long loss = path.getMaxLoss();
-            long energy = add - loss;
-            if (energy <= 0) {
-                // Will lose all the energy with this path, so don't use it
-                continue;
-            }
+            long available = energyToAdd - energyUsed;
+            if (available <= 0) break;
+            long perAmp = CableTransfer.energyPerAmp(voltage, path);
+            if (perAmp <= 0) continue;
 
             if (side == path.getTargetFacing() && pos.equals(path.getTargetPipePos())) {
-                // Do not insert into source handler
                 continue;
             }
 
@@ -61,15 +56,15 @@ public final class EnergyNetHandler implements IEnergyContainer {
 
             var facing = path.getTargetFacing().getOpposite();
             if (!dest.inputsEnergy(facing)) continue;
+            long offer = CableTransfer.offer(available, voltage, perAmp);
+            if (offer <= 0) continue;
             transfer = true;
-            long accept = dest.acceptEnergyFromNetwork(o, facing, voltage - loss, energy);
+            long accept = dest.acceptEnergyFromNetwork(o, facing, CableTransfer.pathVoltage(voltage, path), offer);
             transfer = false;
-            if (accept == 0) continue;
-            energyUsed += accept + loss;
-            for (var c : path.getPath()) {
-                var v = Math.min(voltage, c.getMaxVoltage());
-                c.incrementAmperage(v, dest == o ? 1000000 : 100 * accept / v);
-            }
+            if (accept <= 0) continue;
+            long paid = Math.min(available, CableTransfer.cost(accept, voltage, perAmp));
+            energyUsed += paid;
+            CableTransfer.load(path.getPath(), voltage, paid, dest == o);
         }
         return energyUsed;
     }

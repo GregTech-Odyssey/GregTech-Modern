@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.registrate.MachineBuilder;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.renderer.machine.HPCAPartRenderer;
 import com.gregtechceu.gtceu.client.renderer.machine.OverlayTieredActiveMachineRenderer;
@@ -31,7 +32,6 @@ import com.gregtechceu.gtceu.common.machine.multiblock.part.hpca.HPCABridgePartM
 import com.gregtechceu.gtceu.common.machine.multiblock.part.hpca.HPCAComputationPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.hpca.HPCACoolerPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.hpca.HPCAEmptyPartMachine;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -111,10 +111,8 @@ public class GTResearchMachines {
             .tips(Tips.feature(Component.translatable("gtceu.machine.data_bank.tooltip.0")),
                     Tips.feature(Component.translatable("gtceu.machine.data_bank.tooltip.1")),
                     Tips.supported(Component.translatable("gtceu.machine.data_bank.tooltip.2")),
-                    Tips.requirement(Component.translatable("gtceu.machine.data_bank.tooltip.3",
-                            FormattingUtil.formatNumbers(DataBankMachine.EUT_PER_HATCH))),
-                    Tips.requirement(Component.translatable("gtceu.machine.data_bank.tooltip.4",
-                            FormattingUtil.formatNumbers(DataBankMachine.EUT_PER_HATCH_CHAINED))))
+                    Tips.requirement(Component.translatable("gtceu.machine.data_bank.tooltip.3", ElectricText.power(DataBankMachine.EUT_PER_HATCH))),
+                    Tips.requirement(Component.translatable("gtceu.machine.data_bank.tooltip.4", ElectricText.power(DataBankMachine.EUT_PER_HATCH_CHAINED))))
             .structure(definition -> {
                 var symbols = Symbols.create()
                         .where('S', controller(definition))
@@ -148,8 +146,7 @@ public class GTResearchMachines {
             .tips(Tips.feature(Component.translatable("gtceu.machine.network_switch.tooltip.0")),
                     Tips.feature(Component.translatable("gtceu.machine.network_switch.tooltip.1")),
                     Tips.supported(Component.translatable("gtceu.machine.network_switch.tooltip.2")),
-                    Tips.requirement(Component.translatable("gtceu.machine.network_switch.tooltip.3",
-                            FormattingUtil.formatNumbers(NetworkSwitchMachine.EUT_PER_HATCH))))
+                    Tips.requirement(Component.translatable("gtceu.machine.network_switch.tooltip.3", ElectricText.power(NetworkSwitchMachine.EUT_PER_HATCH))))
             .structure(definition -> {
                 var symbols = Symbols.create()
                         .where('S', controller(definition))
@@ -295,8 +292,8 @@ public class GTResearchMachines {
             "hpca_computation_component", "HPCA Computation Component",
             holder -> new HPCAComputationPartMachine(holder, false), "computation", false)
             .tips(
-                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.upkeep_eut", GTValues.VA[GTValues.EV])),
-                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", GTValues.VA[GTValues.LuV])),
+                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.upkeep_eut", ElectricText.power(GTValues.VA[GTValues.EV]))),
+                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", ElectricText.power(GTValues.VA[GTValues.LuV]))),
                     Tips.stat(Component.translatable("gtceu.machine.hpca.component_type.computation_cwut", 4)),
                     Tips.stat(Component.translatable("gtceu.machine.hpca.component_type.computation_cooling", 2)),
                     Tips.stat(Component.translatable("gtceu.part_sharing.disabled")))
@@ -306,8 +303,8 @@ public class GTResearchMachines {
             "hpca_advanced_computation_component", "HPCA Advanced Computation Component",
             holder -> new HPCAComputationPartMachine(holder, true), "advanced_computation", true)
             .tips(
-                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.upkeep_eut", GTValues.VA[GTValues.IV])),
-                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", GTValues.VA[GTValues.ZPM])),
+                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.upkeep_eut", ElectricText.power(GTValues.VA[GTValues.IV]))),
+                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", ElectricText.power(GTValues.VA[GTValues.ZPM]))),
                     Tips.stat(Component.translatable("gtceu.machine.hpca.component_type.computation_cwut", 16)),
                     Tips.stat(Component.translatable("gtceu.machine.hpca.component_type.computation_cooling", 4)),
                     Tips.stat(Component.translatable("gtceu.part_sharing.disabled")))
@@ -323,7 +320,7 @@ public class GTResearchMachines {
     public static final MachineDefinition HPCA_ACTIVE_COOLER_COMPONENT = registerHPCAPart(
             "hpca_active_cooler_component", "HPCA Active Cooling Component",
             holder -> new HPCACoolerPartMachine(holder, true), "active_cooler", true)
-            .tips(Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", GTValues.VA[GTValues.IV])),
+            .tips(Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", ElectricText.power(GTValues.VA[GTValues.IV]))),
                     Tips.stat(Component.translatable("gtceu.machine.hpca.component_type.cooler_active")),
                     Tips.stat(Component.translatable("gtceu.machine.hpca.component_type.cooler_active_coolant",
                             8, GTMaterials.PCBCoolant.getLocalizedName())),
@@ -334,7 +331,7 @@ public class GTResearchMachines {
             "hpca_bridge_component", "HPCA Bridge Component",
             HPCABridgePartMachine::new, "bridge", false)
             .tips(Tips.supported(Component.translatable("gtceu.machine.hpca.component_type.bridge")),
-                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", GTValues.VA[GTValues.IV])),
+                    Tips.stat(Component.translatable("gtceu.machine.hpca.component_general.max_eut", ElectricText.power(GTValues.VA[GTValues.IV]))),
                     Tips.stat(Component.translatable("gtceu.part_sharing.disabled")))
             .register();
 

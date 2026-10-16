@@ -13,12 +13,12 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerInfoList;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.*;
@@ -185,19 +185,13 @@ public class ActiveTransformerMachine extends WorkableElectricMultiblockMachine
             } else if (isActive()) {
                 textList.add(Component.translatable("gtceu.multiblock.running"));
                 textList.add(Component
-                        .translatable("gtceu.multiblock.active_transformer.max_input",
-                                FormattingUtil.formatNumbers(
-                                        Math.abs(powerInput.getInputVoltage() * powerInput.getInputAmperage()))));
+                        .translatable("gtceu.multiblock.active_transformer.max_input", ElectricText.power(Math.abs(powerInput.getInputVoltage() * powerInput.getInputAmperage()))));
                 textList.add(Component
-                        .translatable("gtceu.multiblock.active_transformer.max_output",
-                                FormattingUtil.formatNumbers(
-                                        Math.abs(powerOutput.getOutputVoltage() * powerOutput.getOutputAmperage()))));
+                        .translatable("gtceu.multiblock.active_transformer.max_output", ElectricText.power(Math.abs(powerOutput.getOutputVoltage() * powerOutput.getOutputAmperage()))));
                 textList.add(Component
-                        .translatable("gtceu.multiblock.active_transformer.average_in",
-                                FormattingUtil.formatNumbers(Math.abs(powerInput.getInputPerSec() / 20))));
+                        .translatable("gtceu.multiblock.active_transformer.average_in", ElectricText.power(Math.abs(powerInput.getInputPerSec() / 20))));
                 textList.add(Component
-                        .translatable("gtceu.multiblock.active_transformer.average_out",
-                                FormattingUtil.formatNumbers(Math.abs(powerOutput.getOutputPerSec() / 20))));
+                        .translatable("gtceu.multiblock.active_transformer.average_out", ElectricText.power(Math.abs(powerOutput.getOutputPerSec() / 20))));
                 if (!ConfigHolder.INSTANCE.machines.harmlessActiveTransformers) {
                     textList.add(Component
                             .translatable("gtceu.multiblock.active_transformer.danger_enabled"));

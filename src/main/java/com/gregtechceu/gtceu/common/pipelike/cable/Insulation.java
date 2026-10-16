@@ -19,35 +19,41 @@ import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 
 public enum Insulation implements IMaterialPipeType<WireProperties> {
 
-    WIRE_SINGLE("single_wire", 0.1875F, 1, 2, wireGtSingle, -1, false),
-    WIRE_DOUBLE("double_wire", 0.3125F, 2, 2, wireGtDouble, -1, false),
-    WIRE_QUADRUPLE("quadruple_wire", 0.4375F, 4, 3, wireGtQuadruple, -1, false),
-    WIRE_OCTAL("octal_wire", 0.5625F, 8, 3, wireGtOctal, -1, false),
-    WIRE_HEX("hex_wire", 0.8125F, 16, 3, wireGtHex, -1, false),
-    CABLE_SINGLE("single_cable", 0.25F, 1, 1, cableGtSingle, 0, true),
-    CABLE_DOUBLE("double_cable", 0.375F, 2, 1, cableGtDouble, 1, true),
-    CABLE_QUADRUPLE("quadruple_cable", 0.5F, 4, 1, cableGtQuadruple, 2, true),
-    CABLE_OCTAL("octal_cable", 0.625F, 8, 1, cableGtOctal, 3, true),
-    CABLE_HEX("hex_cable", 0.875F, 16, 1, cableGtHex, 4, true);
+    WIRE_SINGLE("single_wire", 0.1875F, wireGtSingle, 1, 2, 1, -1, null),
+    WIRE_DOUBLE("double_wire", 0.3125F, wireGtDouble, 2, 2, 1, -1, null),
+    WIRE_QUADRUPLE("quadruple_wire", 0.4375F, wireGtQuadruple, 4, 3, 2, -1, null),
+    WIRE_OCTAL("octal_wire", 0.5625F, wireGtOctal, 8, 3, 2, -1, null),
+    WIRE_HEX("hex_wire", 0.8125F, wireGtHex, 16, 3, 2, -1, null),
+    CABLE_SINGLE("single_cable", 0.25F, cableGtSingle, 1, 1, 0, 0, WIRE_SINGLE),
+    CABLE_DOUBLE("double_cable", 0.375F, cableGtDouble, 2, 1, 0, 1, WIRE_DOUBLE),
+    CABLE_QUADRUPLE("quadruple_cable", 0.5F, cableGtQuadruple, 4, 1, 0, 2, WIRE_QUADRUPLE),
+    CABLE_OCTAL("octal_cable", 0.625F, cableGtOctal, 8, 1, 0, 3, WIRE_OCTAL),
+    CABLE_HEX("hex_cable", 0.875F, cableGtHex, 16, 1, 0, 4, WIRE_HEX);
 
     public static final ResourceLocation TYPE_ID = GTCEu.id("insulation");
+
     public final String name;
     public final float thickness;
     public final int amperage;
     public final int lossMultiplier;
+    public final int losslessMaterialLoss;
     @Getter
     public final TagPrefix tagPrefix;
     public final int insulationLevel;
     public final boolean isCable;
+    @Nullable
+    public final Insulation bare;
 
-    Insulation(String name, float thickness, int amperage, int lossMultiplier, TagPrefix TagPrefix, int insulated, boolean isCable) {
+    Insulation(String name, float thickness, TagPrefix tagPrefix, int amperage, int lossMultiplier, int losslessMaterialLoss, int insulationLevel, @Nullable Insulation bare) {
         this.name = name;
         this.thickness = thickness;
+        this.tagPrefix = tagPrefix;
         this.amperage = amperage;
-        this.tagPrefix = TagPrefix;
-        this.insulationLevel = insulated;
         this.lossMultiplier = lossMultiplier;
-        this.isCable = isCable;
+        this.losslessMaterialLoss = losslessMaterialLoss;
+        this.insulationLevel = insulationLevel;
+        this.bare = bare;
+        this.isCable = bare != null;
     }
 
     @Override
@@ -57,14 +63,13 @@ public enum Insulation implements IMaterialPipeType<WireProperties> {
 
     @Override
     public WireProperties modifyProperties(WireProperties baseProperties) {
-        int lossPerBlock;
-        if (!baseProperties.isSuperconductor() && baseProperties.getLossPerBlock() == 0) lossPerBlock = (int) (0.75 * lossMultiplier);
-        else lossPerBlock = baseProperties.getLossPerBlock() * lossMultiplier;
+        int base = baseProperties.getLossPerBlock();
+        int lossPerBlock = !baseProperties.isSuperconductor() && base == 0 ? losslessMaterialLoss : base * lossMultiplier;
         return new WireProperties(baseProperties.getVoltage(), baseProperties.getAmperage() * amperage, lossPerBlock, baseProperties.isSuperconductor());
     }
 
     public boolean isCable() {
-        return ordinal() > 4;
+        return isCable;
     }
 
     @Override

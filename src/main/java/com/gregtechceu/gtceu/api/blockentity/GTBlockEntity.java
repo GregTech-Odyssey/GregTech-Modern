@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
@@ -11,6 +12,7 @@ import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -24,11 +26,12 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.network.DataSyncNetwork;
-import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.function.BooleanSupplier;
 
 public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickSubscription {
@@ -263,10 +266,27 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
             loadCustomPersistedData(tag);
             if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
                 var ops = JavaValueOps.create(tag.getInt("field_data_dataVersion"));
-                getFieldDataManager().readFromValue(ops.fromBytes(byteArrayTag.getAsByteArray()), ops);
+                readSavedFields(ops.fromBytes(byteArrayTag.getAsByteArray()), ops);
             } else {
-                getFieldDataManager().readFromValue(
-                        ValueCodecs.COMPOUND_TAG.encode(JavaValueOps.INSTANCE, tag), JavaValueOps.INSTANCE);
+                readSavedFields(GTDataFixer.legacyTagValue(JavaValueOps.INSTANCE, tag), JavaValueOps.INSTANCE);
+            }
+        }
+    }
+
+    private void readSavedFields(Object data, ValueOps ops) {
+        var manager = getFieldDataManager();
+        try {
+            manager.readFromValue(data, ops);
+        } catch (RuntimeException e) {
+            GTCEu.LOGGER.error("Failed to read saved data of {} at {}, retrying field by field", BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType()), getBlockPos(), e);
+            for (var entry : ops.getStringMap(data).entrySet()) {
+                var single = new HashMap<String, Object>(1);
+                single.put(entry.getKey(), entry.getValue());
+                try {
+                    manager.readFromValue(ops.createStringMap(single), ops);
+                } catch (RuntimeException fieldError) {
+                    GTCEu.LOGGER.error("Dropped saved field {} of {} at {}", entry.getKey(), BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(getType()), getBlockPos(), fieldError);
+                }
             }
         }
     }

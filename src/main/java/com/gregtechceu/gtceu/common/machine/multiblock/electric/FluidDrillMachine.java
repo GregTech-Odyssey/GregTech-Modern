@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -64,9 +65,7 @@ public class FluidDrillMachine extends WorkableElectricMultiblockMachine {
     public void addDisplayText(List<Component> textList) {
         if (isFormed()) {
             int energyContainer = getEnergyTier();
-            long maxVoltage = GTValues.V[energyContainer];
-            String voltageName = GTValues.VNF[energyContainer];
-            textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick", maxVoltage, voltageName));
+            textList.add(Component.translatable("gtceu.multiblock.max_energy_per_tick", ElectricText.voltage(GTValues.V[energyContainer], energyContainer)));
             if (getRecipeLogic().getVeinFluid() != null) {
                 // Fluid name
                 Fluid drilledFluid = getRecipeLogic().getVeinFluid();

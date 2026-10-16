@@ -18,6 +18,7 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
@@ -179,11 +180,11 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
             BigInteger energyCapacity = energyBank.getCapacity();
             var STYLE_GOLD = Style.EMPTY.withColor(ChatFormatting.GOLD);
             var STYLE_DARK_RED = Style.EMPTY.withColor(ChatFormatting.DARK_RED);
-            var storedComponent = Component.literal(FormattingUtil.formatNumbers(energyStored));
+            var storedComponent = ElectricText.energyExact(energyStored);
             textList.add(Component.translatable("gtceu.multiblock.power_substation.stored", storedComponent.setStyle(STYLE_GOLD)));
-            var capacityComponent = Component.literal(FormattingUtil.formatNumbers(energyCapacity));
+            var capacityComponent = ElectricText.energyExact(energyCapacity);
             textList.add(Component.translatable("gtceu.multiblock.power_substation.capacity", capacityComponent.setStyle(STYLE_GOLD)));
-            var passiveDrainComponent = Component.literal(FormattingUtil.formatNumbers(getPassiveDrain()));
+            var passiveDrainComponent = ElectricText.power(getPassiveDrain());
             textList.add(Component.translatable("gtceu.multiblock.power_substation.passive_drain", passiveDrainComponent.setStyle(STYLE_DARK_RED)));
         }
         getDefinition().getAdditionalDisplay().accept(this, textList);

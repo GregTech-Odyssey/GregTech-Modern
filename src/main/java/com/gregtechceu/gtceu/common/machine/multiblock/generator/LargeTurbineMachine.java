@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.modifier.ParallelLogic;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -98,7 +99,7 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
         if (EUt <= 0 || turbineMaxVoltage <= EUt || holderEfficiency <= 0) {
             if (EUt > 0) {
                 if (holderEfficiency <= 0) machine.setIdleReason(Component.translatable("gtceu.issue.rotor_missing"));
-                else machine.setIdleReason(Component.translatable("gtceu.issue.output_power_low", FormattingUtil.formatNumbers(EUt), FormattingUtil.formatNumbers(turbineMaxVoltage)));
+                else machine.setIdleReason(Component.translatable("gtceu.issue.output_power_low", ElectricText.power(EUt), ElectricText.power(turbineMaxVoltage)));
             }
             return null;
         }
@@ -137,7 +138,7 @@ public class LargeTurbineMachine extends WorkableElectricMultiblockMachine {
                 long currentProduction = isActive() && recipeLogic.getLastRecipe() != null ? recipeLogic.getLastRecipe().getOutputEUt() : 0;
                 String voltageName = GTValues.VNF[GTUtil.getTierByVoltage(currentProduction)];
                 if (isActive()) {
-                    textList.add(3, Component.translatable("gtceu.multiblock.turbine.energy_per_tick", FormattingUtil.formatNumbers(currentProduction), FormattingUtil.formatNumbers(maxProduction)));
+                    textList.add(3, Component.translatable("gtceu.multiblock.turbine.energy_per_tick", ElectricText.power(currentProduction), ElectricText.power(maxProduction)));
                 }
                 int rotorDurability = rotorHolder.getRotorDurabilityPercent();
                 if (rotorDurability > MIN_DURABILITY_TO_WARN) {

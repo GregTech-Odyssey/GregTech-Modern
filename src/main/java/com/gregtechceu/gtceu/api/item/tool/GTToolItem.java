@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.item.capability.ElectricItem;
 import com.gregtechceu.gtceu.api.item.component.ElectricStats;
 import com.gregtechceu.gtceu.api.item.component.forge.IComponentCapability;
 import com.gregtechceu.gtceu.api.item.tool.behavior.IToolBehavior;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.TipRole;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.renderer.item.ToolItemRenderer;
@@ -445,8 +446,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
         if (electricItem != null) {
             ElectricStats.addCurrentChargeTooltip(tooltip, electricItem.getCharge(), electricItem.getMaxCharge(), getElectricTier());
             if (details) {
-                tooltip.add(Tips.detail(Component.translatable("item.gtceu.tool.tooltip.energy_per_use",
-                        FormattingUtil.formatNumbers(getEnergyPerUse(stack)))));
+                tooltip.add(Tips.detail(Component.translatable("item.gtceu.tool.tooltip.energy_per_use", ElectricText.energyExact(getEnergyPerUse(stack)))));
             }
         }
         int maxDurability = getMaxDamage(stack);

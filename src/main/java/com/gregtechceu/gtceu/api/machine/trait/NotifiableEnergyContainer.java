@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
+import com.gregtechceu.gtceu.api.capability.EnergyIntake;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
@@ -62,6 +63,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     protected TickableSubscription updateSubs;
     protected boolean checkOutput;
     protected boolean notify;
+    protected final EnergyIntake intake = new EnergyIntake();
 
     public NotifiableEnergyContainer(MetaMachine machine, long maxCapacity, long maxInputVoltage, long maxInputAmperage, long maxOutputVoltage, long maxOutputAmperage) {
         super(machine);
@@ -235,12 +237,13 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyAdded) {
         if (side == null || inputsEnergy(side)) {
             if (voltage > inputVoltage && machine instanceof IExplosionMachine explosionMachine) {
-                explosionMachine.doExplosion(GTUtil.getTierByVoltage(voltage));
+                explosionMachine.doExplosion(GTUtil.getExplosionPower(voltage));
                 return 0;
             }
             long stored = getEnergyStored();
-            energyAdded = Math.min(getEnergyCapacity() - stored, Math.min(energyAdded, voltage * getInputAmperage()));
+            energyAdded = Math.min(getEnergyCapacity() - stored, intake.limit(getOffsetTimer(), voltage, getInputAmperage(), energyAdded));
             if (energyAdded > 0) {
+                intake.consume(voltage, energyAdded);
                 setEnergyStored(stored + energyAdded);
                 return energyAdded;
             }

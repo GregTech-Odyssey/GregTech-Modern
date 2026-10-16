@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.model.PipeModel;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
@@ -17,7 +18,6 @@ import com.gregtechceu.gtceu.common.data.GTDamageTypes;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 import com.gregtechceu.gtceu.common.pipelike.cable.Insulation;
 import com.gregtechceu.gtceu.common.pipelike.cable.LevelEnergyNet;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -104,12 +104,9 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
         int tier = GTUtil.getTierByVoltage(wireProperties.getVoltage());
         if (wireProperties.isSuperconductor())
             tooltip.add(Tips.feature(Component.translatable("gtceu.cable.superconductor", GTValues.VN[tier])));
-        tooltip.add(Tips.stat(Component.translatable("gtceu.cable.voltage",
-                FormattingUtil.formatNumbers(wireProperties.getVoltage()), GTValues.VNF[tier])));
-        tooltip.add(Tips.stat(Component.translatable("gtceu.cable.amperage",
-                FormattingUtil.formatNumbers(wireProperties.getAmperage()))));
-        tooltip.add(Tips.stat(Component.translatable("gtceu.cable.loss_per_block",
-                FormattingUtil.formatNumbers(wireProperties.getLossPerBlock()))));
+        tooltip.add(Tips.stat(Component.translatable("gtceu.cable.voltage", ElectricText.voltage(wireProperties.getVoltage(), tier))));
+        tooltip.add(Tips.stat(Component.translatable("gtceu.cable.amperage", ElectricText.amps(wireProperties.getAmperage()))));
+        tooltip.add(Tips.stat(Component.translatable("gtceu.cable.loss_per_block", ElectricText.loss(wireProperties.getLossPerBlock(), wireProperties.getVoltage()))));
     }
 
     @Override
@@ -129,7 +126,7 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
         if (level.isClientSide) return;
 
         Insulation insulation = getPipeTile(level, pos).getPipeType();
-        if (insulation.insulationLevel == -1 && entity instanceof LivingEntity entityLiving) {
+        if (!insulation.isCable && entity instanceof LivingEntity entityLiving) {
             CableBlockEntity cable = (CableBlockEntity) getPipeTile(level, pos);
             if (cable != null && cable.getFrameMaterial().isNull() &&
                     cable.getNodeData().getLossPerBlock() > 0) {

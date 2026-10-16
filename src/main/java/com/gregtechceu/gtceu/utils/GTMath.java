@@ -43,6 +43,21 @@ public class GTMath {
         return result.toIntArray();
     }
 
+    public static long mulDivFloor(long a, long b, long c) {
+        long hi = Math.multiplyHigh(a, b);
+        long lo = a * b;
+        if (hi == 0 && lo >= 0) return lo / c;
+        return BigInteger.valueOf(a).multiply(BigInteger.valueOf(b)).divide(BigInteger.valueOf(c)).longValue();
+    }
+
+    public static long mulDivCeil(long a, long b, long c) {
+        long hi = Math.multiplyHigh(a, b);
+        long lo = a * b;
+        if (hi == 0 && lo >= 0) return lo / c + (lo % c == 0 ? 0 : 1);
+        var r = BigInteger.valueOf(a).multiply(BigInteger.valueOf(b)).add(BigInteger.valueOf(c - 1)).divide(BigInteger.valueOf(c));
+        return r.bitLength() < 64 ? r.longValue() : Long.MAX_VALUE;
+    }
+
     public static int saturatedCast(long value) {
         if (value > 2147483647L) {
             return Integer.MAX_VALUE;
