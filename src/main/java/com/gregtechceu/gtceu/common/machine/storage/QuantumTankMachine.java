@@ -17,10 +17,7 @@ import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
-import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
-import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
-import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
-import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.*;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -70,7 +67,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
+public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine, MEStorageProvider {
 
     private static final int LOCK_MARKER = 1000;
 
@@ -129,6 +126,13 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         if (getLevel() instanceof ServerLevel serverLevel) {
             TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
         }
+        MEStorageProviderIndex.add(getLevel(), this);
+    }
+
+    @Override
+    public void onUnload() {
+        MEStorageProviderIndex.remove(getLevel(), this);
+        super.onUnload();
     }
 
     protected void onFluidChanged() {

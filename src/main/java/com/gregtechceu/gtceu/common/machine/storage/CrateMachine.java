@@ -13,6 +13,8 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.api.transfer.key.MEStorageProvider;
+import com.gregtechceu.gtceu.api.transfer.key.MEStorageProviderIndex;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
@@ -57,7 +59,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine {
+public class CrateMachine extends MetaMachine
+                          implements IFancyUIMachine, IMachineLife, IDropSaveMachine, IInteractedMachine,
+                          MEStorageProvider {
 
     private static final int WIDE_INVENTORY = 90;
 
@@ -77,6 +81,18 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
         this.material = material;
         this.inventorySize = inventorySize;
         this.inventory = NotifiableInventory.items(this, inventorySize, IO.BOTH);
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        MEStorageProviderIndex.add(getLevel(), this);
+    }
+
+    @Override
+    public void onUnload() {
+        MEStorageProviderIndex.remove(getLevel(), this);
+        super.onUnload();
     }
 
     @Override
@@ -194,6 +210,7 @@ public class CrateMachine extends MetaMachine implements IFancyUIMachine, IMachi
 
     @Override
     public void onMachineRemoved() {
+        MEStorageProviderIndex.remove(getLevel(), this);
         if (!isTaped) clearInventory(inventory.storage);
     }
 }

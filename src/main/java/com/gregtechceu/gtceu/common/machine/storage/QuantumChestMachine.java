@@ -19,6 +19,8 @@ import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.api.transfer.key.MEStorageProvider;
+import com.gregtechceu.gtceu.api.transfer.key.MEStorageProviderIndex;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
@@ -75,7 +77,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine {
+public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine, MEStorageProvider {
 
     /**
      * Sourced from FunctionalStorage's
@@ -143,6 +145,13 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         if (getLevel() instanceof ServerLevel serverLevel) {
             TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
         }
+        MEStorageProviderIndex.add(getLevel(), this);
+    }
+
+    @Override
+    public void onUnload() {
+        MEStorageProviderIndex.remove(getLevel(), this);
+        super.onUnload();
     }
 
     protected void onItemChanged() {

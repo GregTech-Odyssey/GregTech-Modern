@@ -47,19 +47,25 @@ public final class TipContents implements ComponentContents {
      * meter := byte 有无；有则接 VarInt 段数，再逐段 float ratio, int left, int right
      * </pre>
      *
-     * <p>角色写 {@link TipRole#id()} 这个名字而不是序号：{@code TipRole} 是 record，没有 ordinal，只能自造
+     * <p>
+     * 角色写 {@link TipRole#id()} 这个名字而不是序号：{@code TipRole} 是 record，没有 ordinal，只能自造
      * 一个按声明顺序的下标，而插入或重排常量会让旧下标全部错位；名字稳定、自解释，抓包也读得懂。一个 id
      * 唯一确定标记、颜色和缩进里的角色部分，只有 {@code depth} 能被改（{@link TipRole#withDepth(int)}），
      * 所以它跟着 id 走一个 VarInt，读回时用 {@code withDepth} 还原：depth 与声明一致时它返回常量本身，
      * 于是 {@link #equals} 成立，{@code TipTooltipLayout} 里 {@code role() == TipRole.X} 那样的引用比较也
-     * 照样成立。</p>
+     * 照样成立。
+     * </p>
      *
-     * <p>写得出来的角色必须是 {@link #ROLES} 里的常量或它的 depth 变体；别的角色这套线格式表达不了，
+     * <p>
+     * 写得出来的角色必须是 {@link #ROLES} 里的常量或它的 depth 变体；别的角色这套线格式表达不了，
      * 编码时抛 {@link IllegalArgumentException}，而不是悄悄换个角色发出去。读回未知 id 同样抛异常
-     * （对端版本比本端新）。</p>
+     * （对端版本比本端新）。
+     * </p>
      *
-     * <p>{@link Meter} 的三个数组是平行的，{@code ratios[i]}、{@code lefts[i]}、{@code rights[i]} 同属一段，
-     * 逐段写；{@code segments(...)} 造的仪表左右同色，这份重复照写，线格式不为此加标志位。</p>
+     * <p>
+     * {@link Meter} 的三个数组是平行的，{@code ratios[i]}、{@code lefts[i]}、{@code rights[i]} 同属一段，
+     * 逐段写；{@code segments(...)} 造的仪表左右同色，这份重复照写，线格式不为此加标志位。
+     * </p>
      */
     public static final StreamCodec<FriendlyByteBuf, TipContents> STREAM_CODEC = new StreamCodec<>() {
 
