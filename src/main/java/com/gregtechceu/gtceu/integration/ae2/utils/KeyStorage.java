@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.integration.ae2.utils;
 
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
+
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -131,7 +133,7 @@ public class KeyStorage extends AbstractDataSerializable implements Iterable<Ref
         if (ops.isNull(data)) return;
         var list = ops.getList(data);
         for (Object item : list) {
-            var tag = ValueCodecs.COMPOUND_TAG.decode(ops, item);
+            var tag = GTDataFixer.COMPOUND_TAG.decode(ops, item);
             var key = AEKey.fromTagGeneric(tag.getCompound("key"));
             if (key == null) continue;
             long value = tag.getLong("value");

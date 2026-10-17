@@ -2253,7 +2253,7 @@
   "gtceu.electric.energy_seconds": "%sA·s %s",
   "gtceu.electric.flow": "%sA %s",
   "gtceu.electric.flow_usage": "%s / %sA %s",
-  "gtceu.electric.loss": "%s EU per amp per block (%s%% per block at rated voltage)",
+  "gtceu.electric.loss": "%s EU/t per amp per block (%s%% per block at rated voltage)",
   "gtceu.electric.power": "%s EU/t",
   "gtceu.electric.voltage": "%sV (%s)",
   "gtceu.electric.voltage_value": "%sV",

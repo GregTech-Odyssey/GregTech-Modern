@@ -100,7 +100,7 @@ public final class TagSerializableAccess extends AbstractFieldAccess<ITagSeriali
     @Override
     protected void doReadValue(@NotNull ITagSerializable instance, @NotNull Object data, @NotNull ValueOps ops) {
         if (ops.isNull(data)) return;
-        var nbt = ValueCodecs.TAG.decode(ops, data);
+        var nbt = GTDataFixer.TAG.decode(ops, data);
         instance.deserializeNBT(nbt);
     }
 }

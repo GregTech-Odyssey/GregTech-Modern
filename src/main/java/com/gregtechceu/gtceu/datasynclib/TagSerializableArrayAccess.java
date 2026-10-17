@@ -119,7 +119,7 @@ public final class TagSerializableArrayAccess extends AbstractFieldAccess<ITagSe
             if (!ops.isNull(d)) {
                 var element = instance[i];
                 if (element != null) {
-                    var nbt = ValueCodecs.TAG.decode(ops, d);
+                    var nbt = GTDataFixer.TAG.decode(ops, d);
                     element.deserializeNBT(nbt);
                 }
             }

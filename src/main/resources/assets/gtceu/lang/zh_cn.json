@@ -61,7 +61,7 @@
     "gtceu.electric.energy_seconds": "%sA·s %s",
     "gtceu.electric.flow": "%sA %s",
     "gtceu.electric.flow_usage": "%s / %sA %s",
-    "gtceu.electric.loss": "每安每格 %s EU（满载 %s%%/格）",
+    "gtceu.electric.loss": "每安每格 %s EU/t（满载 %s%%/格）",
     "gtceu.electric.power": "%s EU/t",
     "gtceu.electric.voltage": "%sV（%s）",
     "gtceu.electric.voltage_value": "%sV",

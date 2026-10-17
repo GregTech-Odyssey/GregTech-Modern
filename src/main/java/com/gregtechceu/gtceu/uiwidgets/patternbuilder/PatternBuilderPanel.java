@@ -315,7 +315,10 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
                         });
                 var trailing = UIElement.centeredRow(UISizes.SLOT_SIZE);
                 trailing.addChild(favorite(stack));
-                if (group.getFillStack() == stack || candidate == null) {
+                if (group.getFillStack() == stack && group.isFillAdjustable()) {
+                    trailing.addChild(NumberField.ofInt(COUNT_FIELD_WIDTH, group::getFillCount, group::setFillCount, () -> 0, group::getFreeCount)
+                            .setSteps(COUNT_STEPS));
+                } else if (group.getFillStack() == stack || candidate == null) {
                     trailing.addChild(TextLine.of(COUNT_FIELD_WIDTH, () -> Component.literal("×" + group.getFillCount())).setTextAlign(Horizontal.RIGHT));
                 } else {
                     trailing.addChild(NumberField.ofInt(COUNT_FIELD_WIDTH, candidate::getSelected, candidate::setSelected, () -> 0, candidate::getMax).setSteps(COUNT_STEPS));

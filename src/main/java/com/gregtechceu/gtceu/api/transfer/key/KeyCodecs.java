@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
+
 import net.minecraft.network.FriendlyByteBuf;
 
 import appeng.api.stacks.AEFluidKey;
@@ -24,7 +26,7 @@ public final class KeyCodecs {
 
         @Override
         public AEKey decode(ValueOps ops, @NotNull Object data) {
-            return AEKey.fromTagGeneric(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            return AEKey.fromTagGeneric(GTDataFixer.COMPOUND_TAG.decode(ops, data));
         }
 
         @Override
@@ -37,7 +39,7 @@ public final class KeyCodecs {
 
         @Override
         public AEItemKey decode(ValueOps ops, @NotNull Object data) {
-            return AEItemKey.fromTag(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            return AEItemKey.fromTag(GTDataFixer.COMPOUND_TAG.decode(ops, data));
         }
 
         @Override
@@ -50,7 +52,7 @@ public final class KeyCodecs {
 
         @Override
         public AEFluidKey decode(ValueOps ops, @NotNull Object data) {
-            return AEFluidKey.fromTag(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            return AEFluidKey.fromTag(GTDataFixer.COMPOUND_TAG.decode(ops, data));
         }
 
         @Override
@@ -63,7 +65,7 @@ public final class KeyCodecs {
 
         @Override
         public GenericStack decode(ValueOps ops, @NotNull Object data) {
-            return GenericStack.readTag(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            return GenericStack.readTag(GTDataFixer.COMPOUND_TAG.decode(ops, data));
         }
 
         @Override
@@ -80,7 +82,7 @@ public final class KeyCodecs {
             var keyCounter = new KeyCounter();
             keyCounter.ensureCapacity(list.size());
             for (var entryTag : list) {
-                var tag = ValueCodecs.COMPOUND_TAG.decode(ops, entryTag);
+                var tag = GTDataFixer.COMPOUND_TAG.decode(ops, entryTag);
                 var what = AEKey.fromTagGeneric(tag);
                 long amount = tag.getLong("#");
                 if (what != null) {

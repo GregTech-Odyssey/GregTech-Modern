@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fluids.FluidStack;
@@ -21,7 +22,7 @@ public class VirtualTank extends VirtualEntry {
         @Override
         public VirtualTank decode(ValueOps ops, @NotNull Object data) {
             var tank = new VirtualTank();
-            tank.deserializeNBT(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            tank.deserializeNBT(GTDataFixer.COMPOUND_TAG.decode(ops, data));
             return tank;
         }
 

@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -193,10 +194,10 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
                     long charged = 0;
                     if (electricItem instanceof IElectricItem item) {
                         // GTO: 可接受更大电流的物品（如电力盔甲、纳米剑）按其自身上限充电
-                        long perItem = Math.max(GTValues.V[item.getTier()] * AMPS_PER_ITEM, item.getTransferLimit());
+                        long perItem = GTMath.saturatedMul(Math.max(GTValues.V[item.getTier()] * AMPS_PER_ITEM, item.getTransferLimit()), intake.batchTicks());
                         charged = item.charge(Math.min(distributed, perItem), getTier(), true, false);
                     } else if (electricItem instanceof IEnergyStorage energyStorage) {
-                        charged = FeCompat.insertEu(energyStorage, Math.min(distributed, GTValues.V[getTier()] * AMPS_PER_ITEM), false);
+                        charged = FeCompat.insertEu(energyStorage, Math.min(distributed, GTMath.saturatedMul(GTValues.V[getTier()] * AMPS_PER_ITEM, intake.batchTicks())), false);
                     }
                     if (charged > 0) {
                         changed = true;

@@ -124,7 +124,7 @@ public final class ElectricText {
 
     public static MutableComponent charge(double current, double max, int tier, String tierName) {
         double maxSeconds = ampSecondsOf(max, tier);
-        double currentSeconds = ampSecondsOf(current, tier);
+        double currentSeconds = ampSecondsOf(Math.min(current, max), tier);
         if (maxSeconds < SECONDS_PER_HOUR) {
             return Component.translatable("gtceu.electric.charge_seconds", withPrefix(currentSeconds, 0), withPrefix(maxSeconds, 0), tierName);
         }

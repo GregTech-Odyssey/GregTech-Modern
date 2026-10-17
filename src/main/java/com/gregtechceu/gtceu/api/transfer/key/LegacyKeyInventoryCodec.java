@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
 import com.gregtechceu.gtceu.api.recipe.content.Circuits;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -10,7 +11,6 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.datastream.codec.ValueOps;
-import com.gto.datasynclib.util.ValueCodecs;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
@@ -36,8 +36,8 @@ final class LegacyKeyInventoryCodec {
             if (config >= 0) inv.put(0, Circuits.key(config), 1);
             return;
         }
-        if (ops.isCustom(data)) {
-            putItem(inv, 0, ValueCodecs.COMPOUND_TAG.decode(ops, data));
+        if (ops.isCustom(data) || ops.isStringMap(data)) {
+            putItem(inv, 0, GTDataFixer.COMPOUND_TAG.decode(ops, data));
             return;
         }
         if (!ops.isList(data)) return;
@@ -53,7 +53,7 @@ final class LegacyKeyInventoryCodec {
             i++;
         }
         for (; i < list.size(); i++) {
-            var tag = ValueCodecs.COMPOUND_TAG.decode(ops, list.get(i));
+            var tag = GTDataFixer.COMPOUND_TAG.decode(ops, list.get(i));
             putItem(inv, tag.getInt("Slot"), tag);
         }
     }
@@ -88,10 +88,10 @@ final class LegacyKeyInventoryCodec {
             for (int i = 0; i < list.size(); i++) {
                 var element = list.get(i);
                 if (ops.isNull(element)) continue;
-                putFluid(inv, i, ValueCodecs.COMPOUND_TAG.decode(ops, element));
+                putFluid(inv, i, GTDataFixer.COMPOUND_TAG.decode(ops, element));
             }
         } else {
-            putFluid(inv, 0, ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            putFluid(inv, 0, GTDataFixer.COMPOUND_TAG.decode(ops, data));
         }
     }
 

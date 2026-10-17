@@ -100,11 +100,14 @@ public final class PatternBuilderModel {
         final Int2IntLinkedOpenHashMap layerPositions = new Int2IntLinkedOpenHashMap();
         @Nullable
         Item preferred;
+        Group head = this;
         int positions;
         int fill;
+        int fillLimit = -1;
         int allocated;
         int layerAllocated;
         int section;
+        boolean airAllowed;
         boolean included = true;
         @Nullable
         PatternBuilderModel owner;
@@ -186,10 +189,43 @@ public final class PatternBuilderModel {
             return total;
         }
 
-        public int getFillCount() {
-            int total = Math.max(0, positions - allocated);
-            for (var group : linked) total += Math.max(0, group.positions - group.allocated);
+        int free() {
+            return Math.max(0, positions - allocated);
+        }
+
+        public int getFreeCount() {
+            int total = free();
+            for (var group : linked) total += group.free();
             return total;
+        }
+
+        public int getFillCount() {
+            int free = getFreeCount();
+            return fillLimit < 0 ? free : Math.min(fillLimit, free);
+        }
+
+        public boolean isFillAdjustable() {
+            return airAllowed;
+        }
+
+        public void setFillCount(int count) {
+            fillLimit = Math.max(0, Math.min(count, getFreeCount()));
+            if (owner != null) owner.invalidateInputs();
+        }
+
+        int placedFill() {
+            var lead = head;
+            if (lead.fillLimit < 0) return free();
+            int remaining = lead.fillLimit;
+            int share = Math.min(remaining, lead.free());
+            if (lead == this) return share;
+            remaining -= share;
+            for (var group : lead.linked) {
+                share = Math.min(remaining, group.free());
+                if (group == this) return share;
+                remaining -= share;
+            }
+            return free();
         }
 
         public boolean isIncluded() {
@@ -637,6 +673,7 @@ public final class PatternBuilderModel {
                 return this;
             }
             group = new Group();
+            group.airAllowed = predicate.hasAir();
             group.section = section;
             group.positions = 1;
             group.layerPositions.addTo(layer, 1);

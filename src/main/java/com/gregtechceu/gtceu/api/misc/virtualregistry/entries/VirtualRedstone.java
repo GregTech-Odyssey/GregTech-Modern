@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.misc.virtualregistry.entries;
 
 import com.gregtechceu.gtceu.api.misc.virtualregistry.EntryTypes;
 import com.gregtechceu.gtceu.api.misc.virtualregistry.VirtualEntry;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.nbt.CompoundTag;
 
@@ -23,7 +24,7 @@ public class VirtualRedstone extends VirtualEntry {
         @Override
         public VirtualRedstone decode(ValueOps ops, @NotNull Object data) {
             var tank = new VirtualRedstone();
-            tank.deserializeNBT(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            tank.deserializeNBT(GTDataFixer.COMPOUND_TAG.decode(ops, data));
             return tank;
         }
 

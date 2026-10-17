@@ -1,5 +1,10 @@
 package com.gregtechceu.gtceu.api.tooltip;
 
+/**
+ * 提示框配色（深色提示框底上的颜色）。
+ * <b>仅用于物品/方块 tooltip（悬停提示框），不是通用的文字渲染设施</b>：机器界面、说明页、显示行、聊天一律用普通
+ * {@code Component} 与 uipro 文本组件，不要拿这里的行或规格去拼。
+ */
 public final class TipTheme {
 
     public static final int HEADING = 0xFFAA00;

@@ -43,6 +43,12 @@ public class GTMath {
         return result.toIntArray();
     }
 
+    public static long saturatedMul(long a, long b) {
+        long hi = Math.multiplyHigh(a, b);
+        long lo = a * b;
+        return hi == 0 && lo >= 0 ? lo : Long.MAX_VALUE;
+    }
+
     public static long mulDivFloor(long a, long b, long c) {
         long hi = Math.multiplyHigh(a, b);
         long lo = a * b;

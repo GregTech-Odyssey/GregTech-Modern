@@ -16,6 +16,7 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
@@ -287,10 +288,10 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 for (Object item : batteries) {
                     long charged = 0;
                     if (item instanceof IElectricItem electricItem) {
-                        long perItem = Math.max(GTValues.V[electricItem.getTier()], electricItem.getTransferLimit());
+                        long perItem = GTMath.saturatedMul(Math.max(GTValues.V[electricItem.getTier()], electricItem.getTransferLimit()), intake.batchTicks());
                         charged = electricItem.charge(Math.min(distributed, Math.min(canAccept, perItem)), getTier(), true, false);
                     } else if (item instanceof IEnergyStorage energyStorage) {
-                        charged = FeCompat.insertEu(energyStorage, Math.min(distributed, Math.min(canAccept, GTValues.V[getTier()])), false);
+                        charged = FeCompat.insertEu(energyStorage, Math.min(distributed, Math.min(canAccept, GTMath.saturatedMul(GTValues.V[getTier()], intake.batchTicks()))), false);
                     }
                     if (charged > 0) {
                         canAccept -= charged;

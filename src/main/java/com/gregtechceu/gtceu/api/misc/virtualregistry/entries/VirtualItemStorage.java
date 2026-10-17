@@ -30,7 +30,7 @@ public class VirtualItemStorage extends VirtualEntry {
         @Override
         public VirtualItemStorage decode(ValueOps ops, Object data) {
             var tank = new VirtualItemStorage();
-            tank.deserializeNBT(ValueCodecs.COMPOUND_TAG.decode(ops, data));
+            tank.deserializeNBT(GTDataFixer.COMPOUND_TAG.decode(ops, data));
             return tank;
         }
 

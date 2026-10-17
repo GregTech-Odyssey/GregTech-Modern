@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.recipe;
 
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.registries.Registries;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.material.Fluids;
 
 import com.gto.datasynclib.datastream.codec.JavaOps;
 import com.gto.datasynclib.datastream.codec.ValueOps;
-import com.gto.datasynclib.util.ValueCodecs;
 import com.mojang.serialization.JsonOps;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -114,7 +114,7 @@ final class LegacyRecipeCodec {
         if (!ops.isStringMap(data)) return null;
         var map = ops.getStringMap(data);
         var nbtData = map.get("n");
-        var nbt = nbtData != null && ops.isCustom(nbtData) ? ValueCodecs.COMPOUND_TAG.decode(ops, nbtData) : null;
+        var nbt = nbtData != null && !ops.isNull(nbtData) ? GTDataFixer.COMPOUND_TAG.decode(ops, nbtData) : null;
         var fluid = map.get("f");
         if (fluid != null) return legacyFluid(ops.getString(fluid), nbt);
         var t = map.get("t");

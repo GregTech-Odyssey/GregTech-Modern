@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * 属性行的种类：标签、领域色与单位格式，渲染为原生的"标签：值"。
+ * <b>仅用于物品/方块 tooltip（悬停提示框），不是通用的文字渲染设施</b>：机器界面、说明页、显示行、聊天一律用普通
+ * {@code Component} 与 uipro 文本组件，不要拿这里的行或规格去拼。
  */
 public record StatKind(String id, String labelKey, int color, @Nullable String unitKey) {
 

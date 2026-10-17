@@ -11,14 +11,23 @@ public final class EnergyIntake {
 
     private int tick = Integer.MIN_VALUE;
     private long usedMilliAmps;
+    private int batchTicks = 1;
+
+    public int batchTicks() {
+        return batchTicks;
+    }
+
+    public void setBatchTicks(int ticks) {
+        batchTicks = ticks;
+    }
 
     public long limit(int now, long voltage, long amperage, long energy) {
         if (now != tick) {
             tick = now;
             usedMilliAmps = 0;
         }
-        if (amperage >= Long.MAX_VALUE / MILLI) return energy;
-        long left = amperage * MILLI - usedMilliAmps;
+        if (amperage >= Long.MAX_VALUE / MILLI / batchTicks) return energy;
+        long left = amperage * batchTicks * MILLI - usedMilliAmps;
         if (left <= 0 || voltage <= 0) return 0;
         return Math.min(energy, GTMath.mulDivFloor(left, voltage, MILLI));
     }

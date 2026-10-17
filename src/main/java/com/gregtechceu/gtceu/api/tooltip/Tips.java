@@ -17,10 +17,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * 单行提示的静态工厂：用于直接往 tooltips(Component...) 或提示列表里放带角色的行。
- * 这些行现在能过网络：{@link TipContents#STREAM_CODEC} 已在 {@code CommonProxy.initDataSync()} 注册，
- * 随 DataSyncLib 的二进制组件编码发往客户端，机器界面显示行、聊天消息都能用；
- * 但原版 JSON（存盘、原版网络包）仍然不认 TipContents，所以这类组件不能落盘。
+ * 单行提示的静态工厂：往物品/方块的 tooltip 列表里放带角色的行。
+ * <b>仅用于物品/方块 tooltip（悬停提示框），不是通用的文字渲染设施</b>：机器界面、说明页、显示行、聊天一律用普通
+ * {@code Component} 与 uipro 文本组件，不要拿这里的行或规格去拼。
  */
 public final class Tips {
 

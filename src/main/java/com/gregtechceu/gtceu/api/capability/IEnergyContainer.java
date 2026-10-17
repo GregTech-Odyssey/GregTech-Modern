@@ -14,6 +14,10 @@ public interface IEnergyContainer extends IEnergyInfoProvider {
      */
     long acceptEnergyFromNetwork(Object sender, Direction side, long voltage, long energyToAdd);
 
+    default long acceptEnergyFromNetwork(Object sender, Direction side, long voltage, long energyToAdd, int ticks) {
+        return acceptEnergyFromNetwork(sender, side, voltage, energyToAdd);
+    }
+
     /**
      * @return if this container accepts energy from the given side
      */

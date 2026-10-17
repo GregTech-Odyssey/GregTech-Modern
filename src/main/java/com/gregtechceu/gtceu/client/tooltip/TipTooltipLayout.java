@@ -17,6 +17,11 @@ import com.mojang.datafixers.util.Either;
 
 import java.util.List;
 
+/**
+ * 把物品提示里的角色行换成像素对齐的提示框组件，并在分组之间留白。
+ * <b>仅用于物品/方块 tooltip（悬停提示框），不是通用的文字渲染设施</b>：机器界面、说明页、显示行、聊天一律用普通
+ * {@code Component} 与 uipro 文本组件，不要拿这里的行或规格去拼。
+ */
 @OnlyIn(Dist.CLIENT)
 public final class TipTooltipLayout {
 

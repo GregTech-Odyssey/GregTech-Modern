@@ -127,7 +127,7 @@ public class LangHandler {
         provider.add("gtceu.electric.charge_seconds", "%s / %sA·s %s");
         provider.add("gtceu.electric.amp_seconds", "%sA·s");
         provider.add("gtceu.electric.amps_per_second", "%sA/s");
-        provider.add("gtceu.electric.loss", "%s EU per amp per block (%s%% per block at rated voltage)");
+        provider.add("gtceu.electric.loss", "%s EU/t per amp per block (%s%% per block at rated voltage)");
         provider.add("gtceu.tooltip.fluid_pipe_hold_shift", "§7Hold SHIFT to show Fluid Containment Info");
         provider.add("gtceu.tooltip.tool_fluid_hold_shift",
                 "§7Hold SHIFT to show Fluid Containment and Tool Info");

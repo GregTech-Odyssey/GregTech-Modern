@@ -207,6 +207,7 @@ public class CommonProxy {
     }
 
     private static void initDataSync() {
+        GTDataFixer.registerCodecs();
         KeyCodecs.register();
         // TipContents 是 GTM 自己的内容类型，原版与库都不认识它；注册之后二进制组件编码才能把带角色的
         // 提示行写进网络包（存盘走原版 JSON，仍然不支持）

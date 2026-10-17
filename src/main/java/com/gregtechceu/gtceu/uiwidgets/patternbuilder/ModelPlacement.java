@@ -64,8 +64,11 @@ final class ModelPlacement {
         }
         if (!group.included || !group.hasFill()) return;
         var fill = group.getFillStack().getItem();
-        for (int i = 0; i < positions.size(); i++) {
-            if (!used[i]) result[positions.getInt(i)] = fill;
+        int count = group.placedFill();
+        for (int i = 0; i < positions.size() && count > 0; i++) {
+            if (used[i]) continue;
+            result[positions.getInt(i)] = fill;
+            count--;
         }
     }
 

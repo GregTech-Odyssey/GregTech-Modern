@@ -234,6 +234,14 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     }
 
     @Override
+    public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyAdded, int ticks) {
+        intake.setBatchTicks(ticks);
+        long accepted = acceptEnergyFromNetwork(o, side, voltage, energyAdded);
+        intake.setBatchTicks(1);
+        return accepted;
+    }
+
+    @Override
     public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyAdded) {
         if (side == null || inputsEnergy(side)) {
             if (voltage > inputVoltage && machine instanceof IExplosionMachine explosionMachine) {

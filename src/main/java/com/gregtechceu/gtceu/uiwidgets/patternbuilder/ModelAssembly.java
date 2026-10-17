@@ -113,6 +113,8 @@ final class ModelAssembly {
             var leader = leaders.putIfAbsent(key, group);
             if (leader == null) continue;
             leader.linked.add(group);
+            leader.airAllowed &= group.airAllowed;
+            group.head = leader;
             for (var it = group.shown.reference2IntEntrySet().fastIterator(); it.hasNext();) {
                 var entry = it.next();
                 leader.shown.addTo(entry.getKey(), entry.getIntValue());

@@ -15,9 +15,11 @@ import java.util.Optional;
 
 /**
  * 带角色标记的提示行内容：客户端提示框按像素对齐绘制，其余本地渲染场合按纯文本回退。
+ * <b>仅用于物品/方块 tooltip（悬停提示框），不是通用的文字渲染设施</b>：机器界面、说明页、显示行、聊天一律用普通
+ * {@code Component} 与 uipro 文本组件，不要拿这里的行或规格去拼。
  * 原版 Component.Serializer 仍然不认此内容类型，所以原版 JSON（存盘、原版网络包）喂不了它；网络传输
  * 改走 DataSyncLib 的二进制组件编码：{@link #STREAM_CODEC} 已在 {@code CommonProxy.initDataSync()}
- * 注册，这类组件因此能发往客户端，不再只能留在客户端 tooltip 里。
+ * 注册，只为物品提示随物品同步时不出错，不代表可以拿它做界面文字。
  */
 public final class TipContents implements ComponentContents {
 
