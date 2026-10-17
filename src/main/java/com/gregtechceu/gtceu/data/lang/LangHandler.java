@@ -176,6 +176,7 @@ public class LangHandler {
         provider.add("gtceu.hazard_trigger.any", "Any contact");
 
         provider.add("gtceu.hazard_trigger.skin_contact", "Skin contact");
+        provider.add("gtceu.hazard_trigger.hot_item", "Hot item");
         provider.add("gtceu.hazard_trigger.none", "Nothing");
         provider.add("gtceu.medical_condition.antidote.description", "§aAntidote §7Hold Shift to show details");
         provider.add("gtceu.medical_condition.antidote.description_shift", "§aCures these conditions:");

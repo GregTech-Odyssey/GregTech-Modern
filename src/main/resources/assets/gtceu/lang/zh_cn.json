@@ -2881,6 +2881,7 @@
     "gtceu.gui.input_priority.single": "多方块只有一个输入部件时，此设置不产生影响",
     "gtceu.hazard_trigger.any": "任何方式",
     "gtceu.hazard_trigger.description": "由此导致：",
+    "gtceu.hazard_trigger.hot_item": "高温物品",
     "gtceu.hazard_trigger.inhalation": "吸入",
     "gtceu.hazard_trigger.none": "无",
     "gtceu.hazard_trigger.protection.description": "免受：",

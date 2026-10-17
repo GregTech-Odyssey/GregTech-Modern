@@ -2372,13 +2372,14 @@ public class GTItems {
     public static ItemEntry<ArmorComponentItem> RUBBER_GLOVES = REGISTRATE
             .item("rubber_gloves",
                     (p) -> new ArmorComponentItem(GTArmorMaterials.BAD_PPE_EQUIPMENT, ArmorItem.Type.HELMET, p)
-                            .setArmorLogic(new HazmatSuit(ArmorItem.Type.CHESTPLATE, "bad_hazmat")))
+                            .setArmorLogic(new HazmatSuit(ArmorItem.Type.CHESTPLATE, "bad_hazmat", true)))
             .lang("Rubber Gloves")
             .tag(Tags.Items.ARMORS_CHESTPLATES)
             .tag(CustomTags.PPE_ARMOR)
             .onRegister(attach(new TooltipBehavior(tooltips -> {
                 tooltips.add(Tips.heading(Component.translatable("gtceu.hazard_trigger.protection.description")));
                 tooltips.add(Tips.plain(Component.translatable("gtceu.hazard_trigger.skin_contact")));
+                tooltips.add(Tips.plain(Component.translatable("gtceu.hazard_trigger.hot_item")));
             })))
             .register();
     public static ItemEntry<ArmorComponentItem> HAZMAT_CHESTPLATE = REGISTRATE

@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.client.renderer.item.TagPrefixItemRenderer;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
+import com.gregtechceu.gtceu.common.item.armor.HazmatSuit;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -65,6 +66,12 @@ public class TagPrefixItem extends Item implements ITagPrefixItem {
             if (livingEntity.tickCount % 20 == 0) {
                 if (tagPrefix != TagPrefix.ingotHot || !material.hasProperty(PropertyKey.BLAST))
                     return;
+
+                // 手上戴了隔热装备（橡胶手套）时，手持的那一份高温物品不再烫伤
+                if ((stack == livingEntity.getMainHandItem() || stack == livingEntity.getOffhandItem()) &&
+                        HazmatSuit.hasInsulatedHands(livingEntity)) {
+                    return;
+                }
 
                 float heatDamage = ((material.getBlastTemperature() - 1750) / 1000.0F) + 2;
                 ItemStack armor = livingEntity.getItemBySlot(EquipmentSlot.CHEST);

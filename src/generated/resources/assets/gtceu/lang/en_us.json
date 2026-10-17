@@ -2591,6 +2591,7 @@
   "gtceu.gui.waiting_list": "Sending Queue:",
   "gtceu.hazard_trigger.any": "Any contact",
   "gtceu.hazard_trigger.description": "Caused by:",
+  "gtceu.hazard_trigger.hot_item": "Hot item",
   "gtceu.hazard_trigger.inhalation": "Inhalation",
   "gtceu.hazard_trigger.none": "Nothing",
   "gtceu.hazard_trigger.protection.description": "Protects from:",
