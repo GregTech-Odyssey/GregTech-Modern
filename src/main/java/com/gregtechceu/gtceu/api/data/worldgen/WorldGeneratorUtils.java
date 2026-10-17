@@ -57,7 +57,7 @@ public class WorldGeneratorUtils {
     private static class WorldOreVeinCache {
 
         private final List<GTOreDefinition> worldVeins;
-        private final Map<Holder<Biome>, List<WeightedVein>> biomeVeins = new Reference2ObjectOpenHashMap<>();
+        private final Reference2ObjectOpenHashMap<Holder<Biome>, List<WeightedVein>> biomeVeins = new Reference2ObjectOpenHashMap<>();
 
         public WorldOreVeinCache(ServerLevel level) {
             List<GTOreDefinition> veinsList = new ArrayList<>();
@@ -77,6 +77,9 @@ public class WorldGeneratorUtils {
         }
 
         private List<WeightedVein> getEntry(Holder<Biome> biome) {
+            var cached = biomeVeins.get(biome);
+            if (cached != null) return cached;
+
             List<WeightedVein> biomeList = new ArrayList<>();
             for (GTOreDefinition vein : worldVeins) {
                 if (vein.isForBiome(biome)) {
