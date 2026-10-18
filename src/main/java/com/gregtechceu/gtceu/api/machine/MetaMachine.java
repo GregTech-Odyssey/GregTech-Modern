@@ -747,13 +747,12 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         if (handlers.isEmpty()) return null;
         var inf = getKeyCapFilter(side, IO.IN, type);
         var outf = getKeyCapFilter(side, IO.OUT, type);
-        IKeyHandler<K> base = handlers.size() == 1 ? handlers.get(0) : new KeyHandlerList<>(type, handlers);
+        IKeyHandler<K> base = handlers.size() == 1 ? handlers.getFirst() : new KeyHandlerList<>(type, handlers);
         if (!outputOnly && inf == null && outf == null) return base;
         return new KeyIOView<>(base, !outputOnly, true, inf, outf);
     }
 
     public @Nullable MEStorage getStorageCap(@Nullable Direction side) {
-        if (side == null) return null;
         var items = getItemHandlerCap(side, true);
         var fluids = getFluidHandlerCap(side, true);
         if (items == null) return fluids;
