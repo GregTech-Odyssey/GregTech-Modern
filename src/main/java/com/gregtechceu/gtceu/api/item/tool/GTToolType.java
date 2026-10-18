@@ -80,7 +80,11 @@ public final class GTToolType {
     public static final GTToolType DRILL_HV = drill(GTValues.HV, 2, 2, 4, 5.0F);
     public static final GTToolType DRILL_EV = drill(GTValues.EV, 3, 3, 6, 6.0F);
     public static final GTToolType DRILL_IV = drill(GTValues.IV, 4, 4, 8, 7.0F);
-    public static final GTToolType CHAINSAW_LV = electric("lv_chainsaw", GTValues.LV, () -> TagPrefix.toolHeadChainsaw).idFormat("lv_%s_chainsaw").lang("%s Chainsaw (LV)").toolTag(ItemTags.AXES).toolTag(CustomTags.CHAINSAWS).harvestTag(BlockTags.MINEABLE_WITH_AXE).harvestTag(BlockTags.SWORD_EFFICIENT).harvestTag(BlockTags.MINEABLE_WITH_HOE).toolStats(b -> b.blockBreaking().efficiencyMultiplier(2.0F).attackDamage(5.0F).attackSpeed(-3.2F).brokenStack(powerUnit(GTValues.LV)).behaviors(HarvestIceBehavior.INSTANCE, DisableShieldBehavior.INSTANCE)).sound(GTSoundEntries.CHAINSAW_TOOL, true).toolClasses(AXE).build();
+    public static final GTToolType CHAINSAW_LV = chainsaw(GTValues.LV, 2.0F);
+    public static final GTToolType CHAINSAW_MV = chainsaw(GTValues.MV, 3.0F);
+    public static final GTToolType CHAINSAW_HV = chainsaw(GTValues.HV, 4.0F);
+    public static final GTToolType CHAINSAW_EV = chainsaw(GTValues.EV, 5.0F);
+    public static final GTToolType CHAINSAW_IV = chainsaw(GTValues.IV, 6.0F);
     public static final GTToolType WRENCH_LV = electricWrench(GTValues.LV, 2.0F);
     public static final GTToolType WRENCH_HV = electricWrench(GTValues.HV, 3.0F);
     public static final GTToolType WRENCH_IV = electricWrench(GTValues.IV, 4.0F);
@@ -97,6 +101,14 @@ public final class GTToolType {
                 .harvestTag(BlockTags.MINEABLE_WITH_PICKAXE).harvestTag(BlockTags.MINEABLE_WITH_SHOVEL).harvestTag(BlockTags.MINEABLE_WITH_HOE)
                 .toolStats(b -> b.blockBreaking().aoe(column, row, layer).attackDamage(1.0F).attackSpeed(-3.2F).durabilityMultiplier(durability).brokenStack(powerUnit(tier)).behaviors(AoEBehavior.INSTANCE))
                 .sound(GTSoundEntries.DRILL_TOOL, true).toolClasses(PICKAXE, SHOVEL, HOE).build();
+    }
+
+    private static GTToolType chainsaw(int tier, float efficiency) {
+        String voltage = GTValues.VN[tier].toLowerCase(Locale.ROOT);
+        return electric(voltage + "_chainsaw", tier, () -> TagPrefix.toolHeadChainsaw).idFormat(voltage + "_%s_chainsaw").lang("%s Chainsaw (" + GTValues.VN[tier] + ")")
+                .toolTag(ItemTags.AXES).toolTag(CustomTags.CHAINSAWS).harvestTag(BlockTags.MINEABLE_WITH_AXE).harvestTag(BlockTags.SWORD_EFFICIENT).harvestTag(BlockTags.MINEABLE_WITH_HOE)
+                .toolStats(b -> b.blockBreaking().efficiencyMultiplier(efficiency).attackDamage(5.0F).attackSpeed(-3.2F).brokenStack(powerUnit(tier)).behaviors(HarvestIceBehavior.INSTANCE, DisableShieldBehavior.INSTANCE))
+                .sound(GTSoundEntries.CHAINSAW_TOOL, true).toolClasses(AXE).build();
     }
 
     private static GTToolType electricWrench(int tier, float efficiency) {
