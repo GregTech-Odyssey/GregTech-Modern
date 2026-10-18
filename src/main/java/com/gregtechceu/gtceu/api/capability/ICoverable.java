@@ -31,7 +31,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
-import com.google.common.collect.ImmutableList;
+import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,6 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface ICoverable extends ITickSubscription, IAppearance, ISync {
+
+    CoverBehavior[] EMPTY = new CoverBehavior[0];
+    Direction[] EMPTY_DIRECTION = new Direction[0];
 
     BlockEntityDirectionCache getBlockEntityDirectionCache();
 
@@ -89,17 +92,27 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
     CoverBehavior getCoverAtSide(Direction side);
 
     @Nullable
+    CoverBehavior getInternalCoverAtSide(Direction side);
+
+    CoverBehavior[] getCovers();
+
+    void setCovers(CoverBehavior[] behaviors);
+
+    Direction[] getCoverSides();
+
+    void setCoverSides(Direction[] sides);
+
+    CoverBehavior[] getAllCovers();
+
+    @Nullable
     default <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
         if (side != null) {
             var cover = getCoverAtSide(side);
             if (cover != null) return cover.getGTCapability(cap);
         } else {
-            for (var s : GTUtil.DIRECTIONS) {
-                var cover = getCoverAtSide(s);
-                if (cover != null) {
-                    var result = cover.getGTCapability(cap);
-                    if (result != null) return result;
-                }
+            for (var cover : getCovers()) {
+                var result = cover.getGTCapability(cap);
+                if (result != null) return result;
             }
         }
         return null;
@@ -162,24 +175,15 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
         return removeCover(true, side, player);
     }
 
-    default List<CoverBehavior> getCovers() {
-        ImmutableList.Builder<CoverBehavior> result = ImmutableList.builderWithExpectedSize(6);
-        for (Direction direction : GTUtil.DIRECTIONS) {
-            var cover = getCoverAtSide(direction);
-            if (cover != null) {
-                result.add(cover);
-            }
-        }
-        return result.build();
-    }
-
     default void onLoad() {
+        loadAllCover();
         for (CoverBehavior cover : getCovers()) {
             cover.onLoad();
         }
     }
 
     default void onUnload() {
+        loadAllCover();
         for (CoverBehavior cover : getCovers()) {
             cover.onUnload();
         }
@@ -192,10 +196,7 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
     }
 
     default boolean hasAnyCover() {
-        for (Direction facing : GTUtil.DIRECTIONS)
-            if (getCoverAtSide(facing) != null)
-                return true;
-        return false;
+        return getCovers().length > 0;
     }
 
     default boolean hasCover(Direction facing) {
@@ -207,17 +208,17 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
     }
 
     default VoxelShape[] addCoverCollisionBoundingBox() {
+        var sides = getCoverSides();
+        if (sides.length == 0) return new VoxelShape[0];
         double plateThickness = getCoverPlateThickness();
-        List<VoxelShape> shapes = new ArrayList<>();
         if (plateThickness > 0.0) {
-            for (Direction side : GTUtil.DIRECTIONS) {
-                if (getCoverAtSide(side) != null) {
-                    var coverBox = getCoverPlateBox(side, plateThickness);
-                    shapes.add(coverBox);
-                }
+            var shapes = new VoxelShape[sides.length];
+            for (int i = 0; i < sides.length; i++) {
+                shapes[i] = getCoverPlateBox(sides[i], plateThickness);
             }
+            return shapes;
         }
-        return shapes.toArray(VoxelShape[]::new);
+        return new VoxelShape[0];
     }
 
     static boolean doesCoverCollide(Direction side, List<VoxelShape> collisionBox, double plateThickness) {
@@ -303,6 +304,13 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
         return null;
     }
 
+    default void onCoverSet(CoverBehavior newValue, CoverBehavior oldValue) {
+        if (newValue != oldValue && (newValue == null || oldValue == null)) {
+            scheduleUpdate(LogicalSide.CLIENT);
+        }
+        loadAllCover();
+    }
+
     default Object serializeCoverData(ValueOps ops, CoverBehavior coverBehavior) {
         return ops.createList(
                 GTRegistries.COVERS.valueCodec().encode(ops, coverBehavior.coverDefinition),
@@ -327,5 +335,22 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
     default CoverBehavior deserializeCoverBuffer(FriendlyByteBuf buf) {
         var definition = GTRegistries.COVERS.streamCodec().decode(buf);
         return definition.createCoverBehavior(this, buf.readEnum(Direction.class));
+    }
+
+    default void loadAllCover() {
+        var all = new ArrayList<CoverBehavior>();
+        var allDirection = new ArrayList<Direction>();
+        for (var direction : Direction.values()) {
+            var c = getInternalCoverAtSide(direction);
+            if (c != null) {
+                getAllCovers()[direction.ordinal()] = c;
+                all.add(c);
+                allDirection.add(direction);
+            } else {
+                getAllCovers()[direction.ordinal()] = null;
+            }
+        }
+        this.setCovers(all.toArray(EMPTY));
+        this.setCoverSides(allDirection.toArray(EMPTY_DIRECTION));
     }
 }

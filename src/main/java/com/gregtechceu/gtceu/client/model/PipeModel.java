@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -90,6 +91,7 @@ public class PipeModel {
     public final float thickness;
     public final AABB coreCube;
     public final Map<Direction, AABB> sideCubes;
+    private AtomicReferenceArray<VoxelShape> shapeCache;
     public CleanableMemoizedSupplier<ResourceLocation> sideTexture;
     public CleanableMemoizedSupplier<ResourceLocation> endTexture;
     @Nullable
@@ -130,6 +132,13 @@ public class PipeModel {
     }
 
     public VoxelShape getShapes(int connections) {
+        var cache = this.shapeCache;
+        if (cache == null) {
+            cache = this.shapeCache = new AtomicReferenceArray<>(64);
+        }
+        int connectionMask = connections & 63;
+        var shape = cache.get(connectionMask);
+        if (shape != null) return shape;
         var shapes = new ArrayList<VoxelShape>(7);
         shapes.add(Shapes.create(coreCube));
         for (Direction side : GTUtil.DIRECTIONS) {
@@ -137,7 +146,9 @@ public class PipeModel {
                 shapes.add(Shapes.create(sideCubes.get(side)));
             }
         }
-        return shapes.stream().reduce(Shapes.empty(), Shapes::or);
+        shape = shapes.stream().reduce(Shapes.empty(), Shapes::or);
+        if (cache.compareAndSet(connectionMask, null, shape)) return shape;
+        return cache.get(connectionMask);
     }
 
     @OnlyIn(Dist.CLIENT)

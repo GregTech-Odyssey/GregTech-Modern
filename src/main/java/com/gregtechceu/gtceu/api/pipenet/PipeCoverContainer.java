@@ -21,11 +21,12 @@ import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
-import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.Access;
 import com.gto.datasynclib.annotations.Codec;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 public final class PipeCoverContainer implements ICoverable {
@@ -34,21 +35,23 @@ public final class PipeCoverContainer implements ICoverable {
 
     private final PipeBlockEntity<?, ?> pipeTile;
 
+    @SuppressWarnings("all")
     @SaveToDisk
     @SyncToClient(listener = "onCoverSet")
     @Access(instanceAsValue = true)
     @Codec(writeToValue = "serializeCoverData", readFromValue = "deserializeCoverData", writeToBuffer = "serializeCoverBuffer", readFromBuffer = "deserializeCoverBuffer")
     private CoverBehavior up, down, north, south, west, east;
+    @Getter
+    private final CoverBehavior[] allCovers = new CoverBehavior[6];
+    @Getter
+    @Setter
+    private CoverBehavior[] covers = EMPTY;
+    @Getter
+    @Setter
+    private Direction[] coverSides = EMPTY_DIRECTION;
 
     public PipeCoverContainer(PipeBlockEntity<?, ?> pipeTile) {
         this.pipeTile = pipeTile;
-    }
-
-    @SuppressWarnings("unused")
-    private void onCoverSet(CoverBehavior newValue, CoverBehavior oldValue) {
-        if (newValue != oldValue && (newValue == null || oldValue == null)) {
-            scheduleUpdate(LogicalSide.CLIENT);
-        }
     }
 
     @Override
@@ -146,6 +149,11 @@ public final class PipeCoverContainer implements ICoverable {
 
     @Override
     public CoverBehavior getCoverAtSide(Direction side) {
+        return allCovers[side.ordinal()];
+    }
+
+    @Override
+    public CoverBehavior getInternalCoverAtSide(Direction side) {
         return switch (side) {
             case UP -> up;
             case SOUTH -> south;
@@ -166,6 +174,8 @@ public final class PipeCoverContainer implements ICoverable {
             case EAST -> east = coverBehavior;
             case NORTH -> north = coverBehavior;
         }
+        allCovers[side.ordinal()] = coverBehavior;
+        loadAllCover();
     }
 
     @Override

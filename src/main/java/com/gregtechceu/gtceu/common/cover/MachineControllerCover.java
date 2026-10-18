@@ -139,7 +139,12 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     }
 
     private boolean doOthersAllowWorking() {
-        return coverHolder.getCovers().stream().filter(cover -> this.attachedSide != cover.attachedSide).filter(cover -> cover instanceof MachineControllerCover).filter(cover -> ((MachineControllerCover) cover).controllerMode == this.controllerMode).allMatch(cover -> ((MachineControllerCover) cover).shouldAllowWorking());
+        for (var cover : coverHolder.getCovers()) {
+            if (this.attachedSide != cover.attachedSide && cover instanceof MachineControllerCover controllerCover && controllerCover.controllerMode == this.controllerMode && controllerCover.shouldAllowWorking()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<ControllerMode> getAllowedModes() {

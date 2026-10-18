@@ -371,7 +371,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
             }
             connections = pipeTile.getVisualConnections();
             VoxelShape shape = getPipeModel().getShapes(connections);
-            shape = Shapes.or(shape, pipeTile.getCoverContainer().addCoverCollisionBoundingBox());
+            if (pipeTile.getCoverContainer().hasAnyCover()) shape = Shapes.or(shape, pipeTile.getCoverContainer().addCoverCollisionBoundingBox());
             return shape;
         }
         return getPipeModel().getShapes(connections);
