@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.uipro.render.UIDraw;
 import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -35,6 +36,7 @@ import appeng.core.localization.ButtonToolTips;
 import appeng.core.localization.Tooltips;
 import appeng.helpers.InventoryAction;
 import appeng.helpers.externalstorage.GenericStackInv;
+import appeng.util.ReadableNumberConverter;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.platform.InputConstants;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +52,7 @@ import java.util.function.Supplier;
  * 通用 AEKey 槽，使用 AE2 注册的渲染器，支持物品、流体和扩展 key 类型。
  * {@link #of(GenericInternalInventory, int)} / {@link #of(IKeyHandler, int)} 绑定真实库存；
  * {@link #display(Supplier, LongSupplier)} 只展示。选中、禁用与其他 UIPRO 槽一致。
+ * 流体数量以 mB 为单位：槽内缩写显示，悬停提示显示精确数量与 mB 单位。
  * <p>
  * 操作沿用 AE2 的资源槽：左键取放一组，右键取半组/放一个，Shift 左键移入背包、Shift 右键取一个，
  * 中键创造复制，滚轮上滚放一个/下滚取一个，空格点击连续移入背包。非物品 key 左键填充手持容器、右键倒入库存。
@@ -299,7 +302,7 @@ public class AEKeySlot extends UIElement {
                 if (formattedKey != key || formattedAmount != amount) {
                     formattedKey = key;
                     formattedAmount = amount;
-                    amountText = key.formatAmount(amount, AmountFormat.SLOT_LARGE_FONT);
+                    amountText = key instanceof AEFluidKey ? ReadableNumberConverter.format(amount, 3) : key.formatAmount(amount, AmountFormat.SLOT_LARGE_FONT);
                 }
                 UIText.drawItemCount(graphics, amountText, x + 1, y + 1);
             }
@@ -335,7 +338,12 @@ public class AEKeySlot extends UIElement {
         else if (!carried.isEmpty()) lines = new ArrayList<>();
         else if (key != null) {
             lines = AEKeyRendering.getTooltip(key);
-            if (showAmount && Tooltips.shouldShowAmountTooltip(key, getAmount())) lines.add(Tooltips.getAmountTooltip(ButtonToolTips.StoredAmount, key, getAmount()));
+            if (showAmount) {
+                if (key instanceof AEFluidKey) {
+                    var amountText = FormattingUtil.formatNumbers(getAmount()) + " mB";
+                    lines.add(ButtonToolTips.StoredAmount.text(amountText).withStyle(Tooltips.MUTED_COLOR));
+                } else if (Tooltips.shouldShowAmountTooltip(key, getAmount())) lines.add(Tooltips.getAmountTooltip(ButtonToolTips.StoredAmount, key, getAmount()));
+            }
         } else lines = new ArrayList<>();
         lines.addAll(tooltipTexts);
         if (ElementState.showDisabledTooltip(this, mouseX, mouseY, lines)) return;
