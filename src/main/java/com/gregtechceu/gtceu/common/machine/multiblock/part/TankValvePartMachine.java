@@ -7,7 +7,7 @@ import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.InventoryProxyTrait;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
-import com.gregtechceu.gtceu.common.machine.multiblock.electric.MultiblockTankMachine;
+import com.gregtechceu.gtceu.common.machine.multiblock.primitive.MultiblockTankMachine;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 

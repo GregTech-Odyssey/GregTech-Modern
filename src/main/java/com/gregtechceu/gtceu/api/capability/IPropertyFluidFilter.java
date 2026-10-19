@@ -7,17 +7,17 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.fluids.FluidStack;
 
+import appeng.api.stacks.AEFluidKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.Predicate;
 
-public interface IPropertyFluidFilter extends Predicate<FluidStack> {
+public interface IPropertyFluidFilter extends Predicate<AEFluidKey> {
 
     @Override
-    default boolean test(@NotNull FluidStack stack) {
+    default boolean test(@NotNull AEFluidKey stack) {
         Fluid fluid = stack.getFluid();
         if (fluid instanceof GTFluid gtFluid) {
             return canContain(gtFluid.getState());

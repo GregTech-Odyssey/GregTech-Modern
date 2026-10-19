@@ -1,4 +1,4 @@
-package com.gregtechceu.gtceu.common.machine.multiblock.electric;
+package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
@@ -44,7 +44,7 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
     private final IKeyHandler<AEFluidKey> fluidHandler;
     private boolean handlerLocked = true;
 
-    public MultiblockTankMachine(MetaMachineBlockEntity holder, int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
+    public MultiblockTankMachine(MetaMachineBlockEntity holder, long capacity, @Nullable PropertyFluidFilter filter, Object... args) {
         super(holder);
         this.tank = createTank(capacity, filter, args);
         fluidHandler = new KeyHandlerView<>(tank) {
@@ -61,9 +61,9 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
         };
     }
 
-    protected NotifiableInventory<AEFluidKey> createTank(int capacity, @Nullable PropertyFluidFilter filter, Object... args) {
+    protected NotifiableInventory<AEFluidKey> createTank(long capacity, @Nullable PropertyFluidFilter filter, Object... args) {
         var fluidTank = NotifiableInventory.fluids(this, 1, capacity, IO.BOTH);
-        if (filter != null) fluidTank.setFilter(k -> k instanceof AEFluidKey fluidKey && filter.test(fluidKey.getReadOnlyStack()));
+        if (filter != null) fluidTank.setFilter(k -> k instanceof AEFluidKey fluidKey && filter.test(fluidKey));
         return fluidTank;
     }
 
