@@ -70,7 +70,7 @@ public final class MultiblockPage {
     private static final Component OFF_TEXT = Component.translatable(OFF);
 
     private final WorkableMultiblockMachine machine;
-    private final RecipeIOList recipeList;
+    private RecipeIOList recipeList;
     private final MachineScreen screen = MachineScreen.create();
     private final List<Widget> sections = new ArrayList<>();
     @Nullable
@@ -95,6 +95,11 @@ public final class MultiblockPage {
 
     public RecipeIOList getRecipeList() {
         return recipeList;
+    }
+
+    public MultiblockPage setRecipeList(RecipeIOList list) {
+        this.recipeList = list;
+        return this;
     }
 
     public MultiblockPage setScreen(ScreenSprite sprite) {

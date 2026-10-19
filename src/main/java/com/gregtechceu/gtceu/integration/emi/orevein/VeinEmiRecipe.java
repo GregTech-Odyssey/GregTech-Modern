@@ -71,7 +71,7 @@ public class VeinEmiRecipe implements EmiRecipe {
     public static VeinEmiRecipe bedrockFluid(BedrockFluidDefinition definition) {
         return new VeinEmiRecipe(GTBedrockFluidEmiCategory.CATEGORY, GTRegistries.BEDROCK_FLUID_DEFINITIONS.getKey(definition).withPrefix("/bedrock_fluid_diagram/"),
                 () -> VeinInfo.of(definition),
-                () -> List.of(EmiStack.of(definition.getStoredFluid().get())));
+                () -> List.of(EmiStack.of(definition.fluid())));
     }
 
     public static VeinEmiRecipe bedrockOre(BedrockOreDefinition definition) {

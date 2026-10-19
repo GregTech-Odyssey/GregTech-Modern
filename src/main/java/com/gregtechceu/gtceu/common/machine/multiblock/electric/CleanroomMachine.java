@@ -342,8 +342,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             case IMufflerMachine ignored -> true;
             case SimpleGeneratorMachine ignored -> true;
             case LargeMinerMachine ignored -> true;
-            case FluidDrillMachine ignored -> true;
-            case BedrockOreMinerMachine ignored -> true;
+            case VeinDrillMachine<?> ignored -> true;
             case CokeOvenMachine ignored -> true;
             case PrimitiveBlastFurnaceMachine ignored -> true;
             case PrimitivePumpMachine ignored -> true;

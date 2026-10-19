@@ -231,7 +231,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                         // 延时到服务端线程上的那次检查（requiresServerCheck 时是第二遍完整扫描）
                         structureCheckSampler.insertStart(holder.getOffsetTimer());
                         try {
-                            if (requiresServerCheck() && !checkPatternWithLock()) {
+                            if ((requiresServerCheck() || hasRemovedParts()) && !checkPatternWithLock()) {
                                 checking = false;
                                 return;
                             }
@@ -264,6 +264,13 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 structureCheckSampler.insertEnd();
             }
         }
+    }
+
+    private boolean hasRemovedParts() {
+        for (var part : getMultiblockState().getMatchContext().getParts()) {
+            if (part.self().isRemoved()) return true;
+        }
+        return false;
     }
 
     @OnlyIn(Dist.CLIENT)

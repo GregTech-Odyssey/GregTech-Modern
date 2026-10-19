@@ -1,16 +1,15 @@
 package com.gregtechceu.gtceu.api.gui.misc;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
-import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSavedData;
-import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.FluidVeinWorldEntry;
-import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreVeinSavedData;
+import com.gregtechceu.gtceu.api.data.worldgen.bedrock.BedrockVeinEntry;
+import com.gregtechceu.gtceu.api.data.worldgen.bedrock.BedrockVeinKind;
+import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
+import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
 import com.gregtechceu.gtceu.api.gui.texture.ProspectingTexture;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
-import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -36,6 +35,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 
+import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
+import com.gto.datasynclib.datastream.codec.StreamCodec;
+import com.gto.datasynclib.util.ByteBufCodecExtends;
 import com.gto.fastcollection.fastutil.O2IOpenCacheHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import me.kall.duplicationless.ext.RegistryEntry;
@@ -153,6 +155,12 @@ public abstract class ProspectorMode<T> {
 
     public static final class FluidInfo {
 
+        public static final StreamCodec<FriendlyByteBuf, FluidInfo> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecExtends.of(BuiltInRegistries.FLUID), FluidInfo::fluid,
+                ByteBufCodecs.VAR_INT, FluidInfo::yield,
+                ByteBufCodecs.VAR_INT, FluidInfo::left,
+                FluidInfo::new);
+
         private final Fluid fluid;
         private final int yield;
         private int left;
@@ -172,11 +180,12 @@ public abstract class ProspectorMode<T> {
             return tag;
         }
 
-        public static FluidInfo fromVeinWorldEntry(@NotNull FluidVeinWorldEntry savedData) {
-            if (savedData.getDefinition() == null) {
+        public static FluidInfo fromVeinWorldEntry(@NotNull BedrockVeinEntry<BedrockFluidDefinition> entry) {
+            var definition = entry.definition();
+            if (definition == null) {
                 return null;
             }
-            return new FluidInfo(savedData.getDefinition().getStoredFluid().get(), savedData.getFluidYield(), 100 * savedData.getOperationsRemaining() / BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS);
+            return new FluidInfo(definition.fluid(), entry.yield(), entry.remainingPercent());
         }
 
         public FluidInfo(final Fluid fluid, final int yield, final int left) {
@@ -211,8 +220,8 @@ public abstract class ProspectorMode<T> {
         @Override
         public void scan(FluidInfo[][][] storage, LevelChunk chunk) {
             if (chunk.getLevel() instanceof ServerLevel serverLevel) {
-                var fluidVein = BedrockFluidVeinSavedData.getOrCreate(serverLevel).getFluidVeinWorldEntry(chunk.getPos().x, chunk.getPos().z);
-                if (fluidVein.getDefinition() != null) {
+                var fluidVein = BedrockVeinKind.FLUID.data(serverLevel).entry(chunk.getPos().x, chunk.getPos().z);
+                if (fluidVein.definition() != null) {
                     storage[0][0] = new FluidInfo[] { FluidInfo.fromVeinWorldEntry(fluidVein) };
                 }
             }
@@ -244,14 +253,12 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void serialize(FluidInfo item, FriendlyByteBuf buf) {
-            buf.writeResourceLocation(GTUtil.FLUID_ID.apply(item.fluid));
-            buf.writeVarInt(item.yield);
-            buf.writeVarInt(item.left);
+            FluidInfo.STREAM_CODEC.encode(buf, item);
         }
 
         @Override
         public FluidInfo deserialize(FriendlyByteBuf buf) {
-            return new FluidInfo(BuiltInRegistries.FLUID.get(buf.readResourceLocation()), buf.readVarInt(), buf.readVarInt());
+            return FluidInfo.STREAM_CODEC.decode(buf);
         }
 
         @Override
@@ -283,18 +290,27 @@ public abstract class ProspectorMode<T> {
         }
     };
 
-    public record OreInfo(Material material, int weight, int left, int yield) {}
+    public record OreInfo(Material material, int weight, int left, int yield) {
+
+        public static final StreamCodec<FriendlyByteBuf, OreInfo> STREAM_CODEC = StreamCodec.composite(
+                Material.STREAM_CODEC, OreInfo::material,
+                ByteBufCodecs.VAR_INT, OreInfo::weight,
+                ByteBufCodecs.VAR_INT, OreInfo::left,
+                ByteBufCodecs.VAR_INT, OreInfo::yield,
+                OreInfo::new);
+    }
 
     public static ProspectorMode<OreInfo> BEDROCK_ORE = new ProspectorMode<>("metaitem.prospector.mode.bedrock_ore", 1) {
 
         @Override
         public void scan(OreInfo[][][] storage, LevelChunk chunk) {
             if (chunk.getLevel() instanceof ServerLevel serverLevel) {
-                var oreVein = BedrockOreVeinSavedData.getOrCreate(serverLevel).getOreVeinWorldEntry(chunk.getPos().x, chunk.getPos().z);
-                if (oreVein.getDefinition() != null) {
-                    var left = 100 * oreVein.getOperationsRemaining() / BedrockOreVeinSavedData.MAXIMUM_VEIN_OPERATIONS;
-                    for (var entry : oreVein.getDefinition().materials()) {
-                        storage[0][0] = ArrayUtils.add(storage[0][0], new OreInfo(entry.material(), entry.weight(), left, oreVein.getOreYield()));
+                var oreVein = BedrockVeinKind.ORE.data(serverLevel).entry(chunk.getPos().x, chunk.getPos().z);
+                var definition = oreVein.definition();
+                if (definition != null) {
+                    var left = oreVein.remainingPercent();
+                    for (var entry : definition.materials()) {
+                        storage[0][0] = ArrayUtils.add(storage[0][0], new OreInfo(entry.material(), entry.weight(), left, oreVein.yield()));
                     }
                 }
             }
@@ -307,17 +323,7 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public IGuiTexture getItemIcon(OreInfo item) {
-            Material material = item.material;
-            ItemStack stack = ChemicalHelper.get(TagPrefix.get(ConfigHolder.INSTANCE.machines.bedrockOreDropTagPrefix), material);
-            if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.crushed, material); // backup 1: crushed; if raw
-            // ore doesn't exist
-            if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.gem, material); // backup 2: gem; if crushed ore
-            // doesn't exist
-            if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.ore, material); // backup 3: ore; if gem doesn't
-            // exist
-            if (stack.isEmpty()) stack = ChemicalHelper.get(TagPrefix.dust, material); // backup 4: just fallback to
-            // dust...
-            return new ItemStackTexture(stack).scale(0.8F);
+            return new ItemStackTexture(BedrockOreDefinition.dropOf(item.material, 1)).scale(0.8F);
         }
 
         @Override
@@ -332,15 +338,12 @@ public abstract class ProspectorMode<T> {
 
         @Override
         public void serialize(OreInfo item, FriendlyByteBuf buf) {
-            GTCEuAPI.materialManager.streamCodec().encode(buf, item.material);
-            buf.writeVarInt(item.weight);
-            buf.writeVarInt(item.left);
-            buf.writeVarInt(item.yield);
+            OreInfo.STREAM_CODEC.encode(buf, item);
         }
 
         @Override
         public OreInfo deserialize(FriendlyByteBuf buf) {
-            return new OreInfo(GTCEuAPI.materialManager.streamCodec().decode(buf), buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
+            return OreInfo.STREAM_CODEC.decode(buf);
         }
 
         @Override

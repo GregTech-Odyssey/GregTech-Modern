@@ -1871,6 +1871,8 @@ public class LangHandler {
         provider.add("gtceu.multiblock.large_miner.working_area_chunks", "%sx%s Chunks");
         provider.add("gtceu.gui.recipe_io.inputs", "Inputs");
         provider.add("gtceu.gui.recipe_io.outputs", "Outputs");
+        provider.add("gtceu.gui.vein_drill.vein", "Vein: %s");
+        provider.add("gtceu.gui.vein_drill.no_vein", "None below");
         provider.add("gtceu.gui.recipe_io.none", "No active recipe");
         provider.add("gtceu.gui.recipe_io.not_consumed", "Not consumed");
         provider.add("gtceu.gui.recipe_io.per_second", "%s/s");

@@ -5,10 +5,9 @@ import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
+import com.gregtechceu.gtceu.api.data.worldgen.bedrock.BedrockVeinEntry;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
-import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidVeinSavedData;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
-import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreVeinSavedData;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -101,14 +100,14 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
 
     public static VeinInfo of(BedrockFluidDefinition definition) {
         var specs = new ArrayList<Spec>();
-        int min = definition.getMinimumYield();
-        int max = Math.max(min, definition.getMaximumYield() - 1);
+        int min = definition.minimumYield();
+        int max = Math.max(min, definition.maximumYield() - 1);
         specs.add(new Spec(YIELD, Component.literal(rangeText(min, max) + " mB")));
-        specs.add(new Spec(DEPLETED_YIELD, Component.literal(FormattingUtil.formatNumbers(definition.getDepletedYield()) + " mB")));
-        specs.add(new Spec(RESERVE, reserve(BedrockFluidVeinSavedData.MAXIMUM_VEIN_OPERATIONS, definition.getDepletionAmount(), definition.getDepletionChance())));
-        var name = Component.translatable("gtceu.jei.bedrock_fluid." + GTOreVeinWidget.getFluidName(definition));
-        var fluid = new FluidStack(definition.getStoredFluid().get(), 1000);
-        return new VeinInfo(name, definition.getWeight(), List.of(), fluid, specs, dimensions(definition.getDimensionFilter()), null);
+        specs.add(new Spec(DEPLETED_YIELD, Component.literal(FormattingUtil.formatNumbers(definition.depletedYield()) + " mB")));
+        specs.add(new Spec(RESERVE, reserve(BedrockVeinEntry.MAX_OPERATIONS, definition.depletionAmount(), definition.depletionChance())));
+        var name = definition.getName();
+        var fluid = new FluidStack(definition.fluid(), 1000);
+        return new VeinInfo(name, definition.weight(), List.of(), fluid, specs, dimensions(definition.dimensionFilter()), null);
     }
 
     public static VeinInfo of(BedrockOreDefinition definition) {
@@ -123,9 +122,9 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
         var yield = definition.yield();
         specs.add(new Spec(YIELD, range(yield.getMinValue(), yield.getMaxValue())));
         specs.add(new Spec(DEPLETED_YIELD, Component.literal(FormattingUtil.formatNumbers(definition.depletedYield()))));
-        specs.add(new Spec(RESERVE, reserve(BedrockOreVeinSavedData.MAXIMUM_VEIN_OPERATIONS, definition.depletionAmount(), definition.depletionChance())));
+        specs.add(new Spec(RESERVE, reserve(BedrockVeinEntry.MAX_OPERATIONS, definition.depletionAmount(), definition.depletionChance())));
         String id = GTOreVeinWidget.getBedrockOreName(definition);
-        var name = Component.translatable("gtceu.jei.bedrock_ore." + id);
+        var name = definition.getName();
         var preview = VeinPreview.of(definition, entries, id.hashCode());
         return new VeinInfo(name, definition.weight(), entries, FluidStack.EMPTY, specs, dimensions(definition.dimensionFilter()), preview);
     }

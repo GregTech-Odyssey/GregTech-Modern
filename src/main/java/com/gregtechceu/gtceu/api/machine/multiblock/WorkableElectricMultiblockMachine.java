@@ -107,7 +107,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         boolean generator = isGenerator();
         page.addLine(generator ? LANG_ENERGY_OUTPUT : LANG_ENERGY_USAGE, MultiblockPage.cached(() -> getScreenEnergyRate(generator),
                 ElectricText::power));
-        page.addLine(MultiblockPage.PARALLEL, MultiblockPage.cached(() -> {
+        if (hasParallelReadout()) page.addLine(MultiblockPage.PARALLEL, MultiblockPage.cached(() -> {
             var recipe = recipeLogic.isIdle() ? null : recipeLogic.getLastRecipe();
             return recipe == null ? 0 : recipe.parallels;
         }, parallels -> Component.literal(FormattingUtil.formatNumbers(parallels))));
@@ -116,6 +116,10 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         addScreenReadouts(page);
         page.addText(this::addScreenText, this::handleDisplayClick);
         addControls(page.getControls());
+    }
+
+    protected boolean hasParallelReadout() {
+        return true;
     }
 
     protected long getScreenEnergyRate(boolean generator) {

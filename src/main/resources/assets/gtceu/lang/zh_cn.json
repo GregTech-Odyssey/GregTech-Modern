@@ -2684,6 +2684,8 @@
     "gtceu.gui.multiblock.energy": "能量",
     "gtceu.gui.recipe_io.inputs": "输入",
     "gtceu.gui.recipe_io.outputs": "输出",
+    "gtceu.gui.vein_drill.vein": "矿脉：%s",
+    "gtceu.gui.vein_drill.no_vein": "下方没有矿脉",
     "gtceu.gui.recipe_io.none": "无运行中的配方",
     "gtceu.gui.recipe_io.not_consumed": "不消耗",
     "gtceu.gui.recipe_io.per_second": "%s/s",

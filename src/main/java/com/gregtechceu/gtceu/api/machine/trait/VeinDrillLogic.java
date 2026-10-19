@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
+import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 
 import net.minecraft.core.SectionPos;
@@ -14,7 +15,8 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * The vein cached by subclasses is not persisted, so after a world reload it is empty while a saved recipe
  * may still be running. Every recipe search therefore goes through {@link #findAndHandleRecipe()}, which
- * re-resolves the vein before building the next recipe.
+ * re-resolves the vein before building the next recipe. The vein is resolved before the energy tier is checked, so the
+ * machine can show what lies below it even while it cannot drill.
  */
 public abstract class VeinDrillLogic extends RecipeLogic {
 
@@ -49,9 +51,13 @@ public abstract class VeinDrillLogic extends RecipeLogic {
 
     @Override
     public boolean findAndHandleRecipe() {
-        if (!(getMachine().getLevel() instanceof ServerLevel serverLevel) || !canDrill()) return false;
+        if (!(getMachine().getLevel() instanceof ServerLevel serverLevel)) return false;
         lastRecipe = null;
         if (!resolveVein(serverLevel)) return false;
+        if (!canDrill()) {
+            machine.setIdleReason(ActionResult.FAIL_INSUFFICIENT_TIER);
+            return false;
+        }
         var match = buildDrillRecipe();
         return match != null && machine.matchTickRecipe(match) && machine.matchRecipeOutput(match) && setupRecipe(RecipeHandlerUnit.NO_DATA, match);
     }

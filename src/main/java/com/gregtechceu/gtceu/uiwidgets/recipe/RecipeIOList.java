@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.IntPredicate;
+import java.util.function.Supplier;
 
 /**
  * 多方块运行中配方的输入 / 输出清单：每行"图标 名称 …… 数量 · 速率"，数量与速率按 k/M/G 缩写，悬停看精确值。
@@ -135,6 +136,7 @@ public class RecipeIOList extends UIElement {
 
     private record Row(@Nullable Entry entry, int y, int height, String name, String amount, String rate, int tone, List<?> members) {}
 
+    @Nullable
     private final RecipeLogic logic;
     private final SyncValue<Snapshot> snapshot;
     @Nullable
@@ -151,17 +153,21 @@ public class RecipeIOList extends UIElement {
     private int rowsWidth = -1;
     private int rateColumn;
 
-    protected RecipeIOList(RecipeLogic logic) {
+    protected RecipeIOList(@Nullable RecipeLogic logic, @Nullable Supplier<Snapshot> source) {
         this.logic = logic;
         layout(l -> l.width(LayoutStyle.AUTO).height(TOP + HEADER));
-        this.snapshot = addSyncValue(SyncValue.of(this::current, CODEC, Snapshot.EMPTY).onChanged(value -> {
+        this.snapshot = addSyncValue(SyncValue.of(source == null ? this::current : source, CODEC, Snapshot.EMPTY).onChanged(value -> {
             rowsWidth = -1;
             layout(l -> l.height(heightFor(value)));
         }));
     }
 
     public static RecipeIOList of(RecipeLogic logic) {
-        return new RecipeIOList(logic);
+        return new RecipeIOList(logic, null);
+    }
+
+    public static RecipeIOList of(Supplier<Snapshot> source) {
+        return new RecipeIOList(null, source);
     }
 
     public RecipeIOList setFluidOutputBlocked(IntPredicate blocked, String shortKey, String detailKey) {
@@ -182,7 +188,7 @@ public class RecipeIOList extends UIElement {
     }
 
     private Snapshot current() {
-        var recipe = logic.isIdle() ? null : logic.getLastRecipe();
+        var recipe = logic == null || logic.isIdle() ? null : logic.getLastRecipe();
         long blocked = recipe == null ? 0 : blockedMask(recipe.fluidOutputs.size());
         if (recipe == cachedRecipe && blocked == cachedBlocked) return cached;
         cachedRecipe = recipe;

@@ -2,11 +2,14 @@ package com.gregtechceu.gtceu.common.data.machines;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.data.worldgen.bedrock.BedrockVeinKind;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.CoilWorkableElectricMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Piece;
@@ -42,6 +45,7 @@ import appeng.api.networking.pathing.ChannelMode;
 import appeng.core.AEConfig;
 
 import java.util.Locale;
+import java.util.function.BiFunction;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.pattern.Predicates.*;
@@ -581,42 +585,10 @@ public class GTMultiMachines {
                     .register(),
             LuV, ZPM, UV);
 
-    public static final MultiblockMachineDefinition[] FLUID_DRILLING_RIG = registerTieredMultis(
-            "fluid_drilling_rig", FluidDrillMachine::new, (tier, builder) -> builder
-                    .nonYAxisRotation()
-                    .langValue("%s Fluid Drilling Rig%s".formatted(VLVH[tier], VLVT[tier]))
-                    .recipeType(DUMMY_RECIPES)
-                    .tips(
-                            Tips.feature(Component.translatable("gtceu.machine.fluid_drilling_rig.description")),
-                            Tips.stat(Component.translatable("gtceu.machine.fluid_drilling_rig.depletion",
-                                    FormattingUtil.formatNumbers(100.0 / FluidDrillMachine.getDepletionChance(tier)))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.energy_tier_range", GTValues.VNF[tier],
-                                    GTValues.VNF[tier + 1])),
-                            Tips.stat(Component.translatable("gtceu.machine.fluid_drilling_rig.production",
-                                    FluidDrillMachine.getRigMultiplier(tier),
-                                    FormattingUtil.formatNumbers(FluidDrillMachine.getRigMultiplier(tier) * 1.5))))
-                    .appearanceBlock(() -> FluidDrillMachine.getCasingState(tier))
-                    .structure((definition) -> {
-                        var symbols = Symbols.create()
-                                .where('S', controller(definition))
-                                .wherePart('X', blocks(FluidDrillMachine.getCasingState(tier)).setMinGlobalLimited(3)
-                                        .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
-                                                .setMaxGlobalLimited(2))
-                                        .or(abilities(PartAbility.EXPORT_FLUIDS).setMaxGlobalLimited(1)))
-                                .where('C', blocks(FluidDrillMachine.getCasingState(tier)))
-                                .where('F', blocks(FluidDrillMachine.getFrameState(tier)))
-                                .where('#', any());
-                        var piece = Piece.start(LEFT, UP, FRONT)
-                                .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
-                                .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
-                                .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
-                                .build();
-                        return Structure.root(piece).symbols(symbols).build();
-                    })
-                    .workableCasingRenderer(FluidDrillMachine.getBaseTexture(tier),
-                            GTCEu.id("block/multiblock/fluid_drilling_rig"))
-                    .register(),
-            MV, HV, EV);
+    public static final MultiblockMachineDefinition[] FLUID_DRILLING_RIG = registerVeinDrill("fluid_drilling_rig",
+            "%s Fluid Drilling Rig%s", FluidDrillMachine::new, BedrockVeinKind.FLUID, PartAbility.EXPORT_FLUIDS,
+            "gtceu.machine.fluid_drilling_rig.description", "gtceu.machine.fluid_drilling_rig.depletion",
+            "gtceu.machine.fluid_drilling_rig.production");
 
     public static final MultiblockMachineDefinition[] LARGE_MINER = registerTieredMultis("large_miner",
             (holder, tier) -> new LargeMinerMachine(holder, tier, 64 / tier, 2 * tier - 5, tier, 8 - (tier - 5)),
@@ -820,45 +792,10 @@ public class GTMultiMachines {
                     GTCEu.id("block/multiblock/charcoal_pile_igniter"))
             .register();
 
-    public static MultiblockMachineDefinition[] BEDROCK_ORE_MINER = registerTieredMultis(
-            "bedrock_ore_miner", BedrockOreMinerMachine::new, (tier, builder) -> builder
-                    .nonYAxisRotation()
-                    .langValue("%s Bedrock Ore Miner%s".formatted(VLVH[tier], VLVT[tier]))
-                    .recipeType(DUMMY_RECIPES)
-                    .tips(
-                            Tips.feature(Component.translatable("gtceu.machine.bedrock_ore_miner.description")),
-                            Tips.stat(Component.translatable("gtceu.machine.bedrock_ore_miner.depletion",
-                                    FormattingUtil.formatNumbers(
-                                            100.0 / BedrockOreMinerMachine.getDepletionChance(tier)))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.energy_tier_range",
-                                    GTValues.VNF[tier], GTValues.VNF[tier + 1])),
-                            Tips.stat(Component.translatable("gtceu.machine.bedrock_ore_miner.production",
-                                    BedrockOreMinerMachine.getRigMultiplier(tier),
-                                    FormattingUtil.formatNumbers(
-                                            BedrockOreMinerMachine.getRigMultiplier(tier) * 1.5))))
-                    .appearanceBlock(() -> BedrockOreMinerMachine.getCasingState(tier))
-                    .structure((definition) -> {
-                        var symbols = Symbols.create()
-                                .where('S', controller(definition))
-                                .wherePart('X',
-                                        blocks(BedrockOreMinerMachine.getCasingState(tier)).setMinGlobalLimited(3)
-                                                .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
-                                                        .setMaxGlobalLimited(2))
-                                                .or(abilities(PartAbility.EXPORT_ITEMS).setMaxGlobalLimited(1)))
-                                .where('C', blocks(BedrockOreMinerMachine.getCasingState(tier)))
-                                .where('F', blocks(BedrockOreMinerMachine.getFrameState(tier)))
-                                .where('#', any());
-                        var piece = Piece.start(LEFT, UP, FRONT)
-                                .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
-                                .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
-                                .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
-                                .build();
-                        return Structure.root(piece).symbols(symbols).build();
-                    })
-                    .workableCasingRenderer(BedrockOreMinerMachine.getBaseTexture(tier),
-                            GTCEu.id("block/multiblock/bedrock_ore_miner"))
-                    .register(),
-            MV, HV, EV);
+    public static final MultiblockMachineDefinition[] BEDROCK_ORE_MINER = registerVeinDrill("bedrock_ore_miner",
+            "%s Bedrock Ore Miner%s", BedrockOreMinerMachine::new, BedrockVeinKind.ORE, PartAbility.EXPORT_ITEMS,
+            "gtceu.machine.bedrock_ore_miner.description", "gtceu.machine.bedrock_ore_miner.depletion",
+            "gtceu.machine.bedrock_ore_miner.production");
 
     // Multiblock Tanks
     public static final MachineDefinition WOODEN_TANK_VALVE = GTMachineUtils.registerTankValve(
@@ -891,6 +828,48 @@ public class GTMultiMachines {
             null,
             (builder, overlay) -> builder.workableCasingRenderer(
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));
+
+    private static MultiblockMachineDefinition[] registerVeinDrill(String name, String lang,
+                                                                   BiFunction<MetaMachineBlockEntity, Integer, MultiblockControllerMachine> factory,
+                                                                   BedrockVeinKind<?> kind, PartAbility output,
+                                                                   String descriptionKey, String depletionKey, String productionKey) {
+        return registerTieredMultis(name, factory, (tier, builder) -> {
+            var drill = VeinDrillTier.of(tier);
+            return builder
+                    .nonYAxisRotation()
+                    .langValue(lang.formatted(VLVH[tier], VLVT[tier]))
+                    .recipeType(DUMMY_RECIPES)
+                    .tips(
+                            Tips.feature(Component.translatable(descriptionKey)),
+                            Tips.stat(Component.translatable(depletionKey,
+                                    FormattingUtil.formatNumbers(100.0 / kind.depletionChance(tier)))),
+                            Tips.stat(Component.translatable("gtceu.universal.tooltip.energy_tier_range", GTValues.VNF[tier],
+                                    GTValues.VNF[tier + 1])),
+                            Tips.stat(Component.translatable(productionKey,
+                                    kind.rigMultiplier(tier),
+                                    FormattingUtil.formatNumbers(kind.rigMultiplier(tier) * 1.5))))
+                    .appearanceBlock(drill::casing)
+                    .structure((definition) -> {
+                        var symbols = Symbols.create()
+                                .where('S', controller(definition))
+                                .wherePart('X', blocks(drill.casing()).setMinGlobalLimited(3)
+                                        .or(abilities(PartAbility.INPUT_ENERGY).setMinGlobalLimited(1)
+                                                .setMaxGlobalLimited(2))
+                                        .or(abilities(output).setMaxGlobalLimited(1)))
+                                .where('C', blocks(drill.casing()))
+                                .where('F', blocks(drill.frame()))
+                                .where('#', any());
+                        var piece = Piece.start(LEFT, UP, FRONT)
+                                .aisle("XXX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .aisle("XXX", "FCF", "FCF", "FCF", "#F#", "#F#", "#F#")
+                                .aisle("XSX", "#F#", "#F#", "#F#", "###", "###", "###")
+                                .build();
+                        return Structure.root(piece).symbols(symbols).build();
+                    })
+                    .workableCasingRenderer(drill.texture(), GTCEu.id("block/multiblock/" + name))
+                    .register();
+        }, MV, HV, EV);
+    }
 
     public static void init() {}
 }
