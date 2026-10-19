@@ -2,22 +2,20 @@ package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
+import com.gregtechceu.gtceu.uiwidgets.number.NumberSettingPage;
 
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.gui.widget.SwitchWidget;
-import com.lowdragmc.lowdraglib.gui.widget.TextFieldWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
@@ -27,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CreativeComputationProviderMachine extends MetaMachine implements IUIMachine, IOpticalComputationHatch {
+public class CreativeComputationProviderMachine extends MetaMachine implements IFancyUIMachine, IOpticalComputationHatch {
 
     @SaveToDisk(defaultValue = "0")
     private long maxCWUt;
@@ -77,11 +75,24 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     public void setActive(boolean active) {
         this.active = active;
         updateComputationSubscription();
+        markAsDirty();
     }
 
     @Override
-    public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(140, 95, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(7, 7, "CWUt")).widget(new TextFieldWidget(9, 20, 122, 16, () -> String.valueOf(maxCWUt), value -> maxCWUt = Long.parseLong(value)).setNumbersOnly(0, Long.MAX_VALUE)).widget(new LabelWidget(7, 42, "gtceu.creative.computation.average")).widget(new LabelWidget(7, 54, () -> String.valueOf(lastRequestedCWUt))).widget(new SwitchWidget(9, 66, 122, 20, (clickData, value) -> setActive(value)).setSupplier(this::isActive).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))));
+    public Widget createUIWidget() {
+        var status = new StatusPanel();
+        status.addLine("gtceu.creative.computation.average", MultiblockPage.numberText(() -> lastRequestedCWUt, "CWU/t"));
+        var settings = NumberSettingPage.create(Component.literal("CWU/t"), () -> maxCWUt, value -> {
+            maxCWUt = value;
+            markAsDirty();
+        }, () -> 0, () -> Long.MAX_VALUE);
+        settings.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isActive, this::setActive)));
+        return Form.page().addChildren(status, settings);
+    }
+
+    @Override
+    public boolean hasPlayerInventory() {
+        return false;
     }
 
     @Override
