@@ -83,7 +83,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     protected NotifiableInventory<AEFluidKey> createCacheFluidHandler(Object... args) {
         var inventory = NotifiableInventory.fluids(this, 1, maxStoredFluids, IO.BOTH);
         var pipe = material.getProperty(PropertyKey.FLUID_PIPE);
-        if (pipe != null) inventory.setFilter(key -> key instanceof AEFluidKey fluid && pipe.test(Keys.displayFluid(fluid)));
+        if (pipe != null) inventory.setFilter(key -> key instanceof AEFluidKey fluid && pipe.test(fluid));
         return inventory;
     }
 

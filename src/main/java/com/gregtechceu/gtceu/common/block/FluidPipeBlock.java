@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.common.blockentity.FluidPipeBlockEntity;
 import com.gregtechceu.gtceu.common.data.GTBlockEntities;
 import com.gregtechceu.gtceu.common.pipelike.fluid.FluidPipeType;
 import com.gregtechceu.gtceu.common.pipelike.fluid.LevelFluidPipeNet;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -69,7 +70,16 @@ public class FluidPipeBlock extends MaterialPipeBlock<FluidPipeType, FluidPipePr
                                 TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
         FluidPipeProperties properties = createProperties(defaultBlockState(), stack);
-        tooltip.add(Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_transfer_rate", properties.getThroughput())));
+        tooltip.add(Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_transfer_rate",
+                properties.getThroughput())));
+        if (GTUtil.isShiftDown()) {
+            tooltip.add(Tips.stat(Component.translatable("gtceu.fluid_pipe.max_temperature",
+                    properties.getMaxTemp())));
+            if (properties.isCryoProof()) {
+                tooltip.add(Tips.supported(Component.translatable("gtceu.fluid_pipe.cryo_proof")));
+            }
+        }
+        properties.appendTooltips(tooltip, false, true);
     }
 
     @Override

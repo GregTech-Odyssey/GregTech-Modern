@@ -85,7 +85,12 @@ public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, Fl
         if (minProperties == null) {
             minProperties = pipeProperties;
         } else {
-            minProperties = new FluidPipeProperties(Math.min(minProperties.getThroughput(), pipeProperties.getThroughput()));
+            minProperties = new FluidPipeProperties(
+                    Math.min(minProperties.getThroughput(), pipeProperties.getThroughput()),
+                    Math.min(minProperties.getMaxTemp(), pipeProperties.getMaxTemp()),
+                    minProperties.isGasProof() && pipeProperties.isGasProof(),
+                    minProperties.isCryoProof() && pipeProperties.isCryoProof(),
+                    minProperties.isPlasmaProof() && pipeProperties.isPlasmaProof());
         }
     }
 

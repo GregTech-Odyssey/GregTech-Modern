@@ -54,11 +54,20 @@ public final class FluidPipeNet extends PipeNet<FluidPipeProperties> {
     @Override
     protected void writeNodeData(FluidPipeProperties nodeData, CompoundTag tagCompound) {
         tagCompound.putInt("throughput", nodeData.getThroughput());
+        tagCompound.putInt("maxTemp", nodeData.getMaxTemp());
+        tagCompound.putBoolean("gasProof", nodeData.isGasProof());
+        tagCompound.putBoolean("cryoProof", nodeData.isCryoProof());
+        tagCompound.putBoolean("plasmaProof", nodeData.isPlasmaProof());
     }
 
     @Override
     protected FluidPipeProperties readNodeData(CompoundTag tagCompound) {
         int throughput = tagCompound.getInt("throughput");
-        return new FluidPipeProperties(throughput);
+        // old save data only stored the throughput, fall back to the most permissive values
+        int maxTemp = tagCompound.contains("maxTemp") ? tagCompound.getInt("maxTemp") : Integer.MAX_VALUE;
+        boolean gasProof = !tagCompound.contains("gasProof") || tagCompound.getBoolean("gasProof");
+        boolean cryoProof = tagCompound.getBoolean("cryoProof");
+        boolean plasmaProof = tagCompound.getBoolean("plasmaProof");
+        return new FluidPipeProperties(throughput, maxTemp, gasProof, cryoProof, plasmaProof);
     }
 }

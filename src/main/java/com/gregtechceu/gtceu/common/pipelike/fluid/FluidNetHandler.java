@@ -223,6 +223,7 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
         // abort if there are two pump
         if (pipePump && tilePump) return 0;
         if (tileCover != null && !checkImportCover(tileCover, false, key)) return 0;
+        if (!pipe.getNodeData().canTransfer(key)) return 0;
         return fillFirst(key, amount, simulate);
     }
 

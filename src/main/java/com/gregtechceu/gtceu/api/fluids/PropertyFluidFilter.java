@@ -8,8 +8,8 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 public class PropertyFluidFilter implements IPropertyFluidFilter {
 
-    private final boolean gasProof;
-    private final boolean plasmaProof;
+    protected final boolean gasProof;
+    protected final boolean plasmaProof;
 
     public PropertyFluidFilter(boolean gasProof, boolean plasmaProof) {
         this.gasProof = gasProof;
