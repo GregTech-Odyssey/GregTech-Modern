@@ -132,6 +132,8 @@ public class BedrockOreVeinSavedData extends SavedData {
             int radius = definition.size() / 2;
             for (int x = pos.x - radius; x <= pos.x + radius; ++x) {
                 for (int z = pos.z - radius; z <= pos.z + radius; ++z) {
+                    var existing = veinOres.get(ChunkPos.asLong(x, z));
+                    if (existing != null && existing.getDefinition() != null) continue;
                     float distanceFromOriginal = Math.abs(pos.x - x) + Math.abs(pos.z - z);
                     distanceFromOriginal = distanceFromOriginal == 0 ? 1 : distanceFromOriginal;
                     distanceFromOriginal = (float) Math.pow(distanceFromOriginal, 2);

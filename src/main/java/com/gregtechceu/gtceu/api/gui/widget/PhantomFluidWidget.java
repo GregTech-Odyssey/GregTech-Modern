@@ -12,7 +12,6 @@ import com.lowdragmc.lowdraglib.gui.editor.annotation.LDLRegister;
 import com.lowdragmc.lowdraglib.gui.ingredient.IGhostIngredientTarget;
 import com.lowdragmc.lowdraglib.gui.ingredient.Target;
 
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Unit;
@@ -33,7 +32,6 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.GenericStack;
 import com.google.common.collect.Lists;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
-import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.api.stack.EmiStack;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -277,19 +275,12 @@ public class PhantomFluidWidget extends TankWidget implements IGhostIngredientTa
     }
 
     @Override
+    @Nullable
     @OnlyIn(Dist.CLIENT)
-    public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        if (this.lastFluidInTank != null) {
-            super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
-            return;
-        }
+    protected FluidStack renderedFluid() {
+        if (this.lastFluidInTank != null) return this.lastFluidInTank;
         FluidStack stack = isClientSideWidget ? (phantomFluidGetter == null ? null : phantomFluidGetter.get()) : syncedPhantom;
-        if (stack != null && !stack.isEmpty()) {
-            RenderSystem.disableBlend();
-            drawFluidContent(graphics, stack, showAmount);
-            RenderSystem.enableBlend();
-            RenderSystem.setShaderColor(1, 1, 1, 1);
-        }
+        return stack == null || stack.isEmpty() ? null : stack;
     }
 
     @Nullable

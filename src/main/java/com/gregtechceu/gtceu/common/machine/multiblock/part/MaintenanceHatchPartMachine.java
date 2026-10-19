@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
@@ -18,16 +17,15 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.handler.ActionResult;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
-import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
+import com.gregtechceu.gtceu.uiwidgets.maintenance.MaintenanceReadouts;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
-import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.*;
@@ -35,8 +33,6 @@ import com.lowdragmc.lowdraglib.gui.widget.*;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -62,7 +58,6 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.DoubleSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -76,6 +71,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     private static final String DURATION_LABEL = "gtceu.maintenance.configurable_duration.label";
     private static final String TAPE_LABEL = "gtceu.machine.maintenance_hatch.tape";
     private static final String FIX_LABEL = "gtceu.machine.maintenance_hatch.fix";
+    private static final String TAPE_TOOLTIP = "gtceu.machine.maintenance_hatch_tape_slot.tooltip";
     @Getter
     private final boolean isConfigurable;
     @SaveToDisk
@@ -336,10 +332,39 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
 
     @Override
     public float getTimeMultiplier() {
-        var result = 1.0F;
+        return timeMultiplierOf(durationMultiplier);
+    }
+
+    public static float timeMultiplierOf(float durationMultiplier) {
+        float result;
         if (durationMultiplier < 1.0) result = -20 * durationMultiplier + 21;
         else result = -8 * durationMultiplier + 9;
         return BigDecimal.valueOf(result).setScale(2, RoundingMode.HALF_UP).floatValue();
+    }
+
+    public static TipSpec configurableTips() {
+        return TipSpec.builder()
+                .summary(Component.translatable("gtceu.machine.maintenance_hatch_configurable.summary"))
+                .stats(l -> l.statText(Component.translatable("gtceu.machine.maintenance_hatch_configurable.range",
+                        twoPlaces(MIN_DURATION_MULTIPLIER), twoPlaces(MAX_DURATION_MULTIPLIER))))
+                .group(Component.translatable("gtceu.machine.maintenance_hatch_configurable.effects"), l -> {
+                    for (float m : new float[] { MIN_DURATION_MULTIPLIER, 1.0F, MAX_DURATION_MULTIPLIER }) {
+                        l.formula(Component.translatable("gtceu.machine.maintenance_hatch_configurable.effect",
+                                twoPlaces(m), twoPlaces(timeMultiplierOf(m))));
+                    }
+                    l.feature(Component.translatable("gtceu.machine.maintenance_hatch_configurable.tape"));
+                })
+                .details(null, l -> {
+                    l.detail(Component.translatable("gtceu.machine.maintenance_hatch_configurable.before_overclock"));
+                    l.detail(Component.translatable("gtceu.machine.maintenance_hatch_configurable.buildup"));
+                    l.formula(Component.translatable("gtceu.machine.maintenance_hatch_configurable.formula_low"));
+                    l.formula(Component.translatable("gtceu.machine.maintenance_hatch_configurable.formula_high"));
+                })
+                .build();
+    }
+
+    private static String twoPlaces(float value) {
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     //////////////////////////////////////
@@ -362,39 +387,26 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        if (isConfigurable) {
-            return MachineDisplay.page(this, list -> {
-                list.add(getTextWidgetText("duration", this::getDurationMultiplier));
-                list.add(getTextWidgetText("time", this::getTimeMultiplier));
-            }, controls -> {
-                var tapeSlot = ItemSlot.of(itemStackHandler.storage, 0);
-                tapeSlot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.DUCT_TAPE_OVERLAY));
-                tapeSlot.tooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip");
-                var fixButton = Button.icon(UISizes.SLOT_SIZE, GuiTextures.MAINTENANCE_BUTTON).tooltips("gtceu.machine.maintenance_hatch_tool_slot.tooltip");
-                fixButton.setOnServerClick(() -> fixMaintenanceProblems(fixButton.getGui().entityPlayer));
-                controls.addSlot(tapeSlot, TAPE_LABEL, ControlPanel.contentName(itemStackHandler.storage, 0), "gtceu.machine.maintenance_hatch_tape_slot.tooltip");
-                controls.addSlot(fixButton, FIX_LABEL, null, "gtceu.machine.maintenance_hatch_tool_slot.tooltip");
+        return MachineDisplay.screenPage(this, screen -> {
+            MaintenanceReadouts.addState(screen, this);
+            MaintenanceReadouts.addProblems(screen, this);
+            MaintenanceReadouts.addWear(screen, this);
+            if (isConfigurable) {
+                MaintenanceReadouts.addDuration(screen, this::getDurationMultiplier);
+                MaintenanceReadouts.addWearRate(screen, this::getTimeMultiplier);
+            }
+        }, controls -> {
+            var tapeSlot = ItemSlot.of(itemStackHandler.storage, 0);
+            tapeSlot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.DUCT_TAPE_OVERLAY));
+            tapeSlot.tooltips(TAPE_TOOLTIP);
+            controls.addSlot(tapeSlot, TAPE_LABEL, ControlPanel.contentName(itemStackHandler.storage, 0), TAPE_TOOLTIP);
+            controls.addServerButton(FIX_LABEL, MaintenanceReadouts.REPAIR, this::fixMaintenanceProblems, MaintenanceReadouts.REPAIR_TOOLTIP)
+                    .disabled(() -> !hasMaintenanceProblems(), MaintenanceReadouts.NO_PROBLEMS);
+            if (isConfigurable) {
                 controls.addDecimal(DURATION_LABEL, () -> durationMultiplier, value -> durationMultiplier = (float) value,
-                        MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER, DURATION_STEP);
-            });
-        }
-        var group = new WidgetGroup(0, 0, 8 + 18, 8 + 20 + 18);
-        group.addWidget(new SlotWidget(itemStackHandler.storage, 0, group.getSize().width - 4 - 18, 4).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.DUCT_TAPE_OVERLAY)).setHoverTooltips("gtceu.machine.maintenance_hatch_tape_slot.tooltip"));
-        group.addWidget(new ButtonWidget(group.getSize().width - 4 - 18, 4 + 20, 18, 18, GuiTextures.MAINTENANCE_BUTTON, data -> {
-            if (!data.isRemote) fixMaintenanceProblems(group.getGui().entityPlayer);
-        }).setHoverTooltips("gtceu.machine.maintenance_hatch_tool_slot.tooltip"));
-        group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        return group;
-    }
-
-    private static Component getTextWidgetText(String type, DoubleSupplier multiplier) {
-        Component tooltip;
-        if (multiplier.getAsDouble() == 1.0) {
-            tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".unchanged_description");
-        } else {
-            tooltip = Component.translatable("gtceu.maintenance.configurable_" + type + ".changed_description", FormattingUtil.formatNumber2Places(multiplier.getAsDouble()));
-        }
-        return Component.translatable("gtceu.maintenance.configurable_" + type, FormattingUtil.formatNumber2Places(multiplier.getAsDouble())).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, tooltip)));
+                        MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER, DURATION_STEP, MaintenanceReadouts.DURATION_TOOLTIP);
+            }
+        });
     }
 
     private static class BeltAdapter {

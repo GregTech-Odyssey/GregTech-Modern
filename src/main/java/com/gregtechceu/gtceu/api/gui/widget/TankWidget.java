@@ -303,6 +303,12 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
         return ForgeEmiStack.of(lastFluidInTank).setChance(XEIChance);
     }
 
+    @Nullable
+    @OnlyIn(Dist.CLIENT)
+    protected FluidStack renderedFluid() {
+        return lastFluidInTank;
+    }
+
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
@@ -319,7 +325,7 @@ public class TankWidget extends Widget implements IRecipeIngredientSlot, IConfig
                 this.lastFluidInTank.setAmount(fluidStack.getAmount());
             }
         }
-        var renderedFluid = lastFluidInTank;
+        var renderedFluid = renderedFluid();
         if (renderedFluid != null) {
             RenderSystem.disableBlend();
             drawFluidContent(graphics, renderedFluid, showAmount && showAmountOverlay);

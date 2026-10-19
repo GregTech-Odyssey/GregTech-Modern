@@ -71,6 +71,10 @@ public interface IMaintenanceMachine extends IMultiPart {
         return 1;
     }
 
+    default float getFailureOnset() {
+        return 1;
+    }
+
     @Override
     default boolean canShared() {
         return false;

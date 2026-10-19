@@ -164,16 +164,21 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
 
     @Override
     public <T> T[] getParts(Class<T> type) {
+        resolveMissingParts();
         return partByClass.getInstance(type);
     }
 
     @Override
     public IMultiPart[] getParts() {
-        // for the client side, when the chunk unloaded
+        resolveMissingParts();
+        return this.parts;
+    }
+
+    // for the client side: part block entities may load after partPositions arrives, or the chunk unloaded
+    private void resolveMissingParts() {
         if (parts.length != this.partPositions.length) {
             onPartsUpdated(this.partPositions, this.partPositions);
         }
-        return this.parts;
     }
 
     //////////////////////////////////////

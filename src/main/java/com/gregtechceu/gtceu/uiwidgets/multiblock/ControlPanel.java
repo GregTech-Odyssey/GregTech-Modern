@@ -21,6 +21,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
@@ -28,6 +29,7 @@ import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntConsumer;
@@ -156,6 +158,17 @@ public final class ControlPanel {
     public UIElement addServerButton(String labelKey, String buttonKey, Runnable onServerClick, String... tooltipKeys) {
         var button = Button.translatable(UISizes.BUTTON_WIDTH, buttonKey).setOnServerClick(() -> {
             onServerClick.run();
+            machine.onChanged();
+        });
+        return add(Form.controlRow(ROW_HEIGHT, labelKey, button, tooltipKeys));
+    }
+
+    public UIElement addServerButton(String labelKey, String buttonKey, Consumer<Player> onServerClick, String... tooltipKeys) {
+        var button = Button.translatable(UISizes.BUTTON_WIDTH, buttonKey);
+        button.setOnServerClick(() -> {
+            var gui = button.getGui();
+            if (gui == null || gui.entityPlayer == null) return;
+            onServerClick.accept(gui.entityPlayer);
             machine.onChanged();
         });
         return add(Form.controlRow(ROW_HEIGHT, labelKey, button, tooltipKeys));

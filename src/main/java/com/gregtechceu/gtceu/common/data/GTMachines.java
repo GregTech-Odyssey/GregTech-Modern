@@ -761,8 +761,10 @@ public class GTMachines {
     public static final MachineDefinition CONFIGURABLE_MAINTENANCE_HATCH = REGISTRATE
             .machine("configurable_maintenance_hatch",
                     (blockEntity) -> new MaintenanceHatchPartMachine(blockEntity, true))
+            .langValue("Load Regulating Maintenance Hatch")
             .allRotation()
             .abilities(PartAbility.MAINTENANCE)
+            .tips(MaintenanceHatchPartMachine.configurableTips())
             .tips(Tips.stat(Component.translatable("gtceu.part_sharing.disabled")))
             .renderer(
                     () -> new MaintenanceHatchPartRenderer(3, GTCEu.id("block/machine/part/maintenance.configurable")))

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -30,7 +31,11 @@ public final class ElectricText {
     }
 
     public static Component tier(int tier) {
-        return Component.literal(GTValues.VNF[tier]);
+        return Component.literal(tierName(tier));
+    }
+
+    private static String tierName(int tier) {
+        return GTValues.VNF[tier] + ChatFormatting.RESET;
     }
 
     public static MutableComponent voltage(long voltage) {
@@ -38,7 +43,7 @@ public final class ElectricText {
     }
 
     public static MutableComponent voltage(long voltage, int tier) {
-        return Component.translatable("gtceu.electric.voltage", FormattingUtil.formatNumbers(voltage), GTValues.VNF[tier]);
+        return Component.translatable("gtceu.electric.voltage", FormattingUtil.formatNumbers(voltage), tierName(tier));
     }
 
     public static MutableComponent amps(double amps) {
@@ -54,7 +59,7 @@ public final class ElectricText {
     }
 
     public static MutableComponent flow(double amps, int tier) {
-        return Component.translatable("gtceu.electric.flow", ampsValue(amps), GTValues.VNF[tier]);
+        return Component.translatable("gtceu.electric.flow", ampsValue(amps), tierName(tier));
     }
 
     public static MutableComponent flow(double amps, Component tierName) {
@@ -87,11 +92,11 @@ public final class ElectricText {
     }
 
     public static MutableComponent energy(long eu, int tier) {
-        return energyText(eu, tier, GTValues.VNF[tier]);
+        return energyText(eu, tier, tierName(tier));
     }
 
     public static MutableComponent energy(double eu, int tier) {
-        return energyText(eu, tier, GTValues.VNF[tier]);
+        return energyText(eu, tier, tierName(tier));
     }
 
     public static MutableComponent energy(double eu, int tier, Component tierName) {
@@ -99,7 +104,7 @@ public final class ElectricText {
     }
 
     public static MutableComponent energy(BigInteger eu, int tier) {
-        return energyText(eu.doubleValue(), tier, GTValues.VNF[tier]);
+        return energyText(eu.doubleValue(), tier, tierName(tier));
     }
 
     private static MutableComponent energyText(double eu, int tier, Object tierName) {
@@ -119,7 +124,7 @@ public final class ElectricText {
     }
 
     public static MutableComponent charge(long current, long max, int tier) {
-        return charge(current, max, tier, GTValues.VNF[tier]);
+        return charge(current, max, tier, tierName(tier));
     }
 
     public static MutableComponent charge(double current, double max, int tier, String tierName) {

@@ -28,6 +28,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.ThemeSkin;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.modular.IUIHolder;
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
@@ -1328,7 +1329,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     /**
      * 窗口内第一行：{@code [<]} 返回（有历史时）、页面图标、中段（默认是页面标题，页面可用 {@link #setTitleContent} 换成自己的控件）、
      * 右侧 GTM 悬浮说明图标（{@link IFancyTooltip}，12 见方，悬停显示说明；按已挂上的个数预留位置）、{@code [▦]}
-     * 页面按钮（{@link UITheme#PAGES}，打开页面切换页，多于一页时）。
+     * 页面按钮（{@link WidgetIcons#PAGES}，打开页面切换页，多于一页时）。
      * 两端在每次切换页面时一起重建子控件，控件树保持一致。
      */
     private final class WindowTitleBar extends WidgetGroup {
@@ -1370,7 +1371,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             }
             if (showMenu) {
                 right -= UISizes.ICON_BUTTON_SIZE;
-                var menu = Button.icon(UITheme.PAGES).setOnClientClick(MachineWindow.this::requestPageSwitcher);
+                var menu = Button.icon(WidgetIcons.PAGES).setOnClientClick(MachineWindow.this::requestPageSwitcher);
                 menu.tooltips("gtceu.gui.title_bar.page_switcher");
                 menu.setSelfPosition(new Position(right, 0));
                 addWidget(menu);

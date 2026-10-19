@@ -181,7 +181,7 @@ public class CanvasView extends PlanarView {
         var visible = CanvasRect.of(offsetX - margin, offsetY - margin, vw / scale + 2 * margin, vh / scale + 2 * margin);
         float worldMouseX = inside ? toWorldX(mouseX) : Float.NaN, worldMouseY = inside ? toWorldY(mouseY) : Float.NaN;
         pose.pushPose();
-        pose.translate(UIPixels.snap(vx - offsetX * scale), UIPixels.snap(vy - offsetY * scale), 0);
+        pose.translate(screenOriginX(), screenOriginY(), 0);
         pose.scale(scale, scale, 1);
         painter.begin(graphics, scale, lod(), visible, worldMouseX, worldMouseY, hovered);
         selectedRects.clear();

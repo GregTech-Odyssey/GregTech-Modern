@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.uipro.canvas.CanvasGrid;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasLod;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasPainter;
 import com.gregtechceu.gtceu.uipro.canvas.CanvasRect;
+import com.gregtechceu.gtceu.uipro.render.UIPixels;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
 import net.minecraft.client.Minecraft;
@@ -173,6 +174,16 @@ public abstract class PlanarView extends Viewport {
     @OnlyIn(Dist.CLIENT)
     public float pixelScale() {
         return scale * (float) Minecraft.getInstance().getWindow().getGuiScale();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public float screenOriginX() {
+        return UIPixels.snap(viewportX() - offsetX * scale);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public float screenOriginY() {
+        return UIPixels.snap(viewportY() - offsetY * scale);
     }
 
     @OnlyIn(Dist.CLIENT)

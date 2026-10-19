@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.TextLine;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
@@ -84,7 +85,7 @@ public class PageSwitcher implements IFancyUIProvider {
     /// 与标题栏打开本页的按钮同一个图标（原先是 GTM 的"+"字符，放在标题栏里像一个多余的加号）
     @Override
     public IGuiTexture getTabIcon() {
-        return UITheme.PAGES;
+        return WidgetIcons.PAGES;
     }
 
     @Override

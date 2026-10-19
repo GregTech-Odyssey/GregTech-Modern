@@ -801,6 +801,15 @@ public class MachineLang {
         provider.add("gtceu.machine.maintenance_hatch.tooltip", "For maintaining Multiblocks");
         multilineLang(provider, "gtceu.machine.maintenance_hatch_configurable.tooltip",
                 "For finer control over Multiblocks\nStarts with no Maintenance problems!");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.summary", "Higher load: faster recipes, more maintenance wear");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.range", "Duration Multiplier: %s ~ %s");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.effects", "Load Settings");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.effect", "Duration ×%s: maintenance wear ×%s");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.tape", "Tape slot: consumes 1 tape to fix all maintenance problems");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.before_overclock", "Applied to the base duration before overclocking; power draw is unchanged");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.buildup", "Maintenance wear accumulates with running time; maintenance problems occur once it reaches the threshold");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.formula_low", "Below 1.00: maintenance wear = 21 − 20 × multiplier");
+        provider.add("gtceu.machine.maintenance_hatch_configurable.formula_high", "Above 1.00: maintenance wear = 9 − 8 × multiplier");
         provider.add("gtceu.machine.maintenance_hatch_full_auto.tooltip",
                 "For automatically maintaining Multiblocks");
         multiLang(provider, "gtceu.machine.maintenance_hatch_cleanroom_auto.tooltip",
@@ -814,11 +823,36 @@ public class MachineLang {
         provider.add("gtceu.maintenance.configurable_duration.changed_description",
                 "Recipes will run with %fx duration, applied before overclocking.");
         provider.add("gtceu.maintenance.configurable_duration.modify", "Modify Duration:");
-        provider.add("gtceu.maintenance.configurable_time", "Time: %fx");
+        provider.add("gtceu.maintenance.configurable_time", "Maintenance Wear: %fx");
         provider.add("gtceu.maintenance.configurable_time.unchanged_description",
-                "Maintenance problems will occur at normal rate. Change configuration to update.");
+                "Maintenance wear accumulates at the normal rate.");
         provider.add("gtceu.maintenance.configurable_time.changed_description",
-                "Maintenance problems will occur at %fx the normal rate.");
+                "Maintenance wear accumulates at %fx the normal rate.");
+        provider.add("gtceu.maintenance.state", "State");
+        provider.add("gtceu.maintenance.state.ok", "Normal");
+        provider.add("gtceu.maintenance.state.broken", "Needs Repair");
+        provider.add("gtceu.maintenance.state.auto", "Automatic");
+        provider.add("gtceu.maintenance.state.disabled", "Maintenance Disabled");
+        provider.add("gtceu.maintenance.tools", "Tools needed: %s");
+        provider.add("gtceu.maintenance.problems", "Problems");
+        provider.add("gtceu.maintenance.problems.count", "%s");
+        provider.add("gtceu.maintenance.problems.none", "None");
+        provider.add("gtceu.maintenance.tool.wrench", "Wrench");
+        provider.add("gtceu.maintenance.tool.screwdriver", "Screwdriver");
+        provider.add("gtceu.maintenance.tool.soft_mallet", "Soft Mallet");
+        provider.add("gtceu.maintenance.tool.hard_hammer", "Hammer");
+        provider.add("gtceu.maintenance.tool.wire_cutter", "Wire Cutter");
+        provider.add("gtceu.maintenance.tool.crowbar", "Crowbar");
+        provider.add("gtceu.maintenance.tool_separator", ", ");
+        provider.add("gtceu.maintenance.wear", "Maintenance Wear");
+        provider.add("gtceu.maintenance.wear.detail", "Maintenance problems may occur from %s");
+        provider.add("gtceu.maintenance.duration", "Duration");
+        provider.add("gtceu.maintenance.wear_rate", "Wear Rate");
+        provider.add("gtceu.maintenance.times", "×%s");
+        provider.add("gtceu.maintenance.repair", "Repair");
+        provider.add("gtceu.maintenance.repair.tooltip", "Fixes problems with the required tools held or in the inventory");
+        provider.add("gtceu.maintenance.no_problems", "No problems to fix");
+        provider.add("gtceu.maintenance.duration.tooltip", "Lower values mean higher load: faster recipes, more maintenance wear");
 
         multiLang(provider, "gtceu.machine.muffler_hatch.tooltip", "Recovers waste from machines",
                 "DO NOT OBSTRUCT THE OUTPUT!");

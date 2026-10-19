@@ -105,7 +105,22 @@ public final class UIDraw {
 
     public static void pixelLine(GuiGraphics graphics, int x0, int y0, int x1, int y1, int thickness, int color,
                                  int clipL, int clipT, int clipR, int clipB) {
-        PixelLines.draw(graphics, x0, y0, x1, y1, thickness, color, clipL, clipT, clipR, clipB);
+        PixelLines.add(graphics, x0, y0, x1, y1, thickness, color, clipL, clipT, clipR, clipB, 1, 0, 0);
+        end(graphics);
+    }
+
+    public static void line(GuiGraphics graphics, int x0, int y0, int x1, int y1, int thickness, int color,
+                            int clipL, int clipT, int clipR, int clipB) {
+        PixelLines.add(graphics, x0, y0, x1, y1, thickness, color, clipL, clipT, clipR, clipB, 1, 0, 0);
+    }
+
+    public static void dashedLine(GuiGraphics graphics, int x0, int y0, int x1, int y1, int thickness, int color,
+                                  int clipL, int clipT, int clipR, int clipB, int dashOn, int dashOff, int phase) {
+        PixelLines.add(graphics, x0, y0, x1, y1, thickness, color, clipL, clipT, clipR, clipB, dashOn, dashOff, phase);
+    }
+
+    public static void endLines(GuiGraphics graphics) {
+        end(graphics);
     }
 
     public static void underline(GuiGraphics graphics, int x, int y, int width, int color) {

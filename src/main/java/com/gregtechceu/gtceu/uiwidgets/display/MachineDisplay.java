@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.IFancyUIProvider;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDisplayUIMachine;
+import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.RichText;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
@@ -39,6 +40,7 @@ public final class MachineDisplay {
 
     /** 显示窗滚动区的 id：所有机器共用，玩家锁定的高度对所有多方块生效。 */
     public static final String SCROLLER_ID = "machine.display";
+    public static final String SCREEN_SCROLLER_ID = "machine.screen";
     public static final int DETAILS_HEIGHT = UISizes.MACHINE_PAGE_HEIGHT + UISizes.PLAYER_INVENTORY_HEIGHT;
 
     private MachineDisplay() {}
@@ -71,6 +73,20 @@ public final class MachineDisplay {
         var page = page(machine, text);
         if (!panel.isEmpty()) page.addChild(panel.build());
         return page;
+    }
+
+    public static UIElement screenPage(MetaMachine machine, Consumer<MachineScreen> screen, @Nullable Consumer<ControlPanel> controls) {
+        var display = MachineScreen.create();
+        screen.accept(display);
+        var content = column().addChild(display.getPanel());
+        if (controls != null) {
+            var panel = ControlPanel.of(machine);
+            controls.accept(panel);
+            if (!panel.isEmpty()) content.addChild(panel.build());
+        }
+        var scroller = ScrollerView.page(SCREEN_SCROLLER_ID, UISizes.CONTENT_WIDTH).adaptiveWidth();
+        scroller.addScrollViewChild(content);
+        return UIElement.column(LayoutStyle.AUTO).addChild(scroller);
     }
 
     /** 与其他页面同宽、区块间距 {@link UISizes#SECTION_GAP} 的纵向容器。 */

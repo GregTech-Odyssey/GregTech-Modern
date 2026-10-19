@@ -161,9 +161,6 @@ public final class UITheme {
     public static final IGuiTexture LINK_ARROW = dynamic(() -> linkArrow);
     public static final IGuiTexture ARROW_UP = dynamic(() -> arrowUp);
     public static final IGuiTexture ARROW_DOWN = dynamic(() -> arrowDown);
-    /** "页面"图标（3×3 方格）：标题栏的页面切换按钮、页面切换页自己的标题图标，与箭头同色。 */
-    private static IGuiTexture pages = new OreSprites.Grid(BUTTON_TEXT);
-    public static final IGuiTexture PAGES = dynamic(() -> pages);
 
     /** 按客户端条件在两张图之间切换的贴图（如图标按钮的开 / 关态：收藏星标）。{@code on} 每次绘制时取值。 */
     public static IGuiTexture switching(BooleanSupplier on, IGuiTexture offTexture, IGuiTexture onTexture) {
@@ -269,7 +266,6 @@ public final class UITheme {
         linkArrow = new OreSprites.Arrow(false, LINK_TEXT);
         arrowUp = new OreSprites.VerticalArrow(true, BUTTON_TEXT);
         arrowDown = new OreSprites.VerticalArrow(false, BUTTON_TEXT);
-        pages = new OreSprites.Grid(BUTTON_TEXT);
 
         DIVIDER = color(colors, "divider");
         CARD_FILL = color(colors, "card_fill");

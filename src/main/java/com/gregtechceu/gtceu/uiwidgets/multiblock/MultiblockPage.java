@@ -12,11 +12,10 @@ import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
 import com.gregtechceu.gtceu.uipro.elements.RichText;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.StatusLine;
-import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
-import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.ScreenSprite;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.display.MachineScreen;
 import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeIOList;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -61,7 +60,6 @@ public final class MultiblockPage {
     public static final String OFF = "gtceu.gui.multiblock.off";
     public static final Component NO_VALUE = Component.literal("-");
     private static final ThreadLocal<Boolean> COLLECTING_SCREEN_TEXT = ThreadLocal.withInitial(() -> Boolean.FALSE);
-    private static final int SCREEN_PADDING = 9;
 
     private static final Component UNFORMED = Component.translatable(STATE_UNFORMED);
     private static final Component PAUSED = Component.translatable(STATE_PAUSED);
@@ -73,7 +71,7 @@ public final class MultiblockPage {
 
     private final WorkableMultiblockMachine machine;
     private final RecipeIOList recipeList;
-    private final StatusPanel screen = new StatusPanel(LayoutStyle.AUTO);
+    private final MachineScreen screen = MachineScreen.create();
     private final List<Widget> sections = new ArrayList<>();
     @Nullable
     private ControlPanel controls;
@@ -86,8 +84,6 @@ public final class MultiblockPage {
     private MultiblockPage(WorkableMultiblockMachine machine) {
         this.machine = machine;
         this.recipeList = RecipeIOList.of(machine.getRecipeLogic());
-        screen.setBackground(MachineEra.CLASSIC.getScreen());
-        screen.layout(l -> l.paddingAll(SCREEN_PADDING).gapAll(2));
         addStateLine();
         addProgressBar();
         if (machine.getAvailableRecipeTypes().length > 1) addLine(RECIPE_TYPE, recipeTypeText(machine, null));
@@ -102,20 +98,20 @@ public final class MultiblockPage {
     }
 
     public MultiblockPage setScreen(ScreenSprite sprite) {
-        screen.setBackground(sprite);
+        screen.setSprite(sprite);
         return this;
     }
 
     public StatusLine addLine(String labelKey, Supplier<Component> value) {
-        return screen.addLine(StatusLine.of(LayoutStyle.AUTO, labelKey, value).screenStyle());
+        return screen.addLine(labelKey, value);
     }
 
     public StatusLine addReading(String templateKey, Supplier<Component> value) {
         String label = machine.isRemote() ? clientReadingLabel(templateKey) : null;
         if (!machine.isRemote() || label != null) {
-            return screen.addLine(StatusLine.of(LayoutStyle.AUTO, label == null ? NONE : Component.literal(label), value).screenStyle());
+            return screen.addLine(StatusLine.of(LayoutStyle.AUTO, label == null ? NONE : Component.literal(label), value));
         }
-        return screen.addLine(StatusLine.sentence(LayoutStyle.AUTO, value).screenStyle().setFormatter(v -> Component.translatable(templateKey, v)));
+        return screen.addLine(StatusLine.sentence(LayoutStyle.AUTO, value).setFormatter(v -> Component.translatable(templateKey, v)));
     }
 
     @Nullable
@@ -168,19 +164,11 @@ public final class MultiblockPage {
     }
 
     public ProgressBar addBar(String labelKey, int color, Supplier<ProgressBar.Progress> progress) {
-        return addGauge(ProgressBar.of(LayoutStyle.AUTO, Component.translatable(labelKey), color, progress));
+        return screen.addBar(labelKey, color, progress);
     }
 
     public ProgressBar addBar(String labelKey, IntSupplier color, Supplier<ProgressBar.Progress> progress) {
-        return addGauge(ProgressBar.of(LayoutStyle.AUTO, Component.translatable(labelKey), 0, progress).bindClientColor(color));
-    }
-
-    private ProgressBar addGauge(ProgressBar bar) {
-        var gauge = new UIElement().layout(l -> l.width(LayoutStyle.AUTO).paddingAll(1));
-        gauge.setBackground(UITheme.SCREEN_GAUGE_FRAME);
-        gauge.addChild(bar);
-        screen.addChild(gauge);
-        return bar;
+        return screen.addBar(labelKey, color, progress);
     }
 
     public MultiblockPage bindAlert(BooleanSupplier condition, String textKey) {
@@ -197,7 +185,7 @@ public final class MultiblockPage {
     public UIElement build() {
         var content = UIElement.column(UISizes.CONTENT_WIDTH).layout(l -> l.gapAll(UISizes.SECTION_GAP));
         screen.addChild(recipeList);
-        content.addChild(screen);
+        content.addChild(screen.getPanel());
         if (controls != null && !controls.isEmpty()) content.addChild(controls.build());
         for (var section : sections) content.addChild(section);
         var scroller = ScrollerView.page("multiblock.page", UISizes.CONTENT_WIDTH).adaptiveWidth();

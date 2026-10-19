@@ -14,6 +14,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -54,6 +55,9 @@ public abstract class Adjuster extends UIElement {
     private static final String STEP_TOOLTIP = "gui.widget.incrementButton.default_tooltip";
     private static final String RANGE_TOOLTIP = "gtceu.uipro.adjuster.range";
     private static final String STEP_LINE = "gtceu.uipro.adjuster.step";
+    private static final String STEP_LINE_MODIFIED = "gtceu.uipro.adjuster.step_modified";
+    private static final String STEP_SEPARATOR = "gtceu.uipro.adjuster.step_separator";
+    private static final String[] STEP_MODIFIERS = { "", "Shift", "Ctrl", "Ctrl+Shift" };
     private static final String UNBOUNDED = "gtceu.uipro.adjuster.unbounded";
 
     /**
@@ -116,7 +120,7 @@ public abstract class Adjuster extends UIElement {
         this.serverMax = max;
         this.steps = normalizeSteps(steps);
         this.wheel = addRPC(UICodecs.WHEEL, (player, wheel) -> {
-            long step = this.steps[(wheel.ctrl() ? 2 : 0) + (wheel.shift() ? 1 : 0)];
+            long step = serverStep((wheel.ctrl() ? 2 : 0) + (wheel.shift() ? 1 : 0));
             change(wheel.up() ? step : -step);
         });
         this.min = addSyncValue(SyncValue.ofLong(min::getAsLong, min.getAsLong()).onChanged(value -> updateRange()));
@@ -179,8 +183,7 @@ public abstract class Adjuster extends UIElement {
         var lines = Arrays.copyOf(tooltips, tooltips.length + 2);
         lines[tooltips.length] = Component.translatable(RANGE_TOOLTIP, boundText(min.getValue(), Long.MIN_VALUE), boundText(max.getValue(), Long.MAX_VALUE))
                 .withStyle(ChatFormatting.GRAY);
-        lines[tooltips.length + 1] = Component.translatable(STEP_LINE, scale.formatStep(steps[0]), scale.formatStep(steps[1]),
-                scale.formatStep(steps[2]), scale.formatStep(steps[3])).withStyle(ChatFormatting.GRAY);
+        lines[tooltips.length + 1] = stepLine().withStyle(ChatFormatting.GRAY);
         field.tooltips(lines);
     }
 
@@ -219,7 +222,34 @@ public abstract class Adjuster extends UIElement {
     }
 
     private long step(ClickData click) {
-        return steps[(click.isCtrlClick ? 2 : 0) + (click.isShiftClick ? 1 : 0)];
+        return serverStep((click.isCtrlClick ? 2 : 0) + (click.isShiftClick ? 1 : 0));
+    }
+
+    private long serverStep(int tier) {
+        return capToRange(steps[tier], serverMin.getAsLong(), serverMax.getAsLong());
+    }
+
+    private long syncedStep(int tier) {
+        return capToRange(steps[tier], min.getValue(), max.getValue());
+    }
+
+    private static long capToRange(long step, long lo, long hi) {
+        if (lo == Long.MIN_VALUE || hi == Long.MAX_VALUE || hi <= lo) return step;
+        long range = hi - lo;
+        return range < 0 ? step : Math.max(1, Math.min(step, range));
+    }
+
+    private MutableComponent stepLine() {
+        MutableComponent modified = null;
+        for (int tier = 1; tier < 4; tier++) {
+            long step = syncedStep(tier);
+            if (step == syncedStep(tier - 1)) continue;
+            if (modified == null) modified = Component.empty();
+            else modified.append(Component.translatable(STEP_SEPARATOR));
+            modified.append(STEP_MODIFIERS[tier] + " " + scale.formatStep(step));
+        }
+        String base = scale.formatStep(syncedStep(0));
+        return modified == null ? Component.translatable(STEP_LINE, base) : Component.translatable(STEP_LINE_MODIFIED, base, modified);
     }
 
     /**
@@ -245,7 +275,7 @@ public abstract class Adjuster extends UIElement {
 
     /** 客户端：按当前按住的修饰键取步长，只在绘制按钮文字时调用。 */
     private long clientStep() {
-        return steps[(GTUtil.isCtrlDown() ? 2 : 0) + (GTUtil.isShiftDown() ? 1 : 0)];
+        return syncedStep((GTUtil.isCtrlDown() ? 2 : 0) + (GTUtil.isShiftDown() ? 1 : 0));
     }
 
     /** 服务端：加减一步（饱和加法，不溢出）。 */

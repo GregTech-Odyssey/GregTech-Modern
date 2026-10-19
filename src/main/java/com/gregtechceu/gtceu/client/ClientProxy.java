@@ -24,6 +24,7 @@ import com.gregtechceu.gtceu.integration.map.cache.client.GTClientCache;
 import com.gregtechceu.gtceu.integration.map.layer.Layers;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.FluidRenderLayer;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.OreRenderLayer;
+import com.gregtechceu.gtceu.uipro.render.UIImage;
 import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UIStyleManager;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
@@ -124,6 +125,9 @@ public class ClientProxy extends CommonProxy {
     @SubscribeEvent
     public void onRegisterClientReloadListeners(RegisterClientReloadListenersEvent event) {
         UIStyleManager.register(event);
-        event.registerReloadListener((ResourceManagerReloadListener) manager -> UIText.invalidate());
+        event.registerReloadListener((ResourceManagerReloadListener) manager -> {
+            UIText.invalidate();
+            UIImage.invalidate();
+        });
     }
 }

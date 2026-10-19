@@ -233,29 +233,6 @@ public final class OreSprites {
     }
 
     /**
-     * 实心像素 3×3 方格（"页面"图标：页面切换页就是一格一格的页面按钮），每格 2 像素、格间 1 像素，共 8 见方，在给定区域里居中。
-     * 与 {@link Arrow} 同样手画，像素对齐。
-     */
-    public record Grid(int color) implements IGuiTexture {
-
-        private static final int CELLS = 3;
-        private static final int CELL = 2;
-        private static final int SIZE = CELLS * CELL + (CELLS - 1);
-
-        @Override
-        @OnlyIn(Dist.CLIENT)
-        public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
-            int x0 = Math.round(x) + (width - SIZE) / 2, y0 = Math.round(y) + (height - SIZE) / 2;
-            for (int row = 0; row < CELLS; row++) {
-                for (int column = 0; column < CELLS; column++) {
-                    int cellX = x0 + column * (CELL + 1), cellY = y0 + row * (CELL + 1);
-                    graphics.fill(cellX, cellY, cellX + CELL, cellY + CELL, color);
-                }
-            }
-        }
-    }
-
-    /**
      * 图集上的一块九宫格精灵，实现 LDLib1 的 {@link IGuiTexture}，可直接作为控件背景使用。
      */
     public record Sprite(int u, int v, int width, int height, int left, int top, int right, int bottom, int tint)

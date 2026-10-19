@@ -1941,7 +1941,9 @@ public class LangHandler {
         provider.add("gtceu.uipro.stepper.at_min", "Already at the minimum");
         provider.add("gtceu.uipro.stepper.at_max", "Already at the maximum");
         provider.add("gtceu.uipro.adjuster.range", "Range: %s ~ %s");
-        provider.add("gtceu.uipro.adjuster.step", "Step: %s (Shift %s, Ctrl %s, Ctrl+Shift %s)");
+        provider.add("gtceu.uipro.adjuster.step", "Step: %s");
+        provider.add("gtceu.uipro.adjuster.step_modified", "Step: %s (%s)");
+        provider.add("gtceu.uipro.adjuster.step_separator", ", ");
         provider.add("gtceu.uipro.adjuster.unbounded", "unlimited");
         provider.add("gtceu.uipro.percent_field.tooltip", "Adjusts a percentage: 100%% = ×1.00, 150%% = ×1.50");
         provider.add("gtceu.uipro.canvas.resize", "Drag: resize");
