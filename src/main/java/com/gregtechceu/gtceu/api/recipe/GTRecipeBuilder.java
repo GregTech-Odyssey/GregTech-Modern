@@ -366,7 +366,8 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("Input amount must be positive, id: {}, ingredient: {}", id, ingredient);
             return this;
         }
-        getItemInputs().add(ingredient, amount, chance, tierChanceBoost);
+        // Input chance is consumption: a positive tier bonus saves ingredients.
+        getItemInputs().add(ingredient, amount, chance, -tierChanceBoost);
         return this;
     }
 
@@ -766,7 +767,7 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("Input amount must be positive, id: {}, ingredient: {}", id, ingredient);
             return this;
         }
-        getFluidInputs().add(ingredient, amount, chance, tierChanceBoost);
+        getFluidInputs().add(ingredient, amount, chance, -tierChanceBoost);
         return this;
     }
 
