@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.capability.IWorkable;
+import com.gregtechceu.gtceu.api.cover.IMachineShutdownListener;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -186,7 +187,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             if (status != IDLE && lastRecipe != null) {
                 if (progress < duration) {
                     handleRecipeWorking();
-                    if (machine.nextTickSearch()) return;
+                    if (status == SUSPEND || machine.nextTickSearch()) return;
                 }
                 if (progress < duration) return;
                 if (onRecipeFinish()) return;
@@ -256,7 +257,12 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             machine.onWorking();
         } else {
             machine.regressRecipe(this);
-            interruptRecipe();
+            if (status == SUSPEND) {
+                unsubscribe();
+                IMachineShutdownListener.notify(machine.self());
+            } else {
+                interruptRecipe();
+            }
         }
     }
 

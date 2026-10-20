@@ -6,6 +6,8 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IUICover;
+import com.gregtechceu.gtceu.api.tooltip.TipRole;
+import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.common.cover.data.ControllerMode;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.elements.ButtonGroup;
@@ -39,6 +41,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class MachineControllerCover extends CoverBehavior implements IUICover {
+
+    public static final TipSpec TIPS = TipSpec.builder().lines(l -> l
+            .line(TipRole.SUMMARY, Component.translatable("item.gtceu.machine_controller_cover.tip.summary"))
+            .feature(Component.translatable("item.gtceu.machine_controller_cover.tip.normal"))
+            .feature(Component.translatable("item.gtceu.machine_controller_cover.tip.inverted"))
+            .attention(Component.translatable("item.gtceu.machine_controller_cover.tip.multiple"))
+            .detail(Component.translatable("item.gtceu.machine_controller_cover.tip.pause"))
+            .rightClick(Component.translatable("item.gtceu.machine_controller_cover.tip.open"))).build();
 
     @Getter
     @SaveToDisk
@@ -133,18 +143,18 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
         }
     }
 
-    private boolean shouldAllowWorking() {
+    public boolean shouldAllowWorking() {
         boolean shouldAllowWorking = getInputSignal() < minRedstoneStrength;
         return isInverted != shouldAllowWorking;
     }
 
     private boolean doOthersAllowWorking() {
         for (var cover : coverHolder.getCovers()) {
-            if (this.attachedSide != cover.attachedSide && cover instanceof MachineControllerCover controllerCover && controllerCover.controllerMode == this.controllerMode && controllerCover.shouldAllowWorking()) {
-                return true;
+            if (this.attachedSide != cover.attachedSide && cover instanceof MachineControllerCover controllerCover && controllerCover.controllerMode == this.controllerMode && !controllerCover.shouldAllowWorking()) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public List<ControllerMode> getAllowedModes() {

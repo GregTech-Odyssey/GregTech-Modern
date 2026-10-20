@@ -90,6 +90,10 @@ public class GTCovers {
             "machine_controller", MachineControllerCover::new,
             new SimpleCoverRenderer(GTCEu.id("block/cover/overlay_controller")));
 
+    public final static CoverDefinition ADVANCED_MACHINE_CONTROLLER = register(
+            "advanced_machine_controller", AdvancedMachineControllerCover::new,
+            new SimpleCoverRenderer(GTCEu.id("block/cover/overlay_advanced_controller")));
+
     // Voiding
     public final static CoverDefinition ITEM_VOIDING = register(
             "item_voiding", ItemVoidingCover::new,

@@ -85,11 +85,3 @@ tasks.register('overlapBoundCheck', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.gregtechceu.gtceu.api.recipe.handler.OverlapBoundCheck'
 }
-
-// Self-check for the utilities/collection data structures (no game launch needed).
-tasks.register('blockOctreeCheck', JavaExec) {
-    group = 'verification'
-    description = 'Runs BlockOctreeCheck: point ops, sphere queries, Predicate filters, findAny, compact()'
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'com.gregtechceu.gtceu.utils.collection.BlockOctreeCheck'
-}

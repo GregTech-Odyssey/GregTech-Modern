@@ -10,7 +10,8 @@ import com.gregtechceu.gtceu.utils.GTUtil;
  */
 public final class CableTransfer {
 
-    public static final long LOOPBACK_CENTI_AMPS = 1_000_000;
+    public static final long AMP_UNIT = 10_000;
+    public static final long LOOPBACK_AMP_UNITS = 10_000 * AMP_UNIT;
     public static final int OVERAMP_HEAT_PER_AMP = 40;
 
     private CableTransfer() {}
@@ -34,11 +35,11 @@ public final class CableTransfer {
     public static void load(CableBlockEntity[] cables, long voltage, long paid, boolean loopback) {
         if (loopback) {
             for (var c : cables) {
-                c.carry(Math.min(voltage, c.getMaxVoltage()), LOOPBACK_CENTI_AMPS, voltage);
+                c.carry(Math.min(voltage, c.getMaxVoltage()), LOOPBACK_AMP_UNITS, voltage);
             }
             return;
         }
-        double sourceAmps = (double) paid / voltage;
+        long sourceUnits = GTMath.mulDivFloor(paid, AMP_UNIT, voltage);
         long loss = 0;
         long minVoltage = Long.MAX_VALUE;
         for (var c : cables) {
@@ -49,7 +50,7 @@ public final class CableTransfer {
             long here = Math.min(voltage, minVoltage);
             long perAmp = Math.min(minVoltage, voltage - loss);
             if (perAmp <= 0) return;
-            c.carry(here, (long) (sourceAmps * perAmp / here * 100 + 0.5), voltage);
+            c.carry(here, perAmp == here ? sourceUnits : GTMath.mulDivFloor(sourceUnits, perAmp, here), voltage);
         }
     }
 

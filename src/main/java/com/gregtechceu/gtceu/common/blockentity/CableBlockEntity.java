@@ -175,7 +175,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     }
 
     public double getCurrentAmperage() {
-        return (double) amperageCounter.get(getOffsetTimer()) / 100;
+        return Math.round((double) amperageCounter.get(getOffsetTimer()) * 100 / CableTransfer.AMP_UNIT) / 100.0;
     }
 
     public long getMaxAmperage() {
@@ -186,14 +186,14 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
         return getNodeData().getVoltage();
     }
 
-    public void carry(long voltage, long centiAmps, long sourceVoltage) {
+    public void carry(long voltage, long ampUnits, long sourceVoltage) {
         int time = getOffsetTimer();
         voltageCounter.set(time, voltage);
-        amperageCounter.set(time, centiAmps);
+        amperageCounter.set(time, ampUnits);
         var data = getNodeData();
         int heat = sourceVoltage > data.getVoltage() ? CableTransfer.overvoltageHeat(sourceVoltage, data.getVoltage()) : 0;
-        long over = amperageCounter.get(time) - data.getAmperage() * 100L;
-        if (over > 0) heat = GTMath.saturatedCast(heat + (over + 99) / 100 * CableTransfer.OVERAMP_HEAT_PER_AMP);
+        long over = amperageCounter.get(time) - data.getAmperage() * CableTransfer.AMP_UNIT;
+        if (over > 0) heat = GTMath.saturatedCast(heat + (over + CableTransfer.AMP_UNIT - 1) / CableTransfer.AMP_UNIT * CableTransfer.OVERAMP_HEAT_PER_AMP);
         if (heat > 0) applyHeat(heat);
     }
 

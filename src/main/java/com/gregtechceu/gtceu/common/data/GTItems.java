@@ -26,6 +26,8 @@ import com.gregtechceu.gtceu.api.item.component.*;
 import com.gregtechceu.gtceu.api.item.tool.MaterialToolTier;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
+import com.gregtechceu.gtceu.common.cover.AdvancedMachineControllerCover;
+import com.gregtechceu.gtceu.common.cover.MachineControllerCover;
 import com.gregtechceu.gtceu.common.data.materials.GTFoods;
 import com.gregtechceu.gtceu.common.entity.GTBoat;
 import com.gregtechceu.gtceu.common.item.*;
@@ -1856,7 +1858,14 @@ public class GTItems {
     public static ItemEntry<ComponentItem> COVER_MACHINE_CONTROLLER = REGISTRATE
             .item("machine_controller_cover", ComponentItem::create)
             .lang("Machine Controller")
-            .onRegister(attach(new CoverPlaceBehavior(GTCovers.MACHINE_CONTROLLER)))
+            .onRegister(attach(new TooltipBehavior(lines -> lines.addAll(MachineControllerCover.TIPS.get())),
+                    new CoverPlaceBehavior(GTCovers.MACHINE_CONTROLLER)))
+            .register();
+    public static ItemEntry<ComponentItem> COVER_ADVANCED_MACHINE_CONTROLLER = REGISTRATE
+            .item("advanced_machine_controller_cover", ComponentItem::create)
+            .lang("Advanced Machine Controller")
+            .onRegister(attach(new TooltipBehavior(lines -> lines.addAll(AdvancedMachineControllerCover.TIPS.get())),
+                    new CoverPlaceBehavior(GTCovers.ADVANCED_MACHINE_CONTROLLER)))
             .register();
 
     public static ItemEntry<ComponentItem> COVER_ACTIVITY_DETECTOR = REGISTRATE
