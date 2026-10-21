@@ -35,6 +35,10 @@ public interface RecipeTierPreview {
 
     boolean hasStepper();
 
+    default Component stepperLabel() {
+        return Component.translatable("gtceu.recipe.info.preview_tier");
+    }
+
     List<Function<GTRecipeDefinition, @Nullable RecipeTierPreview>> FACTORIES = new ArrayList<>(List.of(EnergyTierPreview::of));
 
     static void register(Function<GTRecipeDefinition, @Nullable RecipeTierPreview> factory) {

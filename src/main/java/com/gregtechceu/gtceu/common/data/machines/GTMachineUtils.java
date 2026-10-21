@@ -47,6 +47,7 @@ import com.gregtechceu.gtceu.common.machine.multiblock.part.LaserHatchPartMachin
 import com.gregtechceu.gtceu.common.machine.multiblock.part.TankValvePartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.primitive.MultiblockTankMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.steam.LargeBoilerMachine;
+import com.gregtechceu.gtceu.common.machine.multiblock.steam.LargeBoilerSpec;
 import com.gregtechceu.gtceu.common.machine.storage.CrateMachine;
 import com.gregtechceu.gtceu.common.machine.storage.DrumMachine;
 import com.gregtechceu.gtceu.common.machine.storage.QuantumChestMachine;
@@ -466,7 +467,7 @@ public class GTMachineUtils {
                                                                   ResourceLocation texture, BoilerFireboxType firebox,
                                                                   int maxTemperature, int heatSpeed) {
         // spotless:off
-        return REGISTRATE
+        var boiler = REGISTRATE
                 .multiblock("%s_large_boiler".formatted(name),
                         holder -> new LargeBoilerMachine(holder, maxTemperature, heatSpeed))
                 .langValue("Large %s Boiler".formatted(FormattingUtil.toEnglishName(name)))
@@ -516,6 +517,8 @@ public class GTMachineUtils {
                         Tips.warning(Component.translatable("gtceu.multiblock.large_boiler.explosion_tooltip")))
                 .register();
         // spotless:on
+        LargeBoilerSpec.register(name, boiler, firebox, maxTemperature, heatSpeed);
+        return boiler;
     }
 
     public static MultiblockMachineDefinition registerLargeCombustionEngine(String name, int tier,

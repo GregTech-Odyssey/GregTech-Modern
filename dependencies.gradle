@@ -16,7 +16,8 @@ dependencies {
     // �?mod 的库在开发运行时要进游戏 classpath（对�?LDLib2 �?libraries 配置），否则 GAME 层找不到�?
     additionalRuntimeClasspath("dev.vfyjxf:taffy:1.1.4")
     modImplementation("com.gto:datasynclib-forge-1.20.1:26.10.11")
-    modImplementation("com.gto:gtoutils-forge-1.20.1:26.10.1")
+    modImplementation("com.gto:gtoutils-forge-1.20.1:26.10.3")
+    modImplementation("com.gto:gtorenders-forge-1.20.1:26.10.1")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
     modImplementation("org.appliedenergistics:guideme:20.1.13")

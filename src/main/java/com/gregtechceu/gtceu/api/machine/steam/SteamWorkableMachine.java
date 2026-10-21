@@ -95,7 +95,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
      * @param outputFacing the facing to set
      */
     public void setOutputFacing(Direction outputFacing) {
-        if (!hasFrontFacing() || this.outputFacing != getFrontFacing()) {
+        if (!hasFrontFacing() || outputFacing != getFrontFacing()) {
             this.outputFacing = outputFacing;
         }
     }
@@ -103,7 +103,7 @@ public abstract class SteamWorkableMachine extends SteamMachine implements IReci
     @Override
     protected InteractionResult onWrenchClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (!playerIn.isShiftKeyDown() && !isRemote()) {
-            if (hasFrontFacing() && gridSide == getFrontFacing()) return InteractionResult.PASS;
+            if (hasFrontFacing() && gridSide == getFrontFacing()) return InteractionResult.FAIL;
             setOutputFacing(gridSide);
             return InteractionResult.CONSUME;
         }

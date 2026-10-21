@@ -49,7 +49,7 @@ public class PumpHatchPartMachine extends FluidHatchPartMachine {
                 .widget(new ToggleButtonWidget(7, 53, 18, 18,
                         GuiTextures.BUTTON_FLUID_OUTPUT, this::isWorkingEnabled, this::setWorkingEnabled)
                         .setShouldUseBaseBackground()
-                        .setTooltipText("gtceu.gui.fluid_auto_input.tooltip"))
+                        .setTooltipText("gtceu.gui.fluid_auto_output.tooltip"))
                 .widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 84, true));
     }
 

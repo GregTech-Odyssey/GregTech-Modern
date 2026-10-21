@@ -68,7 +68,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     private static final String DURATION = "gtceu.recipe.info.duration";
     private static final String SECONDS = "gtceu.recipe.info.seconds";
-    private static final String PREVIEW_TIER = "gtceu.recipe.info.preview_tier";
 
     private static final int INLINE_SLOT_GAP = 6;
 
@@ -428,7 +427,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         panel.layout(l -> l.flexGrow(1));
         if (stepper) {
             var chip = new RecipeTierChip(() -> tier, this::setTier, preview.minTier(), preview.maxTier(), this::tierName, preview.tooltip());
-            panel.control(Component.translatable(PREVIEW_TIER), chip);
+            panel.control(preview.stepperLabel(), chip);
         }
         boolean values = false, sentences = false;
         for (var line : info.lines()) {
