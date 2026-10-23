@@ -21,7 +21,7 @@ public final class KeyTransfer {
             var meStorage = meStorageKeyView.getStorage();
             for (var stack : meStorage.getAvailableStacks()) {
                 var key = stack.getKey();
-                if (filter != null && !filter.matches(key)) return 0;
+                if (filter != null && !filter.matches(key)) continue;
                 left -= transferKey(meStorage, to, key, Math.min(left, stack.getLongValue()));
                 if (left < 1) break;
             }

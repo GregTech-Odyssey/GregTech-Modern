@@ -746,11 +746,11 @@ public class ConfigHolder {
             @Configurable.Range(min = 1, max = 4)
             public int hudLocation = 1;
             @Configurable
-            @Configurable.Comment({ "Horizontal offset of HUD.", "Default: 0" })
+            @Configurable.Comment({ "Horizontal offset of HUD, in percent of the free screen width.", "0 keeps it at the chosen corner, 100 moves it to the opposite edge.", "Default: 0" })
             @Configurable.Range(min = 0, max = 100)
             public int hudOffsetX = 0;
             @Configurable
-            @Configurable.Comment({ "Vertical offset of HUD.", "Default: 0" })
+            @Configurable.Comment({ "Vertical offset of HUD, in percent of the free screen height.", "0 keeps it at the chosen corner, 100 moves it to the opposite edge.", "Default: 0" })
             @Configurable.Range(min = 0, max = 100)
             public int hudOffsetY = 0;
         }

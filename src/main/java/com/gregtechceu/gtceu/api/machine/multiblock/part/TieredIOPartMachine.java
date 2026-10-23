@@ -39,6 +39,10 @@ public class TieredIOPartMachine extends TieredPartMachine implements IControlla
         this.io = io;
     }
 
+    public IO getIo() {
+        return io;
+    }
+
     @Nullable
     @Override
     public PageGroupingData getPageGroupingData() {

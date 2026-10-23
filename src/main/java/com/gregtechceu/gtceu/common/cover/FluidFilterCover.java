@@ -20,6 +20,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEFluidKey;
@@ -49,6 +50,12 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     public FluidFilterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
+    }
+
+    @Override
+    public void onAttached(ItemStack itemStack, ServerPlayer player) {
+        super.onAttached(itemStack, player);
+        filterMode = FilterMode.defaultFor(coverHolder);
     }
 
     public void setFilterMode(FilterMode filterMode) {

@@ -106,6 +106,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
     @Override
     public void onAttached(ItemStack itemStack, ServerPlayer player) {
         super.onAttached(itemStack, player);
+        filterMode = FilterMode.defaultFor(coverHolder);
     }
 
     @Override

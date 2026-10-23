@@ -212,39 +212,44 @@ public class ArmorUtils {
         }
 
         public void draw(GuiGraphics poseStack) {
+            int blockWidth = 0;
             for (int i = 0; i < stringAmount; i++) {
-                IntIntPair coords = this.getStringCoord(i);
+                blockWidth = Math.max(blockWidth, mc.font.width(stringList.get(i)));
+            }
+            for (int i = 0; i < stringAmount; i++) {
+                IntIntPair coords = this.getStringCoord(i, blockWidth);
                 poseStack.drawString(mc.font, stringList.get(i), coords.firstInt(), coords.secondInt(), 0xFFFFFF,
                         true);
             }
         }
 
         @Nonnull
-        private IntIntPair getStringCoord(int index) {
+        private IntIntPair getStringCoord(int index, int blockWidth) {
             int posX;
             int posY;
             int fontHeight = mc.font.lineHeight;
             int windowHeight = mc.getWindow().getGuiScaledHeight();
             int windowWidth = mc.getWindow().getGuiScaledWidth();
             int stringWidth = mc.font.width(stringList.get(index));
-            switch (ConfigHolder.INSTANCE.client.armorHud.hudLocation) {
+            var hud = ConfigHolder.INSTANCE.client.armorHud;
+            int offsetX = (int) (hud.hudOffsetX / 100d * Math.max(0, windowWidth - 2 - blockWidth));
+            int offsetY = (int) (hud.hudOffsetY / 100d * Math.max(0, windowHeight - 2 - fontHeight * stringAmount));
+            switch (hud.hudLocation) {
                 case 1 -> {
-                    posX = 1 + ConfigHolder.INSTANCE.client.armorHud.hudOffsetX;
-                    posY = 1 + ConfigHolder.INSTANCE.client.armorHud.hudOffsetY + (fontHeight * index);
+                    posX = 1 + offsetX;
+                    posY = 1 + offsetY + (fontHeight * index);
                 }
                 case 2 -> {
-                    posX = windowWidth - (1 + ConfigHolder.INSTANCE.client.armorHud.hudOffsetX) - stringWidth;
-                    posY = 1 + ConfigHolder.INSTANCE.client.armorHud.hudOffsetY + (fontHeight * index);
+                    posX = windowWidth - (1 + offsetX) - stringWidth;
+                    posY = 1 + offsetY + (fontHeight * index);
                 }
                 case 3 -> {
-                    posX = 1 + ConfigHolder.INSTANCE.client.armorHud.hudOffsetX;
-                    posY = windowHeight - fontHeight * (stringAmount - index) - 1 -
-                            ConfigHolder.INSTANCE.client.armorHud.hudOffsetY;
+                    posX = 1 + offsetX;
+                    posY = windowHeight - fontHeight * (stringAmount - index) - 1 - offsetY;
                 }
                 case 4 -> {
-                    posX = windowWidth - (1 + ConfigHolder.INSTANCE.client.armorHud.hudOffsetX) - stringWidth;
-                    posY = windowHeight - fontHeight * (stringAmount - index) - 1 -
-                            ConfigHolder.INSTANCE.client.armorHud.hudOffsetY;
+                    posX = windowWidth - (1 + offsetX) - stringWidth;
+                    posY = windowHeight - fontHeight * (stringAmount - index) - 1 - offsetY;
                 }
                 default -> throw new IllegalArgumentException(
                         "Armor Hud config hudLocation is improperly configured. Allowed values: [1,2,3,4]");

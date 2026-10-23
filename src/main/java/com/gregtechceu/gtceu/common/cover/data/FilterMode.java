@@ -1,6 +1,10 @@
 package com.gregtechceu.gtceu.common.cover.data;
 
+import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.gui.widget.EnumSelectorWidget;
+import com.gregtechceu.gtceu.api.machine.MachineCoverContainer;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredIOPartMachine;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
@@ -38,6 +42,13 @@ public enum FilterMode implements EnumSelectorWidget.SelectableEnum {
             case FILTER_EXTRACT -> WidgetIcons.FILTER_EXTRACT;
             case FILTER_BOTH -> WidgetIcons.FILTER_BOTH;
         };
+    }
+
+    public static FilterMode defaultFor(ICoverable coverHolder) {
+        if (coverHolder instanceof MachineCoverContainer mcc && MetaMachine.getMachine(mcc.holder()) instanceof TieredIOPartMachine part && part.getIo() == IO.OUT) {
+            return FILTER_EXTRACT;
+        }
+        return FILTER_INSERT;
     }
 
     public boolean filters(IO io) {

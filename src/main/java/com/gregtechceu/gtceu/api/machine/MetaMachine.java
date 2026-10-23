@@ -883,8 +883,12 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
     }
 
     public void setOwnerUUID(@Nullable final UUID ownerUUID) {
+        if (Objects.equals(this.ownerUUID, ownerUUID)) return;
         this.ownerUUID = ownerUUID;
+        onOwnerChanged();
     }
+
+    protected void onOwnerChanged() {}
 
     @Nullable
     public UUID getOwnerUUID() {
