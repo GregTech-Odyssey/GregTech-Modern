@@ -7,16 +7,10 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 
-import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.*;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
 
@@ -27,14 +21,13 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
     @SuppressWarnings("ConstantValue")
     @Override
     public @Nullable GTRecipeDefinition createCustomRecipe(IRecipeHandlerHolder holder, RecipeHandlerUnit unit) {
-        List<AEItemKey> itemKeys = new ArrayList<>();
-        List<FluidStack> fluidStacks = new ArrayList<>();
+        AEKeySet<AEItemKey> itemKeys = new AEKeySet<>();
+        AEKeyLongMap<AEFluidKey> fluidStacks = new AEKeyLongMap<>();
         if (!collect(unit, itemKeys, fluidStacks)) return null;
 
         for (var itemKey : itemKeys) {
             var single = Keys.displayStack(itemKey);
-            var copy = itemKey.toStack(1);
-            var fluidHandler = FluidUtil.getFluidHandler(copy).orElse(null);
+            var fluidHandler = FluidUtil.getFluidHandler(itemKey.toStack(1)).orElse(null);
             if (fluidHandler == null) continue;
             // Try to drain first
             var fluid = fluidHandler.drain(Integer.MAX_VALUE, FluidAction.EXECUTE);
@@ -49,8 +42,8 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
                         .build();
             }
 
-            for (var fluidStack : fluidStacks) {
-                var fluidCopy = fluidStack.copy();
+            for (var fluidKey : fluidStacks) {
+                var fluidCopy = Keys.toFluidStack(fluidKey.getKey(), fluidKey.getLongValue());
                 var filled = fluidHandler.fill(fluidCopy, FluidAction.EXECUTE);
                 if (filled == 0) continue;
                 fluidCopy.setAmount(filled);
@@ -67,16 +60,16 @@ public enum CannerLogic implements GTRecipeType.ICustomRecipeLogic {
         return null;
     }
 
-    private static boolean collect(RecipeHandlerUnit rhl, List<AEItemKey> itemKeys, List<FluidStack> fluidStacks) {
+    private static boolean collect(RecipeHandlerUnit rhl, AEKeySet<AEItemKey> itemKeys, AEKeyLongMap<AEFluidKey> fluidStacks) {
         rhl.forEachKey(AEKeyTypes.ITEMS, true, (key, amount) -> {
             if (key instanceof AEItemKey itemKey && amount > 0) itemKeys.add(itemKey);
             return false;
         });
         if (itemKeys.isEmpty()) return false;
         rhl.forEachKey(AEKeyTypes.FLUIDS, true, (key, amount) -> {
-            if (key instanceof AEFluidKey fluidKey && amount > 0) fluidStacks.add(Keys.toFluidStack(fluidKey, amount));
+            if (key instanceof AEFluidKey fluidKey && amount > 0) fluidStacks.insert(fluidKey, amount);
             return false;
         });
-        return !fluidStacks.isEmpty();
+        return true;
     }
 }

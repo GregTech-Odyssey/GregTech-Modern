@@ -1650,11 +1650,11 @@ public class LangHandler {
         provider.add("cover.advanced_machine_controller.delay", "Restart Delay (s)");
         provider.add("cover.advanced_machine_controller.delay.tooltip", "0 restarts on the next tick.");
         provider.add("cover.advanced_machine_controller.delay.disabled", "Auto restart is off");
-        provider.add("item.gtceu.machine_controller_cover.tip.summary", "Turns the machine, or a cover on another side of the same block, on and off by redstone");
+        provider.add("item.gtceu.machine_controller_cover.tip.summary", "Turns a machine or a pipe, or a cover on another side of the same block, on and off by redstone");
         provider.add("item.gtceu.machine_controller_cover.tip.normal", "Normal: runs while the input signal is below the minimum strength and pauses once it is reached");
         provider.add("item.gtceu.machine_controller_cover.tip.inverted", "Inverted: runs only while the input signal is at or above the minimum strength");
         provider.add("item.gtceu.machine_controller_cover.tip.multiple", "With several controller covers on one target, it runs only when all of them allow it");
-        provider.add("item.gtceu.machine_controller_cover.tip.pause", "Pausing keeps the recipe progress");
+        provider.add("item.gtceu.machine_controller_cover.tip.pause", "Pausing keeps the recipe progress; a paused pipe stops transferring");
         provider.add("item.gtceu.machine_controller_cover.tip.open", "Right-click with a screwdriver: open settings");
         provider.add("item.gtceu.advanced_machine_controller_cover.tip.summary", "Includes every function of the Machine Controller");
         provider.add("item.gtceu.advanced_machine_controller_cover.tip.restart", "Restarts the machine after it shuts itself down for lack of power");

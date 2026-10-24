@@ -55,6 +55,8 @@ public final class ItemRoutePath implements IRoutePath<IKeyHandler<AEItemKey>> {
     @Nullable
     @SuppressWarnings("unchecked")
     public IKeyHandler<AEItemKey> getHandler(Level world) {
+        // a paused pipe must not push anything into its neighbours
+        if (!targetPipe.isWorkingEnabled()) return null;
         return (IKeyHandler<AEItemKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT);
     }
 

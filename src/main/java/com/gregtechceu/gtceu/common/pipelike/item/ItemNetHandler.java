@@ -66,6 +66,8 @@ public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
     @Override
     public long insert(AEItemKey key, long amount, boolean simulate) {
         if (amount <= 0) return 0;
+        // a paused pipe accepts nothing, no matter whether a machine or the net itself inserts
+        if (!pipe.isWorkingEnabled()) return 0;
         pipe.checkNetwork();
         if (net == null || pipe.isInValid() || pipe.isBlocked(facing)) {
             return 0;

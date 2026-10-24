@@ -34,7 +34,7 @@ public final class EnergyNetHandler implements IEnergyContainer {
 
     @Override
     public long acceptEnergyFromNetwork(Object o, Direction side, long voltage, long energyToAdd) {
-        if (transfer) return 0;
+        if (transfer || !cable.isWorkingEnabled()) return 0;
         if (side == null) {
             if (facing == null) return 0;
             side = facing;

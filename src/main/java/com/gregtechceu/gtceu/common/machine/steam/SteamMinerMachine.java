@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -62,7 +63,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IExhaustVentMachine, IFancyUIMachine, IDataInfoProvider {
+public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, IExhaustVentMachine, IFancyUIMachine, IDataInfoProvider, IAutoOutput {
 
     @Getter
     @Setter
@@ -173,6 +174,11 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
 
     protected void autoOutput() {
         exportItems.exportToNearby(getFrontFacing());
+    }
+
+    @Override
+    public boolean isAutoOutputtingItems(Direction side) {
+        return getFrontFacing() == side;
     }
 
     //////////////////////////////////////

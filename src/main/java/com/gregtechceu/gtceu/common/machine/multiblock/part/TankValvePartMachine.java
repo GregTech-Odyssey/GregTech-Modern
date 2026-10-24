@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.ConditionalSubscriptionHandler;
+import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.InventoryProxyTrait;
@@ -24,7 +25,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public class TankValvePartMachine extends MultiblockPartMachine {
+public class TankValvePartMachine extends MultiblockPartMachine implements IAutoOutput {
 
     private final InventoryProxyTrait<AEFluidKey> tankProxy;
     private final ConditionalSubscriptionHandler autoIOSubscription;
@@ -101,5 +102,10 @@ public class TankValvePartMachine extends MultiblockPartMachine {
         if (getFrontFacing() != Direction.DOWN) return false;
         if (tankProxy.isEmpty()) return false;
         return holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), getFrontFacing(), AEKeyTypes.FLUIDS, StorageAccess.INSERT);
+    }
+
+    @Override
+    public boolean isAutoOutputtingFluids(Direction side) {
+        return isFormed() && getFrontFacing() == side;
     }
 }

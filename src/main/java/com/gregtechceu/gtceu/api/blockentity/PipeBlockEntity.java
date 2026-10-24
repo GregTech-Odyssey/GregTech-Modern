@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.blockentity;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.MaterialPipeBlock;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
+import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -51,7 +52,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends GTBlockEntity implements IPaintable, IToolGridHighlight {
+public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDataType>, NodeDataType> extends GTBlockEntity implements IPaintable, IToolGridHighlight, IControllable {
 
     private final LazyFieldDataManager fieldDataManager = new LazyFieldDataManager(this);
 
@@ -83,6 +84,16 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     @SaveToDisk
     @Nullable
     private Material frameMaterial;
+
+    /**
+     * Whether this pipe is allowed to transfer anything at all.
+     * <p>
+     * Pipes are paused by covers implementing {@link IControllable}, e.g. the Machine Controller Cover. The state is
+     * only a flag: the net handlers and the route paths check it on every operation, so pausing neither rebuilds pipe
+     * networks nor invalidates capabilities. See {@link #setWorkingEnabled(boolean)}.
+     */
+    @SaveToDisk(defaultValue = "true")
+    private boolean workingEnabled = true;
 
     private TickTimeMonitor transferMonitor;
     protected TickableSubscription transferSubs;
@@ -154,6 +165,33 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         }
         return cachedNodeData;
     }
+
+    //////////////////////////////////////
+    // ******* Controllable *******//
+    //////////////////////////////////////
+
+    @Override
+    public final boolean isWorkingEnabled() {
+        return workingEnabled;
+    }
+
+    @Override
+    public void setWorkingEnabled(boolean workingEnabled) {
+        // this is called very often by automated controllers, so only flip the flag and let the
+        // handlers short-circuit while paused instead of rebuilding nets or invalidating caches
+        if (this.workingEnabled == workingEnabled) return;
+        this.workingEnabled = workingEnabled;
+        setChanged();
+        onWorkingEnabledChanged();
+    }
+
+    /**
+     * Called after this pipe has been paused or unpaused.
+     * <p>
+     * Only cheap bookkeeping belongs here (e.g. starting or stopping the transfer tick), no pipe net or capability
+     * rebuilds: the handlers and route paths short-circuit on their own while the pipe is paused.
+     */
+    protected void onWorkingEnabledChanged() {}
 
     protected void updateTransferTick(boolean tick, Runnable runnable) {
         if (tick) {

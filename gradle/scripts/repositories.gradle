@@ -16,6 +16,11 @@ repositories {
         url = "https://maven.firstdark.dev/snapshots"
     }
 
+    maven { // JEI
+        name = "Jared's Maven"
+        url = "https://maven.blamejared.com/"
+    }
+
     exclusiveContent { // FTB mods
         forRepository { maven { url = "https://maven.ftb.dev/releases" } }
         filter { includeGroup("dev.ftb.mods") }
@@ -28,10 +33,6 @@ repositories {
     exclusiveContent { // Curseforge Maven
         forRepository { maven { url = "https://cursemaven.com" } }
         filter { includeGroup("curse.maven") }
-    }
-    exclusiveContent { // terraformers - EMI
-        forRepository { maven { url = "https://maven.terraformersmc.com/releases/" } }
-        filter { includeGroup("dev.emi") }
     }
     exclusiveContent { // tterrag - registrate
         forRepository { maven { url = "https://maven.tterrag.com/" } }

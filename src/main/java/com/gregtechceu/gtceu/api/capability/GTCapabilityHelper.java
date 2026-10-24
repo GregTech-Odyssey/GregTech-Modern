@@ -148,6 +148,10 @@ public class GTCapabilityHelper {
             }
             return null;
         }
+        // pipes and other block entities can be controlled directly as well
+        if (blockEntity instanceof IControllable controllable) {
+            return controllable;
+        }
         return null;
     }
 

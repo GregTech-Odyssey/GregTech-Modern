@@ -40,7 +40,8 @@ public final class LaserNetHandler implements ILaserContainer {
 
     @Nullable
     private ILaserContainer getInnerContainer() {
-        if (net == null || pipe == null || pipe.isInValid() || (facing == null)) {
+        // a paused laser pipe neither receives nor passes on energy
+        if (net == null || pipe == null || pipe.isInValid() || !pipe.isWorkingEnabled() || (facing == null)) {
             return null;
         }
 

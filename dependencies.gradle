@@ -11,9 +11,9 @@ dependencies {
 
     implementation("com.gto.fastcollection:FastCollection:26.8.7")
     implementation("com.gto.recipesearch:RecipeSearch:26.8.4")
-    // Taffy：与 LDLib2 相同的布局引擎，新�?UI 框架（uipro）用；发行版�?jarJar 内嵌
+    // Taffy：与 LDLib2 相同的布局引擎，新�?UI 框架（uipro）用；发行版�?jarJar 内嵌
     jarJar(implementation("dev.vfyjxf:taffy:1.1.4"))
-    // �?mod 的库在开发运行时要进游戏 classpath（对�?LDLib2 �?libraries 配置），否则 GAME 层找不到�?
+    // �?mod 的库在开发运行时要进游戏 classpath（对�?LDLib2 �?libraries 配置），否则 GAME 层找不到�?
     additionalRuntimeClasspath("dev.vfyjxf:taffy:1.1.4")
     modImplementation("com.gto:datasynclib-forge-1.20.1:26.10.11")
     modImplementation("com.gto:gtoutils-forge-1.20.1:26.10.3")
@@ -26,6 +26,10 @@ dependencies {
     modRuntimeOnly("curse.maven:spark-361579:4738952")
     modRuntimeOnly("curse.maven:modernfix-790626:7928686")
     modRuntimeOnly("dev:jecharacters:1.20.1-forge-4.5.11-dev-shadow")
+
+    modCompileOnly("mezz.jei:jei-1.20.1-forge-api:15.59.0.211")
+    modCompileOnly("mezz.jei:jei-1.20.1-common-api:15.59.0.211")
+    modImplementation("mezz.jei:jei-1.20.1-forge:15.59.0.211")
 
     // LDLib
     modApi(forge.ldlib.get())

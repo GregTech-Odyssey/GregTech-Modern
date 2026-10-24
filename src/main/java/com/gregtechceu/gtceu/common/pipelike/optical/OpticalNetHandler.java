@@ -75,7 +75,8 @@ public final class OpticalNetHandler implements IDataAccessHatch, IOpticalComput
     }
 
     private boolean isNetInvalidForTraversal() {
-        return net == null || pipe == null || pipe.isInValid();
+        // a paused optical pipe neither provides computation nor data
+        return net == null || pipe == null || pipe.isInValid() || !pipe.isWorkingEnabled();
     }
 
     @Nullable

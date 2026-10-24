@@ -2,9 +2,10 @@ package com.gregtechceu.gtceu.api.machine.feature;
 
 import net.minecraft.core.Direction;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface IAutoOutputFluid extends IMachineFeature {
+public interface IAutoOutputFluid extends IAutoOutput, IMachineFeature {
 
     boolean isAutoOutputFluids();
 
@@ -21,5 +22,10 @@ public interface IAutoOutputFluid extends IMachineFeature {
 
     default boolean hasAutoOutputFluid() {
         return true;
+    }
+
+    @Override
+    default boolean isAutoOutputtingFluids(@NotNull Direction side) {
+        return isAutoOutputFluids() && getOutputFacingFluids() == side;
     }
 }

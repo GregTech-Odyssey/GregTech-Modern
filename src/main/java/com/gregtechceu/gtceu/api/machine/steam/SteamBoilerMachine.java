@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -78,7 +79,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IFancyUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine {
+public abstract class SteamBoilerMachine extends SteamWorkableMachine implements IFancyUIMachine, IExplosionMachine, IDataInfoProvider, IWailaDisplayProvider, IInteractedMachine, IAutoOutput {
 
     @Nullable
     private static AEFluidKey steamKey;
@@ -166,6 +167,12 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     protected void autoOutput() {
         steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).filter(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT)).toArray(Direction[]::new));
         updateAutoOutputSubscription();
+    }
+
+    @Override
+    public boolean isAutoOutputtingFluids(Direction side) {
+        // steam is pushed to every side except the front and the bottom
+        return side != getFrontFacing() && side != Direction.DOWN;
     }
 
     //////////////////////////////////////

@@ -40,9 +40,7 @@ public final class KeyTransfer {
         if (stored <= 0) return 0;
         K key = from.keyAt(slot);
         if (filter != null && !filter.matches(key)) return 0;
-        long want = from.extract(slot, key, stored < maxAmount ? stored : maxAmount, true);
-        if (want <= 0) return 0;
-        long accept = to.insert(key, want, true);
+        long accept = to.insert(key, Math.min(stored, maxAmount), true);
         if (accept <= 0) return 0;
         long extracted = from.extract(slot, key, accept, false);
         if (extracted <= 0) return 0;
@@ -71,9 +69,7 @@ public final class KeyTransfer {
     private static long transferKey(MEStorage from, MEStorage to, AEKey key, long amount) {
         long accept = to.insert(key, amount, Actionable.SIMULATE, IActionSource.empty());
         if (accept <= 0) return 0;
-        long want = from.extract(key, accept, Actionable.SIMULATE, IActionSource.empty());
-        if (want <= 0) return 0;
-        long extracted = from.extract(key, want, Actionable.MODULATE, IActionSource.empty());
+        long extracted = from.extract(key, accept, Actionable.MODULATE, IActionSource.empty());
         if (extracted <= 0) return 0;
         return to.insert(key, extracted, Actionable.MODULATE, IActionSource.empty());
     }

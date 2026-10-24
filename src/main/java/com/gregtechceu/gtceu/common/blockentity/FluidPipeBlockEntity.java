@@ -1,10 +1,12 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.filter.FluidFilter;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
+import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeAdapters;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyTransfer;
@@ -240,30 +242,42 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        if (blockedSide != null && isBlocked(blockedSide)) {
-            updateTransferTick(true, this::autoTransfer);
-        }
+        updateAutoTransferTick();
     }
 
     @Override
     protected void blockedChanged(boolean isBlocked) {
-        updateTransferTick(isBlocked && blockedSide != null, this::autoTransfer);
+        updateAutoTransferTick();
     }
 
     @Override
     protected void updateNetworkConnection(Direction side, boolean connected) {
         super.updateNetworkConnection(side, connected);
         invalidateCapabilityCache();
-        updateTransferTick(blockedSide != null && isBlocked(blockedSide), this::autoTransfer);
+        updateAutoTransferTick();
     }
 
     @Override
     public void onNeighborChanged() {
         super.onNeighborChanged();
-        updateTransferTick(blockedSide != null && isBlocked(blockedSide), this::autoTransfer);
+        updateAutoTransferTick();
+    }
+
+    @Override
+    protected void onWorkingEnabledChanged() {
+        updateAutoTransferTick();
+    }
+
+    private void updateAutoTransferTick() {
+        updateTransferTick(isWorkingEnabled() && blockedSide != null && isBlocked(blockedSide), this::autoTransfer);
     }
 
     private void autoTransfer() {
+        if (!isWorkingEnabled()) {
+            // a paused pipe releases its tick, it is restarted once the pipe is resumed
+            updateTransferTick(false, this::autoTransfer);
+            return;
+        }
         ensureHandlersInitialized();
         checkNetwork();
         if (this.currentFluidPipeNet.get() == null) return;
@@ -274,6 +288,10 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
             if (facing != blockedSide && isConnected(facing)) {
                 var be = getNeighborBlockEntity(facing);
                 if (be == null || be instanceof PipeBlockEntity<?, ?>) continue;
+                // the neighbour pushes into the pipe on its own, so do not pull from it as well
+                if (be instanceof MetaMachineBlockEntity machineBlock && machineBlock.metaMachine instanceof IAutoOutput autoOutput && autoOutput.isAutoOutputtingFluids(facing.getOpposite())) {
+                    continue;
+                }
                 @SuppressWarnings("unchecked")
                 var handler = (IKeyHandler<AEFluidKey>) blockEntityDirectionCache.getAdjacentKeyHandler(be, facing, AEKeyTypes.FLUIDS, StorageAccess.EXTRACT);
                 if (handler != null) {

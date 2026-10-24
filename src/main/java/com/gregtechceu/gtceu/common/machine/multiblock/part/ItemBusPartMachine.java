@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
@@ -46,7 +47,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine {
+public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements IDistinctPart, IMachineLife, IInputLimitableMachine, IAutoOutput {
 
     @Getter
     @SaveToDisk
@@ -202,6 +203,11 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     public void setWorkingEnabled(boolean workingEnabled) {
         super.setWorkingEnabled(workingEnabled);
         updateInventorySubscription();
+    }
+
+    @Override
+    public boolean isAutoOutputtingItems(Direction side) {
+        return io == IO.OUT && isWorkingEnabled() && getFrontFacing() == side;
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
+import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IDistinctPart;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IInputLimitableMachine;
@@ -48,7 +49,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implements IMachineLife, IDistinctPart, IInputLimitableMachine {
+public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implements IMachineLife, IDistinctPart, IInputLimitableMachine, IAutoOutput {
 
     public static final int INITIAL_TANK_CAPACITY_1X = 8 * FluidType.BUCKET_VOLUME;
     public static final int INITIAL_TANK_CAPACITY_4X = 2 * FluidType.BUCKET_VOLUME;
@@ -193,6 +194,11 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public void setWorkingEnabled(boolean workingEnabled) {
         super.setWorkingEnabled(workingEnabled);
         updateTankSubscription();
+    }
+
+    @Override
+    public boolean isAutoOutputtingFluids(Direction side) {
+        return io == IO.OUT && isWorkingEnabled() && getFrontFacing() == side;
     }
 
     @Override

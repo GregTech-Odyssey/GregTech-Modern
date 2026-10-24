@@ -47,6 +47,8 @@ public final class LaserRoutePath implements IRoutePath<ILaserContainer> {
      */
     @Nullable
     public ILaserContainer getHandler(Level level) {
+        // a paused laser pipe must not push energy into its neighbours
+        if (!targetPipe.isWorkingEnabled()) return null;
         return GTCapabilityHelper.getLaser(targetPipe.getNeighborBlockEntity(targetFacing), targetFacing.getOpposite());
     }
 

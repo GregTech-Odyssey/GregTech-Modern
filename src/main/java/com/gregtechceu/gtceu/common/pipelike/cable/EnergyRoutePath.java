@@ -39,12 +39,13 @@ public final class EnergyRoutePath implements IRoutePath<IEnergyContainer> {
 
     @Nullable
     public IEnergyContainer getHandler(Level world) {
-        if (pipeBlockEntity == null) {
-            pipeBlockEntity = world.getBlockEntity(getTargetPipePos()) instanceof PipeBlockEntity<?, ?> entity ? entity : null;
-        } else {
-            return GTCapabilityHelper.getEnergyContainer(pipeBlockEntity.getNeighborBlockEntity(targetFacing), targetFacing.getOpposite());
+        var pipe = pipeBlockEntity;
+        if (pipe == null) {
+            pipe = pipeBlockEntity = world.getBlockEntity(getTargetPipePos()) instanceof PipeBlockEntity<?, ?> entity ? entity : null;
         }
-        return GTCapabilityHelper.getEnergyContainer(world.getBlockEntity(getTargetPipePos().relative(targetFacing)), targetFacing.getOpposite());
+        // a paused cable must not push energy into its neighbours
+        if (pipe == null || !pipe.isWorkingEnabled()) return null;
+        return GTCapabilityHelper.getEnergyContainer(pipe.getNeighborBlockEntity(targetFacing), targetFacing.getOpposite());
     }
 
     public @NotNull BlockPos getTargetPipePos() {

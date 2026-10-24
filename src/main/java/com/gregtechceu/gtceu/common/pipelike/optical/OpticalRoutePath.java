@@ -40,6 +40,8 @@ public final class OpticalRoutePath implements IRoutePath<IOpticalComputationPro
 
     @Nullable
     public <I> I getTargetCapability(Class<I> capability) {
+        // a paused optical pipe must not serve targets anymore
+        if (!targetPipe.isWorkingEnabled()) return null;
         BlockEntity blockEntity = targetPipe.getNeighborBlockEntity(targetFacing);
         return GTCapabilityHelper.getBlockEntityGTCapability(capability, blockEntity, targetFacing.getOpposite());
     }
@@ -53,6 +55,8 @@ public final class OpticalRoutePath implements IRoutePath<IOpticalComputationPro
     @Nullable
     @Override
     public IOpticalComputationProvider getHandler(Level world) {
+        // a paused optical pipe must not serve targets anymore
+        if (!targetPipe.isWorkingEnabled()) return null;
         BlockEntity blockEntity = targetPipe.getNeighborBlockEntity(targetFacing);
         return GTCapabilityHelper.getComputation(blockEntity, targetFacing.getOpposite());
     }

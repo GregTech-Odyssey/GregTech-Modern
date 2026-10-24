@@ -55,6 +55,8 @@ public final class FluidRoutePath implements IRoutePath<IKeyHandler<AEFluidKey>>
     @Nullable
     @SuppressWarnings("unchecked")
     public IKeyHandler<AEFluidKey> getHandler(Level world) {
+        // a paused pipe must not push anything into its neighbours
+        if (!targetPipe.isWorkingEnabled()) return null;
         return (IKeyHandler<AEFluidKey>) targetPipe.blockEntityDirectionCache.getAdjacentKeyHandler(world, getTargetPipePos(), targetFacing, AEKeyTypes.FLUIDS, StorageAccess.INSERT);
     }
 
