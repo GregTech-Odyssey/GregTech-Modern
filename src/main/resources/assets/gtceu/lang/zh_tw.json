@@ -2141,7 +2141,7 @@
     "gtceu.creative.tank.mbpc": "每次輸出流體量",
     "gtceu.creative.tank.tpc": "每次輸出間隔Tick",
     "gtceu.creative_tooltip.1": "§7你需要",
-    "gtceu.creative_tooltip.2": "§b創造模式",
+    "gtceu.creative_tooltip.2": "創造模式",
     "gtceu.creative_tooltip.3": "§7來使用它",
     "gtceu.cutter": "切割機",
     "gtceu.debug.f3_h.enabled": "格雷科技修改了除錯資訊！對於開發人員：在GregTech設定檔案中啟用misc:debug以檢視更多資訊",
