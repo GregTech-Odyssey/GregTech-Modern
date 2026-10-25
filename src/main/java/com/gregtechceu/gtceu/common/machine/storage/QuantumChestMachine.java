@@ -54,7 +54,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -63,14 +62,12 @@ import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
-import com.gto.fastcollection.fastutil.O2LOpenCacheHashMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import dev.vfyjxf.taffy.style.AlignItems;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -79,13 +76,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine, MEStorageProvider {
 
-    /**
-     * Sourced from FunctionalStorage's
-     * <a
-     * href=https://github.com/Buuz135/FunctionalStorage/blob/1.21/src/main/java/com/buuz135/functionalstorage/block/tile/ItemControllableDrawerTile.java>
-     * ItemControllerDrawerTile</a>
-     */
-    public static final O2LOpenCacheHashMap<UUID> INTERACTION_LOGGER = new O2LOpenCacheHashMap<>();
+    private final StorageInteraction interaction = new StorageInteraction();
     @Getter
     @SaveToDisk
     @SyncToClient(scheduleUpdate = true)
@@ -310,52 +301,45 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (hit.getDirection() == getFrontFacing() && !isRemote()) {
-            // Check to see if the hit is within the glass frame of the chest
-            var aabb = new AABB(hit.getBlockPos()).deflate(0.12);
-            var hitVector = hit.getLocation().relative(getFrontFacing(), -0.5);
-            if (!aabb.contains(hitVector)) return InteractionResult.PASS;
-            var held = player.getMainHandItem();
-            var heldKey = AEItemKey.of(held);
-            if (heldKey != null && cache.canInsert(heldKey)) {
-                // push
-                held.shrink((int) cache.insert(0, heldKey, held.getCount(), false));
-                return InteractionResult.SUCCESS;
-            } else if (isDoubleHit(player.getUUID())) {
+        if (!StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit)) return InteractionResult.PASS;
+        if (!world.isClientSide) {
+            boolean repeated = interaction.recordUse(player.getUUID(), hand, world.getGameTime());
+            var held = player.getItemInHand(hand);
+            var key = AEItemKey.of(held);
+            if (key != null) {
+                held.shrink((int) cache.insert(0, key, held.getCount(), false));
+            }
+            if (repeated && cache.storage.keyAt(0) != null) {
+                var stored = cache.storage.keyAt(0);
                 for (var stack : player.getInventory().items) {
-                    var key = AEItemKey.of(stack);
-                    if (key != null && cache.canInsert(key)) {
+                    key = AEItemKey.of(stack);
+                    if (key == stored) {
                         stack.shrink((int) cache.insert(0, key, stack.getCount(), false));
                     }
                 }
             }
-            INTERACTION_LOGGER.put(player.getUUID(), System.currentTimeMillis());
-            return InteractionResult.SUCCESS;
+            player.getInventory().setChanged();
         }
-        return InteractionResult.PASS;
-    }
-
-    private static boolean isDoubleHit(UUID uuid) {
-        return (System.currentTimeMillis() - INTERACTION_LOGGER.getLong(uuid)) < 300;
+        return InteractionResult.sidedSuccess(world.isClientSide);
     }
 
     @Override
     public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
-        if (direction == getFrontFacing() && !isRemote()) {
-            if (player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.getFirst())) return false;
+        if (direction != getFrontFacing() || player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.getFirst())) return false;
+        if (!(player.pick(player.getBlockReach(), 0, false) instanceof BlockHitResult hit) ||
+                !StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit))
+            return false;
+        if (!world.isClientSide && interaction.claimExtraction(world.getGameTime())) {
             var key = cache.storage.keyAt(0);
             if (key != null) {
-                // pull
                 long drained = cache.extract(0, key, player.isShiftKeyDown() ? key.getMaxStackSize() : 1, false);
                 if (drained > 0) {
-                    var stack = Keys.toStack(key, drained);
-                    if (!player.addItem(stack)) {
-                        Block.popResourceFromFace(world, getPos(), getFrontFacing(), stack);
-                    }
+                    ItemHandlerHelper.giveItemToPlayer(player, Keys.toStack(key, drained));
                 }
             }
         }
-        return IInteractedMachine.super.onLeftClick(player, world, hand, pos, direction);
+        // Cancel on both sides: vanilla retries START while held, without progressing block damage.
+        return true;
     }
 
     @Override

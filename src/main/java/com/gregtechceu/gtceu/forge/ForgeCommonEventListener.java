@@ -147,6 +147,7 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+        if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.START) return;
         var blockState = event.getLevel().getBlockState(event.getPos());
         if (blockState.hasBlockEntity() && blockState.getBlock() instanceof MetaMachineBlock block &&
                 block.getMachine(event.getLevel(), event.getPos()) instanceof IInteractedMachine machine) {

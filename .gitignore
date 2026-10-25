@@ -23,3 +23,4 @@ src/generated/resources/.cache/
 *.patch
 *.DS_Store
 
+/logs/

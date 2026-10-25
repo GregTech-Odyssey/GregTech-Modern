@@ -47,6 +47,11 @@ public final class Symbols {
         return predicates.containsKey(symbol);
     }
 
+    boolean hasCell(char symbol) {
+        var predicate = predicates.get(symbol);
+        return predicate != null && !predicate.isAny();
+    }
+
     TraceabilityPredicate get(char symbol) {
         var predicate = predicates.get(symbol);
         if (predicate == null) throw new IllegalArgumentException("symbol '" + symbol + "' is not defined");

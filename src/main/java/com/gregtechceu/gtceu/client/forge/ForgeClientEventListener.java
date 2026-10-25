@@ -2,12 +2,16 @@ package com.gregtechceu.gtceu.client.forge;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.client.TooltipsHandler;
 import com.gregtechceu.gtceu.client.renderer.BlockHighlightRenderer;
 import com.gregtechceu.gtceu.client.tooltip.TipTooltipLayout;
 import com.gregtechceu.gtceu.client.util.TooltipHelper;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.item.InfiniteSprayCanBehaviour;
+import com.gregtechceu.gtceu.common.machine.storage.QuantumChestMachine;
+import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
 import com.gregtechceu.gtceu.common.network.packets.CPacketToolSetting;
@@ -31,6 +35,7 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -74,6 +79,22 @@ public class ForgeClientEventListener {
             StructureProjection.tick();
             PartCellsOverlay.tick();
             GTValues.CLIENT_TIME++;
+        }
+    }
+
+    @SubscribeEvent
+    public static void onStorageDisplayHold(PlayerInteractEvent.LeftClickBlock event) {
+        if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.CLIENT_HOLD) return;
+        var machine = MetaMachine.getMachine(event.getLevel(), event.getPos());
+        if ((machine instanceof QuantumChestMachine || machine instanceof QuantumTankMachine) &&
+                machine instanceof IInteractedMachine interacted &&
+                interacted.onLeftClick(event.getEntity(), event.getLevel(), event.getHand(), event.getPos(), event.getFace())) {
+            event.setCanceled(true);
+            // A previous casing hit can leave the same vanilla mining target even after cancellation.
+            // Restart through the normal START packet so held clicks still reach the server.
+            var gameMode = Minecraft.getInstance().gameMode;
+            gameMode.stopDestroyBlock();
+            gameMode.startDestroyBlock(event.getPos(), event.getFace());
         }
     }
 

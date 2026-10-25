@@ -113,6 +113,35 @@ public final class Piece {
         return piece;
     }
 
+    int[] bounds(Symbols symbols) {
+        int[] bounds = { Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE };
+        int[] charVec = Orientation.VEC[dirs[0].ordinal()];
+        int[] stringVec = Orientation.VEC[dirs[1].ordinal()];
+        int[] aisleVec = Orientation.VEC[dirs[2].ordinal()];
+        int height = aisles.getFirst().length;
+        int width = aisles.getFirst()[0].length();
+        for (int c = 0; c < aisles.size(); c++) {
+            var aisle = aisles.get(c);
+            for (int b = 0; b < height; b++) {
+                var row = aisle[b];
+                int first = 0;
+                while (first < width && !symbols.hasCell(row.charAt(first))) first++;
+                if (first == width) continue;
+                int last = width - 1;
+                while (last > first && !symbols.hasCell(row.charAt(last))) last--;
+                // Only the occupied row endpoints can extend its axis-aligned bounds.
+                for (int axis = 0; axis < 3; axis++) {
+                    int offset = b * stringVec[axis] + c * aisleVec[axis];
+                    int low = offset + first * charVec[axis];
+                    int high = offset + last * charVec[axis];
+                    bounds[axis] = Math.min(bounds[axis], Math.min(low, high));
+                    bounds[axis + 3] = Math.max(bounds[axis + 3], Math.max(low, high));
+                }
+            }
+        }
+        return bounds;
+    }
+
     CompiledPiece compile(Symbols symbols) {
         if (sizer != null) throw new IllegalStateException("sized piece must be resolved before compiling");
         int axes = 0;

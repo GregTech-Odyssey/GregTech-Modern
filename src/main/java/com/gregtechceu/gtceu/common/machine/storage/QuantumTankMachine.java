@@ -47,8 +47,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 
 import appeng.api.stacks.*;
 import appeng.api.storage.StorageAccess;
@@ -70,6 +70,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine, MEStorageProvider {
 
     private static final int LOCK_MARKER = 1000;
+
+    private final StorageInteraction interaction = new StorageInteraction();
+    private final ForgeFluidAdapter interactionTank;
 
     public static Reference2LongOpenHashMap<MachineDefinition> TANK_CAPACITY = new Reference2LongOpenHashMap<>();
     @Getter
@@ -112,6 +115,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         this.maxAmount = maxAmount;
         this.max = maxAmount;
         this.cache = createCacheFluidHandler(args);
+        this.interactionTank = new ForgeFluidAdapter(cache);
         this.lockedFluid = KeyInventory.fluids(1, Long.MAX_VALUE);
         this.lockedFluid.setOnChanged(this::applyLock);
     }
@@ -283,12 +287,47 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (hit.getDirection() == getFrontFacing() && !isRemote()) {
-            if (FluidUtil.interactWithFluidHandler(player, hand, new ForgeFluidAdapter(cache))) {
-                return InteractionResult.SUCCESS;
+        if (!StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit)) return InteractionResult.PASS;
+        if (!world.isClientSide) {
+            boolean repeated = interaction.recordUse(player.getUUID(), hand, world.getGameTime());
+            var inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
+            if (inventory != null) {
+                var held = player.getItemInHand(hand);
+                player.setItemInHand(hand, StorageInteraction.transferContainers(held, interactionTank, inventory, player,
+                        repeated ? held.getCount() : 1, false));
+                if (repeated && cache.storage.keyAt(0) != null) {
+                    var items = player.getInventory().items;
+                    for (int slot = 0; slot < items.size(); slot++) {
+                        var stack = items.get(slot);
+                        if (!stack.isEmpty()) {
+                            items.set(slot, StorageInteraction.transferContainers(stack, interactionTank, inventory, player,
+                                    stack.getCount(), false));
+                        }
+                    }
+                }
+                player.getInventory().setChanged();
             }
         }
-        return IInteractedMachine.super.onUse(state, world, pos, player, hand, hit);
+        return InteractionResult.sidedSuccess(world.isClientSide);
+    }
+
+    @Override
+    public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
+        if (direction != getFrontFacing() || player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.getFirst())) return false;
+        if (!(player.pick(player.getBlockReach(), 0, false) instanceof BlockHitResult hit) ||
+                !StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit))
+            return false;
+        if (!world.isClientSide && interaction.claimExtraction(world.getGameTime())) {
+            var inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
+            if (inventory != null) {
+                var stack = player.getItemInHand(hand);
+                int count = player.isShiftKeyDown() ? stack.getCount() : 1;
+                player.setItemInHand(hand, StorageInteraction.transferContainers(stack, interactionTank, inventory, player,
+                        count, true));
+                player.getInventory().setChanged();
+            }
+        }
+        return true;
     }
 
     @Override

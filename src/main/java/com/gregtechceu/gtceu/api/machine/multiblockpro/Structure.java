@@ -405,8 +405,8 @@ public final class Structure {
     private int[] dimensions() {
         var result = dimensions;
         if (result == null) {
-            var layout = layout(defaultValues());
-            result = layout == null ? new int[3] : new int[] { layout.width(), layout.height(), layout.depth() };
+            var values = defaultValues();
+            result = accepts(values) ? new StructureDimensions(this, values, sizeOf(values)).compute() : new int[3];
             dimensions = result;
         }
         return result;
