@@ -88,6 +88,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @Getter
     @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideItems;
+    @Getter
     @SaveToDisk(defaultValue = "false")
     @SyncToClient(scheduleUpdate = true)
     private boolean isVoiding;
@@ -433,10 +434,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         return HatchViews.page(operations, status);
     }
 
-    public boolean isVoiding() {
-        return isVoiding;
-    }
-
     public void setVoiding(boolean voiding) {
         isVoiding = voiding;
         onChanged();
@@ -444,7 +441,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     public void setMaxAmount(long maxAmount) {
-        this.maxAmount = Math.max(1, Math.min(max, maxAmount));
+        this.maxAmount = Math.clamp(maxAmount, 1, max);
         onChanged();
     }
 
