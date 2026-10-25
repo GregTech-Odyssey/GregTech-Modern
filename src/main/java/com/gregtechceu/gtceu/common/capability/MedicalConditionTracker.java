@@ -40,7 +40,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
 
     @Override
     public void tick() {
-        if (player.isCreative()) return;
+        if (player.isCreative() || player.isSpectator()) return;
         for (ObjectIterator<Object2IntMap.Entry<MobEffect>> it = activeMobEffects.object2IntEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             player.addEffect(new MobEffectInstance(entry.getKey(), 100, entry.getIntValue()));
