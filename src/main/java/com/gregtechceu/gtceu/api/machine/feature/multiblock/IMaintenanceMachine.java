@@ -71,8 +71,10 @@ public interface IMaintenanceMachine extends IMultiPart {
         return 1;
     }
 
-    default float getFailureOnset() {
-        return 1;
+    default float getWear() {
+        if (!ConfigHolder.INSTANCE.machines.enableMaintenance || isFullAuto()) return 0;
+        if (hasMaintenanceProblems()) return 1;
+        return Math.min(1, Math.max(0, (float) getTimeActive() / MINIMUM_MAINTENANCE_TIME));
     }
 
     @Override
@@ -105,10 +107,9 @@ public interface IMaintenanceMachine extends IMultiPart {
         }
 
         if (calculateTime((int) (duration * maintenanceMachine.getTimeMultiplier()))) {
-            if (GTValues.RNG.nextFloat() - 0.75f >= 0) {
-                causeRandomMaintenanceProblems();
-                maintenanceMachine.setTaped(false);
-            }
+            setTimeActive(0);
+            causeRandomMaintenanceProblems();
+            maintenanceMachine.setTaped(false);
         }
     }
 

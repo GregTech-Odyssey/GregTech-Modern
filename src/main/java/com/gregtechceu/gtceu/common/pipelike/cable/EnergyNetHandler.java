@@ -52,7 +52,7 @@ public final class EnergyNetHandler implements IEnergyContainer {
             }
 
             var dest = path.getHandler(getNet().getLevel());
-            if (dest == null) continue;
+            if (dest == null || dest == o) continue;
 
             var facing = path.getTargetFacing().getOpposite();
             if (!dest.inputsEnergy(facing)) continue;
@@ -64,7 +64,7 @@ public final class EnergyNetHandler implements IEnergyContainer {
             if (accept <= 0) continue;
             long paid = Math.min(available, CableTransfer.cost(accept, voltage, perAmp));
             energyUsed += paid;
-            CableTransfer.load(path.getPath(), voltage, paid, dest == o);
+            CableTransfer.load(path.getPath(), voltage, paid);
         }
         return energyUsed;
     }

@@ -31,6 +31,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import org.jetbrains.annotations.Nullable;
@@ -74,6 +76,10 @@ public interface ICoverable extends ITickSubscription, IAppearance, ISync {
     IKeyHandler<AEItemKey> getItemHandlerCap(@Nullable Direction side, boolean useCoverCapability);
 
     IKeyHandler<AEFluidKey> getFluidHandlerCap(@Nullable Direction side, boolean useCoverCapability);
+
+    default boolean acceptsFilter(Direction side, AEKeyType type) {
+        return type == AEKeyTypes.ITEMS ? getItemHandlerCap(side, false) != null : type == AEKeyTypes.FLUIDS && getFluidHandlerCap(side, false) != null;
+    }
 
     /**
      * Its an internal method, you should never call it yourself.

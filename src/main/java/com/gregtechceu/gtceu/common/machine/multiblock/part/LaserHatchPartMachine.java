@@ -35,10 +35,10 @@ public class LaserHatchPartMachine extends WorkableTieredIOPartMachine implement
     public LaserHatchPartMachine(MetaMachineBlockEntity holder, IO io, int tier, int amperage) {
         super(holder, tier, io);
         if (io == IO.OUT) {
-            this.buffer = NotifiableLaserContainer.emitterContainer(this, GTValues.V[tier] * 64L * amperage,
+            this.buffer = NotifiableLaserContainer.emitterContainer(this, getBufferCapacity(tier, amperage),
                     GTValues.V[tier], amperage);
         } else {
-            this.buffer = NotifiableLaserContainer.receiverContainer(this, GTValues.V[tier] * 64L * amperage,
+            this.buffer = NotifiableLaserContainer.receiverContainer(this, getBufferCapacity(tier, amperage),
                     GTValues.V[tier], amperage);
             this.buffer.setSideInputCondition(s -> s == getFrontFacing());
         }
@@ -83,5 +83,9 @@ public class LaserHatchPartMachine extends WorkableTieredIOPartMachine implement
             return GTValues.VC[getTier()];
         }
         return super.tintColor(index);
+    }
+
+    public static long getBufferCapacity(int tier, int amperage) {
+        return GTValues.V[tier] * 64L * amperage;
     }
 }

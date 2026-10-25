@@ -174,6 +174,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
     private boolean percent;
     private boolean currentOnly;
     private boolean ticks;
+    private boolean alarmWhenFull;
     @Nullable
     private String unit;
     private final List<Marker> markers = new ArrayList<>(0);
@@ -226,6 +227,11 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         return this;
     }
 
+    public ProgressBar alarmWhenFull() {
+        this.alarmWhenFull = true;
+        return this;
+    }
+
     public ProgressBar setUnit(String unit) {
         this.unit = unit;
         return this;
@@ -274,6 +280,10 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         return valueText;
     }
 
+    private boolean isAlarm(Progress value) {
+        return alarmWhenFull && value.total() > 0 && value.isComplete();
+    }
+
     private static StringBuilder seconds(StringBuilder builder, long ticks) {
         long tenths = ticks / 2;
         return builder.append(tenths / 10).append('.').append(tenths % 10);
@@ -289,7 +299,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
         int x = getPositionX(), y = getPositionY(), h = getSizeHeight(), w = trackWidth();
         var value = progress.getValue();
-        int fill = clientColor == null ? color : clientColor.getAsInt();
+        int fill = isAlarm(value) ? UITheme.barAlarm() : clientColor == null ? color : clientColor.getAsInt();
         UIDraw.progressTrack(graphics, x, y, w, h);
         int inner = w - 2;
         int filled = UIDraw.progressFill(graphics, x, y, w, h, 0, ticks && value.total() <= 0 ? 0 : value.ratio(), fill);
@@ -314,7 +324,8 @@ public class ProgressBar extends UIElement implements IHoverOwner {
     @OnlyIn(Dist.CLIENT)
     private void drawText(GuiGraphics graphics, int x, int y, int w, int h, int filled, Progress value, int fill) {
         String shown = valueText(value);
-        int valueColor = value.isComplete() ? UITheme.STATUS_TEXT_GOOD : UITheme.TEXT;
+        boolean done = value.isComplete() && !alarmWhenFull;
+        int valueColor = done ? UITheme.STATUS_TEXT_GOOD : UITheme.TEXT;
         if (filled <= 0) {
             UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, valueColor);
             return;
@@ -322,7 +333,7 @@ public class ProgressBar extends UIElement implements IHoverOwner {
         int split = x + 1 + filled;
         int onFill = textOn(fill);
         UIClip.push(graphics, x, y, split - x, h);
-        UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, onFill, value.isComplete() ? UITheme.STATUS_TEXT_GOOD : onFill);
+        UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, onFill, done ? UITheme.STATUS_TEXT_GOOD : onFill);
         UIClip.pop(graphics);
         UIClip.push(graphics, split, y, x + w - split, h);
         UIText.drawLabelValue(graphics, x, y, w, h, labelText, shown, valueColor);

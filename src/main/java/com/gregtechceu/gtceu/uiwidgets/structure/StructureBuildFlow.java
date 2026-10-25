@@ -101,8 +101,7 @@ public final class StructureBuildFlow {
             preview.closePreview();
         });
         StructurePreviewScreen.open(definition, structure, null, modes, project, action(StructurePreviewScreen.BUILD, (layout, values, navigator, preview) -> {
-            var wanted = wantedItems(layout);
-            var stock = inventoryStock(Minecraft.getInstance().player, TerminalModes.isNetwork(), wanted);
+            var stock = layoutStock(Minecraft.getInstance().player, layout);
             var excluded = layout.excludedNodes();
             var model = chosen(definition, values, excluded);
             if (model == null) {
@@ -147,6 +146,10 @@ public final class StructureBuildFlow {
 
     public static Function<ItemStack, PatternBuilderModel.Stock> inventoryStock(Player player) {
         return inventoryStock(player, false, List.of());
+    }
+
+    public static Function<ItemStack, PatternBuilderModel.Stock> layoutStock(Player player, Layout layout) {
+        return inventoryStock(player, TerminalModes.isNetwork(), wantedItems(layout));
     }
 
     public static Function<ItemStack, PatternBuilderModel.Stock> inventoryStock(Player player, boolean network, Collection<Item> wanted) {

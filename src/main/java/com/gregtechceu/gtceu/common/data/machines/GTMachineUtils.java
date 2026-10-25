@@ -41,7 +41,6 @@ import com.gregtechceu.gtceu.common.machine.electric.ChargerMachine;
 import com.gregtechceu.gtceu.common.machine.electric.TransformerMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.generator.LargeCombustionEngineMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.generator.LargeTurbineMachine;
-import com.gregtechceu.gtceu.common.machine.multiblock.part.EnergyHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.LaserHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.TankValvePartMachine;
@@ -300,7 +299,7 @@ public class GTMachineUtils {
                                 Tips.requirement(Component.translatable("gtceu.machine.laser_hatch.both.tooltip")),
                                 Tips.stat(io == IN ? StatKind.VOLTAGE_IN : StatKind.VOLTAGE_OUT, StatKind.voltage(V[tier], tier)),
                                 Tips.stat(io == IN ? StatKind.AMPERAGE_IN : StatKind.AMPERAGE_OUT, ElectricText.ampsValue(amperage)),
-                                Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, amperage), tier),
+                                Tips.energy(StatKind.ENERGY_CAPACITY, LaserHatchPartMachine.getBufferCapacity(tier, amperage), tier),
                                 Tips.stat(Component.translatable("gtceu.part_sharing.disabled")))
                         .abilities(ability)
                         .overlayTieredHullRenderer("laser_hatch." + name)

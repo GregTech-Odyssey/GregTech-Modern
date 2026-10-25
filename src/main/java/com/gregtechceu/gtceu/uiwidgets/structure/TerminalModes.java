@@ -70,6 +70,14 @@ public final class TerminalModes {
         return Boolean.parseBoolean(UIPreferences.get(NETWORK_PREFERENCE, "false"));
     }
 
+    public static void setNetwork(boolean network) {
+        UIPreferences.put(NETWORK_PREFERENCE, String.valueOf(network));
+    }
+
+    public static UIElement networkRow() {
+        return Form.controlRow(NETWORK, Switch.of(TerminalModes::isNetwork, TerminalModes::setNetwork), NETWORK_DESC);
+    }
+
     public boolean isDemolishing(int node) {
         return node < 0 || node >= demolishNodes.length || demolishNodes[node];
     }
@@ -88,7 +96,6 @@ public final class TerminalModes {
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(
                 Form.controlRow(MIRROR, Switch.of(this::isMirror, this::setMirror).disabled(() -> !canMirror, MIRROR_UNSUPPORTED), MIRROR_DESC),
                 Form.controlRow(DEMOLISH, Switch.of(this::isDemolish, this::setDemolish), DEMOLISH_DESC),
-                Form.controlRow(NETWORK, Switch.of(TerminalModes::isNetwork, value -> UIPreferences.put(NETWORK_PREFERENCE, String.valueOf(value))),
-                        NETWORK_DESC));
+                networkRow());
     }
 }

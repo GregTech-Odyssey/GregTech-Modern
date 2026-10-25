@@ -26,7 +26,7 @@ public class SteamSolarBoiler extends SteamBoilerMachine {
     }
 
     @Override
-    public Direction getFrontFacing() {
+    protected Direction getSteamVentFacing() {
         return Direction.UP;
     }
 

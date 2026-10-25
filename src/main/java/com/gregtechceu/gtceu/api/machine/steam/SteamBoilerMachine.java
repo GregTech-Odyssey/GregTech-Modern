@@ -155,8 +155,12 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
         updateAutoOutputSubscription();
     }
 
+    protected Direction getSteamVentFacing() {
+        return getFrontFacing();
+    }
+
     protected void updateAutoOutputSubscription() {
-        if (Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).anyMatch(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
+        if (Direction.stream().filter(direction -> direction != getSteamVentFacing() && direction != Direction.DOWN).anyMatch(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
             autoOutputSubs.unsubscribe();
@@ -165,14 +169,14 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     }
 
     protected void autoOutput() {
-        steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getFrontFacing() && direction != Direction.DOWN).filter(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT)).toArray(Direction[]::new));
+        steamTank.exportToNearby(Direction.stream().filter(direction -> direction != getSteamVentFacing() && direction != Direction.DOWN).filter(direction -> holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), direction, AEKeyTypes.FLUIDS, StorageAccess.INSERT)).toArray(Direction[]::new));
         updateAutoOutputSubscription();
     }
 
     @Override
     public boolean isAutoOutputtingFluids(Direction side) {
         // steam is pushed to every side except the front and the bottom
-        return side != getFrontFacing() && side != Direction.DOWN;
+        return side != getSteamVentFacing() && side != Direction.DOWN;
     }
 
     //////////////////////////////////////
@@ -221,7 +225,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
                     final float x = getPos().getX() + 0.5F;
                     final float y = getPos().getY() + 0.5F;
                     final float z = getPos().getZ() + 0.5F;
-                    serverLevel.sendParticles(ParticleTypes.CLOUD, x + getFrontFacing().getStepX() * 0.6, y + getFrontFacing().getStepY() * 0.6, z + getFrontFacing().getStepZ() * 0.6, 7 + GTValues.RNG.nextInt(3), getFrontFacing().getStepX() / 2.0, getFrontFacing().getStepY() / 2.0, getFrontFacing().getStepZ() / 2.0, 0.1);
+                    serverLevel.sendParticles(ParticleTypes.CLOUD, x + getSteamVentFacing().getStepX() * 0.6, y + getSteamVentFacing().getStepY() * 0.6, z + getSteamVentFacing().getStepZ() * 0.6, 7 + GTValues.RNG.nextInt(3), getSteamVentFacing().getStepX() / 2.0, getSteamVentFacing().getStepY() / 2.0, getSteamVentFacing().getStepZ() / 2.0, 0.1);
                     if (ConfigHolder.INSTANCE.machines.machineSounds) {
                         getLevel().playSound(null, x, y, z, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
                     }

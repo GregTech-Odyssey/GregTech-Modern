@@ -21,7 +21,9 @@ import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uipro.elements.Button;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineDisplay;
 import com.gregtechceu.gtceu.uiwidgets.maintenance.MaintenanceReadouts;
@@ -197,7 +199,10 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
      * @param entityPlayer the player performing the fixing
      */
     private void fixMaintenanceProblems(@Nullable Player entityPlayer) {
-        if (!hasMaintenanceProblems()) return;
+        if (!hasMaintenanceProblems()) {
+            timeActive = 0;
+            return;
+        }
         if (entityPlayer != null) {
             // Fix automatically on slot click by player in Creative Mode
             if (entityPlayer.isCreative()) {
@@ -400,8 +405,9 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
             tapeSlot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.DUCT_TAPE_OVERLAY));
             tapeSlot.tooltips(TAPE_TOOLTIP);
             controls.addSlot(tapeSlot, TAPE_LABEL, ControlPanel.contentName(itemStackHandler.storage, 0), TAPE_TOOLTIP);
-            controls.addServerButton(FIX_LABEL, MaintenanceReadouts.REPAIR, this::fixMaintenanceProblems, MaintenanceReadouts.REPAIR_TOOLTIP)
-                    .disabled(() -> !hasMaintenanceProblems(), MaintenanceReadouts.NO_PROBLEMS);
+            var fixButton = Button.of(UISizes.BUTTON_WIDTH)
+                    .bindClientText(() -> Component.translatable(hasMaintenanceProblems() ? MaintenanceReadouts.REPAIR : MaintenanceReadouts.MAINTAIN).getString());
+            controls.addServerButton(FIX_LABEL, fixButton, this::fixMaintenanceProblems, MaintenanceReadouts.REPAIR_TOOLTIP);
             if (isConfigurable) {
                 controls.addDecimal(DURATION_LABEL, () -> durationMultiplier, value -> durationMultiplier = (float) value,
                         MIN_DURATION_MULTIPLIER, MAX_DURATION_MULTIPLIER, DURATION_STEP, MaintenanceReadouts.DURATION_TOOLTIP);

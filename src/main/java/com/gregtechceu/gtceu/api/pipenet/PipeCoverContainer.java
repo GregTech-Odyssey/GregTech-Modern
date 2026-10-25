@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.IFieldDataHolder;
 import com.gto.datasynclib.LazyFieldDataManager;
@@ -127,6 +128,11 @@ public final class PipeCoverContainer implements ICoverable {
     @Override
     public GTBlockEntity getHolder() {
         return pipeTile;
+    }
+
+    @Override
+    public boolean acceptsFilter(Direction side, AEKeyType type) {
+        return pipeTile.acceptsFilter(type) || ICoverable.super.acceptsFilter(side, type);
     }
 
     @Override

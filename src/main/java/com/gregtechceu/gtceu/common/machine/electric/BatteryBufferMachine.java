@@ -241,19 +241,17 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 var energyContainer = GTCapabilityHelper.getEnergyContainer(holder.getNeighborBlockEntity(outFacing), outFacing.getOpposite());
                 if (energyContainer != null && energyContainer.inputsEnergy(outFacing.getOpposite())) {
                     var voltage = getOutputVoltage();
-                    var stored = 0L;
+                    var canOutput = 0L;
                     for (IElectricItem electricItem : batteries) {
-                        stored += electricItem.getCharge();
+                        canOutput += electricItem.discharge(voltage, getTier(), false, true, true);
                     }
-                    var canOutput = Math.min(stored, batteries.size() * voltage);
-                    double out = energyContainer.acceptEnergyFromNetwork(this, outFacing.getOpposite(), voltage, canOutput);
-                    if (out > 0) {
-                        long distributed = (long) Math.ceil(out / batteries.size());
-                        for (IElectricItem electricItem : batteries) {
-                            var charged = electricItem.discharge(distributed, getTier(), false, true, false);
-                            if (charged > 0) {
-                                changed = true;
-                            }
+                    long left = energyContainer.acceptEnergyFromNetwork(this, outFacing.getOpposite(), voltage, canOutput);
+                    for (IElectricItem electricItem : batteries) {
+                        if (left <= 0) break;
+                        var discharged = electricItem.discharge(Math.min(left, voltage), getTier(), false, true, false);
+                        if (discharged > 0) {
+                            left -= discharged;
+                            changed = true;
                         }
                     }
                 }
