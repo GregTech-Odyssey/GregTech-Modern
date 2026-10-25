@@ -14,10 +14,17 @@ import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import net.minecraftforge.items.wrapper.PlayerOffhandInvWrapper;
 
 import appeng.api.config.Actionable;
+import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
+import appeng.helpers.WirelessTerminalMenuHost;
+import appeng.items.tools.powered.WirelessTerminalItem;
+import appeng.menu.locator.MenuLocators;
+import de.mari_023.ae2wtlib.curio.CurioLocator;
+import de.mari_023.ae2wtlib.terminal.IUniversalWirelessTerminalItem;
 import de.mari_023.ae2wtlib.wct.CraftingTerminalHandler;
+import de.mari_023.ae2wtlib.wut.WUTHandler;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import me.kall.duplicationless.ext.RegistryEntry;
@@ -158,9 +165,48 @@ public final class PlayerSupply {
         @Nullable
         private static IStorageService storage(ServerPlayer player) {
             var handler = CraftingTerminalHandler.getCraftingTerminalHandler(player);
-            if (handler.getLocator() == null) return null;
-            var grid = handler.getTargetGrid();
+            var grid = handler.getLocator() == null ? null : handler.getTargetGrid();
+            if (grid == null) grid = anyTerminal(player);
             return grid == null ? null : grid.getStorageService();
+        }
+
+        @Nullable
+        private static IGrid anyTerminal(ServerPlayer player) {
+            var inventory = player.getInventory();
+            for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+                if (!linked(player, inventory.getItem(slot))) continue;
+                var grid = grid(MenuLocators.forInventorySlot(slot).locate(player, WirelessTerminalMenuHost.class));
+                if (grid != null) return grid;
+            }
+            return GTCEu.Mods.isCuriosLoaded() ? CurioTerminals.grid(player) : null;
+        }
+
+        private static boolean linked(ServerPlayer player, ItemStack stack) {
+            return stack.getItem() instanceof WirelessTerminalItem terminal && terminal.getLinkedGrid(stack, player.level(), null) != null;
+        }
+
+        @Nullable
+        private static IGrid grid(@Nullable WirelessTerminalMenuHost host) {
+            var node = host == null ? null : host.getActionableNode();
+            return node == null ? null : node.getGrid();
+        }
+    }
+
+    private static final class CurioTerminals {
+
+        @Nullable
+        private static IGrid grid(ServerPlayer player) {
+            var curios = CuriosApi.getCuriosInventory(player).resolve().orElse(null);
+            if (curios == null) return null;
+            for (var result : curios.findCurios(stack -> Wireless.linked(player, stack))) {
+                var stack = result.stack();
+                var host = stack.getItem() instanceof IUniversalWirelessTerminalItem && !WUTHandler.getCurrentTerminal(stack).isEmpty() ?
+                        new CurioLocator(result.slotContext()).locate(player, WirelessTerminalMenuHost.class) :
+                        new WirelessTerminalMenuHost(player, null, stack, (p, menu) -> {});
+                var grid = Wireless.grid(host);
+                if (grid != null) return grid;
+            }
+            return null;
         }
     }
 

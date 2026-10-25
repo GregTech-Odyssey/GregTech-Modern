@@ -581,10 +581,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " Energy Hatch")
                     .allRotation()
                     .abilities(PartAbility.INPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in", ElectricText.amps(2))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 2), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.energy_hatch.input.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, IN, 2))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.energy_hatch.input.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.input")
                     .register(),
             ALL_TIERS);
@@ -595,10 +593,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " Dynamo Hatch")
                     .allRotation()
                     .abilities(PartAbility.OUTPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_out", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_out", ElectricText.amps(2))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 2), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.energy_hatch.output.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, OUT, 2))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.energy_hatch.output.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.output")
                     .register(),
             ALL_TIERS);
@@ -609,10 +605,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " 4A Energy Hatch")
                     .allRotation()
                     .abilities(PartAbility.INPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in", ElectricText.amps(4))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 4), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.energy_hatch.input_hi_amp.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, IN, 4))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.energy_hatch.input_hi_amp.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.input_4a")
                     .register(),
             GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV));
@@ -623,10 +617,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " 4A Dynamo Hatch")
                     .allRotation()
                     .abilities(PartAbility.OUTPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_out", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_out", ElectricText.amps(4))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 4), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.energy_hatch.output_hi_amp.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, OUT, 4))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.energy_hatch.output_hi_amp.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.output_4a")
                     .register(),
             GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV));
@@ -637,10 +629,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " 16A Energy Hatch")
                     .allRotation()
                     .abilities(PartAbility.INPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in", ElectricText.amps(16))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 16), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.energy_hatch.input_hi_amp.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, IN, 16))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.energy_hatch.input_hi_amp.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.input_16a")
                     .register(),
             GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV));
@@ -651,10 +641,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " 16A Dynamo Hatch")
                     .allRotation()
                     .abilities(PartAbility.OUTPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_out", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_out", ElectricText.amps(16))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 16), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.energy_hatch.output_hi_amp.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, OUT, 16))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.energy_hatch.output_hi_amp.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.output_16a")
                     .register(),
             GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV));
@@ -666,10 +654,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " 64A Substation Energy Hatch")
                     .allRotation()
                     .abilities(PartAbility.SUBSTATION_INPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_in", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_in", ElectricText.amps(64))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 64), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.substation_hatch.input.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, IN, 64))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.substation_hatch.input.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.input_64a")
                     .register(),
             GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV));
@@ -681,10 +667,8 @@ public class GTMachines {
                     .langValue(VNF[tier] + ChatFormatting.RESET + " 64A Substation Dynamo Hatch")
                     .allRotation()
                     .abilities(PartAbility.SUBSTATION_OUTPUT_ENERGY)
-                    .tips(Tips.stat(Component.translatable("gtceu.universal.tooltip.voltage_out", ElectricText.voltage(V[tier], tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.amperage_out", ElectricText.amps(64))),
-                            Tips.energy(StatKind.ENERGY_CAPACITY, EnergyHatchPartMachine.getHatchEnergyCapacity(tier, 64), tier),
-                            Tips.feature(Component.translatable("gtceu.machine.substation_hatch.output.tooltip")))
+                    .tips(EnergyHatchPartMachine.hatchTips(tier, OUT, 64))
+                    .tips(Tips.feature(Component.translatable("gtceu.machine.substation_hatch.output.tooltip")))
                     .overlayTieredHullRenderer("energy_hatch.output_64a")
                     .register(),
             GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV));

@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -209,6 +210,10 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     protected void blockedChanged(boolean isBlocked) {}
 
     public void invalidateCapabilityCache() {}
+
+    public boolean acceptsFilter(AEKeyType type) {
+        return false;
+    }
 
     public void onJoinedNet() {}
 

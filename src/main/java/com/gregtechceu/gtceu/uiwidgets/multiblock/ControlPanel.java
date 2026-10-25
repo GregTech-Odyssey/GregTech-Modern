@@ -164,7 +164,10 @@ public final class ControlPanel {
     }
 
     public UIElement addServerButton(String labelKey, String buttonKey, Consumer<Player> onServerClick, String... tooltipKeys) {
-        var button = Button.translatable(UISizes.BUTTON_WIDTH, buttonKey);
+        return addServerButton(labelKey, Button.translatable(UISizes.BUTTON_WIDTH, buttonKey), onServerClick, tooltipKeys);
+    }
+
+    public UIElement addServerButton(String labelKey, Button button, Consumer<Player> onServerClick, String... tooltipKeys) {
         button.setOnServerClick(() -> {
             var gui = button.getGui();
             if (gui == null || gui.entityPlayer == null) return;

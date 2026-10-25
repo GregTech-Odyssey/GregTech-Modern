@@ -27,6 +27,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -88,7 +89,7 @@ public class ItemFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     public boolean canAttach() {
-        return super.canAttach() && coverHolder.getItemHandlerCap(attachedSide, false) != null;
+        return super.canAttach() && coverHolder.acceptsFilter(attachedSide, AEKeyTypes.ITEMS);
     }
 
     @Override

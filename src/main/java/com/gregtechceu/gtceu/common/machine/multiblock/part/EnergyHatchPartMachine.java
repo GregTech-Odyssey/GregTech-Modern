@@ -8,12 +8,16 @@ import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.tooltip.ElectricText;
+import com.gregtechceu.gtceu.api.tooltip.StatKind;
+import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -50,11 +54,11 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
     protected NotifiableEnergyContainer createEnergyContainer(Object... args) {
         NotifiableEnergyContainer container;
         if (io == IO.OUT) {
-            container = NotifiableEnergyContainer.emitterContainer(this, GTValues.V[tier] * 64L * amperage, GTValues.V[tier], amperage);
+            container = NotifiableEnergyContainer.emitterContainer(this, getHatchEnergyCapacity(tier, io, amperage), GTValues.V[tier], amperage);
             container.setSideOutputCondition(s -> isWorkingEnabled());
             container.setCapabilityValidator(s -> s == null || s == getFrontFacing());
         } else {
-            container = NotifiableEnergyContainer.receiverContainer(this, GTValues.V[tier] * 16L * amperage, GTValues.V[tier], amperage);
+            container = NotifiableEnergyContainer.receiverContainer(this, getHatchEnergyCapacity(tier, io, amperage), GTValues.V[tier], amperage);
             container.setSideInputCondition(s -> s == getFrontFacing() && isWorkingEnabled());
             container.setCapabilityValidator(s -> s == null || s == getFrontFacing());
         }
@@ -124,7 +128,15 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
         return super.tintColor(index);
     }
 
-    public static long getHatchEnergyCapacity(int tier, int amperage) {
-        return GTValues.V[tier] * 64L * amperage;
+    public static long getHatchEnergyCapacity(int tier, IO io, int amperage) {
+        return GTValues.V[tier] * (io == IO.OUT ? 64L : 16L) * amperage;
+    }
+
+    public static Component[] hatchTips(int tier, IO io, int amperage) {
+        boolean out = io == IO.OUT;
+        return new Component[] {
+                Tips.stat(Component.translatable(out ? "gtceu.universal.tooltip.voltage_out" : "gtceu.universal.tooltip.voltage_in", ElectricText.voltage(GTValues.V[tier], tier))),
+                Tips.stat(Component.translatable(out ? "gtceu.universal.tooltip.amperage_out" : "gtceu.universal.tooltip.amperage_in", ElectricText.amps(amperage))),
+                Tips.energy(StatKind.ENERGY_CAPACITY, getHatchEnergyCapacity(tier, io, amperage), tier) };
     }
 }

@@ -24,6 +24,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.AEFluidKey;
+import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
@@ -70,7 +71,7 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
 
     @Override
     public boolean canAttach() {
-        return super.canAttach() && coverHolder.getFluidHandlerCap(attachedSide, false) != null;
+        return super.canAttach() && coverHolder.acceptsFilter(attachedSide, AEKeyTypes.FLUIDS);
     }
 
     public FluidFilter getFluidFilter() {

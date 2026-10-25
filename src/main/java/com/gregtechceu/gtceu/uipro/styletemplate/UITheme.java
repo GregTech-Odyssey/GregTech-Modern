@@ -81,6 +81,10 @@ public final class UITheme {
         return BAR_HEAT;
     }
 
+    public static int barAlarm() {
+        return FLOW_RED_LIGHT;
+    }
+
     /** 物品槽底图。 */
     private static IGuiTexture itemSlot = OreSprites.SLOT_BRIGHT;
     public static final IGuiTexture ITEM_SLOT = dynamic(() -> itemSlot);

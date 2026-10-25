@@ -30,7 +30,7 @@ public final class MaintenanceReadouts {
     public static final String WEAR_RATE = "gtceu.maintenance.wear_rate";
     public static final String REPAIR = "gtceu.maintenance.repair";
     public static final String REPAIR_TOOLTIP = "gtceu.maintenance.repair.tooltip";
-    public static final String NO_PROBLEMS = "gtceu.maintenance.no_problems";
+    public static final String MAINTAIN = "gtceu.maintenance.maintain";
     public static final String DURATION_TOOLTIP = "gtceu.maintenance.duration.tooltip";
 
     private static final int STATE_OK = 0;
@@ -51,7 +51,7 @@ public final class MaintenanceReadouts {
             Component.translatable("gtceu.maintenance.tool.wire_cutter"),
             Component.translatable("gtceu.maintenance.tool.crowbar") };
     private static final Component TOOL_SEPARATOR = Component.translatable("gtceu.maintenance.tool_separator");
-    private static final String WEAR_DETAIL = "gtceu.maintenance.wear.detail";
+    private static final Component WEAR_DETAIL = Component.translatable("gtceu.maintenance.wear.limit");
     private static final String TIMES = "gtceu.maintenance.times";
     private static final String PROBLEM_COUNT = "gtceu.maintenance.problems.count";
     private static final String TOOLS_DETAIL = "gtceu.maintenance.tools";
@@ -71,9 +71,7 @@ public final class MaintenanceReadouts {
     }
 
     public static ProgressBar addWear(MachineScreen screen, IMaintenanceMachine machine) {
-        long onset = Math.round(machine.getFailureOnset() * 100);
-        Component detail = Component.translatable(WEAR_DETAIL, onset + "%");
-        return screen.addBar(WEAR, UITheme::barProgress, new WearProgress(machine)).percent().bindDetail(() -> detail);
+        return screen.addBar(WEAR, UITheme::barProgress, new WearProgress(machine)).percent().alarmWhenFull().bindDetail(() -> WEAR_DETAIL);
     }
 
     public static StatusLine addDuration(MachineScreen screen, DoubleSupplier duration) {
@@ -117,7 +115,7 @@ public final class MaintenanceReadouts {
     private static final class WearProgress implements Supplier<ProgressBar.Progress> {
 
         private final IMaintenanceMachine machine;
-        private long shown = -1;
+        private int shown = -1;
         private ProgressBar.Progress progress = ProgressBar.Progress.EMPTY;
 
         private WearProgress(IMaintenanceMachine machine) {
@@ -126,11 +124,10 @@ public final class MaintenanceReadouts {
 
         @Override
         public ProgressBar.Progress get() {
-            long active = ConfigHolder.INSTANCE.machines.enableMaintenance ? Math.max(0, machine.getTimeActive()) : 0;
-            if (active != shown) {
-                shown = active;
-                progress = new ProgressBar.Progress(Math.min(active, IMaintenanceMachine.MINIMUM_MAINTENANCE_TIME),
-                        IMaintenanceMachine.MINIMUM_MAINTENANCE_TIME, 0);
+            int wear = Math.round(machine.getWear() * IMaintenanceMachine.MINIMUM_MAINTENANCE_TIME);
+            if (wear != shown) {
+                shown = wear;
+                progress = new ProgressBar.Progress(wear, IMaintenanceMachine.MINIMUM_MAINTENANCE_TIME, 0);
             }
             return progress;
         }
