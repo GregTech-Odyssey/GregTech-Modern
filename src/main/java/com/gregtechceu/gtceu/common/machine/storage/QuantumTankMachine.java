@@ -87,6 +87,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideFluids;
     @SaveToDisk(defaultValue = "false")
+    @SyncToClient(scheduleUpdate = true)
     private boolean isVoiding;
 
     @Getter
@@ -423,6 +424,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     public void setVoiding(boolean voiding) {
         isVoiding = voiding;
         onChanged();
+        requestSync();
     }
 
     public void setMaxAmount(long maxAmount) {

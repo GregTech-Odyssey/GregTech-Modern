@@ -452,7 +452,7 @@ public class GTMachines {
             .tooltipBuilder((stack, list) -> {
                 CREATIVE_TOOLTIPS.accept(stack, list);
                 if (stack.hasTag()) {
-                    FluidStack f = FluidStack.loadFluidStackFromNBT(stack.getOrCreateTagElement("stored"));
+                    FluidStack f = FluidStack.loadFluidStackFromNBT(stack.getTagElement("stored"));
                     int perCycle = stack.getOrCreateTag().getInt("mBPerCycle");
                     list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_stored", f.getDisplayName(),
                             FormattingUtil.formatNumbers(perCycle))));
@@ -479,10 +479,10 @@ public class GTMachines {
             .hasTESR(true)
             .register();
 
-    public static final MachineDefinition[] SUPER_CHEST = registerSuperChests("super_chest", LOW_TIERS);
+    public static final MachineDefinition[] SUPER_CHEST = registerSuperChests("super_chest", ULTRA_LOW_TIERS);
     public static final MachineDefinition[] QUANTUM_CHEST = registerSuperChests("quantum_chest", HIGH_TIERS);
 
-    public static final MachineDefinition[] SUPER_TANK = registerSuperTanks("super_tank", LOW_TIERS);
+    public static final MachineDefinition[] SUPER_TANK = registerSuperTanks("super_tank", ULTRA_LOW_TIERS);
     public static final MachineDefinition[] QUANTUM_TANK = registerSuperTanks("quantum_tank", HIGH_TIERS);
 
     public static MachineDefinition WOODEN_CRATE = registerCrate(GTMaterials.Wood, 27, "Wooden Crate");

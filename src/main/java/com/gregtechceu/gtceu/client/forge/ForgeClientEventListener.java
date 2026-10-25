@@ -86,15 +86,16 @@ public class ForgeClientEventListener {
     public static void onStorageDisplayHold(PlayerInteractEvent.LeftClickBlock event) {
         if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.CLIENT_HOLD) return;
         var machine = MetaMachine.getMachine(event.getLevel(), event.getPos());
-        if ((machine instanceof QuantumChestMachine || machine instanceof QuantumTankMachine) &&
-                machine instanceof IInteractedMachine interacted &&
-                interacted.onLeftClick(event.getEntity(), event.getLevel(), event.getHand(), event.getPos(), event.getFace())) {
-            event.setCanceled(true);
-            // A previous casing hit can leave the same vanilla mining target even after cancellation.
-            // Restart through the normal START packet so held clicks still reach the server.
-            var gameMode = Minecraft.getInstance().gameMode;
-            gameMode.stopDestroyBlock();
-            gameMode.startDestroyBlock(event.getPos(), event.getFace());
+        if ((machine instanceof QuantumChestMachine || machine instanceof QuantumTankMachine)) {
+            IInteractedMachine interacted = (IInteractedMachine) machine;
+            if (interacted.onLeftClick(event.getEntity(), event.getLevel(), event.getHand(), event.getPos(), event.getFace())) {
+                event.setCanceled(true);
+                // A previous casing hit can leave the same vanilla mining target even after cancellation.
+                // Restart through the normal START packet so held clicks still reach the server.
+                var gameMode = Minecraft.getInstance().gameMode;
+                gameMode.stopDestroyBlock();
+                gameMode.startDestroyBlock(event.getPos(), event.getFace());
+            }
         }
     }
 

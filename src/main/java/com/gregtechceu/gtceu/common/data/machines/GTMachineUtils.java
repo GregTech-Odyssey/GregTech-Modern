@@ -93,6 +93,7 @@ public class GTMachineUtils {
     public static final int[] ALL_TIERS = GTValues.tiersBetween(ULV, GTCEuAPI.isHighTier() ? MAX : UHV);
     public static final int[] ELECTRIC_TIERS = GTValues.tiersBetween(LV, GTCEuAPI.isHighTier() ? OpV : UV);
     public static final int[] LOW_TIERS = GTValues.tiersBetween(LV, EV);
+    public static final int[] ULTRA_LOW_TIERS = GTValues.tiersBetween(ULV, EV);
     public static final int[] HIGH_TIERS = GTValues.tiersBetween(IV, GTCEuAPI.isHighTier() ? OpV : UHV);
     public static final int[] MULTI_HATCH_TIERS = GTValues.tiersBetween(EV, GTCEuAPI.isHighTier() ? MAX : UHV);
 
@@ -353,7 +354,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperTanks(String tank_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = 4000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier - 1);
+            long maxAmount = 2000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
             var register = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + tank_type,
                     MachineDefinition::createDefinition,
@@ -381,7 +382,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperChests(String chest_type, int... tiers) {
         return registerTieredMachines(chest_type,
                 (holder, tier) -> new QuantumChestMachine(holder, tier,
-                        tier == MAX ? Long.MAX_VALUE : 4_000_000 * (long) Math.pow(2, tier - 1)),
+                        tier == MAX ? Long.MAX_VALUE : 2_000_000 * (long) Math.pow(2, tier)),
                 (tier, builder) -> builder.langValue(toEnglishName(chest_type) + " " + LVT[tier])
                         .blockProp(BlockBehaviour.Properties::dynamicShape)
                         .allRotation()
@@ -392,7 +393,7 @@ public class GTMachineUtils {
                         .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")),
                                 Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_total",
                                         FormattingUtil.formatNumbers(tier == MAX ? Long.MAX_VALUE :
-                                                4_000_000 * (long) Math.pow(2, tier - 1)))))
+                                                2_000_000 * (long) Math.pow(2, tier)))))
                         .register(),
                 tiers);
     }

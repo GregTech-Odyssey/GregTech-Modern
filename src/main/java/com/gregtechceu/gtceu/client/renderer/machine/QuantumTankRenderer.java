@@ -96,7 +96,7 @@ public class QuantumTankRenderer extends TieredHullMachineRenderer {
             }
             // Don't need to handle locked fluids here since they don't get saved to the item
             renderTank(poseStack, buffer, Direction.NORTH, stored, storedAmount, maxAmount, FluidStack.EMPTY,
-                    stack.is(CREATIVE_FLUID_ITEM));
+                    stack.is(CREATIVE_FLUID_ITEM), false);
 
             poseStack.popPose();
         }
@@ -118,49 +118,51 @@ public class QuantumTankRenderer extends TieredHullMachineRenderer {
                     frontFacing.getStepX(), frontFacing.getStepY(), frontFacing.getStepZ());
             poseStack.translate(-.5, -.5, -.5);
             renderTank(poseStack, buffer, frontFacing, machine.getStored(), machine.getStoredAmount(),
-                    machine.getMaxAmount(), machine.getLockedFluid(), machine instanceof CreativeTankMachine);
+                    machine.getMaxAmount(), machine.getLockedFluid(), machine instanceof CreativeTankMachine, machine.isVoiding());
             poseStack.popPose();
         }
     }
 
     @OnlyIn(Dist.CLIENT)
     public void renderTank(PoseStack poseStack, MultiBufferSource buffer, Direction frontFacing, FluidStack stored,
-                           long storedAmount, long maxAmount, FluidStack locked, boolean isCreative) {
+                           long storedAmount, long maxAmount, FluidStack locked, boolean isCreative, boolean isVoiding) {
         FluidStack fluid = !stored.isEmpty() ? stored : locked;
-        if (fluid.isEmpty()) return;
+        if (fluid.isEmpty() && !isVoiding) return;
 
-        var ext = IClientFluidTypeExtensions.of(fluid.getFluid());
-        var texture = ext.getStillTexture();
-        var fluidTexture = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-
-        poseStack.pushPose();
-        VertexConsumer builder = buffer.getBuffer(Sheets.translucentCullBlockSheet());
-        var gas = fluid.getFluid().getFluidType().isLighterThanAir();
-        var percentFull = isCreative || maxAmount <= storedAmount ? 1f : (float) storedAmount / maxAmount;
         var facingYAxis = frontFacing.getAxis() == Direction.Axis.Y;
-        var maxTop = gas ? MAX : MIN + percentFull * (MAX - MIN);
-        var minBot = gas ? MIN + (1 - percentFull) * (MAX - MIN) : MIN;
-        float minY, maxY, minZ, maxZ;
-        if (facingYAxis) {
-            minY = MIN;
-            maxY = MAX;
-            if (frontFacing == Direction.UP) {
-                minZ = minBot;
-                maxZ = maxTop;
+        if (!fluid.isEmpty()) {
+            var ext = IClientFluidTypeExtensions.of(fluid.getFluid());
+            var texture = ext.getStillTexture();
+            var fluidTexture = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
+
+            poseStack.pushPose();
+            VertexConsumer builder = buffer.getBuffer(Sheets.translucentCullBlockSheet());
+            var gas = fluid.getFluid().getFluidType().isLighterThanAir();
+            var percentFull = isCreative || maxAmount <= storedAmount ? 1f : (float) storedAmount / maxAmount;
+            var maxTop = gas ? MAX : MIN + percentFull * (MAX - MIN);
+            var minBot = gas ? MIN + (1 - percentFull) * (MAX - MIN) : MIN;
+            float minY, maxY, minZ, maxZ;
+            if (facingYAxis) {
+                minY = MIN;
+                maxY = MAX;
+                if (frontFacing == Direction.UP) {
+                    minZ = minBot;
+                    maxZ = maxTop;
+                } else {
+                    // -z is top
+                    minZ = 1 - maxTop;
+                    maxZ = 1 - minBot;
+                }
             } else {
-                // -z is top
-                minZ = 1 - maxTop;
-                maxZ = 1 - minBot;
+                minY = minBot;
+                maxY = maxTop;
+                minZ = MIN;
+                maxZ = MAX;
             }
-        } else {
-            minY = minBot;
-            maxY = maxTop;
-            minZ = MIN;
-            maxZ = MAX;
+            RenderBufferUtils.renderCubeFace(poseStack, builder, MIN, minY, minZ, MAX, maxY, maxZ,
+                    ext.getTintColor() | 0xff000000, 0xf000f0, fluidTexture);
+            poseStack.popPose();
         }
-        RenderBufferUtils.renderCubeFace(poseStack, builder, MIN, minY, minZ, MAX, maxY, maxZ,
-                ext.getTintColor() | 0xff000000, 0xf000f0, fluidTexture);
-        poseStack.popPose();
 
         poseStack.pushPose();
         RenderSystem.disableDepthTest();
@@ -173,23 +175,30 @@ public class QuantumTankRenderer extends TieredHullMachineRenderer {
         } else {
             RenderUtils.rotateToFace(poseStack, frontFacing, null);
         }
+        // Keep the overlay just in front of the recessed glass when testing its depth.
+        poseStack.translate(0, 0, 1f / 1024);
         poseStack.scale(1f / 64, 1f / 64, 0);
         poseStack.translate(-32, -32, 0);
-        TransformTexture text;
-        if (isCreative) {
-            text = new TextTexture("∞").setDropShadow(false).scale(3.0f);
-        } else {
-            var amount = stored.isEmpty() ? "*" : FormattingUtil.formatNumberReadable(storedAmount, true);
-            text = new TextTexture(amount).setDropShadow(false);
-        }
         var graphics = GuiGraphicsAccessor.create(Minecraft.getInstance(), poseStack,
                 MultiBufferSource.immediate(Tesselator.getInstance().getBuilder()));
-        text.draw(graphics, 0, 0, 0, 24, 64, 28);
-        if (!locked.isEmpty()) {
-            RenderSystem.disableDepthTest();
+        if (!fluid.isEmpty()) {
+            TransformTexture text;
+            if (isCreative) {
+                text = new TextTexture("∞").setDropShadow(false).scale(3.0f);
+            } else {
+                var amount = stored.isEmpty() ? "*" : FormattingUtil.formatNumberReadable(storedAmount, true);
+                text = new TextTexture(amount).setDropShadow(false);
+            }
+            text.draw(graphics, 0, 0, 0, 24, 64, 28);
+        }
+        if (!locked.isEmpty() || isVoiding) {
+            // The fluid batch is drawn later, so the icons must write depth to remain in front of it.
+            RenderSystem.enableDepthTest();
+            RenderSystem.depthMask(true);
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
-            WidgetIcons.ACCESS_PRIVATE.draw(graphics, 0, 0, 40, 40, 16, 16);
+            if (!locked.isEmpty()) WidgetIcons.ACCESS_PRIVATE.draw(graphics, 0, 0, 40, 40, 16, 16);
+            if (isVoiding) WidgetIcons.VOID_OVERFLOW.draw(graphics, 0, 0, 40, 24, 16, 16);
             RenderSystem.disableBlend();
         }
         RenderSystem.enableDepthTest();
