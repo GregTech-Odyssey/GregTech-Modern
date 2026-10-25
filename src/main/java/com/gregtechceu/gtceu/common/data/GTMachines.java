@@ -94,7 +94,7 @@ public class GTMachines {
     public static final Pair<MachineDefinition, MachineDefinition> STEAM_SOLAR_BOILER = registerSteamMachines(
             "steam_solar_boiler",
             SteamSolarBoiler::new,
-            (pressure, builder) -> builder.nonYAxisRotation()
+            (pressure, builder) -> builder.noneRotation()
                     .recipeType(STEAM_BOILER_RECIPES)
                     .recipeModifier(SteamBoilerMachine::recipeModifier)
                     .workableSteamHullRenderer(pressure, GTCEu.id("block/generators/boiler/solar"))

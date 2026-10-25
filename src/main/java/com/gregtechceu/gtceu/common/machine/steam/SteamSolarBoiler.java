@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import com.lowdragmc.lowdraglib.gui.widget.ProgressWidget;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
-import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 
@@ -23,11 +22,6 @@ public class SteamSolarBoiler extends SteamBoilerMachine {
 
     public SteamSolarBoiler(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
         super(holder, isHighPressure, args);
-    }
-
-    @Override
-    public Direction getFrontFacing() {
-        return Direction.UP;
     }
 
     @Override
