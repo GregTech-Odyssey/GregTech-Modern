@@ -37,6 +37,8 @@ import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -455,11 +457,14 @@ public class GTMachines {
             .allowExtendedFacing(true)
             .tooltipBuilder((stack, list) -> {
                 CREATIVE_TOOLTIPS.accept(stack, list);
-                if (stack.hasTag()) {
-                    FluidStack f = FluidStack.loadFluidStackFromNBT(stack.getTagElement("stored"));
-                    int perCycle = stack.getOrCreateTag().getInt("mBPerCycle");
-                    list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_stored", f.getDisplayName(),
-                            FormattingUtil.formatNumbers(perCycle))));
+                CompoundTag tag = stack.getTag();
+                if (tag != null && tag.contains("stored", Tag.TAG_COMPOUND)) {
+                    FluidStack f = FluidStack.loadFluidStackFromNBT(tag.getCompound("stored"));
+                    if (!f.isEmpty()) {
+                        int perCycle = tag.getInt("mBPerCycle");
+                        list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_stored", f.getDisplayName(),
+                                FormattingUtil.formatNumbers(perCycle))));
+                    }
                 }
             })
             .renderer(() -> new QuantumTankRenderer(MAX, GTCEu.id("block/machine/creative_tank")))
@@ -473,17 +478,19 @@ public class GTMachines {
             .allowExtendedFacing(true)
             .tooltipBuilder((stack, list) -> {
                 CREATIVE_TOOLTIPS.accept(stack, list);
-                if (stack.hasTag()) {
-                    ItemStack i = ItemStack.of(stack.getOrCreateTagElement("stored"));
-                    int perCycle = stack.getOrCreateTag().getInt("itemsPerCycle");
-                    list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.item_stored", i.getHoverName(),
-                            FormattingUtil.formatNumbers(perCycle))));
+                CompoundTag tag = stack.getTag();
+                if (tag != null && tag.contains("stored", Tag.TAG_COMPOUND)) {
+                    ItemStack i = ItemStack.of(tag.getCompound("stored"));
+                    if (!i.isEmpty()) {
+                        int perCycle = tag.getInt("itemsPerCycle");
+                        list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.item_stored", i.getHoverName(),
+                                FormattingUtil.formatNumbers(perCycle))));
+                    }
                 }
             })
             .renderer(() -> new QuantumChestRenderer(MAX, GTCEu.id("block/machine/creative_chest")))
             .hasTESR(true)
             .register();
-
     public static final MachineDefinition[] SUPER_CHEST = registerSuperChests("super_chest", ULTRA_LOW_TIERS);
     public static final MachineDefinition[] QUANTUM_CHEST = registerSuperChests("quantum_chest", HIGH_TIERS);
 

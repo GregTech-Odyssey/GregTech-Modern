@@ -59,6 +59,8 @@ import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -651,22 +653,38 @@ public class GTMachineUtils {
     }
 
     public static BiConsumer<ItemStack, List<Component>> TANK_TOOLTIPS = (stack, list) -> {
-        if (stack.hasTag()) {
-            String key = stack.getTag().contains("stored") ? "stored" : "Fluid";
-            FluidStack stored = FluidStack.loadFluidStackFromNBT(stack.getOrCreateTagElement(key));
-            long storedAmount = stack.getOrCreateTag().getLong("storedAmount");
-            if (storedAmount == 0 && !stored.isEmpty()) storedAmount = stored.getAmount();
-            list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_stored", stored.getDisplayName(),
-                    FormattingUtil.formatNumbers(storedAmount))));
+        CompoundTag tag = stack.getTag();
+        if (tag != null) {
+            CompoundTag fluidTag = null;
+            if (tag.contains("stored", Tag.TAG_COMPOUND)) {
+                fluidTag = tag.getCompound("stored");
+            } else if (tag.contains("Fluid", Tag.TAG_COMPOUND)) {
+                fluidTag = tag.getCompound("Fluid");
+            }
+
+            if (fluidTag != null) {
+                FluidStack stored = FluidStack.loadFluidStackFromNBT(fluidTag);
+                if (!stored.isEmpty()) {
+                    long storedAmount = tag.getLong("storedAmount");
+                    if (storedAmount == 0) {
+                        storedAmount = stored.getAmount();
+                    }
+                    list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_stored",
+                            stored.getDisplayName(), FormattingUtil.formatNumbers(storedAmount))));
+                }
+            }
         }
     };
 
     public static BiConsumer<ItemStack, List<Component>> CHEST_TOOLTIPS = (stack, list) -> {
-        if (stack.hasTag()) {
-            ItemStack itemStack = ItemStack.of(stack.getOrCreateTagElement("stored"));
-            long storedAmount = stack.getOrCreateTag().getLong("storedAmount");
-            list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.item_stored", itemStack.getHoverName(),
-                    FormattingUtil.formatNumbers(storedAmount))));
+        CompoundTag tag = stack.getTag();
+        if (tag != null && tag.contains("stored", Tag.TAG_COMPOUND)) {
+            ItemStack itemStack = ItemStack.of(tag.getCompound("stored"));
+            if (!itemStack.isEmpty()) {
+                long storedAmount = tag.getLong("storedAmount");
+                list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.item_stored",
+                        itemStack.getHoverName(), FormattingUtil.formatNumbers(storedAmount))));
+            }
         }
     };
 
