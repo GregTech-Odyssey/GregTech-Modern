@@ -1698,6 +1698,9 @@ public class LangHandler {
         provider.add("cover.ender_link.ui.signal", "Channel Signal");
         provider.add("cover.ender_link.ui.members", "Linked Covers");
         provider.add("cover.ender_link.ui.summary.signal", "Signal %s");
+        provider.add("gtceu.gui.storage_appearance", "Casing Appearance");
+        provider.add("gtceu.gui.storage_appearance.sample", "Block Sample");
+        provider.add("gtceu.gui.storage_appearance.help", "Select a block to copy its casing texture without consuming it. Clear the sample to restore the default appearance.");
         provider.add("gtceu.gui.output_setting.title", "Output Settings");
         provider.add("gtceu.gui.circuit.title", "Circuit Settings");
         provider.add("gtceu.gui.circuit.clear", "Clear circuit");

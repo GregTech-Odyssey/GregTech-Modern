@@ -3,8 +3,6 @@ package com.gregtechceu.gtceu.client.renderer.machine;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.QuantumTankMachineItem;
-import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.machine.storage.CreativeTankMachine;
 import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
@@ -20,13 +18,10 @@ import com.lowdragmc.lowdraglib.gui.texture.TransformTexture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelState;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -41,15 +36,12 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 import static com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine.TANK_CAPACITY;
 import static com.gregtechceu.gtceu.utils.GTMatrixUtils.rotateMatrix;
 import static com.gregtechceu.gtceu.utils.GTMatrixUtils.upwardFacingAngle;
 
-public class QuantumTankRenderer extends TieredHullMachineRenderer {
+public class QuantumTankRenderer extends StorageMachineRenderer {
 
     private static final float MIN = 0.16f;
     private static final float MAX = 0.84f;
@@ -62,13 +54,6 @@ public class QuantumTankRenderer extends TieredHullMachineRenderer {
 
     public QuantumTankRenderer(int tier, ResourceLocation modelLocation) {
         super(tier, modelLocation);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void renderBaseModel(List<BakedQuad> quads, MachineDefinition definition, @Nullable MetaMachine machine,
-                                ModelState modelState, @Nullable Direction side, RandomSource rand) {
-        quads.addAll(getRotatedModel(modelState).getQuads(definition.defaultBlockState(), side, rand));
     }
 
     @Override

@@ -9,10 +9,11 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
-import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
+import com.gregtechceu.gtceu.api.machine.feature.IStorageAppearance;
 import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
+import com.gregtechceu.gtceu.api.machine.trait.StorageAppearance;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
@@ -53,6 +54,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -74,7 +76,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IFancyUIMachine, MEStorageProvider {
+public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IStorageAppearance, MEStorageProvider {
 
     private final StorageInteraction interaction = new StorageInteraction();
     @Getter
@@ -92,6 +94,10 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @SaveToDisk(defaultValue = "false")
     @SyncToClient(scheduleUpdate = true)
     private boolean isVoiding;
+
+    @Getter
+    @AdditionalHolder
+    private final StorageAppearance storageAppearance = new StorageAppearance(this);
 
     @Getter
     private final long max;
@@ -181,7 +187,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @Override
     public boolean saveBreak() {
-        return cache.storage.amountAt(0) > 0;
+        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR;
     }
 
     @Override
