@@ -389,6 +389,22 @@ public class GTToolItem extends DiggerItem implements IGTTool {
         return stack.isEmpty() ? getToolStats().brokenStack() : stack;
     }
 
+    // EMI adds EmiDurabilityTool to Item at runtime. These methods override that implementation
+    // without making the optional EMI API a superclass/interface dependency of every GT tool.
+    public boolean emi$isDurabilityTool(ItemStack stack) {
+        return !ToolData.isUnbreakable(stack) &&
+                getMaxDamage(stack) > 0 && getToolStats().damagePerCraft() > 0;
+    }
+
+    public int emi$getRemainingDurability(ItemStack stack) {
+        return Math.max(0, getMaxDamage(stack) - getDamage(stack));
+    }
+
+    /** Nominal damage; electric-tool and Unbreaking savings are applied only during actual crafting. */
+    public int emi$getCraftingDurabilityCost(ItemStack stack) {
+        return getToolStats().damagePerCraft();
+    }
+
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
         if (getCharge(oldStack) != getCharge(newStack)) return slotChanged;

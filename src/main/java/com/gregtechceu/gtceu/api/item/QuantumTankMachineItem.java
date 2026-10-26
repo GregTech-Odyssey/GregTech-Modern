@@ -10,10 +10,10 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 
 import org.jetbrains.annotations.Nullable;
 
-public class QuantumTankMachineItem extends MetaMachineItem {
+public class QuantumTankMachineItem extends SuperStorageItem {
 
     public QuantumTankMachineItem(MetaMachineBlock block, Properties properties) {
-        super(block, properties);
+        super(block, properties, 0, true);
     }
 
     public static QuantumTankMachineItem create(MetaMachineBlock block, Properties properties) {
