@@ -18,6 +18,7 @@ import net.minecraft.core.Direction;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import it.unimi.dsi.fastutil.objects.Reference2LongMaps;
 
 import java.util.List;
 
@@ -53,15 +54,12 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
     }
 
     private void voidOverflow(IKeyHandler<AEItemKey> handler) {
-        var sourceItemAmounts = countInventoryItemsByType(handler);
-        for (TypeItemInfo itemInfo : sourceItemAmounts.values()) {
-            long itemToVoidAmount = itemInfo.totalCount - getFilteredItemAmount(itemInfo.key);
-            if (itemToVoidAmount <= 0) {
-                continue;
-            }
-            var slots = itemInfo.slots;
-            for (int i = 0; i < slots.size() && itemToVoidAmount > 0; i++) {
-                itemToVoidAmount -= handler.extract(slots.getInt(i), itemInfo.key, itemToVoidAmount, false);
+        var sourceItemAmounts = countInventoryItems(handler);
+        for (var it = Reference2LongMaps.fastIterator(sourceItemAmounts); it.hasNext();) {
+            var entry = it.next();
+            long itemToVoidAmount = entry.getLongValue() - getFilteredItemAmount(entry.getKey());
+            if (itemToVoidAmount > 0) {
+                handler.extract(entry.getKey(), itemToVoidAmount, false);
             }
         }
     }

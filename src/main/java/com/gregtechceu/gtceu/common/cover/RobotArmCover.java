@@ -22,6 +22,7 @@ import net.minecraft.network.chat.Component;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import it.unimi.dsi.fastutil.objects.Reference2LongMaps;
 import lombok.Getter;
 
 import java.util.List;
@@ -66,24 +67,19 @@ public class RobotArmCover extends ConveyorCover {
     }
 
     protected int doTransferExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, int maxTransferAmount) {
-        var sourceItemAmount = countInventoryItemsByType(sourceInventory);
-        var iterator = sourceItemAmount.reference2ObjectEntrySet().fastIterator();
-        while (iterator.hasNext()) {
-            TypeItemInfo sourceInfo = iterator.next().getValue();
-            long itemAmount = sourceInfo.totalCount;
-            int itemToMoveAmount = getFilteredItemAmount(sourceInfo.key);
-            if (itemAmount >= itemToMoveAmount) {
-                sourceInfo.totalCount = itemToMoveAmount;
-            } else {
-                iterator.remove();
-            }
-        }
+        var sourceItemAmounts = countInventoryItems(sourceInventory);
         int itemsTransferred = 0;
         long maxTotalTransferAmount = (long) maxTransferAmount + itemsTransferBuffered;
         boolean notEnoughTransferRate = false;
-        for (TypeItemInfo itemInfo : sourceItemAmount.values()) {
-            if (maxTotalTransferAmount >= itemInfo.totalCount) {
-                int transferred = moveInventoryItemsExact(sourceInventory, targetInventory, itemInfo);
+        for (var it = Reference2LongMaps.fastIterator(sourceItemAmounts); it.hasNext();) {
+            var entry = it.next();
+            AEItemKey key = entry.getKey();
+            int itemToMoveAmount = getFilteredItemAmount(key);
+            if (itemToMoveAmount <= 0 || entry.getLongValue() < itemToMoveAmount) {
+                continue;
+            }
+            if (maxTotalTransferAmount >= itemToMoveAmount) {
+                int transferred = moveInventoryItemsExact(sourceInventory, targetInventory, key, itemToMoveAmount);
                 itemsTransferred += transferred;
                 maxTotalTransferAmount -= transferred;
             } else {
@@ -101,22 +97,14 @@ public class RobotArmCover extends ConveyorCover {
     }
 
     protected int doKeepExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, int maxTransferAmount) {
-        var targetItemAmounts = countInventoryItemsByMatchSlot(targetInventory);
-        var sourceItemAmounts = countInventoryItemsByMatchSlot(sourceInventory);
-        var iterator = sourceItemAmounts.reference2ObjectEntrySet().fastIterator();
-        while (iterator.hasNext()) {
-            var filteredItem = iterator.next();
-            GroupItemInfo sourceInfo = filteredItem.getValue();
-            int itemToKeepAmount = getFilteredItemAmount(sourceInfo.key);
-            long itemAmount = 0;
-            GroupItemInfo destItemInfo = targetItemAmounts.get(filteredItem.getKey());
-            if (destItemInfo != null) {
-                itemAmount = destItemInfo.totalCount;
-            }
-            if (itemAmount < itemToKeepAmount) {
-                sourceInfo.totalCount = itemToKeepAmount - itemAmount;
+        var sourceItemAmounts = countInventoryItems(sourceInventory);
+        for (var it = Reference2LongMaps.fastIterator(sourceItemAmounts); it.hasNext();) {
+            var entry = it.next();
+            long missing = getFilteredItemAmount(entry.getKey()) - targetInventory.count(entry.getKey());
+            if (missing > 0) {
+                entry.setValue(Math.min(missing, entry.getLongValue()));
             } else {
-                iterator.remove();
+                it.remove();
             }
         }
         return moveInventoryItems(sourceInventory, targetInventory, sourceItemAmounts, maxTransferAmount);

@@ -39,6 +39,7 @@ import net.minecraftforge.fluids.FluidStack;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
@@ -92,6 +93,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     @Nullable
     private Reference2LongLinkedOpenHashMap<AEFluidKey> fluidsB;
     private boolean fluidFlip;
+    private final KeyCounter countScratch = new KeyCounter();
 
     public PumpCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -223,13 +225,15 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         } else {
             summedFluids.clear();
         }
-        int size = fluidHandler.size();
-        for (int tank = 0; tank < size; tank++) {
-            long amount = fluidHandler.amountAt(tank);
-            if (amount <= 0) continue;
-            var key = fluidHandler.keyAt(tank);
-            summedFluids.put(key, Keys.add(summedFluids.getLong(key), amount));
+        var counter = countScratch;
+        fluidHandler.getAvailableStacks(counter);
+        for (var entry : counter) {
+            long amount = entry.getLongValue();
+            if (amount > 0 && entry.getKey() instanceof AEFluidKey key) {
+                summedFluids.put(key, Keys.add(summedFluids.getLong(key), amount));
+            }
         }
+        counter.clear();
         return summedFluids;
     }
 

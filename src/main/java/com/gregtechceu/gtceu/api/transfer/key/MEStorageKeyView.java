@@ -16,7 +16,7 @@ import java.util.function.BooleanSupplier;
 
 /**
  * 把 MEStorage 按单一 key 类型呈现为 GT 存储：存取直接转给 MEStorage；给出存储内容表时以一个现存同类 key 作槽 0（仍在就不换）、
- * 有余量时多给一个空槽，并据内容表列举与计数；可只针对一个标记 key。
+ * 有余量时多给一个空槽，并据内容表列举与计数；没有内容表时不提供槽位，列举与计数直接读 MEStorage；可只针对一个标记 key。
  */
 public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
 
@@ -144,17 +144,30 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
 
     @Override
     public long count(K key) {
-        var map = contents;
-        if (map == null) return 0;
         var m = mark;
-        return m != null && m != key ? 0 : map.getAmount(key);
+        if (m != null && m != key) return 0;
+        var map = contents;
+        if (map == null) return storage.extract(key, Long.MAX_VALUE, Actionable.SIMULATE, IActionSource.empty());
+        return map.getAmount(key);
     }
 
     @Override
     public void getAvailableStacks(KeyCounter out) {
         var map = contents;
-        if (map == null) return;
         var m = mark;
+        if (map == null) {
+            if (m != null) {
+                long amount = count(m);
+                if (amount > 0) out.add(m, amount);
+                return;
+            }
+            for (var e : storage.getAvailableStacks()) {
+                var key = e.getKey();
+                long amount = e.getLongValue();
+                if (amount > 0 && key.getType() == type) out.add(key, amount);
+            }
+            return;
+        }
         if (m != null) {
             long amount = map.getAmount(m);
             if (amount > 0) out.add(m, amount);
@@ -175,8 +188,15 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
     @Override
     public boolean containsAny(Set<AEKey> primaryKeys) {
         var map = contents;
-        if (map == null) return false;
         var m = mark;
+        if (map == null) {
+            if (m != null) return count(m) > 0 && primaryKeys.contains(m.dropSecondary());
+            for (var e : storage.getAvailableStacks()) {
+                var key = e.getKey();
+                if (e.getLongValue() > 0 && key.getType() == type && primaryKeys.contains(key.dropSecondary())) return true;
+            }
+            return false;
+        }
         if (m != null) return map.getAmount(m) > 0 && primaryKeys.contains(m.dropSecondary());
         for (var e : map) {
             var key = e.getKey();
@@ -187,7 +207,13 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
 
     @Override
     public boolean isEmpty() {
-        return first() == null;
+        if (contents != null) return first() == null;
+        var m = mark;
+        if (m != null) return count(m) <= 0;
+        for (var e : storage.getAvailableStacks()) {
+            if (e.getLongValue() > 0 && e.getKey().getType() == type) return false;
+        }
+        return true;
     }
 
     @Override
