@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.client.renderer.machine;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.QuantumTankMachineItem;
+import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.machine.storage.CreativeTankMachine;
 import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -47,6 +49,8 @@ public class QuantumTankRenderer extends StorageMachineRenderer {
     private static final float MAX = 0.84f;
 
     private static Item CREATIVE_FLUID_ITEM = null;
+    private Tag renderedUpgrades;
+    private int upgradeMultiplier = 1;
 
     public QuantumTankRenderer(int tier) {
         super(tier, GTCEu.id("block/machine/quantum_tank"));
@@ -77,7 +81,13 @@ public class QuantumTankRenderer extends StorageMachineRenderer {
             if (storedAmount == 0 && !stored.isEmpty()) storedAmount = stored.getAmount();
             long maxAmount = 0;
             if (stack.getItem() instanceof QuantumTankMachineItem tankItem) {
-                maxAmount = TANK_CAPACITY.getLong(tankItem.getDefinition());
+                var tag = stack.getTag();
+                var upgrades = tag.get(StorageUpgrades.ITEMS_KEY);
+                if (upgrades != renderedUpgrades) {
+                    upgradeMultiplier = StorageUpgrades.multiplier(tag);
+                    renderedUpgrades = upgrades;
+                }
+                maxAmount = StorageUpgrades.limit(tag, StorageUpgrades.multiply(TANK_CAPACITY.getLong(tankItem.getDefinition()), upgradeMultiplier));
             }
             // Don't need to handle locked fluids here since they don't get saved to the item
             renderTank(poseStack, buffer, Direction.NORTH, stored, storedAmount, maxAmount, FluidStack.EMPTY,

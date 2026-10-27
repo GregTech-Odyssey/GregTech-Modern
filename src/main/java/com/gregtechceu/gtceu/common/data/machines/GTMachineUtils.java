@@ -354,7 +354,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperTanks(String tank_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = 2000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
+            long maxAmount = 500 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
             var register = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + tank_type,
                     MachineDefinition::createDefinition,
@@ -382,7 +382,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperChests(String chest_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = tier == MAX ? Long.MAX_VALUE : 2_000_000 * (long) Math.pow(2, tier);
+            long maxAmount = tier == MAX ? Long.MAX_VALUE : 500_000 * (long) Math.pow(2, tier);
             definitions[tier] = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + chest_type,
                     MachineDefinition::createDefinition,
@@ -401,7 +401,7 @@ public class GTMachineUtils {
                     .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")),
                             Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_total",
                                     FormattingUtil.formatNumbers(tier == MAX ? Long.MAX_VALUE :
-                                            2_000_000 * (long) Math.pow(2, tier)))))
+                                            500_000 * (long) Math.pow(2, tier)))))
                     .register();
         }
         return definitions;

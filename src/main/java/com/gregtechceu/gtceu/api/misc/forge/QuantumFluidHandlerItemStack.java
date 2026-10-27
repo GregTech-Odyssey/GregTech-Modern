@@ -1,9 +1,11 @@
 package com.gregtechceu.gtceu.api.misc.forge;
 
+import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
 import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -22,6 +24,19 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
     @NotNull
     protected ItemStack container;
     protected long capacity;
+    private Tag lastUpgrades;
+    private int upgradeMultiplier = 1;
+
+    protected long getCapacity() {
+        var tag = container.getTag();
+        var upgrades = tag == null ? null : tag.get(StorageUpgrades.ITEMS_KEY);
+        if (upgrades != lastUpgrades) {
+            upgradeMultiplier = StorageUpgrades.multiplier(tag);
+            lastUpgrades = upgrades;
+        }
+        long maximum = StorageUpgrades.multiply(capacity, upgradeMultiplier);
+        return tag != null && tag.contains(StorageUpgrades.LIMIT_KEY) ? Math.clamp(tag.getLong(StorageUpgrades.LIMIT_KEY), 1, maximum) : maximum;
+    }
 
     public QuantumFluidHandlerItemStack(@NotNull ItemStack container, long capacity) {
         this.container = container;
@@ -30,7 +45,7 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
 
     // Retrieve the capacity clamped to an int.
     protected int getClampedCapacity() {
-        return GTMath.saturatedCast(this.capacity);
+        return GTMath.saturatedCast(getCapacity());
     }
 
     // For Fluid IO, clamping to int is fine.
@@ -42,7 +57,7 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
             return FluidStack.EMPTY;
         }
         FluidStack stack = FluidStack.loadFluidStackFromNBT(tagCompound.getCompound("stored"));
-        stack.setAmount(GTMath.saturatedCast(tagCompound.getLong("storedAmount")));
+        if (!stack.isEmpty()) stack.setAmount(GTMath.saturatedCast(tagCompound.getLong("storedAmount")));
         return stack;
     }
 
@@ -97,7 +112,7 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
             }
             return fillAmount;
         } else if (contained.isFluidEqual(resource)) {
-            int fillAmount = Math.min(GTMath.saturatedCast(this.capacity - amount), resource.getAmount());
+            int fillAmount = Math.min(GTMath.saturatedCast(Math.max(0, getCapacity() - amount)), resource.getAmount());
             if (doFill.execute() && fillAmount > 0) {
                 long fluidAmountAfterFill = amount + (long) fillAmount;
                 this.setFluid(contained, fluidAmountAfterFill);
