@@ -64,6 +64,14 @@ public class ClientProxy extends CommonProxy {
             Layers.registerLayer(FluidRenderLayer::new, "bedrock_fluids");
             Layers.registerLayer(com.gregtechceu.gtceu.integration.map.layer.builtin.BedrockOreRenderLayer::new, "bedrock_ore_veins");
             if (GTCEu.Mods.isEMILoaded()) MultiblockEmiActions.register();
+            // 每个客户端 tick 检查一次「方块图集是否换代」，换代才推进模型缓存代际号。
+            // 挂在 Forge 总线上显式注册，不参与 mod 总线的 @SubscribeEvent 校验。
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(
+                    (net.minecraftforge.event.TickEvent.ClientTickEvent event) -> {
+                        if (event.phase == net.minecraftforge.event.TickEvent.Phase.START) {
+                            ResourceReloadEpoch.tick();
+                        }
+                    });
         }
     }
 

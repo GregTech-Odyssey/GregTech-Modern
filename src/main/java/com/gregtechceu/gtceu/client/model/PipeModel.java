@@ -115,6 +115,37 @@ public class PipeModel {
     @OnlyIn(Dist.CLIENT)
     TextureAtlasSprite endOverlaySprite;
 
+    /**
+     * 见 {@link com.gregtechceu.gtceu.client.ResourceReloadEpoch}。
+     * 这些 sprite 都是首次渲染时按「当时那张图集」取的，且只用 {@code == null} 判断是否需要重取，
+     * 资源重载后不会失效 —— 管道就会一直按旧 sprite 的 UV 取样，显示成别的方块的纹理或紫黑格。
+     */
+    private int gtceu$spriteEpoch = -1;
+
+    @OnlyIn(Dist.CLIENT)
+    private void gtceu$ensureFreshSprites() {
+        int current = com.gregtechceu.gtceu.client.ResourceReloadEpoch.get();
+        // 除了代际号，再做一次「精灵实例是否还是当前图集里那张」的自检：
+        // 万一某次 bake 恰好落在重载窗口里、拿旧图集解析出了 sprite，代际号已经是对的了，
+        // 单靠代际号就兜不住，这里按实例比对可以直接翻案。
+        if (current == gtceu$spriteEpoch && !gtceu$spritesStale()) return;
+        gtceu$spriteEpoch = current;
+        isRestrictorInitialized = false;
+        sideSprite = null;
+        endSprite = null;
+        secondarySideSprite = null;
+        secondaryEndSprite = null;
+        sideOverlaySprite = null;
+        endOverlaySprite = null;
+        itemModelCache.clear();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean gtceu$spritesStale() {
+        return (sideSprite != null && sideSprite != ModelFactory.getBlockSprite(sideTexture.get())) ||
+                (endSprite != null && endSprite != ModelFactory.getBlockSprite(endTexture.get()));
+    }
+
     public PipeModel(float thickness, Supplier<ResourceLocation> sideTexture, Supplier<ResourceLocation> endTexture, @Nullable Supplier<@Nullable ResourceLocation> secondarySideTexture, @Nullable Supplier<@Nullable ResourceLocation> secondaryEndTexture) {
         this.sideTexture = GTMemoizer.memoizeCleanable(sideTexture);
         this.endTexture = GTMemoizer.memoizeCleanable(endTexture);
@@ -153,6 +184,7 @@ public class PipeModel {
 
     @OnlyIn(Dist.CLIENT)
     public List<BakedQuad> bakeQuads(@Nullable Direction side, int connections, int blockedConnections) {
+        gtceu$ensureFreshSprites();
         if (!isRestrictorInitialized) {
             initializeRestrictor(ModelFactory::getBlockSprite);
             isRestrictorInitialized = true;
@@ -248,6 +280,7 @@ public class PipeModel {
     @NotNull
     @OnlyIn(Dist.CLIENT)
     public TextureAtlasSprite getParticleTexture() {
+        gtceu$ensureFreshSprites();
         if (sideSprite == null) {
             sideSprite = ModelFactory.getBlockSprite(sideTexture.get());
         }

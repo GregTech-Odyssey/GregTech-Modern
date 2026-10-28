@@ -128,10 +128,23 @@ public final class MaterialIconType {
 
     public static void clear() {
         VALUES.forEach(t -> {
-            t.block_model_cache = null;
-            t.item_model_cache = null;
+            t.block_model_cache.clear();
+            t.item_model_cache.clear();
         });
-        VALUES = null;
+    }
+
+    /**
+     * 资源集变化后（游戏内启用/禁用材质包会重建客户端资源管理器）贴图路径缓存必须失效：
+     * 缓存里记的是上一次资源集里哪一级图标集真正有贴图，继续沿用会让材质解析到已经不存在的图标集
+     * （图集里没有该 sprite，表现为紫黑/丢失材质），也会漏掉材质包新提供的图标集。
+     */
+    public static void invalidateTextureCaches() {
+        VALUES.forEach(t -> {
+            t.block_texture_cache.clear();
+            t.block_texture_cache_secondary.clear();
+            t.item_texture_cache.clear();
+            t.item_texture_cache_secondary.clear();
+        });
     }
 
     private ResourceLocation getCache(Map<MaterialIconSet, ResourceLocation> map, MaterialIconSet materialIconSet, Function<MaterialIconSet, ResourceLocation> function) {

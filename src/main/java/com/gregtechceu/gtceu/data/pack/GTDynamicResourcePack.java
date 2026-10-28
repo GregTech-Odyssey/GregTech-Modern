@@ -79,7 +79,14 @@ public class GTDynamicResourcePack implements PackResources {
     }
 
     public synchronized static void load() {
-        if (loaded) return;
+        if (loaded) {
+            // 客户端资源集变了（游戏内启用/禁用材质包会重跑 ModelManager#reload）。
+            // 这里**只**做标记收尾，不去改写 pack 内容：重载期间重载线程正在通过 GTDynamicPackContents 的
+            // 读写锁读 pack，此时大量 addToData 会与它冲突，客户端会直接挂死（实测 STATUS_HUNG）。
+            // 贴图路径缓存的失效已经前移到 Minecraft#reloadResourcePacks 的 HEAD（见 MinecraftMixin），
+            // 那里的时机早于图集 stitch，才不会出现「第一次 F3+T 无效、第二次才对」。
+            return;
+        }
         if (!ModLoader.isLoadingStateValid()) return;
         loaded = true;
         long startTime = System.currentTimeMillis();
