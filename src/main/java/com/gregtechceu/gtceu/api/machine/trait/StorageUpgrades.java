@@ -13,6 +13,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 import com.gto.datasynclib.annotations.SyncToClient;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 /** Upgrade items are private menu inventory, never exposed to automation or mixed with stored contents. */
@@ -22,9 +23,12 @@ public final class StorageUpgrades extends MachineTrait {
     public static final String LIMIT_KEY = "storageCapacityLimit";
     public static final int SLOTS = 4;
 
+    @Getter
     private final StackInventory items;
     private final Runnable changed;
-    @SyncToClient
+    @Getter
+    @SyncToClient(listener = "onTiersSynced")
+    private final byte[] tiers;
     private int multiplier = 1;
 
     public StorageUpgrades(MetaMachine machine, Runnable changed) {
@@ -34,6 +38,7 @@ public final class StorageUpgrades extends MachineTrait {
     public StorageUpgrades(MetaMachine machine, Runnable changed, boolean enabled) {
         super(machine);
         this.changed = changed;
+        this.tiers = new byte[enabled ? SLOTS : 0];
         this.items = new StackInventory(enabled ? SLOTS : 0) {
 
             @Override
@@ -47,10 +52,6 @@ public final class StorageUpgrades extends MachineTrait {
 
     public boolean isEmpty() {
         return items.isEmpty();
-    }
-
-    public StackInventory getItems() {
-        return items;
     }
 
     public long capacity(long base) {
@@ -85,12 +86,28 @@ public final class StorageUpgrades extends MachineTrait {
     }
 
     private void upgradesChanged() {
+        updateUpgrades();
+        changed.run();
+    }
+
+    private void updateUpgrades() {
         multiplier = 1;
         for (int slot = 0; slot < items.size(); slot++) {
             var stack = items.getStackInSlot(slot);
-            if (!stack.isEmpty() && stack.getItem() instanceof StorageUpgradeItem upgrade) multiplier *= upgrade.getCapacityMultiplier();
+            if (!stack.isEmpty() && stack.getItem() instanceof StorageUpgradeItem upgrade) {
+                tiers[slot] = (byte) upgrade.getTier();
+                multiplier *= upgrade.getCapacityMultiplier();
+            } else {
+                tiers[slot] = 0;
+            }
         }
-        changed.run();
+    }
+
+    private void onTiersSynced(byte[] value, byte[] previous) {
+        multiplier = 1;
+        for (byte tier : value) {
+            if (tier != 0) multiplier *= StorageUpgradeItem.byTier(tier).getCapacityMultiplier();
+        }
     }
 
     public UIElement createSlots() {
@@ -110,11 +127,9 @@ public final class StorageUpgrades extends MachineTrait {
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         var upgrades = tag.getList(ITEMS_KEY, Tag.TAG_COMPOUND);
-        multiplier = 1;
         for (int slot = 0; slot < items.size(); slot++) {
-            var stack = slot < upgrades.size() ? ItemStack.of(upgrades.getCompound(slot)) : ItemStack.EMPTY;
-            items.stacks[slot] = stack;
-            if (!stack.isEmpty() && stack.getItem() instanceof StorageUpgradeItem upgrade) multiplier *= upgrade.getCapacityMultiplier();
+            items.stacks[slot] = slot < upgrades.size() ? ItemStack.of(upgrades.getCompound(slot)) : ItemStack.EMPTY;
         }
+        updateUpgrades();
     }
 }

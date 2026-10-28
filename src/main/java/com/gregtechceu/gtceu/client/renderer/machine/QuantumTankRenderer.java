@@ -116,6 +116,7 @@ public class QuantumTankRenderer extends StorageMachineRenderer {
                     machine.getMaxAmount(), machine.getLockedFluid(), machine instanceof CreativeTankMachine, machine.isVoiding());
             poseStack.popPose();
         }
+        super.render(blockEntity, partialTicks, poseStack, buffer, combinedLight, combinedOverlay);
     }
 
     @OnlyIn(Dist.CLIENT)

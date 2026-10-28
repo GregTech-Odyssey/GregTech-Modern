@@ -96,6 +96,7 @@ public class QuantumChestRenderer extends StorageMachineRenderer {
                     tick, machine.getLockedItem(), machine instanceof CreativeChestMachine, machine.isVoiding());
             poseStack.popPose();
         }
+        super.render(blockEntity, partialTicks, poseStack, buffer, combinedLight, combinedOverlay);
     }
 
     @OnlyIn(Dist.CLIENT)

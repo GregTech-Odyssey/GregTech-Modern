@@ -27,6 +27,10 @@ public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage {
 
     AEKeyType keyType();
 
+    /**
+     * Number of addressable slots, including empty slots. This is not the number of stored entries,
+     * so {@code size() == 0} is not equivalent to {@link #isEmpty()}.
+     */
     int size();
 
     default boolean fixedSize() {
@@ -152,6 +156,9 @@ public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage {
         return keyType().getDescription();
     }
 
+    /**
+     * Whether all slots contain no stored resources. May be {@code true} even when {@link #size()} is positive.
+     */
     default boolean isEmpty() {
         int size = size();
         for (int i = 0; i < size; i++) {
