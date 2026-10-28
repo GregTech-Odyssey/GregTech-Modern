@@ -2611,7 +2611,7 @@
     "gtceu.structure_preview.build": "建造配置",
     "gtceu.structure_preview.project": "在世界中投影",
     "gtceu.structure_preview.parts.filter": "中键：只显示此方块（可多选）",
-    "gtceu.structure_preview.back": "返回（Esc / E / 鼠标后退键）",
+    "gtceu.structure_preview.back": "返回（Esc / E / 鼠标后退键），Shift+Esc 直接全部退出",
     "gtceu.structure_preview.forward": "前进（鼠标前进键）",
     "gtceu.structure_preview.root_only": "仅限最初打开的结构使用",
     "gtceu.structure_preview.candidates": "此处可放置",

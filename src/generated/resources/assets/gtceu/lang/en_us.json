@@ -3962,7 +3962,7 @@
   "gtceu.structure_config.root": "Main structure",
   "gtceu.structure_config.segment": "Variable section",
   "gtceu.structure_config.summary": "Size %s×%s×%s · %s blocks",
-  "gtceu.structure_preview.back": "Back (Esc / E / mouse back button)",
+  "gtceu.structure_preview.back": "Back (Esc / E / mouse back button); Shift+Esc closes all",
   "gtceu.structure_preview.build": "Build Setup",
   "gtceu.structure_preview.candidates": "Allowed Here",
   "gtceu.structure_preview.config": "Structure Layout",

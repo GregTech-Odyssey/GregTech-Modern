@@ -172,6 +172,15 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         if (!host.back()) closePreview();
     }
 
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && (modifiers & GLFW.GLFW_MOD_SHIFT) != 0) {
+            closePreview();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
     private void closePreview() {
         if (minecraft != null && minecraft.screen == this) onBack.run();
     }

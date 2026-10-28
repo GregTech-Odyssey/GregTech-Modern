@@ -1374,7 +1374,7 @@ public class LangHandler {
         provider.add("gtceu.pattern_builder.favorite", "Favorite: chosen first by default");
         provider.add("gtceu.pattern_builder.total", "All parts combined: %s");
         provider.add("gtceu.structure_preview.parts.filter", "Middle-click: show only this block (multiple allowed)");
-        provider.add("gtceu.structure_preview.back", "Back (Esc / E / mouse back button)");
+        provider.add("gtceu.structure_preview.back", "Back (Esc / E / mouse back button); Shift+Esc closes all");
         provider.add("gtceu.structure_preview.forward", "Forward (mouse forward button)");
         provider.add("gtceu.structure_preview.root_only", "Only the structure this preview was opened for can be used here");
         provider.add("gtceu.structure_preview.build", "Build Setup");
