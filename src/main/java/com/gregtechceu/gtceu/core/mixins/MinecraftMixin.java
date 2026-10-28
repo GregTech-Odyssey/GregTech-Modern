@@ -19,8 +19,8 @@ import java.util.concurrent.CompletableFuture;
 public class MinecraftMixin {
 
     @Inject(method = "reloadResourcePacks(Z)Ljava/util/concurrent/CompletableFuture;", at = @At("HEAD"))
-    private void gtceu$invalidateMaterialTextureCachesOnReload(boolean force,
-                                                              CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+    private void gtceu$invalidateMaterialTextureCachesOnReload(boolean error,
+                                                               CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         MaterialIconType.invalidateTextureCaches();
     }
 }

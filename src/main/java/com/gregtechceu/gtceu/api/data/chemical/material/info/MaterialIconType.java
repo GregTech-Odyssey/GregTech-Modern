@@ -127,7 +127,6 @@ public final class MaterialIconType {
     public static void init() {}
 
     public static void clear() {
-        // 不把 VALUES 置 null：资源重载后 invalidateTextureCaches() 还要遍历它。
         VALUES.forEach(t -> {
             t.block_model_cache.clear();
             t.item_model_cache.clear();

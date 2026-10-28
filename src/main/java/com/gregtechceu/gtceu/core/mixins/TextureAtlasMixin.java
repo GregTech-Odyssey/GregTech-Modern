@@ -3,8 +3,11 @@ package com.gregtechceu.gtceu.core.mixins;
 import com.gregtechceu.gtceu.client.ResourceReloadEpoch;
 
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.resources.ResourceLocation;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -16,10 +19,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(TextureAtlas.class)
 public class TextureAtlasMixin {
 
+    @Shadow
+    @Final
+    private ResourceLocation location;
+
     @Inject(method = "upload", at = @At("RETURN"))
     private void gtceu$bumpEpochOnAtlasUpload(CallbackInfo ci) {
         // 一次重载会给十多个图集各调一次 upload，只认方块图集，否则会重复触发全量重建。
-        if (TextureAtlas.LOCATION_BLOCKS.equals(((TextureAtlas) (Object) this).location())) {
+        if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
             ResourceReloadEpoch.onAtlasReloaded();
         }
     }

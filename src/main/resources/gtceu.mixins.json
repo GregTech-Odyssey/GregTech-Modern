@@ -16,7 +16,6 @@
     "TextureAtlasMixin",
     "emi.RecipeDisplayMixin",
     "ldlib.ClickDataMixin",
-    "ldlib.IModelRendererMixin",
     "xaerominimap.HighlighterRegistryMixin",
     "xaerominimap.MinimapFBORendererMixin",
     "xaeroworldmap.GuiMapMixin",

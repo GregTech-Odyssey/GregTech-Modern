@@ -79,7 +79,6 @@ public class GTDynamicResourcePack implements PackResources {
     }
 
     public synchronized static void load() {
-        // 不要在这里改写 pack 内容：重载线程持有 GTDynamicPackContents 的读写锁，会挂死客户端。
         if (loaded) return;
         if (!ModLoader.isLoadingStateValid()) return;
         loaded = true;
