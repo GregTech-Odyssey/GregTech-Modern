@@ -5948,6 +5948,8 @@
     "metaitem.terminal.tooltip.hardware": "§a硬體：%d",
     "metaitem.tool.tooltip.durability": "§f耐久度：§a%d / %d",
     "metaitem.tool.tooltip.primary_material": "§f材料：§e%s",
+    "metaitem.tool.tooltip.rotor.total_efficiency": "渦輪效率：%s",
+    "metaitem.tool.tooltip.rotor.total_power": "渦輪產能：%s",
     "metaitem.tool.tooltip.rotor.efficiency": "渦輪效率：§9%d%%",
     "metaitem.tool.tooltip.rotor.power": "渦輪產能：§9%d%%",
     "metaitem.tricorder_scanner.tooltip": "三錄儀",

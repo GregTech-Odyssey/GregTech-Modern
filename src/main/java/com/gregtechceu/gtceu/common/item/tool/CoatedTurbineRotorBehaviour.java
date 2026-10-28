@@ -7,9 +7,11 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
+import com.gregtechceu.gtceu.api.tooltip.TipRole;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -74,6 +76,10 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
         super.appendTooltips(stack, level, tooltipComponents, isAdvanced);
         tooltipComponents
                 .add(Tips.stat(Component.translatable("metaitem.tool.tooltip.rotor.coating", getCoatMaterial(stack).getLocalizedName())));
+        if (!GTUtil.isShiftDown()) {
+            tooltipComponents.add(Tips.line(TipRole.FOOTER, Component.translatable("gtceu.tooltip.hold_shift")));
+            return;
+        }
         int i = 0;
         boolean isMagic = isCoatingMagical(stack);
         // 机制说明标题

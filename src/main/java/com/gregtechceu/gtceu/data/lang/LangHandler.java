@@ -270,6 +270,8 @@ public class LangHandler {
         provider.add("metaitem.behavior.mode_switch.current_mode", "Mode: %s");
         provider.add("metaitem.tool.tooltip.primary_material", "§fMaterial: §e%s");
         provider.add("metaitem.tool.tooltip.durability", "§fDurability: §a%d / %d");
+        provider.add("metaitem.tool.tooltip.rotor.total_efficiency", "Turbine Efficiency: %s");
+        provider.add("metaitem.tool.tooltip.rotor.total_power", "Turbine Power: %s");
         provider.add("metaitem.tool.tooltip.rotor.efficiency", "Turbine Efficiency: §9%d%%");
         provider.add("metaitem.tool.tooltip.rotor.power", "Turbine Power: §9%d%%");
         provider.add("item.gtceu.ulv_voltage_coil.tooltip", "Primitive Coil");

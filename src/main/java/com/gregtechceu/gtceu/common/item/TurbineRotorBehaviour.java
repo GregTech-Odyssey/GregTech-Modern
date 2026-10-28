@@ -59,41 +59,53 @@ public class TurbineRotorBehaviour implements ITurbineRotorBehavior {
     public void appendTooltips(ItemStack stack, @org.jetbrains.annotations.Nullable Level level,
                                List<Component> tooltipComponents, TooltipFlag isAdvanced) {
         ITurbineRotorBehavior.super.appendTooltips(stack, level, tooltipComponents, isAdvanced);
-        var mgc = CoatedTurbineRotorBehaviour.isCoatingMagical(stack);
-        MutableComponent eff, pow;
-        if (mgc && this instanceof CoatedTurbineRotorBehaviour ct) {
-            var effValue = stack.getEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY) * 0.1f + 1f;
-            eff = Component.translatable("metaitem.tool.tooltip.rotor.efficiency", (int) (effValue * (getRotorEfficiency(stack) - ct.getRotorBonusEfficiency(stack))))
-                    .append(Component.empty().append(" + (").withStyle(ChatFormatting.LIGHT_PURPLE)
-                            .append(Component.translatable("metaitem.tool.tooltip.rotor.coating_efficiency", ct.getRotorBonusEfficiency(stack))).withStyle(ChatFormatting.LIGHT_PURPLE)
-                            .append(")").withStyle(ChatFormatting.LIGHT_PURPLE));
-            if (stack.getEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY) > 0) {
-                eff.append(Component.empty().append(" * (").withStyle(ChatFormatting.DARK_PURPLE)
-                        .append(Component.translatable("metaitem.tool.tooltip.rotor.coating.ench.efficiency", FormattingUtil.formatNumber2Places(effValue * 100))).withStyle(ChatFormatting.DARK_PURPLE)
-                        .append(")").withStyle(ChatFormatting.DARK_PURPLE));
-            }
-            var powValue = stack.getEnchantmentLevel(Enchantments.POWER_ARROWS) * 0.05f + 1f;
-            pow = Component.translatable("metaitem.tool.tooltip.rotor.power", (int) (powValue * (getRotorPower(stack) - ct.getRotorBonusPower(stack))))
-                    .append(Component.empty().append(" + (").withStyle(ChatFormatting.LIGHT_PURPLE)
-                            .append(Component.translatable("metaitem.tool.tooltip.rotor.coating_power", ct.getRotorBonusPower(stack))).withStyle(ChatFormatting.LIGHT_PURPLE)
-                            .append(")").withStyle(ChatFormatting.LIGHT_PURPLE));
-            if (stack.getEnchantmentLevel(Enchantments.POWER_ARROWS) > 0) {
-                pow.append(Component.empty().append(" * (").withStyle(ChatFormatting.DARK_PURPLE)
-                        .append(Component.translatable("metaitem.tool.tooltip.rotor.coating.ench.power", FormattingUtil.formatNumber2Places(powValue * 100))).withStyle(ChatFormatting.DARK_PURPLE)
-                        .append(")").withStyle(ChatFormatting.DARK_PURPLE));
-            }
-        } else {
-            eff = Component.translatable("metaitem.tool.tooltip.rotor.efficiency", getRotorEfficiency(stack));
-            pow = Component.translatable("metaitem.tool.tooltip.rotor.power", getRotorPower(stack));
+        boolean mgc = CoatedTurbineRotorBehaviour.isCoatingMagical(stack);
+        int baseEfficiency = stack.getItem() instanceof GTTurbineItem t ? t.getEfficiency() : -1;
+        int basePower = stack.getItem() instanceof GTTurbineItem t ? t.getPower() : -1;
+        int bonusEfficiency = 0, bonusPower = 0;
+        double efficiencyMultiplier = 1, powerMultiplier = 1;
+        if (this instanceof CoatedTurbineRotorBehaviour ct) {
+            bonusEfficiency = ct.getRotorBonusEfficiency(stack);
+            bonusPower = ct.getRotorBonusPower(stack);
+            efficiencyMultiplier += ct.getEnchBonusEfficiency(stack);
+            powerMultiplier += ct.getEnchBonusPower(stack);
         }
-        tooltipComponents.add(Tips.stat(eff));
-        tooltipComponents.add(Tips.stat(pow));
+        tooltipComponents.add(Tips.stat(Component.translatable("metaitem.tool.tooltip.rotor.total_efficiency",
+                percent(getRotorEfficiency(stack), ChatFormatting.WHITE))));
+        if (bonusEfficiency != 0 || efficiencyMultiplier != 1) {
+            tooltipComponents.add(Tips.stat(rotorFormula(baseEfficiency, bonusEfficiency, efficiencyMultiplier)));
+        }
+        tooltipComponents.add(Tips.stat(Component.translatable("metaitem.tool.tooltip.rotor.total_power",
+                percent(getRotorPower(stack), ChatFormatting.WHITE))));
+        if (bonusPower != 0 || powerMultiplier != 1) {
+            tooltipComponents.add(Tips.stat(rotorFormula(basePower, bonusPower, powerMultiplier)));
+        }
         if (mgc && stack.getEnchantmentLevel(Enchantments.UNBREAKING) > 0) {
             var value = 100f / (stack.getEnchantmentLevel(Enchantments.UNBREAKING) + 1);
             tooltipComponents.add(
                     Tips.stat(Component.translatable("metaitem.tool.tooltip.rotor.coating.ench.unbreaking", FormattingUtil.formatNumber2Places(value))));
 
         }
+    }
+
+    private static MutableComponent percent(int value, ChatFormatting color) {
+        return Component.literal(Integer.toString(value)).append("%").withStyle(color);
+    }
+
+    private static Component rotorFormula(int base, int bonus, double multiplier) {
+        boolean enchanted = multiplier != 1;
+        MutableComponent formula = Component.literal(enchanted && bonus != 0 ? " = (" : " = ").withStyle(ChatFormatting.GRAY)
+                .append(percent(base, ChatFormatting.GRAY));
+        if (bonus != 0) {
+            formula.append(Component.literal(" + ").withStyle(ChatFormatting.GRAY))
+                    .append(percent(bonus, ChatFormatting.LIGHT_PURPLE));
+        }
+        if (enchanted) {
+            formula.append(Component.literal(bonus != 0 ? ") × " : " × ").withStyle(ChatFormatting.GRAY))
+                    .append(Component.literal(FormattingUtil.formatNumber2Places(multiplier * 100)).append("%")
+                            .withStyle(ChatFormatting.DARK_PURPLE));
+        }
+        return formula;
     }
 
     @Nullable

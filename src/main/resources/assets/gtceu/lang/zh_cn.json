@@ -6169,6 +6169,8 @@
     "metaitem.terminal.tooltip.hardware": "§a硬件：%d",
     "metaitem.tool.tooltip.durability": "§f耐久度：§a%d / %d",
     "metaitem.tool.tooltip.primary_material": "§f材料：§e%s",
+    "metaitem.tool.tooltip.rotor.total_efficiency": "涡轮效率：%s",
+    "metaitem.tool.tooltip.rotor.total_power": "涡轮产能：%s",
     "metaitem.tool.tooltip.rotor.efficiency": "涡轮效率：§9%d%%",
     "metaitem.tool.tooltip.rotor.power": "涡轮产能：§9%d%%",
     "metaitem.tricorder_scanner.tooltip": "三录仪",
