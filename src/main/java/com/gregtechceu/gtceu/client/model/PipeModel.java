@@ -265,6 +265,8 @@ public class PipeModel {
     @OnlyIn(Dist.CLIENT)
     public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
         IItemRendererProvider.disabled.set(true);
+        // 先完成换代，避免在下面的 computeIfAbsent 回调里清空同一个 map。
+        sprites();
         Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, (ItemBakedModel) (state, direction, random) -> itemModelCache.computeIfAbsent(Optional.ofNullable(direction), direction1 -> bakeQuads(direction1.orElse(null), ITEM_CONNECTIONS, 0)));
         IItemRendererProvider.disabled.set(false);
     }
