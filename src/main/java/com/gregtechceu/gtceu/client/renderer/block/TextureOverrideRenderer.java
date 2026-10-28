@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.client.renderer.block;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.client.model.IModelCacheInvalidatable;
 import com.gregtechceu.gtceu.client.model.SpriteOverrider;
 
 import com.lowdragmc.lowdraglib.LDLib;
@@ -77,7 +78,7 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     @Nullable
     @OnlyIn(Dist.CLIENT)
     protected BakedModel getItemBakedModel() {
-        gtceu$ensureFresh();
+        ((IModelCacheInvalidatable) this).invalidateStaleCaches();
         if (itemModel == null) {
             var model = getModel();
             if (model instanceof BlockModel blockModel && blockModel.getRootModel() == ModelBakery.GENERATION_MARKER) {
@@ -93,19 +94,19 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     @Override
     @OnlyIn(Dist.CLIENT)
     public BakedModel getRotatedModel(Direction frontFacing) {
-        gtceu$ensureFresh();
+        ((IModelCacheInvalidatable) this).invalidateStaleCaches();
         return blockModels.computeIfAbsent(frontFacing, facing -> getModel().bake(ModelFactory.getModeBaker(), new SpriteOverrider(override), ModelFactory.getRotation(facing), modelLocation));
     }
 
     @OnlyIn(Dist.CLIENT)
     public BakedModel getRotatedModel(ModelState modelState) {
-        gtceu$ensureFresh();
+        ((IModelCacheInvalidatable) this).invalidateStaleCaches();
         return bakedModelCache.computeIfAbsent(modelState, state -> getModel().bake(ModelFactory.getModeBaker(), new SpriteOverrider(override), modelState, modelLocation));
     }
 
-    @Override
+    // 覆盖 IModelRendererMixin 注入的接口回调。该接口编译期不在父类上，故不加 @Override。
     @OnlyIn(Dist.CLIENT)
-    protected void gtceu$invalidateExtraCaches() {
+    public void onCachesInvalidated() {
         if (bakedModelCache != null) {
             bakedModelCache.clear();
         }

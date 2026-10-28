@@ -127,17 +127,14 @@ public final class MaterialIconType {
     public static void init() {}
 
     public static void clear() {
+        // 不把 VALUES 置 null：资源重载后 invalidateTextureCaches() 还要遍历它。
         VALUES.forEach(t -> {
             t.block_model_cache.clear();
             t.item_model_cache.clear();
         });
     }
 
-    /**
-     * 资源集变化后（游戏内启用/禁用材质包会重建客户端资源管理器）贴图路径缓存必须失效：
-     * 缓存里记的是上一次资源集里哪一级图标集真正有贴图，继续沿用会让材质解析到已经不存在的图标集
-     * （图集里没有该 sprite，表现为紫黑/丢失材质），也会漏掉材质包新提供的图标集。
-     */
+    /** 资源集变化后失效贴图路径缓存，否则会解析到上一次资源集里的图标集。 */
     public static void invalidateTextureCaches() {
         VALUES.forEach(t -> {
             t.block_texture_cache.clear();
