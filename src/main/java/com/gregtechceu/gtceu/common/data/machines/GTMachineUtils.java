@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.block.SuperStorageBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
@@ -359,7 +360,7 @@ public class GTMachineUtils {
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + tank_type,
                     MachineDefinition::createDefinition,
                     (holder) -> new QuantumTankMachine(holder, tier, maxAmount),
-                    MetaMachineBlock::new,
+                    SuperStorageBlock::new,
                     QuantumTankMachineItem::create,
                     MetaMachineBlockEntity::createBlockEntity)
                     .langValue(toEnglishName(tank_type) + " " + LVT[tier])
@@ -387,7 +388,7 @@ public class GTMachineUtils {
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + chest_type,
                     MachineDefinition::createDefinition,
                     holder -> new QuantumChestMachine(holder, tier, maxAmount),
-                    MetaMachineBlock::new,
+                    SuperStorageBlock::new,
                     (block, properties) -> new SuperStorageItem(block, properties, maxAmount),
                     MetaMachineBlockEntity::createBlockEntity)
                     .tier(tier)

@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfigurator;
+import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -55,7 +56,7 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
     }
 
     public void setSample(ItemStack stack) {
-        if (!stack.isEmpty() && !(stack.getItem() instanceof BlockItem)) return;
+        if (!stack.isEmpty() && !isValidSample(stack)) return;
         Block selected = stack.isEmpty() ? Blocks.AIR : ((BlockItem) stack.getItem()).getBlock();
         if (block == selected) return;
         block = selected;
@@ -63,6 +64,10 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
             onChanged();
             machine.requestSync();
         }
+    }
+
+    public static boolean isValidSample(ItemStack stack) {
+        return stack.getItem() instanceof BlockItem && !(stack.getItem() instanceof MetaMachineItem);
     }
 
     private void onBlockSynced(Block value, Block previous) {
@@ -97,7 +102,7 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
 
     @Override
     public Widget createConfigurator() {
-        var slot = PhantomItemSlot.of(this::getSample, this::setSample, stack -> stack.getItem() instanceof BlockItem).xeiPhantom();
+        var slot = PhantomItemSlot.of(this::getSample, this::setSample, StorageAppearance::isValidSample).xeiPhantom();
         slot.tooltips(HELP);
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.minWidth(6 * UISizes.SLOT_SIZE).gapAll(UISizes.SECTION_GAP))
                 .addChild(Form.controlRow(SAMPLE, slot, HELP));

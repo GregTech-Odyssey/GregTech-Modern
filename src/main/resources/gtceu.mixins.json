@@ -10,6 +10,7 @@
     "GuiGraphicsMixin",
     "GuiHeartTypeMixin",
     "LevelRendererMixin",
+    "ldlib.StorageRendererModelMixin",
     "ModelManagerMixin",
     "MultiPlayerGameModeMixin",
     "emi.RecipeDisplayMixin",
