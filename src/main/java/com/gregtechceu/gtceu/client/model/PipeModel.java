@@ -85,6 +85,8 @@ public class PipeModel {
     public ResourceLocation endOverlayTexture;
     @OnlyIn(Dist.CLIENT)
     private volatile Sprites sprites;
+    @OnlyIn(Dist.CLIENT)
+    private static volatile Restrictors restrictors;
 
     /** 当前图集解析出的一组 sprite。整体替换而非逐字段置空——bakeQuads 会在多个区块构建线程上并发执行。 */
     @OnlyIn(Dist.CLIENT)
@@ -118,6 +120,9 @@ public class PipeModel {
     }
 
     @OnlyIn(Dist.CLIENT)
+    private record Restrictors(int epoch, Int2ObjectMap<TextureAtlasSprite> sprites) {}
+
+    @OnlyIn(Dist.CLIENT)
     private Sprites sprites() {
         Sprites current = this.sprites;
         int epoch = ResourceReloadEpoch.get();
@@ -125,6 +130,15 @@ public class PipeModel {
         Sprites fresh = buildSprites(epoch);
         this.sprites = fresh;
         itemModelCache.clear();
+        return fresh;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static Int2ObjectMap<TextureAtlasSprite> getRestrictors(int epoch) {
+        Restrictors current = restrictors;
+        if (current != null && current.epoch() == epoch) return current.sprites();
+        Int2ObjectMap<TextureAtlasSprite> fresh = buildRestrictors();
+        restrictors = new Restrictors(epoch, fresh);
         return fresh;
     }
 
@@ -141,7 +155,7 @@ public class PipeModel {
         TextureAtlasSprite sideOverlay = sideOverlayTexture == null ? null : ModelFactory.getBlockSprite(sideOverlayTexture);
         TextureAtlasSprite endOverlay = endOverlayTexture == null ? null : ModelFactory.getBlockSprite(endOverlayTexture);
         return new Sprites(epoch, ModelFactory.getBlockSprite(sideTexture.get()), ModelFactory.getBlockSprite(endTexture.get()),
-                secondarySide, secondaryEnd, sideOverlay, endOverlay, buildRestrictors());
+                secondarySide, secondaryEnd, sideOverlay, endOverlay, getRestrictors(epoch));
     }
 
     public PipeModel(float thickness, Supplier<ResourceLocation> sideTexture, Supplier<ResourceLocation> endTexture, @Nullable Supplier<@Nullable ResourceLocation> secondarySideTexture, @Nullable Supplier<@Nullable ResourceLocation> secondaryEndTexture) {
@@ -182,7 +196,6 @@ public class PipeModel {
 
     @OnlyIn(Dist.CLIENT)
     public List<BakedQuad> bakeQuads(@Nullable Direction side, int connections, int blockedConnections) {
-        // 只读一次引用，之后全部走局部变量，避免并发换代时读到半更新的字段。
         Sprites cache = sprites();
         if (side != null) {
             if (thickness == 1) {
@@ -265,7 +278,6 @@ public class PipeModel {
     @OnlyIn(Dist.CLIENT)
     public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
         IItemRendererProvider.disabled.set(true);
-        // 先完成换代，避免在下面的 computeIfAbsent 回调里清空同一个 map。
         sprites();
         Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, (ItemBakedModel) (state, direction, random) -> itemModelCache.computeIfAbsent(Optional.ofNullable(direction), direction1 -> bakeQuads(direction1.orElse(null), ITEM_CONNECTIONS, 0)));
         IItemRendererProvider.disabled.set(false);

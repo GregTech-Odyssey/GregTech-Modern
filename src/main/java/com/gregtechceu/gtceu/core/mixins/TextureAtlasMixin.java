@@ -25,7 +25,6 @@ public class TextureAtlasMixin {
 
     @Inject(method = "upload", at = @At("RETURN"))
     private void gtceu$bumpEpochOnAtlasUpload(CallbackInfo ci) {
-        // 一次重载会给十多个图集各调一次 upload，只认方块图集，否则会重复触发全量重建。
         if (TextureAtlas.LOCATION_BLOCKS.equals(this.location)) {
             ResourceReloadEpoch.onAtlasReloaded();
         }

@@ -118,7 +118,7 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
         return super.renderModel(level, pos, state, side, rand);
     }
 
-    public void invalidateStaleCaches() {
+    protected void invalidateStaleCaches() {
         int current = ResourceReloadEpoch.get();
         if (current == cacheEpoch) return;
         cacheEpoch = current;
