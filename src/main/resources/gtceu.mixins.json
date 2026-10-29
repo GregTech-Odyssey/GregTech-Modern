@@ -11,6 +11,7 @@
     "GuiHeartTypeMixin",
     "LevelRendererMixin",
     "MinecraftMixin",
+    "ldlib.StorageRendererModelMixin",
     "ModelManagerMixin",
     "MultiPlayerGameModeMixin",
     "TextureAtlasMixin",

@@ -270,6 +270,8 @@ public class LangHandler {
         provider.add("metaitem.behavior.mode_switch.current_mode", "Mode: %s");
         provider.add("metaitem.tool.tooltip.primary_material", "§fMaterial: §e%s");
         provider.add("metaitem.tool.tooltip.durability", "§fDurability: §a%d / %d");
+        provider.add("metaitem.tool.tooltip.rotor.total_efficiency", "Turbine Efficiency: %s");
+        provider.add("metaitem.tool.tooltip.rotor.total_power", "Turbine Power: %s");
         provider.add("metaitem.tool.tooltip.rotor.efficiency", "Turbine Efficiency: §9%d%%");
         provider.add("metaitem.tool.tooltip.rotor.power", "Turbine Power: §9%d%%");
         provider.add("item.gtceu.ulv_voltage_coil.tooltip", "Primitive Coil");
@@ -1372,7 +1374,7 @@ public class LangHandler {
         provider.add("gtceu.pattern_builder.favorite", "Favorite: chosen first by default");
         provider.add("gtceu.pattern_builder.total", "All parts combined: %s");
         provider.add("gtceu.structure_preview.parts.filter", "Middle-click: show only this block (multiple allowed)");
-        provider.add("gtceu.structure_preview.back", "Back (Esc / E / mouse back button)");
+        provider.add("gtceu.structure_preview.back", "Back (Esc / E / mouse back button); Shift+Esc closes all");
         provider.add("gtceu.structure_preview.forward", "Forward (mouse forward button)");
         provider.add("gtceu.structure_preview.root_only", "Only the structure this preview was opened for can be used here");
         provider.add("gtceu.structure_preview.build", "Build Setup");

@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IStorageAppearance;
 import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.StorageAppearance;
+import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
@@ -88,6 +89,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @Getter
     @SaveToDisk(defaultValue = "false")
     protected boolean allowInputFromOutputSideFluids;
+    @Getter
     @SaveToDisk(defaultValue = "false")
     @SyncToClient(scheduleUpdate = true)
     private boolean isVoiding;
@@ -96,12 +98,14 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @AdditionalHolder
     private final StorageAppearance storageAppearance = new StorageAppearance(this);
 
-    @Getter
     private final long max;
-
-    @SaveToDisk(defaultValueGetter = "getMax")
     @Getter
-    private long maxAmount;
+    @AdditionalHolder
+    private final StorageUpgrades storageUpgrades;
+
+    @SaveToDisk(defaultValue = "-1")
+    @SyncToClient
+    private long maxAmount = -1;
     @AdditionalHolder
     protected final FluidCache cache;
     @SyncToClient
@@ -119,12 +123,12 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     public QuantumTankMachine(MetaMachineBlockEntity holder, int tier, long maxAmount, Object... args) {
         super(holder, tier);
         this.outputFacingFluids = getFrontFacing().getOpposite();
-        this.maxAmount = maxAmount;
         this.max = maxAmount;
         this.cache = createCacheFluidHandler(args);
         this.interactionTank = new ForgeFluidAdapter(cache);
         this.lockedFluid = KeyInventory.fluids(1, Long.MAX_VALUE);
         this.lockedFluid.setOnChanged(this::applyLock);
+        this.storageUpgrades = new StorageUpgrades(this, this::onFluidChanged, !(this instanceof CreativeTankMachine));
     }
 
     protected FluidCache createCacheFluidHandler(Object... args) {
@@ -173,12 +177,13 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public boolean saveBreak() {
-        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR;
+        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR || !storageUpgrades.isEmpty();
     }
 
     @Override
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
+        if (forDrop && maxAmount >= 0) tag.putLong(StorageUpgrades.LIMIT_KEY, maxAmount);
         if (!forDrop) {
             var lockedKey = lockedFluid.keyAt(0);
             var locked = lockedKey == null ? FluidStack.EMPTY : Keys.toFluidStack(lockedKey, lockedFluid.amountAt(0));
@@ -193,6 +198,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
+        if (tag.contains(StorageUpgrades.LIMIT_KEY)) maxAmount = tag.getLong(StorageUpgrades.LIMIT_KEY);
         var from = tag.contains("cache") ? tag.getCompound("cache") : tag;
         var locked = FluidStack.loadFluidStackFromNBT(from.getCompound("lockedFluid"));
         lockedFluid.set(0, Keys.fluid(locked), locked.getAmount());
@@ -320,14 +326,16 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
-        if (direction != getFrontFacing() || player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.getFirst())) return false;
-        if (!(player.pick(player.getBlockReach(), 0, false) instanceof BlockHitResult hit) ||
+        var stack = player.getItemInHand(hand);
+        if (direction != getFrontFacing() || stack.is(GTToolType.WRENCH.itemTags.getFirst()) ||
+                !stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent())
+            return false;
+        if (!(player.pick(player.getBlockReach(), 1, false) instanceof BlockHitResult hit) ||
                 !StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit))
             return false;
         if (!world.isClientSide && interaction.claimExtraction(world.getGameTime())) {
             var inventory = player.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
             if (inventory != null) {
-                var stack = player.getItemInHand(hand);
                 int count = player.isShiftKeyDown() ? stack.getCount() : 1;
                 player.setItemInHand(hand, StorageInteraction.transferContainers(stack, interactionTank, inventory, player,
                         count, true));
@@ -412,7 +420,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         var voiding = IconToggle.of(WidgetIcons.VOID_OVERFLOW, this::isVoiding, this::setVoiding)
                 .onOffTooltips("gtceu.gui.fluid_voiding_partial.tooltip.enabled", "gtceu.gui.fluid_voiding_partial.tooltip.disabled");
         var limit = Form.numberRow(HatchViews.CAPACITY_LIMIT,
-                NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, 1, max), HatchViews.CAPACITY_LIMIT_TIP);
+                NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, () -> 1, this::getMax), HatchViews.CAPACITY_LIMIT_TIP);
         limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
         var status = new StatusPanel();
         status.addLine(HatchViews.FLUID, HatchViews.keyName(() -> storedKey, HatchViews.EMPTY));
@@ -420,11 +428,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         status.addLine(HatchViews.LOCKED, HatchViews.keyName(() -> lockedFluid.keyAt(0), HatchViews.NOT_LOCKED));
         var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
                 HatchViews.operations(tank, HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)), limit);
-        return HatchViews.page(operations, status);
-    }
-
-    public boolean isVoiding() {
-        return isVoiding;
+        return HatchViews.page(operations, UIElement.column(LayoutStyle.AUTO).addChildren(status, storageUpgrades.createSlots()));
     }
 
     public void setVoiding(boolean voiding) {
@@ -433,9 +437,19 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         requestSync();
     }
 
-    public void setMaxAmount(long maxAmount) {
-        this.maxAmount = Math.max(1, Math.min(max, maxAmount));
+    public long getMax() {
+        return storageUpgrades.capacity(max);
+    }
+
+    public long getMaxAmount() {
+        return maxAmount < 0 ? getMax() : Math.min(maxAmount, getMax());
+    }
+
+    public void setMaxAmount(long amount) {
+        long maximum = getMax();
+        maxAmount = amount >= maximum ? -1 : Math.clamp(amount, 1, maximum);
         onChanged();
+        requestSync();
     }
 
     //////////////////////////////////////
@@ -469,7 +483,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
 
         @Override
-        public AEKeyType keyType() {
+        public AEKeyType<AEFluidKey> keyType() {
             return AEKeyTypes.FLUIDS;
         }
 
@@ -490,7 +504,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
         @Override
         public long slotLimit(int slot) {
-            return maxAmount;
+            return getMaxAmount();
         }
 
         @Override
@@ -500,7 +514,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
             if (lock != null && lock != key) return 0;
             long stored = storage.amountAt(0);
             if (stored != 0 ? storage.rawKeyAt(0) != key : !storage.acceptsEmpty(0, key)) return 0;
-            long space = maxAmount - stored;
+            long space = getMaxAmount() - stored;
             long n = space > 0 ? storage.insert(0, key, Math.min(amount, space), simulate) : 0;
             return isVoiding ? amount : n;
         }

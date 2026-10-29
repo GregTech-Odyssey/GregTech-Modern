@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.block.SuperStorageBlock;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.FluidPipeProperties;
@@ -12,6 +13,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
 import com.gregtechceu.gtceu.api.item.DrumMachineItem;
 import com.gregtechceu.gtceu.api.item.QuantumTankMachineItem;
+import com.gregtechceu.gtceu.api.item.SuperStorageItem;
 import com.gregtechceu.gtceu.api.machine.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
@@ -353,12 +355,12 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperTanks(String tank_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = 2000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
+            long maxAmount = 500 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
             var register = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + tank_type,
                     MachineDefinition::createDefinition,
                     (holder) -> new QuantumTankMachine(holder, tier, maxAmount),
-                    MetaMachineBlock::new,
+                    SuperStorageBlock::new,
                     QuantumTankMachineItem::create,
                     MetaMachineBlockEntity::createBlockEntity)
                     .langValue(toEnglishName(tank_type) + " " + LVT[tier])
@@ -379,22 +381,31 @@ public class GTMachineUtils {
     }
 
     public static MachineDefinition[] registerSuperChests(String chest_type, int... tiers) {
-        return registerTieredMachines(chest_type,
-                (holder, tier) -> new QuantumChestMachine(holder, tier,
-                        tier == MAX ? Long.MAX_VALUE : 2_000_000 * (long) Math.pow(2, tier)),
-                (tier, builder) -> builder.langValue(toEnglishName(chest_type) + " " + LVT[tier])
-                        .blockProp(BlockBehaviour.Properties::dynamicShape)
-                        .allRotation()
-                        .allowExtendedFacing(true)
-                        .renderer(() -> new QuantumChestRenderer(tier))
-                        .hasTESR(true)
-                        .tooltipBuilder(CHEST_TOOLTIPS)
-                        .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")),
-                                Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_total",
-                                        FormattingUtil.formatNumbers(tier == MAX ? Long.MAX_VALUE :
-                                                2_000_000 * (long) Math.pow(2, tier)))))
-                        .register(),
-                tiers);
+        MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
+        for (int tier : tiers) {
+            long maxAmount = tier == MAX ? Long.MAX_VALUE : 500_000 * (long) Math.pow(2, tier);
+            definitions[tier] = REGISTRATE.machine(
+                    GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + chest_type,
+                    MachineDefinition::createDefinition,
+                    holder -> new QuantumChestMachine(holder, tier, maxAmount),
+                    SuperStorageBlock::new,
+                    (block, properties) -> new SuperStorageItem(block, properties, maxAmount),
+                    MetaMachineBlockEntity::createBlockEntity)
+                    .tier(tier)
+                    .langValue(toEnglishName(chest_type) + " " + LVT[tier])
+                    .blockProp(BlockBehaviour.Properties::dynamicShape)
+                    .allRotation()
+                    .allowExtendedFacing(true)
+                    .renderer(() -> new QuantumChestRenderer(tier))
+                    .hasTESR(true)
+                    .tooltipBuilder(CHEST_TOOLTIPS)
+                    .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")),
+                            Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_total",
+                                    FormattingUtil.formatNumbers(tier == MAX ? Long.MAX_VALUE :
+                                            500_000 * (long) Math.pow(2, tier)))))
+                    .register();
+        }
+        return definitions;
     }
 
     //////////////////////////////////////

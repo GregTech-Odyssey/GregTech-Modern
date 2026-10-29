@@ -25,6 +25,8 @@ import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ValueCodecs;
+import lombok.Getter;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +41,10 @@ import java.util.function.Predicate;
  */
 public class StackInventory extends AbstractDataSerializable implements IKeyHandler<AEItemKey>, ForgeItemSource {
 
+    @Getter
     protected Runnable onContentsChanged = GTUtil.NOOP;
+    @Setter
+    @Getter
     @SuppressWarnings("unchecked")
     protected Predicate<ItemStack> filter = GTUtil.FAVORABLE;
     public boolean isInputLimited;
@@ -79,20 +84,8 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
         this.size = stacks.size();
     }
 
-    public Runnable getOnContentsChanged() {
-        return onContentsChanged;
-    }
-
     public void setOnContentsChanged(@NotNull Runnable onContentsChanged) {
         this.onContentsChanged = onContentsChanged;
-    }
-
-    public Predicate<ItemStack> getFilter() {
-        return filter;
-    }
-
-    public void setFilter(Predicate<ItemStack> filter) {
-        this.filter = filter;
     }
 
     @Override
@@ -169,6 +162,9 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
         return this.stacks[slot];
     }
 
+    /**
+     * Number of slots, including empty slots. Use this for slot-count checks; {@link #isEmpty()} checks contents.
+     */
     public int getSlots() {
         return size;
     }

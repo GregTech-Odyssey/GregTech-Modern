@@ -5,7 +5,10 @@ import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.addon.AddonFinder;
 import com.gregtechceu.gtceu.api.addon.IGTAddon;
+import com.gregtechceu.gtceu.api.block.SuperStorageBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IMiner;
+import com.gregtechceu.gtceu.api.item.MetaMachineItem;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.SimpleTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
@@ -446,7 +449,8 @@ public class GTMachines {
             .register();
 
     public static final MachineDefinition CREATIVE_FLUID = REGISTRATE
-            .machine("creative_tank", CreativeTankMachine::new)
+            .machine("creative_tank", MachineDefinition::createDefinition, CreativeTankMachine::new,
+                    SuperStorageBlock::new, MetaMachineItem::new, MetaMachineBlockEntity::createBlockEntity)
             .allRotation()
             .allowExtendedFacing(true)
             .tooltipBuilder((stack, list) -> {
@@ -463,7 +467,8 @@ public class GTMachines {
             .register();
 
     public static final MachineDefinition CREATIVE_ITEM = REGISTRATE
-            .machine("creative_chest", CreativeChestMachine::new)
+            .machine("creative_chest", MachineDefinition::createDefinition, CreativeChestMachine::new,
+                    SuperStorageBlock::new, MetaMachineItem::new, MetaMachineBlockEntity::createBlockEntity)
             .allRotation()
             .allowExtendedFacing(true)
             .tooltipBuilder((stack, list) -> {

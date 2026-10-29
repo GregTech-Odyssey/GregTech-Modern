@@ -35,18 +35,18 @@ import net.minecraft.world.level.block.Block;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.AEKeyFilter;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongMap;
+import it.unimi.dsi.fastutil.objects.Reference2LongMaps;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -83,13 +83,12 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     protected final FilterHandler<ItemStack, ItemFilter> filterHandler;
     protected final ConditionalSubscriptionHandler subscriptionHandler;
     protected final AEKeyFilter itemKeyFilter = this::matchesFilter;
+    private final KeyCounter countScratch = new KeyCounter();
     @Nullable
-    private Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo> typeInfos;
+    private Reference2LongLinkedOpenHashMap<AEItemKey> countsA;
     @Nullable
-    private Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> groupInfosA;
-    @Nullable
-    private Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> groupInfosB;
-    private boolean groupFlip;
+    private Reference2LongLinkedOpenHashMap<AEItemKey> countsB;
+    private boolean countFlip;
 
     public ConveyorCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide, int tier, int maxTransferRate) {
         super(definition, coverHolder, attachedSide);
@@ -214,134 +213,48 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
         return (int) KeyTransfer.transfer(sourceInventory, targetInventory, maxTransferAmount, itemKeyFilter);
     }
 
-    protected static int moveInventoryItemsExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory,
-                                                 TypeItemInfo itemInfo) {
-        AEItemKey key = itemInfo.key;
-        long total = itemInfo.totalCount;
-        IntList slots = itemInfo.slots;
-        long left = total;
-        for (int i = 0; i < slots.size() && left > 0; i++) {
-            left -= sourceInventory.extract(slots.getInt(i), key, left, true);
-        }
-        if (left != 0 || targetInventory.insert(key, total, true) != total) {
+    protected static int moveInventoryItemsExact(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, AEItemKey key, long total) {
+        if (total <= 0 || sourceInventory.extract(key, total, true) != total || targetInventory.insert(key, total, true) != total) {
             return 0;
         }
-        left = total;
-        for (int i = 0; i < slots.size() && left > 0; i++) {
-            left -= sourceInventory.extract(slots.getInt(i), key, left, false);
-        }
-        long extracted = total - left;
+        long extracted = sourceInventory.extract(key, total, false);
         if (extracted != total) {
-            if (extracted > 0) returnToSource(sourceInventory, slots.getInt(0), key, extracted);
+            if (extracted > 0) sourceInventory.unrestricted().insert(key, extracted, false);
             return 0;
         }
         long inserted = targetInventory.insert(key, total, false);
-        if (inserted < total) returnToSource(sourceInventory, slots.getInt(0), key, total - inserted);
+        if (inserted < total) sourceInventory.unrestricted().insert(key, total - inserted, false);
         return (int) inserted;
     }
 
-    private static void returnToSource(IKeyHandler<AEItemKey> sourceInventory, int slot, AEItemKey key, long amount) {
-        var source = sourceInventory.unrestricted();
-        long back = source.insert(slot, key, amount, false);
-        if (back < amount) source.insert(key, amount - back, false);
-    }
-
-    protected int moveInventoryItems(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, Map<AEItemKey, GroupItemInfo> itemInfos, int maxTransferAmount) {
-        long itemsLeftToTransfer = maxTransferAmount;
-        int size = sourceInventory.size();
-        for (int i = 0; i < size; i++) {
-            if (sourceInventory.amountAt(i) <= 0) continue;
-            AEItemKey key = sourceInventory.keyAt(i);
-            if (!itemKeyFilter.matches(key)) continue;
-            GroupItemInfo itemInfo = itemInfos.get(key);
-            if (itemInfo == null) continue;
-            long transferred = KeyTransfer.transferSlot(sourceInventory, i, targetInventory,
-                    Math.min(itemInfo.totalCount, itemsLeftToTransfer), null);
-            if (transferred > 0) {
-                itemsLeftToTransfer -= transferred;
-                itemInfo.totalCount -= transferred;
-                if (itemInfo.totalCount == 0) {
-                    itemInfos.remove(key);
-                    if (itemInfos.isEmpty()) {
-                        break;
-                    }
-                }
-                if (itemsLeftToTransfer == 0) {
-                    break;
-                }
-            }
+    protected int moveInventoryItems(IKeyHandler<AEItemKey> sourceInventory, IKeyHandler<AEItemKey> targetInventory, Reference2LongMap<AEItemKey> itemAmounts, int maxTransferAmount) {
+        long left = maxTransferAmount;
+        for (var it = Reference2LongMaps.fastIterator(itemAmounts); it.hasNext() && left > 0;) {
+            var entry = it.next();
+            left -= KeyTransfer.transferKey(sourceInventory, targetInventory, entry.getKey(), Math.min(entry.getLongValue(), left));
         }
-        return (int) (maxTransferAmount - itemsLeftToTransfer);
+        return (int) (maxTransferAmount - left);
     }
 
-    protected Reference2ObjectLinkedOpenHashMap<AEItemKey, TypeItemInfo> countInventoryItemsByType(IKeyHandler<AEItemKey> inventory) {
-        var result = typeInfos;
-        if (result == null) typeInfos = result = new Reference2ObjectLinkedOpenHashMap<>();
-        else result.clear();
-        int size = inventory.size();
-        for (int srcIndex = 0; srcIndex < size; srcIndex++) {
-            long amount = inventory.amountAt(srcIndex);
-            if (amount <= 0) continue;
-            AEItemKey key = inventory.keyAt(srcIndex);
-            if (!itemKeyFilter.matches(key)) continue;
-            var itemInfo = result.get(key);
-            if (itemInfo == null) {
-                itemInfo = new TypeItemInfo(key, new IntArrayList(), 0);
-                result.put(key, itemInfo);
-            }
-            itemInfo.totalCount = Keys.add(itemInfo.totalCount, amount);
-            itemInfo.slots.add(srcIndex);
-        }
-        return result;
-    }
-
-    protected Reference2ObjectLinkedOpenHashMap<AEItemKey, GroupItemInfo> countInventoryItemsByMatchSlot(IKeyHandler<AEItemKey> inventory) {
-        var result = (groupFlip = !groupFlip) ? groupInfosA : groupInfosB;
+    protected Reference2LongLinkedOpenHashMap<AEItemKey> countInventoryItems(IKeyHandler<AEItemKey> inventory) {
+        var result = (countFlip = !countFlip) ? countsA : countsB;
         if (result == null) {
-            result = new Reference2ObjectLinkedOpenHashMap<>();
-            if (groupFlip) groupInfosA = result;
-            else groupInfosB = result;
+            result = new Reference2LongLinkedOpenHashMap<>();
+            if (countFlip) countsA = result;
+            else countsB = result;
         } else {
             result.clear();
         }
-        int size = inventory.size();
-        for (int srcIndex = 0; srcIndex < size; srcIndex++) {
-            long amount = inventory.amountAt(srcIndex);
-            if (amount <= 0) continue;
-            AEItemKey key = inventory.keyAt(srcIndex);
-            if (!itemKeyFilter.matches(key)) continue;
-            var itemInfo = result.get(key);
-            if (itemInfo == null) {
-                itemInfo = new GroupItemInfo(key, 0);
-                result.put(key, itemInfo);
+        var counter = countScratch;
+        inventory.getAvailableStacks(counter);
+        for (var entry : counter) {
+            long amount = entry.getLongValue();
+            if (amount > 0 && entry.getKey() instanceof AEItemKey key && itemKeyFilter.matches(key)) {
+                result.put(key, Keys.add(result.getLong(key), amount));
             }
-            itemInfo.totalCount = Keys.add(itemInfo.totalCount, amount);
         }
+        counter.clear();
         return result;
-    }
-
-    protected static class TypeItemInfo {
-
-        public final AEItemKey key;
-        public final IntList slots;
-        public long totalCount;
-
-        public TypeItemInfo(final AEItemKey key, final IntList slots, final long totalCount) {
-            this.key = key;
-            this.slots = slots;
-            this.totalCount = totalCount;
-        }
-    }
-
-    protected static class GroupItemInfo {
-
-        public final AEItemKey key;
-        public long totalCount;
-
-        public GroupItemInfo(final AEItemKey key, final long totalCount) {
-            this.key = key;
-            this.totalCount = totalCount;
-        }
     }
 
     //////////////////////////////////////

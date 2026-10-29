@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.api.stacks.AEItemKey;
+import it.unimi.dsi.fastutil.objects.Reference2LongMaps;
 
 import java.util.Set;
 
@@ -63,15 +64,10 @@ public class ItemVoidingCover extends ConveyorCover {
     }
 
     void voidAny(IKeyHandler<AEItemKey> handler) {
-        int size = handler.size();
-        for (int slot = 0; slot < size; slot++) {
-            long stored = handler.amountAt(slot);
-            if (stored <= 0) continue;
-            AEItemKey key = handler.keyAt(slot);
-            if (key == null || !itemKeyFilter.matches(key)) {
-                continue;
-            }
-            handler.extract(slot, key, stored, false);
+        var amounts = countInventoryItems(handler);
+        for (var it = Reference2LongMaps.fastIterator(amounts); it.hasNext();) {
+            var entry = it.next();
+            handler.extract(entry.getKey(), entry.getLongValue(), false);
         }
     }
 
