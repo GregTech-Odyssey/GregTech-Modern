@@ -14,6 +14,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
@@ -65,6 +66,10 @@ public interface IInteractionItem extends IItemComponent {
 
     default boolean onEntitySwing(ItemStack stack, LivingEntity entity) {
         return false;
+    }
+
+    default boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return true;
     }
 
     static BlockHitResult getPlayerPOVHitResult(Level level, Player player, ClipContext.Fluid fluidMode) {

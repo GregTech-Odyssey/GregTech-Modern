@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.api.item.component.IItemComponent;
 import com.gregtechceu.gtceu.common.item.armor.ArmorSuiteFeatures;
 import com.gregtechceu.gtceu.common.item.armor.ArmorTooltips;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -31,6 +32,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 
@@ -181,6 +183,11 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
                     ArmorTooltips.toggleMessage(stack, "metaarmor.gto.name.energy_blade", enabled, isPowered(stack)), false);
         }
         return InteractionResultHolder.sidedSuccess(stack, world.isClientSide);
+    }
+
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return !player.isCreative();
     }
 
     /**

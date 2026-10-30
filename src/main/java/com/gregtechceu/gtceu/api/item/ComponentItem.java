@@ -33,6 +33,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.state.BlockState;
 
 import com.google.common.collect.Multimap;
 import lombok.Getter;
@@ -257,6 +258,16 @@ public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUI
             }
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        for (IItemComponent component : components) {
+            if (component instanceof IInteractionItem interactionItem && !interactionItem.canAttackBlock(state, level, pos, player)) {
+                return false;
+            }
+        }
+        return super.canAttackBlock(state, level, pos, player);
     }
 
     @Override
