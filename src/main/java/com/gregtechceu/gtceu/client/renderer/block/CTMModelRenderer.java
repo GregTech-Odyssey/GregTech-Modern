@@ -1,12 +1,10 @@
 package com.gregtechceu.gtceu.client.renderer.block;
 
-import com.lowdragmc.lowdraglib.client.renderer.impl.IModelRenderer;
-
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class CTMModelRenderer extends IModelRenderer {
+public class CTMModelRenderer extends ReloadAwareModelRenderer {
 
     public CTMModelRenderer(ResourceLocation modelLocation) {
         super(modelLocation);

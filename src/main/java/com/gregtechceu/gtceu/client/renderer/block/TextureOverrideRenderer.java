@@ -1,25 +1,19 @@
 package com.gregtechceu.gtceu.client.renderer.block;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.client.ResourceReloadEpoch;
 import com.gregtechceu.gtceu.client.model.SpriteOverrider;
 
 import com.lowdragmc.lowdraglib.LDLib;
 import com.lowdragmc.lowdraglib.client.model.ModelFactory;
 
-import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.BlockModelRotation;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelState;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -28,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -43,8 +36,6 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     @Getter
     @OnlyIn(Dist.CLIENT)
     protected Map<ModelState, BakedModel> bakedModelCache;
-
-    private int cacheEpoch = -1;
 
     public TextureOverrideRenderer(ResourceLocation model, @NotNull Map<String, ResourceLocation> override) {
         super(model);
@@ -83,6 +74,7 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
         this.override = override;
     }
 
+    @Override
     @Nullable
     @OnlyIn(Dist.CLIENT)
     protected BakedModel getItemBakedModel() {
@@ -113,18 +105,8 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     }
 
     @Override
-    public List<BakedQuad> renderModel(@Nullable BlockAndTintGetter level, @Nullable BlockPos pos, @Nullable BlockState state, @Nullable Direction side, RandomSource rand) {
-        invalidateStaleCaches();
-        return super.renderModel(level, pos, state, side, rand);
-    }
-
-    protected void invalidateStaleCaches() {
-        int current = ResourceReloadEpoch.get();
-        if (current == cacheEpoch) return;
-        cacheEpoch = current;
-        if (blockModels != null) blockModels.clear();
-        if (modelCaches != null) modelCaches.clear();
-        itemModel = null;
+    @OnlyIn(Dist.CLIENT)
+    protected void onCachesInvalidated() {
         if (bakedModelCache != null) {
             bakedModelCache.clear();
         }

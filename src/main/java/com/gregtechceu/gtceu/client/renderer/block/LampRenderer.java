@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.common.block.LampBlock;
 
 import com.lowdragmc.lowdraglib.client.model.custommodel.ICTMPredicate;
-import com.lowdragmc.lowdraglib.client.renderer.impl.IModelRenderer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-public class LampRenderer extends IModelRenderer implements ICTMPredicate {
+public class LampRenderer extends ReloadAwareModelRenderer implements ICTMPredicate {
 
     public LampRenderer(LampBlock lamp, BlockState state) {
         super(GTCEu.id("block/%s%s_lamp%s%s".formatted(

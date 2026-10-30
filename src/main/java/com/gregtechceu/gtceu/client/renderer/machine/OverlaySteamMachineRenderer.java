@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.client.renderer.machine;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.client.renderer.block.ReloadAwareModelRenderer;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import com.lowdragmc.lowdraglib.client.renderer.impl.IModelRenderer;
@@ -27,7 +28,7 @@ public class OverlaySteamMachineRenderer extends SteamHullMachineRenderer {
     public OverlaySteamMachineRenderer(ResourceLocation overlayModel) {
         super(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks ? "steel" : "bronze",
                 GTCEu.id("block/machine/hull_machine"));
-        this.overlayModel = new IModelRenderer(overlayModel);
+        this.overlayModel = new ReloadAwareModelRenderer(overlayModel);
     }
 
     @Override
