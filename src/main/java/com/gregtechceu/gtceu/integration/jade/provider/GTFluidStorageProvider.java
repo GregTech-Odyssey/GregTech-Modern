@@ -74,7 +74,8 @@ public enum GTFluidStorageProvider implements IServerExtensionProvider<MetaMachi
         long amount = tag.getLong("amount");
         JadeFluidObject fluidObject = JadeFluidObject.of(fluid, 1000, nbt);
         FluidView fluidView = new FluidView(IElementHelper.get().fluid(fluidObject));
-        fluidView.fluidName = fluid.getFluidType().getDescription();
+        FluidStack fluidStack = new FluidStack(fluid, 1000, nbt);
+        fluidView.fluidName = fluidStack.getDisplayName();
         fluidView.current = FluidTextHelper.getUnicodeMillibuckets(amount, true);
         fluidView.max = FluidTextHelper.getUnicodeMillibuckets(capacity, true);
         fluidView.ratio = Math.min(1f, (float) ((double) amount / capacity));
