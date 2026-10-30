@@ -128,10 +128,19 @@ public final class MaterialIconType {
 
     public static void clear() {
         VALUES.forEach(t -> {
-            t.block_model_cache = null;
-            t.item_model_cache = null;
+            t.block_model_cache.clear();
+            t.item_model_cache.clear();
         });
-        VALUES = null;
+    }
+
+    /** 资源集变化后失效贴图路径缓存，否则会解析到上一次资源集里的图标集。 */
+    public static void invalidateTextureCaches() {
+        VALUES.forEach(t -> {
+            t.block_texture_cache.clear();
+            t.block_texture_cache_secondary.clear();
+            t.item_texture_cache.clear();
+            t.item_texture_cache_secondary.clear();
+        });
     }
 
     private ResourceLocation getCache(Map<MaterialIconSet, ResourceLocation> map, MaterialIconSet materialIconSet, Function<MaterialIconSet, ResourceLocation> function) {

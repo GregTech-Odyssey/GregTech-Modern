@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.client.model;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.client.ResourceReloadEpoch;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.memoization.CleanableMemoizedSupplier;
 import com.gregtechceu.gtceu.utils.memoization.GTMemoizer;
@@ -57,26 +58,6 @@ public class PipeModel {
     public static final ResourceLocation PIPE_BLOCKED_OVERLAY_DR = GTCEu.id("block/pipe/blocked/pipe_blocked_dr");
     public static final ResourceLocation PIPE_BLOCKED_OVERLAY_LR = GTCEu.id("block/pipe/blocked/pipe_blocked_lr");
     private static final EnumMap<Direction, EnumMap<Border, Direction>> FACE_BORDER_MAP = new EnumMap<>(Direction.class);
-    private static final Int2ObjectMap<TextureAtlasSprite> RESTRICTOR_MAP = new Int2ObjectOpenHashMap<>();
-    private static boolean isRestrictorInitialized;
-
-    public static void initializeRestrictor(Function<ResourceLocation, TextureAtlasSprite> atlas) {
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_UP), Border.TOP);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_DOWN), Border.BOTTOM);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_UD), Border.TOP, Border.BOTTOM);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_LEFT), Border.LEFT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_UL), Border.TOP, Border.LEFT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_DL), Border.BOTTOM, Border.LEFT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_NR), Border.TOP, Border.BOTTOM, Border.LEFT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_RIGHT), Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_UR), Border.TOP, Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_DR), Border.BOTTOM, Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_NL), Border.TOP, Border.BOTTOM, Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_LR), Border.LEFT, Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_ND), Border.TOP, Border.LEFT, Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY_NU), Border.BOTTOM, Border.LEFT, Border.RIGHT);
-        addRestrictor(atlas.apply(PIPE_BLOCKED_OVERLAY), Border.TOP, Border.BOTTOM, Border.LEFT, Border.RIGHT);
-    }
 
     static {
         FACE_BORDER_MAP.put(Direction.DOWN, borderMap(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST));
@@ -103,17 +84,79 @@ public class PipeModel {
     @Setter
     public ResourceLocation endOverlayTexture;
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite sideSprite;
+    private volatile Sprites sprites;
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite endSprite;
+    private static volatile Restrictors restrictors;
+
+    /** 当前图集解析出的一组 sprite。整体替换而非逐字段置空——bakeQuads 会在多个区块构建线程上并发执行。 */
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite secondarySideSprite;
+    private static final class Sprites {
+
+        final int epoch;
+        final TextureAtlasSprite side;
+        final TextureAtlasSprite end;
+        @Nullable
+        final TextureAtlasSprite secondarySide;
+        @Nullable
+        final TextureAtlasSprite secondaryEnd;
+        @Nullable
+        final TextureAtlasSprite sideOverlay;
+        @Nullable
+        final TextureAtlasSprite endOverlay;
+        final Int2ObjectMap<TextureAtlasSprite> restrictors;
+
+        Sprites(int epoch, TextureAtlasSprite side, TextureAtlasSprite end, @Nullable TextureAtlasSprite secondarySide,
+                @Nullable TextureAtlasSprite secondaryEnd, @Nullable TextureAtlasSprite sideOverlay,
+                @Nullable TextureAtlasSprite endOverlay, Int2ObjectMap<TextureAtlasSprite> restrictors) {
+            this.epoch = epoch;
+            this.side = side;
+            this.end = end;
+            this.secondarySide = secondarySide;
+            this.secondaryEnd = secondaryEnd;
+            this.sideOverlay = sideOverlay;
+            this.endOverlay = endOverlay;
+            this.restrictors = restrictors;
+        }
+    }
+
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite secondaryEndSprite;
+    private record Restrictors(int epoch, Int2ObjectMap<TextureAtlasSprite> sprites) {}
+
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite sideOverlaySprite;
+    private Sprites sprites() {
+        Sprites current = this.sprites;
+        int epoch = ResourceReloadEpoch.get();
+        if (current != null && current.epoch == epoch) return current;
+        Sprites fresh = buildSprites(epoch);
+        this.sprites = fresh;
+        itemModelCache.clear();
+        return fresh;
+    }
+
     @OnlyIn(Dist.CLIENT)
-    TextureAtlasSprite endOverlaySprite;
+    private static Int2ObjectMap<TextureAtlasSprite> getRestrictors(int epoch) {
+        Restrictors current = restrictors;
+        if (current != null && current.epoch() == epoch) return current.sprites();
+        Int2ObjectMap<TextureAtlasSprite> fresh = buildRestrictors();
+        restrictors = new Restrictors(epoch, fresh);
+        return fresh;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private Sprites buildSprites(int epoch) {
+        TextureAtlasSprite secondarySide = null;
+        if (secondarySideTexture != null && secondarySideTexture.get() != null) {
+            secondarySide = ModelFactory.getBlockSprite(secondarySideTexture.get());
+        }
+        TextureAtlasSprite secondaryEnd = null;
+        if (secondaryEndTexture != null && secondaryEndTexture.get() != null) {
+            secondaryEnd = ModelFactory.getBlockSprite(secondaryEndTexture.get());
+        }
+        TextureAtlasSprite sideOverlay = sideOverlayTexture == null ? null : ModelFactory.getBlockSprite(sideOverlayTexture);
+        TextureAtlasSprite endOverlay = endOverlayTexture == null ? null : ModelFactory.getBlockSprite(endOverlayTexture);
+        return new Sprites(epoch, ModelFactory.getBlockSprite(sideTexture.get()), ModelFactory.getBlockSprite(endTexture.get()),
+                secondarySide, secondaryEnd, sideOverlay, endOverlay, getRestrictors(epoch));
+    }
 
     public PipeModel(float thickness, Supplier<ResourceLocation> sideTexture, Supplier<ResourceLocation> endTexture, @Nullable Supplier<@Nullable ResourceLocation> secondarySideTexture, @Nullable Supplier<@Nullable ResourceLocation> secondaryEndTexture) {
         this.sideTexture = GTMemoizer.memoizeCleanable(sideTexture);
@@ -153,58 +196,37 @@ public class PipeModel {
 
     @OnlyIn(Dist.CLIENT)
     public List<BakedQuad> bakeQuads(@Nullable Direction side, int connections, int blockedConnections) {
-        if (!isRestrictorInitialized) {
-            initializeRestrictor(ModelFactory::getBlockSprite);
-            isRestrictorInitialized = true;
-        }
-        if (sideSprite == null) {
-            sideSprite = ModelFactory.getBlockSprite(sideTexture.get());
-        }
-        if (endSprite == null) {
-            endSprite = ModelFactory.getBlockSprite(endTexture.get());
-        }
-        if (secondarySideTexture != null && secondarySideTexture.get() != null && secondarySideSprite == null) {
-            secondarySideSprite = ModelFactory.getBlockSprite(secondarySideTexture.get());
-        }
-        if (secondaryEndTexture != null && secondaryEndTexture.get() != null && secondaryEndSprite == null) {
-            secondaryEndSprite = ModelFactory.getBlockSprite(secondaryEndTexture.get());
-        }
-        if (sideOverlayTexture != null && sideOverlaySprite == null) {
-            sideOverlaySprite = ModelFactory.getBlockSprite(sideOverlayTexture);
-        }
-        if (endOverlayTexture != null && endOverlaySprite == null) {
-            endOverlaySprite = ModelFactory.getBlockSprite(endOverlayTexture);
-        }
+        Sprites cache = sprites();
         if (side != null) {
             if (thickness == 1) {
                 // full block
                 List<BakedQuad> quads = new ArrayList<>();
-                quads.add(FaceQuad.builder(side, sideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
-                if (secondarySideSprite != null) {
-                    quads.add(FaceQuad.builder(side, secondarySideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
+                quads.add(FaceQuad.builder(side, cache.side).cube(coreCube).cubeUV().tintIndex(0).bake());
+                if (cache.secondarySide != null) {
+                    quads.add(FaceQuad.builder(side, cache.secondarySide).cube(coreCube).cubeUV().tintIndex(0).bake());
                 }
                 return quads;
             }
             if (PipeBlockEntity.isConnected(connections, side)) {
                 // side connected
                 List<BakedQuad> quads = new ArrayList<>();
-                quads.add(FaceQuad.builder(side, endSprite).cube(sideCubes.get(side).inflate(-0.001)).cubeUV().tintIndex(1).bake());
-                if (secondaryEndSprite != null) {
-                    quads.add(FaceQuad.builder(side, secondaryEndSprite).cube(sideCubes.get(side)).cubeUV().tintIndex(1).bake());
+                quads.add(FaceQuad.builder(side, cache.end).cube(sideCubes.get(side).inflate(-0.001)).cubeUV().tintIndex(1).bake());
+                if (cache.secondaryEnd != null) {
+                    quads.add(FaceQuad.builder(side, cache.secondaryEnd).cube(sideCubes.get(side)).cubeUV().tintIndex(1).bake());
                 }
-                if (endOverlaySprite != null) {
-                    quads.add(FaceQuad.builder(side, endOverlaySprite).cube(sideCubes.get(side)).cubeUV().tintIndex(0).bake());
+                if (cache.endOverlay != null) {
+                    quads.add(FaceQuad.builder(side, cache.endOverlay).cube(sideCubes.get(side)).cubeUV().tintIndex(0).bake());
                 }
-                if (sideOverlaySprite != null) {
+                if (cache.sideOverlay != null) {
                     for (Direction face : GTUtil.DIRECTIONS) {
                         if (face.getAxis() != side.getAxis()) {
-                            quads.add(FaceQuad.builder(face, sideOverlaySprite).cube(sideCubes.get(side)).cubeUV().tintIndex(2).bake());
+                            quads.add(FaceQuad.builder(face, cache.sideOverlay).cube(sideCubes.get(side)).cubeUV().tintIndex(2).bake());
                         }
                     }
                 }
                 int borderMask = computeBorderMask(blockedConnections, connections, side);
                 if (borderMask != 0) {
-                    quads.add(FaceQuad.builder(side, RESTRICTOR_MAP.get(borderMask)).cube(sideCubes.get(side)).cubeUV().bake());
+                    quads.add(FaceQuad.builder(side, cache.restrictors.get(borderMask)).cube(sideCubes.get(side)).cubeUV().bake());
                 }
                 return quads;
             }
@@ -216,26 +238,26 @@ public class PipeModel {
             // render core cube
             for (Direction face : GTUtil.DIRECTIONS) {
                 if (!PipeBlockEntity.isConnected(connections, face)) {
-                    quads.add(FaceQuad.builder(face, sideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
-                    if (secondarySideSprite != null) {
-                        quads.add(FaceQuad.builder(face, secondarySideSprite).cube(coreCube).cubeUV().tintIndex(0).bake());
+                    quads.add(FaceQuad.builder(face, cache.side).cube(coreCube).cubeUV().tintIndex(0).bake());
+                    if (cache.secondarySide != null) {
+                        quads.add(FaceQuad.builder(face, cache.secondarySide).cube(coreCube).cubeUV().tintIndex(0).bake());
                     }
                 }
                 // render each connected side
                 for (Direction facing : GTUtil.DIRECTIONS) {
                     if (facing.getAxis() != face.getAxis()) {
                         if (PipeBlockEntity.isConnected(connections, facing)) {
-                            quads.add(FaceQuad.builder(face, sideSprite).cube(sideCubes.get(facing)).cubeUV().tintIndex(0).bake());
-                            if (secondarySideSprite != null) {
-                                quads.add(FaceQuad.builder(face, secondarySideSprite).cube(sideCubes.get(facing)).cubeUV().tintIndex(0).bake());
+                            quads.add(FaceQuad.builder(face, cache.side).cube(sideCubes.get(facing)).cubeUV().tintIndex(0).bake());
+                            if (cache.secondarySide != null) {
+                                quads.add(FaceQuad.builder(face, cache.secondarySide).cube(sideCubes.get(facing)).cubeUV().tintIndex(0).bake());
                             }
-                            if (sideOverlaySprite != null) {
-                                quads.add(FaceQuad.builder(face, sideOverlaySprite).cube(sideCubes.get(facing).inflate(0.001)).cubeUV().tintIndex(2).bake());
+                            if (cache.sideOverlay != null) {
+                                quads.add(FaceQuad.builder(face, cache.sideOverlay).cube(sideCubes.get(facing).inflate(0.001)).cubeUV().tintIndex(2).bake());
                             }
                             int borderMask = computeBorderMask(blockedConnections, connections, face);
                             if (borderMask != 0) {
-                                quads.add(FaceQuad.builder(face, RESTRICTOR_MAP.get(borderMask)).cube(coreCube).cubeUV().bake());
-                                quads.add(FaceQuad.builder(face, RESTRICTOR_MAP.get(borderMask)).cube(sideCubes.get(facing)).cubeUV().bake());
+                                quads.add(FaceQuad.builder(face, cache.restrictors.get(borderMask)).cube(coreCube).cubeUV().bake());
+                                quads.add(FaceQuad.builder(face, cache.restrictors.get(borderMask)).cube(sideCubes.get(facing)).cubeUV().bake());
                             }
                         }
                     }
@@ -248,10 +270,7 @@ public class PipeModel {
     @NotNull
     @OnlyIn(Dist.CLIENT)
     public TextureAtlasSprite getParticleTexture() {
-        if (sideSprite == null) {
-            sideSprite = ModelFactory.getBlockSprite(sideTexture.get());
-        }
-        return sideSprite;
+        return sprites().side;
     }
 
     private final Map<Optional<Direction>, List<BakedQuad>> itemModelCache = new ConcurrentHashMap<>();
@@ -259,6 +278,7 @@ public class PipeModel {
     @OnlyIn(Dist.CLIENT)
     public void renderItem(ItemStack stack, ItemDisplayContext transformType, boolean leftHand, PoseStack matrixStack, MultiBufferSource buffer, int combinedLight, int combinedOverlay, BakedModel model) {
         IItemRendererProvider.disabled.set(true);
+        sprites();
         Minecraft.getInstance().getItemRenderer().render(stack, transformType, leftHand, matrixStack, buffer, combinedLight, combinedOverlay, (ItemBakedModel) (state, direction, random) -> itemModelCache.computeIfAbsent(Optional.ofNullable(direction), direction1 -> bakeQuads(direction1.orElse(null), ITEM_CONNECTIONS, 0)));
         IItemRendererProvider.disabled.set(false);
     }
@@ -284,9 +304,7 @@ public class PipeModel {
         }
         if (sideOverlayTexture != null) register.accept(sideOverlayTexture);
         if (endOverlayTexture != null) register.accept(endOverlayTexture);
-        sideSprite = null;
-        endSprite = null;
-        endOverlaySprite = null;
+        this.sprites = null;
     }
 
     private static EnumMap<Border, Direction> borderMap(Direction topSide, Direction bottomSide, Direction leftSide, Direction rightSide) {
@@ -298,12 +316,34 @@ public class PipeModel {
         return sideMap;
     }
 
-    private static void addRestrictor(TextureAtlasSprite sprite, Border... borders) {
+    @OnlyIn(Dist.CLIENT)
+    private static Int2ObjectMap<TextureAtlasSprite> buildRestrictors() {
+        Function<ResourceLocation, TextureAtlasSprite> atlas = ModelFactory::getBlockSprite;
+        Int2ObjectMap<TextureAtlasSprite> map = new Int2ObjectOpenHashMap<>();
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_UP), Border.TOP);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_DOWN), Border.BOTTOM);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_UD), Border.TOP, Border.BOTTOM);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_LEFT), Border.LEFT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_UL), Border.TOP, Border.LEFT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_DL), Border.BOTTOM, Border.LEFT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_NR), Border.TOP, Border.BOTTOM, Border.LEFT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_RIGHT), Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_UR), Border.TOP, Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_DR), Border.BOTTOM, Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_NL), Border.TOP, Border.BOTTOM, Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_LR), Border.LEFT, Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_ND), Border.TOP, Border.LEFT, Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY_NU), Border.BOTTOM, Border.LEFT, Border.RIGHT);
+        addRestrictor(map, atlas.apply(PIPE_BLOCKED_OVERLAY), Border.TOP, Border.BOTTOM, Border.LEFT, Border.RIGHT);
+        return map;
+    }
+
+    private static void addRestrictor(Int2ObjectMap<TextureAtlasSprite> map, TextureAtlasSprite sprite, Border... borders) {
         int mask = 0;
         for (Border border : borders) {
             mask |= border.mask;
         }
-        RESTRICTOR_MAP.put(mask, sprite);
+        map.put(mask, sprite);
     }
 
     protected static Direction getSideAtBorder(Direction side, Border border) {

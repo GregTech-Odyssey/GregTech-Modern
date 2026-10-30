@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.client.renderer.block.ReloadAwareModelRenderer;
 
 import com.lowdragmc.lowdraglib.client.renderer.impl.IModelRenderer;
 
@@ -29,8 +30,8 @@ public class OverlayTieredActiveMachineRenderer extends TieredHullMachineRendere
     public OverlayTieredActiveMachineRenderer(int tier, ResourceLocation overlayModel,
                                               ResourceLocation activeOverlayModel) {
         super(tier, GTCEu.id("block/machine/hull_machine"));
-        this.overlayModel = new IModelRenderer(overlayModel);
-        this.activeOverlayModel = new IModelRenderer(activeOverlayModel);
+        this.overlayModel = new ReloadAwareModelRenderer(overlayModel);
+        this.activeOverlayModel = new ReloadAwareModelRenderer(activeOverlayModel);
     }
 
     @Override

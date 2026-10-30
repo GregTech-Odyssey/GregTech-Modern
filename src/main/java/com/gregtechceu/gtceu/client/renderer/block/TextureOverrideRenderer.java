@@ -74,9 +74,11 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
         this.override = override;
     }
 
+    @Override
     @Nullable
     @OnlyIn(Dist.CLIENT)
     protected BakedModel getItemBakedModel() {
+        invalidateStaleCaches();
         if (itemModel == null) {
             var model = getModel();
             if (model instanceof BlockModel blockModel && blockModel.getRootModel() == ModelBakery.GENERATION_MARKER) {
@@ -92,12 +94,22 @@ public class TextureOverrideRenderer extends CTMModelRenderer {
     @Override
     @OnlyIn(Dist.CLIENT)
     public BakedModel getRotatedModel(Direction frontFacing) {
+        invalidateStaleCaches();
         return blockModels.computeIfAbsent(frontFacing, facing -> getModel().bake(ModelFactory.getModeBaker(), new SpriteOverrider(override), ModelFactory.getRotation(facing), modelLocation));
     }
 
     @OnlyIn(Dist.CLIENT)
     public BakedModel getRotatedModel(ModelState modelState) {
+        invalidateStaleCaches();
         return bakedModelCache.computeIfAbsent(modelState, state -> getModel().bake(ModelFactory.getModeBaker(), new SpriteOverrider(override), modelState, modelLocation));
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected void onCachesInvalidated() {
+        if (bakedModelCache != null) {
+            bakedModelCache.clear();
+        }
     }
 
     @SuppressWarnings("deprecation")
