@@ -43,6 +43,6 @@ public record IssueView(RecipeIssue issue, @Nullable Component label, @Nullable 
     }
 
     public Component text() {
-        return label != null ? label : Component.translatable(issue.key());
+        return label != null ? label : issue.title();
     }
 }

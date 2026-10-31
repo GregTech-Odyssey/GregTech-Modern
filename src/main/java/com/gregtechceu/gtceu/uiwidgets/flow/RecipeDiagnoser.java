@@ -108,8 +108,17 @@ public final class RecipeDiagnoser {
         };
     }
 
+    private static final String FLOW_AMOUNT = "gtceu.flow.amount";
+    private static final String DETAIL_REQUIRED = "gtceu.flow.detail.required";
+    private static final String DETAIL_AVAILABLE = "gtceu.flow.detail.available";
+    private static final String DETAIL_PRODUCED = "gtceu.flow.detail.produced";
+    private static final String DETAIL_USAGE = "gtceu.flow.detail.usage";
+    private static final String DETAIL_TIER = "gtceu.flow.detail.tier";
+    private static final String DETAIL_POWER = "gtceu.flow.detail.power";
+    private static final String DETAIL_BUFFER = "gtceu.flow.detail.buffer";
+
     public static Component amount(long amount) {
-        return Component.translatable("gtceu.flow.amount", FormattingUtil.formatNumbers(amount));
+        return Component.translatable(FLOW_AMOUNT, FormattingUtil.formatNumbers(amount));
     }
 
     public long getEUt() {
@@ -251,9 +260,9 @@ public final class RecipeDiagnoser {
             else issue = ok ? RecipeIssue.INPUT_STOCKED : RecipeIssue.INPUT_SHORT;
             inputIssues[i] = issue;
             inputDetails.set(i, List.of(inputNames[i],
-                    Component.translatable("gtceu.flow.detail.required", inputAmounts[i]).withStyle(ChatFormatting.GRAY),
-                    Component.translatable("gtceu.flow.detail.available", amount(available[i])).withStyle(ChatFormatting.GRAY),
-                    Component.translatable(issue.descriptionKey()).withStyle(style(issue))));
+                    Component.translatable(DETAIL_REQUIRED, inputAmounts[i]).withStyle(ChatFormatting.GRAY),
+                    Component.translatable(DETAIL_AVAILABLE, amount(available[i])).withStyle(ChatFormatting.GRAY),
+                    issue.description().copy().withStyle(style(issue))));
         }
         var outputUnits = holder.getOutputUnits();
         boolean outputHatch = false;
@@ -276,8 +285,8 @@ public final class RecipeDiagnoser {
             else issue = running ? RecipeIssue.OUTPUT_ACTIVE : RecipeIssue.OUTPUT_CLEAR;
             outputIssues[i] = issue;
             outputDetails.set(i, List.of(outputNames[i],
-                    Component.translatable("gtceu.flow.detail.produced", outputAmounts[i]).withStyle(ChatFormatting.GRAY),
-                    Component.translatable(issue.descriptionKey()).withStyle(style(issue))));
+                    Component.translatable(DETAIL_PRODUCED, outputAmounts[i]).withStyle(ChatFormatting.GRAY),
+                    issue.description().copy().withStyle(style(issue))));
         }
     }
 
@@ -292,11 +301,11 @@ public final class RecipeDiagnoser {
         else if (power < eut) energyIssue = RecipeIssue.LOW_POWER;
         else if (stored < eut) energyIssue = RecipeIssue.LOW_BUFFER;
         else energyIssue = running ? RecipeIssue.ENERGY_ACTIVE : RecipeIssue.ENERGY_READY;
-        energyDetail = List.of(Component.translatable("gtceu.flow.detail.usage", ElectricText.power(eut)).withStyle(ChatFormatting.GRAY),
-                Component.translatable("gtceu.flow.detail.tier", tierName(energyTier), GTValues.VNF[tier]).withStyle(ChatFormatting.GRAY),
-                Component.translatable("gtceu.flow.detail.power", ElectricText.power(power)).withStyle(ChatFormatting.GRAY),
-                Component.translatable("gtceu.flow.detail.buffer", ElectricText.chargeExact(stored, capacity)).withStyle(ChatFormatting.GRAY),
-                Component.translatable(energyIssue.descriptionKey()).withStyle(style(energyIssue)));
+        energyDetail = List.of(Component.translatable(DETAIL_USAGE, ElectricText.power(eut)).withStyle(ChatFormatting.GRAY),
+                Component.translatable(DETAIL_TIER, tierName(energyTier), GTValues.VNF[tier]).withStyle(ChatFormatting.GRAY),
+                Component.translatable(DETAIL_POWER, ElectricText.power(power)).withStyle(ChatFormatting.GRAY),
+                Component.translatable(DETAIL_BUFFER, ElectricText.chargeExact(stored, capacity)).withStyle(ChatFormatting.GRAY),
+                energyIssue.description().copy().withStyle(style(energyIssue)));
     }
 
     public static String tierName(int tier) {

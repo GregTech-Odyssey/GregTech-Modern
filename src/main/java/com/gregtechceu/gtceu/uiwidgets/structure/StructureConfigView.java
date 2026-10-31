@@ -157,7 +157,10 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         int inner = chart.widthFor(column, span) - 2 * UISizes.FLOW_NODE_PADDING;
         var flow = chart.node(row, column, span).bindState(() -> state(index));
         var key = node.key();
-        if (key != null && key.getDescriptionKey() != null) flow.bindDetail(() -> Collections.singletonList(Component.translatable(key.getDescriptionKey())));
+        if (key != null && key.getDescriptionKey() != null) {
+            var detail = List.<Component>of(Component.translatable(key.getDescriptionKey()));
+            flow.bindDetail(() -> detail);
+        }
         flow.addChild(TextLine.constant(LayoutStyle.AUTO, title(index)));
         switch (node.kind()) {
             case ROOT -> {
