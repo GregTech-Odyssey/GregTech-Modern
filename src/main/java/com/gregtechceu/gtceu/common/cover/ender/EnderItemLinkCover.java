@@ -89,14 +89,18 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
         return coverHolder.getItemHandlerCap(attachedSide, false);
     }
 
+    private static final Component STATUS_ITEM = Component.translatable("cover.ender_link.ui.item");
+    private static final Component STATUS_COUNT = Component.translatable("cover.ender_link.ui.count");
+    static final Component ENTRY_EMPTY = Component.translatable("cover.ender_link.ui.empty");
+
     @Override
     protected void addEntryStatus(StatusPanel panel, BooleanSupplier visible) {
-        panel.addLine("cover.ender_link.ui.item", () -> {
+        panel.addLine(STATUS_ITEM, () -> {
             if (!visible.getAsBoolean()) return EnderLinkUI.NO_VALUE;
             var stack = storedStack();
-            return stack.isEmpty() ? Component.translatable("cover.ender_link.ui.empty") : stack.getHoverName();
+            return stack.isEmpty() ? ENTRY_EMPTY : stack.getHoverName();
         }).bindIcon(() -> visible.getAsBoolean() ? storedStack() : ItemStack.EMPTY);
-        panel.addLine("cover.ender_link.ui.count", () -> visible.getAsBoolean() ?
+        panel.addLine(STATUS_COUNT, () -> visible.getAsBoolean() ?
                 Component.literal(FormattingUtil.formatNumbers(getEntry().getHandler().amountAt(0))) : EnderLinkUI.NO_VALUE);
     }
 
@@ -108,7 +112,7 @@ public class EnderItemLinkCover extends AbstractEnderLinkCover<VirtualItemStorag
     protected Component describeEntry(VirtualItemStorage entry) {
         var handler = entry.getHandler();
         var key = handler.keyAt(0);
-        if (key == null) return Component.translatable("cover.ender_link.ui.empty");
+        if (key == null) return ENTRY_EMPTY;
         return Keys.displayStack(key).getHoverName().copy().append(" ×" + FormattingUtil.formatNumbers(handler.amountAt(0)));
     }
 }

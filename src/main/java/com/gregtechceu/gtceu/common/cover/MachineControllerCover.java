@@ -170,6 +170,28 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final Component STATUS_TARGET = Component.translatable("cover.machine_controller.status.target");
+    private static final Component STATUS_SIGNAL = Component.translatable("cover.machine_controller.status.signal");
+    private static final Component STATUS_WORKING = Component.translatable("cover.machine_controller.status.working");
+    private static final Component STATUS_NONE = Component.translatable("cover.machine_controller.status.none");
+    private static final Component STATUS_MISSING = Component.translatable("cover.machine_controller.status.missing");
+    private static final Component STATUS_ENABLED = Component.translatable("cover.machine_controller.status.enabled");
+    private static final Component STATUS_PAUSED = Component.translatable("cover.machine_controller.status.paused");
+    private static final Component TARGET_UNAVAILABLE = Component.translatable("cover.machine_controller.target_unavailable");
+    private static final Component SECTION_TARGET = Component.translatable("cover.machine_controller.section.target");
+    private static final Component SECTION_SIGNAL = Component.translatable("cover.machine_controller.section.signal");
+    private static final Component MIN_STRENGTH = Component.translatable("cover.machine_controller.min_strength");
+    private static final Component INVERTED = Component.translatable("cover.machine_controller.inverted");
+    private static final Component INVERTED_TOOLTIP = Component.translatable("cover.machine_controller.inverted.tooltip");
+
+    private static final Component TARGET_MACHINE = Component.translatable("cover.machine_controller.target.machine");
+    private static final Component TARGET_COVER_UP = Component.translatable("cover.machine_controller.target.cover_up");
+    private static final Component TARGET_COVER_DOWN = Component.translatable("cover.machine_controller.target.cover_down");
+    private static final Component TARGET_COVER_NORTH = Component.translatable("cover.machine_controller.target.cover_north");
+    private static final Component TARGET_COVER_EAST = Component.translatable("cover.machine_controller.target.cover_east");
+    private static final Component TARGET_COVER_SOUTH = Component.translatable("cover.machine_controller.target.cover_south");
+    private static final Component TARGET_COVER_WEST = Component.translatable("cover.machine_controller.target.cover_west");
+
     @Override
     public Widget createUIWidget() {
         if (!coverHolder.isRemote() && controllerMode != null && getControllable(controllerMode.side) == null) {
@@ -177,39 +199,39 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
         }
         var status = new StatusPanel();
         var targetIcon = new ItemStack[] { ItemStack.EMPTY };
-        status.addLine("cover.machine_controller.status.target", this::targetName)
+        status.addLine(STATUS_TARGET, this::targetName)
                 .bindLevel(this::targetLevel)
                 .bindIcon(() -> {
                     var stack = targetItem();
                     if (!ItemStack.isSameItemSameTags(stack, targetIcon[0])) targetIcon[0] = stack;
                     return targetIcon[0];
                 });
-        status.addLine("cover.machine_controller.status.signal", () -> Component.literal(Integer.toString(getInputSignal())));
-        status.addLine("cover.machine_controller.status.working", this::workingState).bindLevel(this::workingLevel);
+        status.addLine(STATUS_SIGNAL, () -> Component.literal(Integer.toString(getInputSignal())));
+        status.addLine(STATUS_WORKING, this::workingState).bindLevel(this::workingLevel);
         var modes = Arrays.stream(ControllerMode.values()).filter(mode -> mode.side != this.attachedSide).toList();
-        var modeGroup = ButtonGroup.single(modes.size(), i -> Component.translatable(targetKey(modes.get(i))),
+        var modeGroup = ButtonGroup.single(modes.size(), i -> targetComponent(modes.get(i)),
                 () -> modes.indexOf(controllerMode), i -> {
                     var mode = modes.get(i);
                     if (getControllable(mode.side) != null) setControllerMode(mode);
-                }).optionDisabled(i -> getControllable(modes.get(i).side) == null, "cover.machine_controller.target_unavailable");
-        var target = Form.section("cover.machine_controller.section.target").addChildren(status, modeGroup);
-        var signal = Form.section("cover.machine_controller.section.signal").addChildren(
-                Form.numberRow("cover.machine_controller.min_strength", NumberField.ofInt(LayoutStyle.AUTO,
+                }).optionDisabled(i -> getControllable(modes.get(i).side) == null, TARGET_UNAVAILABLE);
+        var target = Form.section(SECTION_TARGET).addChildren(status, modeGroup);
+        var signal = Form.section(SECTION_SIGNAL).addChildren(
+                Form.numberRow(MIN_STRENGTH, NumberField.ofInt(LayoutStyle.AUTO,
                         this::getMinRedstoneStrength, this::setMinRedstoneStrength, 1, 15)),
-                Form.controlRow("cover.machine_controller.inverted", Switch.of(this::isInverted, this::setInverted),
-                        "cover.machine_controller.inverted.tooltip"));
+                Form.controlRow(INVERTED, Switch.of(this::isInverted, this::setInverted),
+                        INVERTED_TOOLTIP));
         return Form.page().addChildren(target, signal);
     }
 
-    private static String targetKey(ControllerMode mode) {
+    private static Component targetComponent(ControllerMode mode) {
         return switch (mode) {
-            case MACHINE -> "cover.machine_controller.target.machine";
-            case COVER_UP -> "cover.machine_controller.target.cover_up";
-            case COVER_DOWN -> "cover.machine_controller.target.cover_down";
-            case COVER_NORTH -> "cover.machine_controller.target.cover_north";
-            case COVER_EAST -> "cover.machine_controller.target.cover_east";
-            case COVER_SOUTH -> "cover.machine_controller.target.cover_south";
-            case COVER_WEST -> "cover.machine_controller.target.cover_west";
+            case MACHINE -> TARGET_MACHINE;
+            case COVER_UP -> TARGET_COVER_UP;
+            case COVER_DOWN -> TARGET_COVER_DOWN;
+            case COVER_NORTH -> TARGET_COVER_NORTH;
+            case COVER_EAST -> TARGET_COVER_EAST;
+            case COVER_SOUTH -> TARGET_COVER_SOUTH;
+            case COVER_WEST -> TARGET_COVER_WEST;
         };
     }
 
@@ -223,10 +245,10 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     }
 
     private Component targetName() {
-        if (controllerMode == null) return Component.translatable("cover.machine_controller.status.none");
-        if (getControllable(controllerMode.side) == null) return Component.translatable("cover.machine_controller.status.missing");
+        if (controllerMode == null) return STATUS_NONE;
+        if (getControllable(controllerMode.side) == null) return STATUS_MISSING;
         var stack = targetItem();
-        return stack.isEmpty() ? Component.translatable(targetKey(controllerMode)) : stack.getHoverName();
+        return stack.isEmpty() ? targetComponent(controllerMode) : stack.getHoverName();
     }
 
     private com.gregtechceu.gtceu.uipro.Level targetLevel() {
@@ -242,7 +264,7 @@ public class MachineControllerCover extends CoverBehavior implements IUICover {
     private Component workingState() {
         var controllable = currentControllable();
         if (controllable == null) return Component.literal("—");
-        return Component.translatable(controllable.isWorkingEnabled() ? "cover.machine_controller.status.enabled" : "cover.machine_controller.status.paused");
+        return controllable.isWorkingEnabled() ? STATUS_ENABLED : STATUS_PAUSED;
     }
 
     private com.gregtechceu.gtceu.uipro.Level workingLevel() {

@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.uiwidgets.cover.CoverUIs;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -85,17 +86,26 @@ public class AdvancedItemVoidingCover extends ItemVoidingCover {
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final Component AMOUNT_FROM_FILTER = Component.translatable("cover.conveyor.ui.amount_from_filter");
+    private static final Component VOIDING_MODE_TITLE = Component.translatable("cover.item_voiding.ui.mode");
+    private static final Component[] VOIDING_MODE_TOOLTIPS = {
+            Component.translatable("cover.voiding.voiding_mode.description.0"),
+            Component.translatable("cover.voiding.voiding_mode.description.1")
+    };
+    private static final Component KEEP_AMOUNT = Component.translatable("cover.item_voiding.ui.keep_amount");
+    private static final Component KEEP_AMOUNT_TOOLTIP = Component.translatable("cover.item_voiding.ui.keep_amount.tooltip");
+    private static final Component AMOUNT_UNUSED = Component.translatable("cover.item_voiding.ui.amount_unused");
+
     @Override
     protected void buildAdditionalUI(UIElement section) {
         var amount = NumberField.ofInt(LayoutStyle.AUTO, () -> globalVoidingLimit, this::setGlobalVoidingLimit,
                 () -> 1, () -> voidingMode.maxStackSize);
-        amount.disabled(() -> voidingMode != VoidingMode.VOID_ANY && isAmountFromFilter(), "cover.conveyor.ui.amount_from_filter");
+        amount.disabled(() -> voidingMode != VoidingMode.VOID_ANY && isAmountFromFilter(), AMOUNT_FROM_FILTER);
         section.addChildren(
-                CoverUIs.enumRow("cover.item_voiding.ui.mode", List.of(VoidingMode.values()), () -> voidingMode, this::setVoidingMode,
-                        "cover.voiding.voiding_mode.description.0",
-                        "cover.voiding.voiding_mode.description.1"),
-                Form.numberRow("cover.item_voiding.ui.keep_amount", amount, "cover.item_voiding.ui.keep_amount.tooltip")
-                        .disabled(() -> voidingMode == VoidingMode.VOID_ANY, "cover.item_voiding.ui.amount_unused"));
+                CoverUIs.enumRow(VOIDING_MODE_TITLE, List.of(VoidingMode.values()), () -> voidingMode, this::setVoidingMode,
+                        VOIDING_MODE_TOOLTIPS),
+                Form.numberRow(KEEP_AMOUNT, amount, KEEP_AMOUNT_TOOLTIP)
+                        .disabled(() -> voidingMode == VoidingMode.VOID_ANY, AMOUNT_UNUSED));
     }
 
     @Override

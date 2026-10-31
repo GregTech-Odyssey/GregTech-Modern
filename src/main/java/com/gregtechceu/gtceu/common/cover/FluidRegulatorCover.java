@@ -136,20 +136,28 @@ public class FluidRegulatorCover extends PumpCover {
     ///////////////////////////
     // ***** GUI ******//
     ///////////////////////////
+    private static final Component AMOUNT_FROM_FILTER = Component.translatable("cover.fluid_regulator.ui.amount_from_filter");
+    private static final Component AMOUNT_UNUSED = Component.translatable("cover.fluid_regulator.ui.amount_unused");
+    private static final Component REGULATION_SECTION = Component.translatable("cover.fluid_regulator.ui.regulation");
+    private static final Component TRANSFER_MODE_TITLE = Component.translatable("cover.fluid_regulator.ui.transfer_mode");
+    private static final Component[] TRANSFER_MODE_TOOLTIPS = {
+            Component.translatable("cover.fluid_regulator.transfer_mode.description.0"),
+            Component.translatable("cover.fluid_regulator.transfer_mode.description.1"),
+            Component.translatable("cover.fluid_regulator.transfer_mode.description.2")
+    };
+
     @Override
     protected void buildAdditionalUI(UIElement page) {
         var field = NumberField.ofInt(LayoutStyle.AUTO, this::getCurrentBucketModeTransferSize, this::setCurrentBucketModeTransferSize,
                 () -> 0, () -> MAX_STACK_SIZE / transferBucketMode.multiplier);
         var amount = fluidAmountRow(this::getTransferSizeLabel, List.of(BucketMode.values()), this::getTransferBucketMode,
                 this::setTransferBucketMode, field)
-                .disabled(this::isTransferSizeFromFilter, "cover.fluid_regulator.ui.amount_from_filter");
+                .disabled(this::isTransferSizeFromFilter, AMOUNT_FROM_FILTER);
         var amountRow = UIElement.column(LayoutStyle.AUTO).addChild(amount)
-                .disabled(() -> transferMode == TransferMode.TRANSFER_ANY, "cover.fluid_regulator.ui.amount_unused");
-        page.addChild(Form.section("cover.fluid_regulator.ui.regulation").addChildren(
-                CoverUIs.enumRow("cover.fluid_regulator.ui.transfer_mode", List.of(TransferMode.values()), this::getTransferMode, this::setTransferMode,
-                        "cover.fluid_regulator.transfer_mode.description.0",
-                        "cover.fluid_regulator.transfer_mode.description.1",
-                        "cover.fluid_regulator.transfer_mode.description.2"),
+                .disabled(() -> transferMode == TransferMode.TRANSFER_ANY, AMOUNT_UNUSED);
+        page.addChild(Form.section(REGULATION_SECTION).addChildren(
+                CoverUIs.enumRow(TRANSFER_MODE_TITLE, List.of(TransferMode.values()), this::getTransferMode, this::setTransferMode,
+                        TRANSFER_MODE_TOOLTIPS),
                 amountRow));
     }
 

@@ -143,29 +143,40 @@ public class AdvancedMachineControllerCover extends MachineControllerCover imple
         coverHolder.onChanged();
     }
 
+    private static final Component STATUS_TITLE = Component.translatable("cover.advanced_machine_controller.status");
+    private static final Component STATUS_OFF = Component.translatable("cover.advanced_machine_controller.status.off");
+    private static final Component STATUS_STANDBY = Component.translatable("cover.advanced_machine_controller.status.standby");
+    private static final String STATUS_WAITING_KEY = "cover.advanced_machine_controller.status.waiting";
+    private static final Component SECTION_TITLE = Component.translatable("cover.advanced_machine_controller.section");
+    private static final Component AUTO_TITLE = Component.translatable("cover.advanced_machine_controller.auto");
+    private static final Component AUTO_TOOLTIP = Component.translatable("cover.advanced_machine_controller.auto.tooltip");
+    private static final Component DELAY_TITLE = Component.translatable("cover.advanced_machine_controller.delay");
+    private static final Component DELAY_TOOLTIP = Component.translatable("cover.advanced_machine_controller.delay.tooltip");
+    private static final Component DELAY_DISABLED = Component.translatable("cover.advanced_machine_controller.delay.disabled");
+
     @Override
     public Widget createUIWidget() {
         var page = (UIElement) super.createUIWidget();
         var status = new StatusPanel();
         int[] shown = { Integer.MIN_VALUE };
         Component[] text = { Component.empty() };
-        status.addLine("cover.advanced_machine_controller.status", () -> {
+        status.addLine(STATUS_TITLE, () -> {
             int key = !autoRestart ? -1 : (remainingTicks + 19) / 20;
             if (key != shown[0]) {
                 shown[0] = key;
-                text[0] = key < 0 ? Component.translatable("cover.advanced_machine_controller.status.off") :
-                        key == 0 ? Component.translatable("cover.advanced_machine_controller.status.standby") :
-                                Component.translatable("cover.advanced_machine_controller.status.waiting", key);
+                text[0] = key < 0 ? STATUS_OFF :
+                        key == 0 ? STATUS_STANDBY :
+                                Component.translatable(STATUS_WAITING_KEY, key);
             }
             return text[0];
         }).bindLevel(() -> !autoRestart ? Level.NORMAL : remainingTicks > 0 ? Level.WARNING : Level.GOOD);
-        page.addChild(Form.section("cover.advanced_machine_controller.section").addChildren(status,
-                Form.controlRow("cover.advanced_machine_controller.auto", Switch.of(this::isAutoRestart, this::setAutoRestart),
-                        "cover.advanced_machine_controller.auto.tooltip"),
-                Form.numberRow("cover.advanced_machine_controller.delay",
+        page.addChild(Form.section(SECTION_TITLE).addChildren(status,
+                Form.controlRow(AUTO_TITLE, Switch.of(this::isAutoRestart, this::setAutoRestart),
+                        AUTO_TOOLTIP),
+                Form.numberRow(DELAY_TITLE,
                         NumberField.ofInt(LayoutStyle.AUTO, this::getRestartDelay, this::setRestartDelay, 0, MAX_DELAY),
-                        "cover.advanced_machine_controller.delay.tooltip")
-                        .disabled(() -> !autoRestart, "cover.advanced_machine_controller.delay.disabled")));
+                        DELAY_TOOLTIP)
+                        .disabled(() -> !autoRestart, DELAY_DISABLED)));
         return page;
     }
 }
