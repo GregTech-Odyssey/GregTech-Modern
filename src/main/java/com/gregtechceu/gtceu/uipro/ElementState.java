@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 public final class ElementState {
 
     /// 禁用提示的第一行：先告诉玩家"斜纹 = 禁止操作"，再给具体原因
-    private static final String DISABLED_TITLE = "gtceu.uipro.disabled";
+    private static final Component DISABLED_TITLE = Component.translatable("gtceu.uipro.disabled");
     private static final int MAX_TOOLTIP_LINES = 64;
     private static final Component[] NO_TOOLTIPS = new Component[0];
 
@@ -78,31 +78,25 @@ public final class ElementState {
     }
 
     /**
-     * 禁用条件（服务端判定、下发）与原因翻译键（可为 null）。登记了同步项：建界面时两端都要调用，每个元素只能设一次。
+     * 禁用条件（服务端判定、下发）与原因（可为 null）。登记了同步项：建界面时两端都要调用，每个元素只能设一次。
      */
-    public void setDisabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
+    public void setDisabled(BooleanSupplier serverCondition, @Nullable Component reason) {
         if (disabledValue != null) throw new IllegalStateException("disabled can only be set once per element");
         this.disabledCondition = serverCondition;
         this.disabledValue = channel.addSyncValue(SyncValue.ofBool(serverCondition));
-        this.disabledReason = reasonKey == null ? null : Component.translatable(reasonKey);
+        this.disabledReason = reason;
     }
 
     public void setClientDisabled(@Nullable BooleanSupplier clientDisabled) {
         setClientDisabled(clientDisabled, null);
     }
 
-    public void setClientDisabled(@Nullable BooleanSupplier clientDisabled, @Nullable String reasonKey) {
+    public void setClientDisabled(@Nullable BooleanSupplier clientDisabled, @Nullable Component reason) {
         this.clientDisabled = clientDisabled;
-        this.clientDisabledReason = reasonKey == null ? null : Component.translatable(reasonKey);
+        this.clientDisabledReason = reason;
     }
 
     public void setTooltips(Component... tooltips) {
-        owner.setHoverTooltips(tooltips);
-    }
-
-    public void setTooltips(String... translationKeys) {
-        var tooltips = new Component[translationKeys.length];
-        for (int i = 0; i < translationKeys.length; i++) tooltips[i] = Component.translatable(translationKeys[i]);
         owner.setHoverTooltips(tooltips);
     }
 
@@ -175,7 +169,7 @@ public final class ElementState {
 
     /** 不走 {@link Host} 的控件（自己判定禁用、自己画斜纹）用：在提示末尾加"禁止操作 + 原因"两行，格式与标准控件一致。 */
     public static void appendDisabledLines(List<Component> tooltips, @Nullable Component reason) {
-        tooltips.add(Component.translatable(DISABLED_TITLE).withStyle(ChatFormatting.RED));
+        tooltips.add(DISABLED_TITLE.copy().withStyle(ChatFormatting.RED));
         if (reason != null) tooltips.add(reason.copy().withStyle(ChatFormatting.GRAY));
     }
 
@@ -233,8 +227,8 @@ public final class ElementState {
             return self();
         }
 
-        default T disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-            getState().setDisabled(serverCondition, reasonKey);
+        default T disabled(BooleanSupplier serverCondition, @Nullable Component reason) {
+            getState().setDisabled(serverCondition, reason);
             return self();
         }
 
@@ -243,18 +237,13 @@ public final class ElementState {
             return self();
         }
 
-        default T clientDisabled(BooleanSupplier disabled, @Nullable String reasonKey) {
-            getState().setClientDisabled(disabled, reasonKey);
+        default T clientDisabled(BooleanSupplier disabled, @Nullable Component reason) {
+            getState().setClientDisabled(disabled, reason);
             return self();
         }
 
         default T tooltips(Component... tooltips) {
             getState().setTooltips(tooltips);
-            return self();
-        }
-
-        default T tooltips(String... translationKeys) {
-            getState().setTooltips(translationKeys);
             return self();
         }
 

@@ -17,7 +17,7 @@ public class PercentField extends DecimalField {
     /** 默认步进：0.01（1%）。 */
     public static final double DEFAULT_STEP = 0.01;
 
-    private static final String TOOLTIP = "gtceu.uipro.percent_field.tooltip";
+    private static final Component TOOLTIP = Component.translatable("gtceu.uipro.percent_field.tooltip");
 
     /**
      * @param width      总宽
@@ -31,7 +31,7 @@ public class PercentField extends DecimalField {
     protected PercentField(int width, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max,
                            double step, long... stepCounts) {
         super(width, getter, setter, min, max, step, 100, "%", stepCounts);
-        setHoverTooltips(Component.translatable(TOOLTIP));
+        setHoverTooltips(TOOLTIP);
     }
 
     /** 固定上下限、默认步进（1%）。 */

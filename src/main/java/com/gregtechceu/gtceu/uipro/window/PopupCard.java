@@ -11,6 +11,8 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import net.minecraft.network.chat.Component;
+
 /**
  * 卡片：Ore 窗口外框，第一行标题与 {@code [×]}，下面是高度随内容的滚动区。机器窗口右侧的弹出面板（{@link PopupHost}）
  * 和浮在内容上的卡片（{@link CardHost}）都是它，外观一致。

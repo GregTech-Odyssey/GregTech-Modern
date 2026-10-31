@@ -29,10 +29,10 @@ import java.util.List;
  */
 public abstract class Viewport extends UIElement implements ViewController {
 
-    public static final String GRIP_RESIZE = "gtceu.uipro.canvas.resize";
-    public static final String GRIP_LOCK = "gtceu.uipro.canvas.lock";
-    public static final String GRIP_LOCKED = "gtceu.uipro.canvas.locked";
-    public static final String GRIP_UNLOCK = "gtceu.uipro.canvas.unlock";
+    public static final Component GRIP_RESIZE = Component.translatable("gtceu.uipro.canvas.resize");
+    public static final Component GRIP_LOCK = Component.translatable("gtceu.uipro.canvas.lock").withStyle(ChatFormatting.GRAY);
+    public static final Component GRIP_LOCKED = Component.translatable("gtceu.uipro.canvas.locked");
+    public static final Component GRIP_UNLOCK = Component.translatable("gtceu.uipro.canvas.unlock").withStyle(ChatFormatting.GRAY);
     private static final int MIN_SIZE = UISizes.CANVAS_MIN_SIZE;
 
     protected final String id;
@@ -304,8 +304,8 @@ public abstract class Viewport extends UIElement implements ViewController {
         super.drawInForeground(graphics, masked ? OUTSIDE : mouseX, masked ? OUTSIDE : mouseY, partialTicks);
         if (gui == null || gui.getModularUIGui() == null || isInteracting() || !isOverGrip(mouseX, mouseY)) return;
         var lines = isLocked() ?
-                List.<Component>of(Component.translatable(GRIP_LOCKED), Component.translatable(GRIP_UNLOCK).withStyle(ChatFormatting.GRAY)) :
-                List.<Component>of(Component.translatable(GRIP_RESIZE), Component.translatable(GRIP_LOCK).withStyle(ChatFormatting.GRAY));
+                List.of(GRIP_LOCKED, GRIP_UNLOCK) :
+                List.of(GRIP_RESIZE, GRIP_LOCK);
         gui.getModularUIGui().setHoverTooltip(lines, ItemStack.EMPTY, null, null);
     }
 
