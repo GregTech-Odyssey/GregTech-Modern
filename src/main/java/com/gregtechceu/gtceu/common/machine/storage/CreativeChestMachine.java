@@ -15,6 +15,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -36,6 +37,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class CreativeChestMachine extends QuantumChestMachine {
+
+    private static final Component ITEM_LABEL = Component.translatable("gtceu.creative.chest.item");
+    private static final Component IPC_LABEL = Component.translatable("gtceu.creative.chest.ipc");
+    private static final Component TPC_LABEL = Component.translatable("gtceu.creative.chest.tpc");
+    private static final Component ACTIVITY_ON = Component.translatable("gtceu.creative.activity.on");
+    private static final Component ACTIVITY_OFF = Component.translatable("gtceu.creative.activity.off");
 
     @SaveToDisk(defaultValue = "1")
     @SyncToClient
@@ -127,12 +134,12 @@ public class CreativeChestMachine extends QuantumChestMachine {
     public Widget createUIWidget() {
         var slot = PhantomItemSlot.of(this::getStored, this::setStored, stack -> true).xeiPhantom();
         var page = Form.page();
-        page.addChild(Form.controlRow("gtceu.creative.chest.item", slot));
-        page.addChild(Form.numberRow("gtceu.creative.chest.ipc",
+        page.addChild(Form.controlRow(ITEM_LABEL, slot));
+        page.addChild(Form.numberRow(IPC_LABEL,
                 NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getItemsPerCycle, this::setItemsPerCycle, 1, Integer.MAX_VALUE)));
-        page.addChild(Form.numberRow("gtceu.creative.chest.tpc",
+        page.addChild(Form.numberRow(TPC_LABEL,
                 NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getTicksPerCycle, this::setTicksPerCycle, 1, Integer.MAX_VALUE)));
-        page.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled)));
+        page.addChild(Form.controlRow(() -> isWorkingEnabled() ? ACTIVITY_ON : ACTIVITY_OFF, Switch.of(this::isWorkingEnabled, this::setWorkingEnabled)));
         return page;
     }
 

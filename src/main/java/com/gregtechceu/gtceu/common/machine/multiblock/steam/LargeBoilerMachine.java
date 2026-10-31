@@ -50,9 +50,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class LargeBoilerMachine extends WorkableMultiblockMachine implements IExplosionMachine, IMultiblockFancyUIMachine {
 
     public static final int TICKS_PER_STEAM_GENERATION = 5;
-    private static final String THROTTLE_LABEL = "gtceu.multiblock.large_boiler.throttle.label";
-    private static final String TEMPERATURE_LABEL = "gtceu.multiblock.large_boiler.temperature.label";
-    private static final String STEAM_OUTPUT_LABEL = "gtceu.multiblock.large_boiler.steam_output.label";
+    private static final Component THROTTLE_LABEL = Component.translatable("gtceu.multiblock.large_boiler.throttle.label");
+    private static final Component THROTTLE_TOOLTIP = Component.translatable("gtceu.multiblock.large_boiler.throttle.tooltip");
+    private static final Component TEMPERATURE_LABEL = Component.translatable("gtceu.multiblock.large_boiler.temperature.label");
+    private static final Component STEAM_OUTPUT_LABEL = Component.translatable("gtceu.multiblock.large_boiler.steam_output.label");
 
     private static final Fluid STEAM = GTMaterials.Steam.getFluid();
 
@@ -201,7 +202,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
         if (isFormed()) {
             textList.add(Component.translatable("gtceu.multiblock.large_boiler.temperature", currentTemperature + 274, maxTemperature + 274));
             textList.add(Component.translatable("gtceu.multiblock.large_boiler.steam_output", steamGenerated / TICKS_PER_STEAM_GENERATION));
-            var throttleText = Component.translatable("gtceu.multiblock.large_boiler.throttle", ChatFormatting.AQUA.toString() + getThrottle() + "%").withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("gtceu.multiblock.large_boiler.throttle.tooltip"))));
+            var throttleText = Component.translatable("gtceu.multiblock.large_boiler.throttle", ChatFormatting.AQUA.toString() + getThrottle() + "%").withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, THROTTLE_TOOLTIP)));
             textList.add(throttleText);
         }
     }
@@ -209,7 +210,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     @Override
     public void addControls(ControlPanel controls) {
         super.addControls(controls);
-        controls.addInt(THROTTLE_LABEL, () -> throttle, value -> throttle = value, 25, 100, "gtceu.multiblock.large_boiler.throttle.tooltip")
+        controls.addInt(THROTTLE_LABEL, () -> throttle, value -> throttle = value, 25, 100, THROTTLE_TOOLTIP)
                 .disabled(() -> !isFormed(), MultiblockPage.STATE_UNFORMED);
     }
 

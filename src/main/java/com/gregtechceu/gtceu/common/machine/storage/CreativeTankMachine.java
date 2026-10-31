@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -35,6 +36,12 @@ import org.jetbrains.annotations.Nullable;
 
 @Getter
 public class CreativeTankMachine extends QuantumTankMachine {
+
+    private static final Component FLUID_LABEL = Component.translatable("gtceu.creative.tank.fluid");
+    private static final Component MBPC_LABEL = Component.translatable("gtceu.creative.tank.mbpc");
+    private static final Component TPC_LABEL = Component.translatable("gtceu.creative.tank.tpc");
+    private static final Component ACTIVITY_ON = Component.translatable("gtceu.creative.activity.on");
+    private static final Component ACTIVITY_OFF = Component.translatable("gtceu.creative.activity.off");
 
     private static final int CONFIG_AMOUNT = 1000;
 
@@ -141,12 +148,12 @@ public class CreativeTankMachine extends QuantumTankMachine {
         var slot = PhantomFluidSlot.of(new ForgeFluidAdapter(cache.storage), 0, this::getStored, this::updateStored).xeiPhantom();
         slot.setShowAmount(false);
         var page = Form.page();
-        page.addChild(Form.controlRow("gtceu.creative.tank.fluid", slot));
-        page.addChild(Form.numberRow("gtceu.creative.tank.mbpc",
+        page.addChild(Form.controlRow(FLUID_LABEL, slot));
+        page.addChild(Form.numberRow(MBPC_LABEL,
                 NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getMBPerCycle, this::setMBPerCycle, 1, Integer.MAX_VALUE)));
-        page.addChild(Form.numberRow("gtceu.creative.tank.tpc",
+        page.addChild(Form.numberRow(TPC_LABEL,
                 NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getTicksPerCycle, this::setTicksPerCycle, 1, Integer.MAX_VALUE)));
-        page.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled)));
+        page.addChild(Form.controlRow(() -> isWorkingEnabled() ? ACTIVITY_ON : ACTIVITY_OFF, Switch.of(this::isWorkingEnabled, this::setWorkingEnabled)));
         return page;
     }
 
