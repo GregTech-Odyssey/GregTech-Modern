@@ -51,9 +51,9 @@ import java.util.stream.Stream;
 public class GTOreVeinWidget extends UIElement implements ILocalUI {
 
     private static final String SHARE = "gtceu.jei.vein.share";
-    private static final String ANY_DIMENSION = "gtceu.jei.vein.any_dimension";
-    private static final String PREVIEW = "gtceu.jei.vein.preview";
-    private static final String PREVIEW_SCHEMATIC = "gtceu.jei.vein.preview_schematic";
+    private static final Component ANY_DIMENSION = Component.translatable("gtceu.jei.vein.any_dimension");
+    private static final Component PREVIEW = Component.translatable("gtceu.jei.vein.preview");
+    private static final Component PREVIEW_SCHEMATIC = Component.translatable("gtceu.jei.vein.preview_schematic");
     private static final String PREVIEW_SCALE = "gtceu.jei.vein.preview_scale";
 
     public static final int ICON = 16;
@@ -145,7 +145,7 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
         var specs = new RecipeSpecPanel();
         for (var spec : info.specs()) {
             var value = spec.value();
-            specs.value(Component.translatable(spec.labelKey()), () -> value);
+            specs.value(spec.label(), () -> value);
         }
         return specs;
     }
@@ -154,7 +154,7 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
         var dimensions = info.dimensions();
         var strip = new UIElement().layout(l -> l.row().flexWrap(FlexWrap.WRAP).paddingLeft(1).alignItems(AlignItems.CENTER));
         if (dimensions == null || dimensions.isEmpty()) {
-            strip.addChild(Label.translatable(4 * ICON, ANY_DIMENSION));
+            strip.addChild(Label.constant(4 * ICON, ANY_DIMENSION));
             return strip;
         }
         boolean showTier = ConfigHolder.INSTANCE.compat.showDimensionTier;
@@ -255,7 +255,7 @@ public class GTOreVeinWidget extends UIElement implements ILocalUI {
             for (int i = 0; i < palette.length; i++) palette[i] = info.entries().get(i).color();
             int horizontal = VeinPreview.SIZE * VeinPreview.BLOCKS_PER_VOXEL;
             int vertical = VeinPreview.HEIGHT * VeinPreview.BLOCKS_PER_VOXEL;
-            this.tooltip = List.of(Component.translatable(preview.isSchematic() ? PREVIEW_SCHEMATIC : PREVIEW),
+            this.tooltip = List.of(preview.isSchematic() ? PREVIEW_SCHEMATIC : PREVIEW,
                     Component.translatable(PREVIEW_SCALE, horizontal, vertical, horizontal).withStyle(ChatFormatting.GRAY));
             layout(l -> l.size(TILE_INNER, TILE_INNER));
         }
