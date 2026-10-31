@@ -140,12 +140,12 @@ public class ButtonGroup extends UIElement {
         }
     }
 
-    public ButtonGroup optionDisabled(IntPredicate serverDisabled, @Nullable String reasonKey) {
+    public ButtonGroup optionDisabled(IntPredicate serverDisabled, @Nullable Component reason) {
         int index = 0;
         for (var child : widgets) {
             if (child instanceof Button option) {
                 int i = index++;
-                option.disabled(() -> serverDisabled.test(i), reasonKey);
+                option.disabled(() -> serverDisabled.test(i), reason);
             }
         }
         return this;

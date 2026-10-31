@@ -13,7 +13,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import dev.vfyjxf.taffy.geometry.FloatSize;
 import dev.vfyjxf.taffy.util.MeasureFunc;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -54,15 +53,12 @@ public class Label extends UIElement {
         return new Label(maxWidth, text);
     }
 
-    public static Label translatable(int maxWidth, String key) {
-        var component = Component.translatable(key);
-        return new Label(maxWidth, () -> component);
+    public static Label of(int maxWidth, Component text) {
+        return new Label(maxWidth, () -> text);
     }
 
-    @Deprecated(forRemoval = true)
-    @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
-    public static Label translatable(String key, int maxWidth) {
-        return translatable(maxWidth, key);
+    public static Label constant(int maxWidth, Component text) {
+        return new Label(maxWidth, () -> text);
     }
 
     public Label setColor(int color) {

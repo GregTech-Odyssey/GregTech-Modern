@@ -37,8 +37,8 @@ public class IconToggle extends Button {
         return new IconToggle(UISizes.SLOT_SIZE, icon, getter, setter);
     }
 
-    public IconToggle onOffTooltips(String onKey, String offKey) {
-        return (IconToggle) bindTooltip(() -> Component.translatable(getter.getAsBoolean() ? onKey : offKey));
+    public IconToggle onOffTooltips(Component onTooltip, Component offTooltip) {
+        return (IconToggle) bindTooltip(() -> getter.getAsBoolean() ? onTooltip : offTooltip);
     }
 
     public IconToggle onOffTooltips(Function<Boolean, List<Component>> tooltips) {

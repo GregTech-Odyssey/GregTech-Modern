@@ -96,7 +96,9 @@ import java.util.function.Supplier;
  */
 public class MachineWindow extends FancyMachineUIWidget {
 
-    public static final String POPUP_CLOSE = "gtceu.uipro.popup.close";
+    public static final Component POPUP_CLOSE = Component.translatable("gtceu.uipro.popup.close");
+    private static final Component TITLE_BAR_BACK = Component.translatable("gtceu.gui.title_bar.back");
+    private static final Component TITLE_BAR_PAGE_SWITCHER = Component.translatable("gtceu.gui.title_bar.page_switcher");
 
     private static final ResourceLocation LOGO = GTCEu.id("textures/gui/uipro/gto_logo.png");
 
@@ -1367,14 +1369,14 @@ public class MachineWindow extends FancyMachineUIWidget {
             int right = width;
             if (showBack) {
                 var back = Button.icon(UITheme.ARROW_LEFT).setOnClientClick(MachineWindow.this::requestBack);
-                back.tooltips("gtceu.gui.title_bar.back");
+                back.tooltips(TITLE_BAR_BACK);
                 addWidget(back);
                 left += UISizes.ICON_BUTTON_SIZE + UISizes.GAP;
             }
             if (showMenu) {
                 right -= UISizes.ICON_BUTTON_SIZE;
                 var menu = Button.icon(WidgetIcons.PAGES).setOnClientClick(MachineWindow.this::requestPageSwitcher);
-                menu.tooltips("gtceu.gui.title_bar.page_switcher");
+                menu.tooltips(TITLE_BAR_PAGE_SWITCHER);
                 menu.setSelfPosition(new Position(right, 0));
                 addWidget(menu);
                 rightButton = menu;

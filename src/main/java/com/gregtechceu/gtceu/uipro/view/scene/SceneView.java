@@ -37,13 +37,13 @@ import java.util.function.BooleanSupplier;
 @OnlyIn(Dist.CLIENT)
 public abstract class SceneView extends Viewport {
 
-    public static final String CONTROLS = "gtceu.uipro.scene.controls";
-    public static final String CONTROLS_HOVER = "gtceu.uipro.scene.controls.hover";
+    public static final Component CONTROLS = Component.translatable("gtceu.uipro.scene.controls");
+    public static final Component CONTROLS_HOVER = Component.translatable("gtceu.uipro.scene.controls.hover");
     public static final String CONTROLS_MOVE = "gtceu.uipro.scene.controls.move";
     public static final String CONTROLS_LIFT = "gtceu.uipro.scene.controls.lift";
     public static final String CONTROLS_SPRINT = "gtceu.uipro.scene.controls.sprint";
-    public static final String CONTROLS_TURN = "gtceu.uipro.scene.controls.turn";
-    public static final String CONTROLS_SPEED = "gtceu.uipro.scene.controls.speed";
+    public static final Component CONTROLS_TURN = Component.translatable("gtceu.uipro.scene.controls.turn");
+    public static final Component CONTROLS_SPEED = Component.translatable("gtceu.uipro.scene.controls.speed");
 
     private static final float FOV = (float) Math.toRadians(60);
     private static final float MIN_NEAR = 0.05f;
@@ -148,13 +148,13 @@ public abstract class SceneView extends Viewport {
 
     public static List<Component> controlTips() {
         var options = Minecraft.getInstance().options;
-        return List.of(Component.translatable(CONTROLS_HOVER),
+        return List.of(CONTROLS_HOVER,
                 Component.translatable(CONTROLS_MOVE, options.keyUp.getTranslatedKeyMessage(), options.keyLeft.getTranslatedKeyMessage(),
                         options.keyDown.getTranslatedKeyMessage(), options.keyRight.getTranslatedKeyMessage()),
                 Component.translatable(CONTROLS_LIFT, options.keyJump.getTranslatedKeyMessage(), options.keyShift.getTranslatedKeyMessage()),
                 Component.translatable(CONTROLS_SPRINT, options.keySprint.getTranslatedKeyMessage()),
-                Component.translatable(CONTROLS_TURN),
-                Component.translatable(CONTROLS_SPEED));
+                CONTROLS_TURN,
+                CONTROLS_SPEED);
     }
 
     public void resetView() {
@@ -213,7 +213,7 @@ public abstract class SceneView extends Viewport {
     }
 
     @Override
-    public String percentTooltip() {
+    public Component percentTooltip() {
         return ZoomBar.DISTANCE;
     }
 

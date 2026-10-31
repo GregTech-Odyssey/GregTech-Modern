@@ -110,11 +110,6 @@ public class StatusLine extends UIElement {
         return formatted;
     }
 
-    /** 名称取翻译键的一行，默认 {@link Level#NORMAL}。 */
-    public static StatusLine of(int width, String labelKey, Supplier<Component> value) {
-        return StatusLine.of(width, Component.translatable(labelKey), value);
-    }
-
     /** 没有名称、整行一句话的状态。 */
     public static StatusLine sentence(int width, Supplier<Component> text) {
         return StatusLine.of(width, Component.empty(), text);

@@ -105,10 +105,6 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
         return new Button(width, height, text, null);
     }
 
-    public static Button translatable(int width, String key) {
-        return text(width, Component.translatable(key));
-    }
-
     public static Button icon(IGuiTexture icon) {
         return new Button(ICON_SIZE, HEIGHT, null, icon);
     }
@@ -177,8 +173,8 @@ public class Button extends ButtonWidget implements ILayoutItem, ElementState.Ho
     }
 
     @Override
-    public Button disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        return ElementState.Host.super.disabled(serverCondition, reasonKey);
+    public Button disabled(BooleanSupplier serverCondition, @Nullable Component reason) {
+        return ElementState.Host.super.disabled(serverCondition, reason);
     }
 
     @Nullable

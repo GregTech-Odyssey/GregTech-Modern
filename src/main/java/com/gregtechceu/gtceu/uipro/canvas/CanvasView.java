@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.uipro.window.CardHost;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,8 +32,8 @@ import java.util.function.Consumer;
  */
 public class CanvasView extends PlanarView {
 
-    public static final String HELP_PAN = "gtceu.uipro.canvas.help.pan";
-    public static final String HELP_ZOOM = "gtceu.uipro.canvas.help.zoom";
+    public static final Component HELP_PAN = Component.translatable("gtceu.uipro.canvas.help.pan");
+    public static final Component HELP_ZOOM = Component.translatable("gtceu.uipro.canvas.help.zoom");
 
     private final List<CanvasLayer> layers = new ArrayList<>();
     @Nullable
