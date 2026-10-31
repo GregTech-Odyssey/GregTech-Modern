@@ -86,7 +86,7 @@ public class SmartItemFilter implements ItemFilter {
         var info = InfoIcon.of(Level.NORMAL, LangHandler.getMultiLang("cover.item_smart_filter.filtering_mode.description").toArray(new Component[0]));
         var head = UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
                 .addChildren(Form.label(TARGET_MACHINE), info);
-        var group = ButtonGroup.single(modes.length, i -> Component.translatable(modes[i].getTooltip()),
+        var group = ButtonGroup.single(modes.length, i -> modes[i].name,
                 () -> filterMode.ordinal(), i -> setFilterMode(modes[i]));
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(head, group);
     }
@@ -141,12 +141,14 @@ public class SmartItemFilter implements ItemFilter {
         private static final SmartFilteringMode[] VALUES = values();
         private final String localeName;
         private final GTRecipeType type;
+        public final Component name;
         private final O2IOpenCustomCacheHashMap<ItemStack> cache = new O2IOpenCustomCacheHashMap<>(
                 ItemStackHashStrategy.ITEM_AND_TAG);
 
         SmartFilteringMode(String localeName, GTRecipeType type) {
             this.localeName = localeName;
             this.type = type;
+            this.name = Component.translatable("cover.item_smart_filter.filtering_mode." + localeName);
         }
 
         @Override
