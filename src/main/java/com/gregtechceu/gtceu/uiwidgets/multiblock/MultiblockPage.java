@@ -47,27 +47,21 @@ import java.util.function.Supplier;
  */
 public final class MultiblockPage {
 
-    public static final String STATE = "gtceu.gui.multiblock.state";
-    public static final String STATE_UNFORMED = "gtceu.gui.multiblock.state.unformed";
-    public static final String STATE_PAUSED = "gtceu.gui.multiblock.state.paused";
-    public static final String STATE_RUNNING = "gtceu.gui.multiblock.state.running";
-    public static final String STATE_WAITING = "gtceu.gui.multiblock.state.waiting";
-    public static final String STATE_IDLE = "gtceu.gui.multiblock.state.idle";
-    public static final String RECIPE_TYPE = "gtceu.gui.multiblock.recipe_type";
-    public static final String PROGRESS = "gtceu.gui.multiblock.progress";
-    public static final String PARALLEL = "gtceu.gui.multiblock.parallel";
-    public static final String ON = "gtceu.gui.multiblock.on";
-    public static final String OFF = "gtceu.gui.multiblock.off";
+    public static final Component STATE = Component.translatable("gtceu.gui.multiblock.state");
+    public static final Component STATE_UNFORMED = Component.translatable("gtceu.gui.multiblock.state.unformed");
+    public static final Component STATE_PAUSED = Component.translatable("gtceu.gui.multiblock.state.paused");
+    public static final Component STATE_RUNNING = Component.translatable("gtceu.gui.multiblock.state.running");
+    public static final Component STATE_WAITING = Component.translatable("gtceu.gui.multiblock.state.waiting");
+    public static final Component STATE_IDLE = Component.translatable("gtceu.gui.multiblock.state.idle");
+    public static final Component RECIPE_TYPE = Component.translatable("gtceu.gui.multiblock.recipe_type");
+    public static final Component PROGRESS = Component.translatable("gtceu.gui.multiblock.progress");
+    public static final Component PARALLEL = Component.translatable("gtceu.gui.multiblock.parallel");
+    public static final Component ON = Component.translatable("gtceu.gui.multiblock.on");
+    public static final Component OFF = Component.translatable("gtceu.gui.multiblock.off");
     public static final Component NO_VALUE = Component.literal("-");
     private static final ThreadLocal<Boolean> COLLECTING_SCREEN_TEXT = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
-    private static final Component UNFORMED = Component.translatable(STATE_UNFORMED);
-    private static final Component PAUSED = Component.translatable(STATE_PAUSED);
-    private static final Component RUNNING = Component.translatable(STATE_RUNNING);
-    private static final Component IDLE = Component.translatable(STATE_IDLE);
     private static final Component NONE = Component.empty();
-    private static final Component ON_TEXT = Component.translatable(ON);
-    private static final Component OFF_TEXT = Component.translatable(OFF);
 
     private final WorkableMultiblockMachine machine;
     private RecipeIOList recipeList;
@@ -107,8 +101,8 @@ public final class MultiblockPage {
         return this;
     }
 
-    public StatusLine addLine(String labelKey, Supplier<Component> value) {
-        return screen.addLine(labelKey, value);
+    public StatusLine addLine(Component label, Supplier<Component> value) {
+        return screen.addLine(label, value);
     }
 
     public StatusLine addReading(String templateKey, Supplier<Component> value) {
@@ -133,16 +127,16 @@ public final class MultiblockPage {
         return cut == 0 ? null : prefix.substring(0, cut);
     }
 
-    public StatusLine addNumber(String labelKey, LongSupplier value, String unit) {
-        return addLine(labelKey, numberText(value, unit));
+    public StatusLine addNumber(Component label, LongSupplier value, String unit) {
+        return addLine(label, numberText(value, unit));
     }
 
-    public StatusLine addDecimal(String labelKey, DoubleSupplier value, String unit) {
-        return addLine(labelKey, decimalText(value, unit));
+    public StatusLine addDecimal(Component label, DoubleSupplier value, String unit) {
+        return addLine(label, decimalText(value, unit));
     }
 
-    public StatusLine addOnOff(String labelKey, BooleanSupplier value) {
-        return addLine(labelKey, () -> value.getAsBoolean() ? ON_TEXT : OFF_TEXT);
+    public StatusLine addOnOff(Component label, BooleanSupplier value) {
+        return addLine(label, () -> value.getAsBoolean() ? ON : OFF);
     }
 
     public ControlPanel getControls() {
@@ -168,17 +162,17 @@ public final class MultiblockPage {
         return this;
     }
 
-    public ProgressBar addBar(String labelKey, int color, Supplier<ProgressBar.Progress> progress) {
-        return screen.addBar(labelKey, color, progress);
+    public ProgressBar addBar(Component label, int color, Supplier<ProgressBar.Progress> progress) {
+        return screen.addBar(label, color, progress);
     }
 
-    public ProgressBar addBar(String labelKey, IntSupplier color, Supplier<ProgressBar.Progress> progress) {
-        return screen.addBar(labelKey, color, progress);
+    public ProgressBar addBar(Component label, IntSupplier color, Supplier<ProgressBar.Progress> progress) {
+        return screen.addBar(label, color, progress);
     }
 
-    public MultiblockPage bindAlert(BooleanSupplier condition, String textKey) {
+    public MultiblockPage bindAlert(BooleanSupplier condition, Component text) {
         this.alert = condition;
-        this.alertText = Component.translatable(textKey);
+        this.alertText = text;
         return this;
     }
 
@@ -296,10 +290,10 @@ public final class MultiblockPage {
         };
     }
 
-    public static Supplier<Component> recipeTypeText(IRecipeLogicMachine machine, @Nullable String emptyKey) {
+    public static Supplier<Component> recipeTypeText(IRecipeLogicMachine machine, @Nullable Component emptyText) {
         return cachedRef(machine::getRecipeType, type -> {
             if (type == null) return NONE;
-            if (emptyKey != null && type == GTRecipeTypes.DUMMY_RECIPES) return Component.translatable(emptyKey);
+            if (emptyText != null && type == GTRecipeTypes.DUMMY_RECIPES) return emptyText;
             return Component.translatable(type.registryName.toLanguageKey());
         });
     }
@@ -316,11 +310,11 @@ public final class MultiblockPage {
 
     private Component stateText() {
         var logic = machine.getRecipeLogic();
-        if (!machine.isFormed()) return UNFORMED;
-        if (!logic.isWorkingEnabled()) return PAUSED;
-        if (logic.isWorking()) return alert != null && alert.getAsBoolean() ? alertText : RUNNING;
+        if (!machine.isFormed()) return STATE_UNFORMED;
+        if (!logic.isWorkingEnabled()) return STATE_PAUSED;
+        if (logic.isWorking()) return alert != null && alert.getAsBoolean() ? alertText : STATE_RUNNING;
         var view = reasonView();
-        return view.shown ? view.headline : IDLE;
+        return view.shown ? view.headline : STATE_IDLE;
     }
 
     private Level stateLevel() {
@@ -344,7 +338,7 @@ public final class MultiblockPage {
 
         private static ReasonView of(int status, @Nullable Component reason) {
             boolean shown = reason != null || status == RecipeLogic.WAITING;
-            if (!shown) return new ReasonView(status, null, false, IDLE, Level.NORMAL, null, NONE);
+            if (!shown) return new ReasonView(status, null, false, STATE_IDLE, Level.NORMAL, null, NONE);
             var entry = IdleReasonInfo.lookup(reason);
             var headline = IdleReasonInfo.headline(status, reason, entry);
             var level = IdleReasonInfo.level(status, reason);

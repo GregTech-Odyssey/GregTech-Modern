@@ -26,6 +26,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class IdleReasonInfo {
 
     public static final Component NONE = Component.empty();
+    private static final Component NO_ENERGY_DESC = Component.translatable("gtceu.issue.no_energy.desc");
+    private static final Component PAUSED = Component.translatable("gtceu.issue.paused");
+    private static final Component PAUSED_DESC = Component.translatable("gtceu.issue.paused.desc");
+    private static final Component WAITING_TITLE = Component.translatable("gtceu.issue.ui.waiting.title");
+    private static final Component WAITING_DESC = Component.translatable("gtceu.issue.ui.waiting.desc");
+    private static final String WAITING = "gtceu.issue.ui.waiting";
 
     private static final Map<String, Entry> ENTRIES = new ConcurrentHashMap<>();
 
@@ -140,7 +146,7 @@ public final class IdleReasonInfo {
     @Nullable
     public static Component description(Component reason, @Nullable Entry entry) {
         if (entry == null || entry.descKey == null) return null;
-        if (isEnergyShort(reason)) return Component.translatable("gtceu.issue.no_energy.desc").withStyle(ChatFormatting.GRAY);
+        if (isEnergyShort(reason)) return NO_ENERGY_DESC.copy().withStyle(ChatFormatting.GRAY);
         var descKey = descKey(reason, entry);
         if (descKey == null) return null;
         return Component.translatable(descKey, args(reason)).withStyle(ChatFormatting.GRAY);
@@ -171,13 +177,13 @@ public final class IdleReasonInfo {
     }
 
     public static Component headline(int status, @Nullable Component reason, @Nullable Entry entry) {
-        if (status == RecipeLogic.SUSPEND) return Component.translatable("gtceu.issue.paused").withStyle(Severity.INFO.color());
+        if (status == RecipeLogic.SUSPEND) return PAUSED.copy().withStyle(Severity.INFO.color());
         if (reason == null || isNone(reason)) {
-            if (status == RecipeLogic.WAITING) return Component.translatable("gtceu.issue.ui.waiting.title").withStyle(ChatFormatting.GOLD);
+            if (status == RecipeLogic.WAITING) return WAITING_TITLE.copy().withStyle(ChatFormatting.GOLD);
             reason = ActionResult.FAIL_NO_RECIPE_FOUND.reason();
             entry = lookup(reason);
         }
-        if (status == RecipeLogic.WAITING) return Component.translatable("gtceu.issue.ui.waiting", title(reason, entry)).withStyle(ChatFormatting.GOLD);
+        if (status == RecipeLogic.WAITING) return Component.translatable(WAITING, title(reason, entry)).withStyle(ChatFormatting.GOLD);
         return title(reason, entry);
     }
 
@@ -188,9 +194,9 @@ public final class IdleReasonInfo {
 
     @Nullable
     public static Component detail(int status, @Nullable Component reason, @Nullable Entry entry) {
-        if (status == RecipeLogic.SUSPEND) return Component.translatable("gtceu.issue.paused.desc").withStyle(ChatFormatting.GRAY);
+        if (status == RecipeLogic.SUSPEND) return PAUSED_DESC.copy().withStyle(ChatFormatting.GRAY);
         if (reason == null || isNone(reason)) {
-            if (status == RecipeLogic.WAITING) return Component.translatable("gtceu.issue.ui.waiting.desc").withStyle(ChatFormatting.GRAY);
+            if (status == RecipeLogic.WAITING) return WAITING_DESC.copy().withStyle(ChatFormatting.GRAY);
             reason = ActionResult.FAIL_NO_RECIPE_FOUND.reason();
             entry = lookup(reason);
         }

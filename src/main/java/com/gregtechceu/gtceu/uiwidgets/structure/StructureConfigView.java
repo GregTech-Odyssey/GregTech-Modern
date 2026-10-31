@@ -43,23 +43,23 @@ import java.util.function.Consumer;
 @OnlyIn(Dist.CLIENT)
 public final class StructureConfigView extends UIElement implements ILocalUI {
 
-    public static final String SEGMENT = "gtceu.structure_config.segment";
+    public static final Component SEGMENT = Component.translatable("gtceu.structure_config.segment");
     public static final String SUMMARY = "gtceu.structure_config.summary";
-    public static final String INVALID = "gtceu.structure_config.invalid";
-    public static final String ROOT = "gtceu.structure_config.root";
-    public static final String PART = "gtceu.structure_config.part";
-    public static final String OPTIONAL = "gtceu.structure_config.optional";
-    public static final String CHOICE = "gtceu.structure_config.choice";
+    public static final Component INVALID = Component.translatable("gtceu.structure_config.invalid");
+    public static final Component ROOT = Component.translatable("gtceu.structure_config.root");
+    public static final Component PART = Component.translatable("gtceu.structure_config.part");
+    public static final Component OPTIONAL = Component.translatable("gtceu.structure_config.optional");
+    public static final Component CHOICE = Component.translatable("gtceu.structure_config.choice");
     public static final String BRANCH = "gtceu.structure_config.branch";
-    public static final String NONE = "gtceu.structure_config.none";
-    public static final String ENABLED = "gtceu.structure_config.enabled";
+    public static final Component NONE = Component.translatable("gtceu.structure_config.none");
+    public static final Component ENABLED = Component.translatable("gtceu.structure_config.enabled");
     public static final String REPEAT = "gtceu.structure_config.repeat";
-    public static final String INACTIVE = "gtceu.structure_config.inactive";
-    public static final String MACHINES = "gtceu.structure_config.machines";
-    public static final String MACHINES_ACCEPT = "gtceu.structure_config.machines.accept";
-    public static final String MACHINES_OPEN = "gtceu.structure_config.machines.open";
-    public static final String HOSTS = "gtceu.structure_config.hosts";
-    public static final String LISTED = "gtceu.structure_config.listed";
+    public static final Component INACTIVE = Component.translatable("gtceu.structure_config.inactive");
+    public static final Component MACHINES = Component.translatable("gtceu.structure_config.machines");
+    public static final Component MACHINES_ACCEPT = Component.translatable("gtceu.structure_config.machines.accept");
+    public static final Component MACHINES_OPEN = Component.translatable("gtceu.structure_config.machines.open");
+    public static final Component HOSTS = Component.translatable("gtceu.structure_config.hosts");
+    public static final Component LISTED = Component.translatable("gtceu.structure_config.listed");
     public static final String HOSTS_PORT = "gtceu.structure_config.hosts.port";
 
     private static final int COLUMN = 104;
@@ -136,7 +136,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
 
     private FlowNode hosts(FlowChart chart, int span) {
         var flow = chart.node(0, 0, span).bindState(() -> FlowState.READY);
-        flow.addChild(TextLine.translatable(LayoutStyle.AUTO, HOSTS));
+        flow.addChild(TextLine.constant(LayoutStyle.AUTO, HOSTS));
         for (var protocol : mounted) {
             flow.addChild(TextLine.constant(LayoutStyle.AUTO, Component.translatable(HOSTS_PORT, protocol.getName())).setColor(UITheme.PANEL_TEXT));
             for (var host : StructureHosts.of(protocol)) flow.addChild(machineRow(host));
@@ -168,7 +168,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
                 }
                 for (int option : tree.sizes()) {
                     var size = options.get(option).key();
-                    flow.addChild(TextLine.constant(LayoutStyle.AUTO, size == null ? Component.translatable(SEGMENT) : size.getName()));
+                    flow.addChild(TextLine.constant(LayoutStyle.AUTO, size == null ? SEGMENT : size.getName()));
                     flow.addChild(field(index, option, inner, options.get(option).min(), options.get(option).max()));
                 }
             }
@@ -179,7 +179,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
                 var toggle = Switch.of(() -> values[node.option()] > 0, on -> set(node.option(), on ? 1 : 0))
                         .disabled(() -> !tree.active(index, values), INACTIVE);
                 flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
-                        .addChildren(TextLine.translatable(0, ENABLED).layout(l -> l.flex(1)), toggle));
+                        .addChildren(TextLine.constant(0, ENABLED).layout(l -> l.flex(1)), toggle));
             }
             case COUNT -> flow.addChild(field(index, node.option(), inner, node.min(), node.max()));
             case CHOICE -> {
@@ -192,14 +192,14 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
                 if (excluded != null && index < excluded.length) {
                     var listed = Switch.of(() -> !excluded[index], on -> setListed(index, on)).disabled(() -> !tree.active(index, values), INACTIVE);
                     flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
-                            .addChildren(TextLine.translatable(0, LISTED).layout(l -> l.flex(1)), listed));
+                            .addChildren(TextLine.constant(0, LISTED).layout(l -> l.flex(1)), listed));
                 }
                 if (demolish != null) {
                     var demolishing = Switch.of(() -> demolish.isDemolishing(index), on -> demolish.setDemolishing(index, on))
                             .disabled(() -> !tree.active(index, values), INACTIVE);
                     demolishing.tooltips(TerminalModes.DEMOLISH_NODE_DESC);
                     flow.addChild(UIElement.centeredRow(UISizes.CONTROL_HEIGHT)
-                            .addChildren(TextLine.translatable(0, TerminalModes.DEMOLISH_NODE).layout(l -> l.flex(1)), demolishing));
+                            .addChildren(TextLine.constant(0, TerminalModes.DEMOLISH_NODE).layout(l -> l.flex(1)), demolishing));
                 }
             }
             default -> {}
@@ -207,7 +207,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         switch (node.kind()) {
             case MACHINES -> {
                 if (node.protocol() != null) {
-                    flow.addChild(TextLine.translatable(LayoutStyle.AUTO, MACHINES_ACCEPT).setColor(UITheme.PANEL_TEXT));
+                    flow.addChild(TextLine.constant(LayoutStyle.AUTO, MACHINES_ACCEPT).setColor(UITheme.PANEL_TEXT));
                     for (var member : node.protocol().getMembers()) flow.addChild(machineRow(member));
                 }
             }
@@ -239,7 +239,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
         int offset = node.min() == 0 ? 1 : 0;
         var branches = node.children();
         var group = ButtonGroup.single(branches.length + offset,
-                i -> i < offset ? Component.translatable(NONE) : title(branches[i - offset]),
+                i -> i < offset ? NONE : title(branches[i - offset]),
                 () -> values[node.option()] - 1 + offset,
                 i -> set(node.option(), i + 1 - offset));
         group.disabled(() -> !tree.active(index, values), INACTIVE);
@@ -251,19 +251,19 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     public static Component nodeTitle(StructureTree tree, int index) {
-        if (index < 0 || index >= tree.nodes().length) return Component.translatable(PART);
+        if (index < 0 || index >= tree.nodes().length) return PART;
         var node = tree.nodes()[index];
         if (node.key() != null) return node.key().getName();
         if (node.protocol() != null) return node.protocol().getName();
         if (node.branch() >= 0) return Component.translatable(BRANCH, node.branch() + 1);
-        return Component.translatable(switch (node.kind()) {
+        return switch (node.kind()) {
             case ROOT -> ROOT;
             case FIXED -> PART;
             case TOGGLE -> OPTIONAL;
             case COUNT -> SEGMENT;
             case CHOICE -> CHOICE;
             case MACHINES -> MACHINES;
-        });
+        };
     }
 
     private FlowState state(int index) {
@@ -380,7 +380,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
     }
 
     private Component summary() {
-        if (layout == null) return Component.translatable(INVALID);
+        if (layout == null) return INVALID;
         return Component.translatable(SUMMARY, layout.width(), layout.height(), layout.depth(), blocks);
     }
 
@@ -395,7 +395,7 @@ public final class StructureConfigView extends UIElement implements ILocalUI {
             var stack = definition.asStack();
             layout(l -> l.row().height(UISizes.CONTROL_HEIGHT).gapAll(UISizes.GAP).alignCenter().paddingRight(ARROW_WIDTH + UISizes.GAP));
             addChildren(ItemView.of(stack), TextLine.constant(0, stack.getHoverName()).setColor(UITheme.LINK_TEXT).layout(l -> l.flex(1)));
-            setHoverTooltips(stack.getHoverName(), Component.translatable(MACHINES_OPEN));
+            setHoverTooltips(stack.getHoverName(), MACHINES_OPEN);
         }
 
         @Override

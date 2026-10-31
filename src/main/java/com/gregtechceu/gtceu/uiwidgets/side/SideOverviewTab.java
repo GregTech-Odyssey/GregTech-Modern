@@ -15,7 +15,7 @@ import java.util.List;
 
 public final class SideOverviewTab implements IFancyUIProvider {
 
-    private static final String TITLE = "gtceu.gui.side_overview.title";
+    private static final Component TITLE = Component.translatable("gtceu.gui.side_overview.title");
 
     private final MetaMachine machine;
 
@@ -40,7 +40,7 @@ public final class SideOverviewTab implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.translatable(TITLE);
+        return TITLE;
     }
 
     @Override

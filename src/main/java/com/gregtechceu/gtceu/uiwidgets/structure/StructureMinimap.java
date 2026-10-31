@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.EmptyBlockGetter;
@@ -24,7 +25,7 @@ import java.util.Arrays;
 @OnlyIn(Dist.CLIENT)
 public final class StructureMinimap extends UIElement {
 
-    public static final String TIP = "gtceu.structure_preview.minimap.tip";
+    public static final Component TIP = Component.translatable("gtceu.structure_preview.minimap.tip");
     private static final int BORDER = 2;
     private static final int MARKER = 0xFFFF3030;
     private static final int EMPTY = 0x00000000;
