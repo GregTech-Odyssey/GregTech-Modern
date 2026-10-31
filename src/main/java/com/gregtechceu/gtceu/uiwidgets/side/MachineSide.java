@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.WidgetIconAtlas;
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 
 public enum MachineSide {
 
@@ -31,10 +32,12 @@ public enum MachineSide {
     }
 
     public final String translationKey;
+    public final Component name;
     private final int row, column;
 
     MachineSide(String translationKey, int row, int column) {
         this.translationKey = translationKey;
+        this.name = Component.translatable(translationKey);
         this.row = row;
         this.column = column;
     }

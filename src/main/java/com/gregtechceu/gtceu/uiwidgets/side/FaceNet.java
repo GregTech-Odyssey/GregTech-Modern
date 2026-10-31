@@ -53,6 +53,19 @@ public class FaceNet extends UIElement {
         return face == null ? PASS_THROUGH : bit(face);
     }
 
+    private static final Component[] DIRECTION_NAMES = {
+            Component.translatable("gtceu.gui.output_side.dir.down"),
+            Component.translatable("gtceu.gui.output_side.dir.up"),
+            Component.translatable("gtceu.gui.output_side.dir.north"),
+            Component.translatable("gtceu.gui.output_side.dir.south"),
+            Component.translatable("gtceu.gui.output_side.dir.west"),
+            Component.translatable("gtceu.gui.output_side.dir.east")
+    };
+
+    public static Component name(Direction direction) {
+        return DIRECTION_NAMES[direction.get3DDataValue()];
+    }
+
     public static String nameKey(Direction direction) {
         return switch (direction) {
             case UP -> "gtceu.gui.output_side.dir.up";
@@ -92,7 +105,7 @@ public class FaceNet extends UIElement {
                     break;
                 }
             }
-            lines.add(single == null ? NONE : Component.translatable(SINGLE, Component.translatable(nameKey(single))));
+            lines.add(single == null ? NONE : Component.translatable(SINGLE, name(single)));
         }
         lines.add(LEGEND.copy().withStyle(ChatFormatting.GRAY));
         if (onClientClick != null) lines.add(CLICK.copy().withStyle(ChatFormatting.YELLOW));

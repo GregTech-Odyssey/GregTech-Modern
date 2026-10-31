@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.uipro.elements.IconToggle;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.side.FaceNet;
 import com.gregtechceu.gtceu.uiwidgets.side.MachineSide;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -126,14 +127,7 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
 
     private Component faceTooltip(Channel channel, MachineSide side) {
         var direction = side.toDirection(machine);
-        var name = Component.translatable(FACE, Component.translatable(side.translationKey), Component.translatable(switch (direction) {
-            case UP -> "gtceu.gui.output_side.dir.up";
-            case DOWN -> "gtceu.gui.output_side.dir.down";
-            case NORTH -> "gtceu.gui.output_side.dir.north";
-            case SOUTH -> "gtceu.gui.output_side.dir.south";
-            case WEST -> "gtceu.gui.output_side.dir.west";
-            case EAST -> "gtceu.gui.output_side.dir.east";
-        }));
+        var name = Component.translatable(FACE, side.name, FaceNet.name(direction));
         boolean current = facing(channel) == direction;
         if (channel.fluid) return Component.translatable(current ? FLUID_CURRENT : SET_FLUID, name);
         return Component.translatable(current ? ITEM_CURRENT : SET_ITEM, name);
