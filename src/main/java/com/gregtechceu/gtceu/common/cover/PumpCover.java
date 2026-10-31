@@ -252,6 +252,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
     }
 
     private static final Component TRANSFER_SECTION = Component.translatable("cover.ui.transfer");
+    private static final String TRANSFER_RATE_TEMPLATE = "cover.pump.ui.transfer_rate";
     private static final Component MODES_SECTION = Component.translatable("cover.ui.modes");
     private static final Component IO_TITLE = Component.translatable("cover.ui.io");
     private static final Component MANUAL_IO_TITLE = Component.translatable("cover.ui.manual_io");
@@ -266,7 +267,7 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         var field = NumberField.ofInt(LayoutStyle.AUTO, this::getCurrentBucketModeTransferRate, this::setCurrentBucketModeTransferRate,
                 () -> 0, () -> maxFluidTransferRate / bucketMode.multiplier);
         return Form.section(TRANSFER_SECTION).addChild(fluidAmountRow(
-                () -> Component.translatable("cover.pump.ui.transfer_rate", Component.translatable(bucketMode.getTooltip())),
+                () -> Component.translatable(TRANSFER_RATE_TEMPLATE, bucketMode.name),
                 modes, this::getBucketMode, this::setBucketMode, field));
     }
 

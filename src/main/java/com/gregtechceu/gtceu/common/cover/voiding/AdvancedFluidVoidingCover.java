@@ -88,6 +88,7 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         this.transferBucketMode = transferBucketMode;
     }
 
+    private static final String KEEP_AMOUNT_KEY = "cover.fluid.voiding.ui.keep_amount";
     private static final Component AMOUNT_FROM_FILTER = Component.translatable("cover.fluid.voiding.ui.amount_from_filter");
     private static final Component AMOUNT_UNUSED = Component.translatable("cover.fluid.voiding.ui.amount_unused");
     private static final Component MODE_SETTINGS_SECTION = Component.translatable("cover.fluid.voiding.ui.mode_settings");
@@ -116,7 +117,7 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
     }
 
     private Component getKeepAmountLabel() {
-        return Component.translatable("cover.fluid.voiding.ui.keep_amount", Component.translatable(transferBucketMode.getTooltip()));
+        return Component.translatable(KEEP_AMOUNT_KEY, transferBucketMode.name);
     }
 
     private int getCurrentBucketModeTransferSize() {

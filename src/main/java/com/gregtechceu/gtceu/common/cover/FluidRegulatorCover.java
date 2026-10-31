@@ -136,6 +136,8 @@ public class FluidRegulatorCover extends PumpCover {
     ///////////////////////////
     // ***** GUI ******//
     ///////////////////////////
+    private static final String KEEP_AMOUNT_KEY = "cover.fluid_regulator.ui.keep_amount";
+    private static final String SUPPLY_AMOUNT_KEY = "cover.fluid_regulator.ui.supply_amount";
     private static final Component AMOUNT_FROM_FILTER = Component.translatable("cover.fluid_regulator.ui.amount_from_filter");
     private static final Component AMOUNT_UNUSED = Component.translatable("cover.fluid_regulator.ui.amount_unused");
     private static final Component REGULATION_SECTION = Component.translatable("cover.fluid_regulator.ui.regulation");
@@ -162,9 +164,9 @@ public class FluidRegulatorCover extends PumpCover {
     }
 
     private Component getTransferSizeLabel() {
-        var unit = Component.translatable(transferBucketMode.getTooltip());
-        return transferMode == TransferMode.KEEP_EXACT ? Component.translatable("cover.fluid_regulator.ui.keep_amount", unit) :
-                Component.translatable("cover.fluid_regulator.ui.supply_amount", unit);
+        var unit = transferBucketMode.name;
+        return transferMode == TransferMode.KEEP_EXACT ? Component.translatable(KEEP_AMOUNT_KEY, unit) :
+                Component.translatable(SUPPLY_AMOUNT_KEY, unit);
     }
 
     private int getCurrentBucketModeTransferSize() {
