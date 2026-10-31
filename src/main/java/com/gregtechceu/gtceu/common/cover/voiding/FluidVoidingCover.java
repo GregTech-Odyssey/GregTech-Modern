@@ -81,7 +81,7 @@ public class FluidVoidingCover extends PumpCover {
     public Widget createUIWidget() {
         var page = Form.page().addChild(Form.section("cover.ui.voiding").addChild(
                 Form.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
-                        "cover.voiding.tooltip")));
+                        "cover.voiding.tooltip.fluid")));
         buildAdditionalUI(page);
         return page.addChild(CoverUIs.filterSection(filterHandler));
     }

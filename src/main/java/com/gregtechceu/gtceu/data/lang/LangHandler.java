@@ -484,8 +484,10 @@ public class LangHandler {
         provider.add("cover.item.voiding.advanced.title", "Advanced Item Voiding Settings");
         provider.add("cover.voiding.label.disabled", "Disabled");
         provider.add("cover.voiding.label.enabled", "Enabled");
-        provider.add("cover.voiding.tooltip",
-                "§cWARNING!§7 Setting this to \"Enabled\" means that fluids or items WILL be voided.");
+        provider.add("cover.voiding.tooltip.fluid",
+                "§cWARNING!§7 Setting this to \"Enabled\" means that fluids WILL be voided.");
+        provider.add("cover.voiding.tooltip.item",
+                "§cWARNING!§7 Setting this to \"Enabled\" means that items WILL be voided.");
         provider.add("cover.voiding.message.disabled", "Voiding Cover Disabled");
         provider.add("cover.voiding.message.enabled", "Voiding Cover Enabled");
         provider.add("cover.item_smart_filter.title", "Smart Item Filter");

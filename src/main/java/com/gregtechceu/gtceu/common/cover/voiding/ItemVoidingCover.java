@@ -79,7 +79,7 @@ public class ItemVoidingCover extends ConveyorCover {
     public Widget createUIWidget() {
         var settings = Form.section("cover.ui.voiding").addChild(
                 Form.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
-                        "cover.voiding.tooltip"));
+                        "cover.voiding.tooltip.item"));
         buildAdditionalUI(settings);
         return Form.page().addChildren(settings, CoverUIs.filterSection(filterHandler));
     }
