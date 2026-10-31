@@ -66,7 +66,8 @@ import static com.gregtechceu.gtceu.api.GTValues.*;
  */
 public class GTRecipeWidget extends UIElement implements ILocalUI {
 
-    private static final String DURATION = "gtceu.recipe.info.duration";
+    private static final Component DURATION = Component.translatable("gtceu.recipe.info.duration");
+    private static final Component CHANCE_NC = Component.translatable("gtceu.gui.content.chance_nc");
     private static final String SECONDS = "gtceu.recipe.info.seconds";
 
     private static final int INLINE_SLOT_GAP = 6;
@@ -431,16 +432,16 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         }
         boolean values = false, sentences = false;
         for (var line : info.lines()) {
-            if (line.labelKey() == null) {
+            if (line.label() == null) {
                 sentences = true;
                 continue;
             }
             values = true;
-            panel.value(Component.translatable(line.labelKey()), line.value());
+            panel.value(line.label(), line.value());
         }
         if (values && sentences) panel.divider();
         var sentenceLines = new ArrayList<RecipeInfoLines.Line>();
-        for (var line : info.lines()) if (line.labelKey() == null) sentenceLines.add(line);
+        for (var line : info.lines()) if (line.label() == null) sentenceLines.add(line);
         for (int i = 0; i < sentenceLines.size(); i++) {
             var line = sentenceLines.get(i);
             var next = i + 1 < sentenceLines.size() ? sentenceLines.get(i + 1) : null;
@@ -461,9 +462,9 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     /** 随超频预览变化的一行：建页时取页面缓存的文字（切换电压档时重算），数数时只计数。 */
-    private static void previewLine(RecipeInfoBuilder info, String labelKey, Supplier<Component> value) {
-        if (info instanceof RecipeInfoLines lines) lines.dynamicLine(labelKey, value);
-        else info.line(labelKey, value);
+    private static void previewLine(RecipeInfoBuilder info, Component label, Supplier<Component> value) {
+        if (info instanceof RecipeInfoLines lines) lines.dynamicLine(label, value);
+        else info.line(label, value);
     }
 
     // ==================== 底栏：额外展示槽 ====================
@@ -563,7 +564,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         if (chance < ContentList.MAX_CHANCE) {
             int boostedChance = function.getBoostedChance(chance, boost, recipeTier, chanceTier);
             if (boostedChance == 0) {
-                tooltips.add(Component.translatable("gtceu.gui.content.chance_nc"));
+                tooltips.add(CHANCE_NC);
             } else {
                 float baseChanceFloat = 100f * chance / ContentList.MAX_CHANCE;
                 float boostedChanceFloat = 100f * boostedChance / ContentList.MAX_CHANCE;
