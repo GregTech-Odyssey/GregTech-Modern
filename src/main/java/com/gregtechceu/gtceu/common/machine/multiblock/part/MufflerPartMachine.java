@@ -3,22 +3,19 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredPartMachine;
-import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -94,17 +91,8 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     // ********** GUI ***********//
     //////////////////////////////////////
     @Override
-    public ModularUI createUI(Player entityPlayer) {
+    public Widget createUIWidget() {
         int rowSize = (int) Math.sqrt(inventory.size());
-        var slots = new MenuItemAdapter(inventory);
-        int xOffset = rowSize == 10 ? 9 : 0;
-        var modular = new ModularUI(176 + xOffset * 2, 18 + 18 * rowSize + 94, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new LabelWidget(10, 5, getBlockState().getBlock().getDescriptionId())).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7 + xOffset, 18 + 18 * rowSize + 12, true));
-        for (int y = 0; y < rowSize; y++) {
-            for (int x = 0; x < rowSize; x++) {
-                int index = y * rowSize + x;
-                modular.widget(new SlotWidget(slots, index, (88 - rowSize * 9 + x * 18) + xOffset, 18 + y * 18, true, false).setBackgroundTexture(GuiTextures.SLOT));
-            }
-        }
-        return modular;
+        return HatchViews.page(SlotGrid.of(rowSize, inventory.size(), i -> ItemSlot.of(inventory, i, true, false)));
     }
 }
