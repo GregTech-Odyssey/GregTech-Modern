@@ -1,5 +1,8 @@
 package com.gregtechceu.gtceu.uiwidgets.side;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
+import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureScene;
 
@@ -39,9 +42,11 @@ final class SideScene {
 
     private final SideOverview page;
     private final StructureScene view;
+    private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
     private boolean dirty;
     private boolean loaded;
     private int renderKey;
+    private int ghostKey;
 
     SideScene(SideOverview page, int width, int height) {
         this.page = page;
@@ -51,8 +56,7 @@ final class SideScene {
         view.setFacePainter(this::paint);
         view.setTooltip(this::tooltip);
         view.setOnFaceClick(this::onFaceClick);
-        view.setReloader(this::load);
-        reload();
+        view.setReloader(this::reloadAll);
     }
 
     StructureScene getView() {
@@ -60,9 +64,14 @@ final class SideScene {
     }
 
     void reload() {
-        if (dirty) return;
+        if (!loaded || dirty) return;
         dirty = true;
         Minecraft.getInstance().tell(this::loadIfDirty);
+    }
+
+    private void reloadAll() {
+        ghostKey = 0;
+        load();
     }
 
     private void loadIfDirty() {
@@ -75,28 +84,73 @@ final class SideScene {
         dirty = false;
         var level = Minecraft.getInstance().level;
         if (level == null) return;
-        renderKey = renderKey();
         var pos = page.machine.getPos();
+        int nextGhostKey = ghostKey(level, pos);
+        renderKey = machineKey() * 31 + nextGhostKey;
         var blocks = new Long2ObjectOpenHashMap<BlockState>(1);
         var entities = new Long2ObjectOpenHashMap<BlockEntity>(1);
         blocks.put(pos.asLong(), level.getBlockState(pos));
         var entity = level.getBlockEntity(pos);
         if (entity != null) entities.put(pos.asLong(), entity);
         view.showLive(blocks, entities, ZOOM);
-        var ghosts = new Long2ObjectOpenHashMap<BlockState>(DIRECTIONS.length);
-        for (var direction : DIRECTIONS) {
-            var neighbor = pos.relative(direction);
-            var state = level.getBlockState(neighbor);
-            if (!state.isAir()) ghosts.put(neighbor.asLong(), state);
+        if (nextGhostKey != ghostKey) {
+            ghostKey = nextGhostKey;
+            var ghosts = new Long2ObjectOpenHashMap<BlockState>(DIRECTIONS.length);
+            var ghostEntities = new Long2ObjectOpenHashMap<BlockEntity>(DIRECTIONS.length);
+            for (var direction : DIRECTIONS) {
+                cursor.setWithOffset(pos, direction);
+                var state = level.getBlockState(cursor);
+                if (!state.isAir()) {
+                    long key = cursor.asLong();
+                    ghosts.put(key, state);
+                    var neighborEntity = level.getBlockEntity(cursor);
+                    if (neighborEntity != null) ghostEntities.put(key, neighborEntity);
+                }
+            }
+            view.setOverlayLive(GHOST_LAYER, ghosts, ghostEntities, 1, 1, 1, GHOST_ALPHA);
         }
-        view.setOverlay(GHOST_LAYER, ghosts, 1, 1, 1, GHOST_ALPHA);
         if (first) lookFromPlayer(level);
     }
 
-    private int renderKey() {
+    private int renderKey(Level level, BlockPos pos) {
+        return machineKey() * 31 + ghostKey(level, pos);
+    }
+
+    private int machineKey() {
         var machine = page.machine;
         int key = MachineSide.frameKey(machine) * 256 + page.getOutputKey();
-        var covers = machine.getCoverContainer();
+        return coversKey(key, machine.getCoverContainer());
+    }
+
+    private int ghostKey(Level level, BlockPos pos) {
+        int key = 1;
+        for (var direction : DIRECTIONS) {
+            cursor.setWithOffset(pos, direction);
+            var state = level.getBlockState(cursor);
+            key = key * 31 + System.identityHashCode(state);
+            if (!state.isAir()) {
+                var entity = level.getBlockEntity(cursor);
+                key = key * 31 + neighborEntityKey(entity);
+            }
+        }
+        return key;
+    }
+
+    private static int neighborEntityKey(@Nullable BlockEntity entity) {
+        if (entity == null) return 0;
+        int key = System.identityHashCode(entity);
+        if (entity instanceof MetaMachineBlockEntity machineEntity) {
+            var machine = machineEntity.getMetaMachine();
+            key = (key * 31 + MachineSide.frameKey(machine)) * 31 + machineEntity.getPaintingColor();
+            key = coversKey(key, machine.getCoverContainer());
+        } else if (entity instanceof PipeBlockEntity<?, ?> pipe) {
+            key = (key * 31 + pipe.getConnections()) * 31 + pipe.getPaintingColor();
+            key = coversKey(key, pipe.getCoverContainer());
+        }
+        return key;
+    }
+
+    private static int coversKey(int key, ICoverable covers) {
         for (var direction : DIRECTIONS) key = key * 31 + System.identityHashCode(covers.getCoverAtSide(direction));
         return key;
     }
@@ -133,8 +187,9 @@ final class SideScene {
     }
 
     private void paint(StructureScene.FaceSink sink) {
-        if (loaded && !dirty && renderKey() != renderKey) reload();
         var pos = page.machine.getPos();
+        var level = Minecraft.getInstance().level;
+        if (loaded && !dirty && level != null && renderKey(level, pos) != renderKey) reload();
         int item = page.getItemOutput(), fluid = page.getFluidOutput();
         var itemFace = SideOverview.outputFace(item);
         if (itemFace != null) sink.ring(pos, itemFace, ITEM_RING, SideOverview.outputColor(UITheme.SIDE_ITEM_OUTPUT, item));

@@ -13,13 +13,11 @@ import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
-import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
-import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.chat.Component;
@@ -28,7 +26,6 @@ import net.minecraftforge.fluids.FluidStack;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,39 +34,18 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 /**
- * 输入/输出总线、输入/输出仓、输入/输出总成这类"被动"部件的主页，统一成上下两区：
- *
- * <pre>
- *  ┌──────────────────────────────────┐
- *  │        [槽] │ [锁] [锁定槽]        │  操作区：槽位、开关，在剩余空间里居中
- *  │                                  │
- *  │ ┌ 流体 ………………………………… 水 ┐ │
- *  │ │ 储量 …… 1,000 / 8,000 mB │ │  显示区：状态面板，整宽贴在页面底边（紧挨玩家背包）
- *  │ └ 锁定流体 ……………………… 无 ┘ │
- *  └──────────────────────────────────┘
- * </pre>
- *
- * 页面与单方块配方机器同一标准高度（内容更高才撑高）。只有槽位网格、没有数据要显示的部件（总线、多格仓、总成）只有操作区；
- * 网格超过 {@link #MAX_GRID_ROWS} 行时放进滚动区。蒸汽部件保留自己的铜/钢皮肤，用 {@link #fixedPage} 按皮肤留出的区域摆放同样的两区。
+ * 输入/输出总线、输入/输出仓、输入/输出总成及单格储罐/箱等存储部件的主页布局：
+ * 页面与单方块配方机器同一标准高度（内容更高才撑高）；槽位网格超过 {@link #MAX_GRID_ROWS} 行时放进滚动区；
  * 输出方向的槽只能取出、不能放入（与原 GTM 界面一致）。
  */
 public final class HatchViews {
 
     private HatchViews() {}
 
-    /** "存储数量"（大容量单格总线等）。 */
+    /** "存储数量"（超级箱等）。 */
     public static final String STORED = "gtceu.gui.hatch.stored";
-    /** "物品"（大容量单格总线里存的物品）。 */
-    public static final String ITEM = "gtceu.gui.hatch.item";
     /** "取出一组"按钮说明。 */
     public static final String EXTRACT_STACK = "gtceu.gui.hatch.extract_stack";
-    /** 显示区里物品 / 流体为空时的"空"。 */
-    public static final String EMPTY = "gtceu.gui.hatch.empty";
-    public static final String FLUID = "gtceu.gui.hatch.fluid";
-    public static final String AMOUNT = "gtceu.gui.hatch.amount";
-    public static final String LOCKED = "gtceu.gui.hatch.locked";
-    public static final String LOCKED_ITEM = "gtceu.gui.hatch.locked_item";
-    public static final String NOT_LOCKED = "gtceu.gui.hatch.not_locked";
     public static final String CAPACITY_LIMIT = "gtceu.gui.hatch.capacity_limit";
     public static final String CAPACITY_LIMIT_TIP = "gtceu.gui.hatch.capacity_limit.tooltip";
     private static final String LOCK_ON = "gtceu.gui.hatch.lock_on";
@@ -88,28 +64,10 @@ public final class HatchViews {
         return RecipeMachinePage.page(operation);
     }
 
-    /** 操作区 + 显示区的主页：操作区在剩余空间里居中，显示区整宽贴底。 */
+    /** 操作区 + 底部附加区的主页：操作区在剩余空间里居中，底部附加区整宽贴底。 */
     public static UIElement page(Widget operation, UIElement display) {
         display.layout(l -> l.alignSelf(AlignItems.STRETCH));
         return RecipeMachinePage.page(operation, display);
-    }
-
-    /**
-     * 固定区域（{@code width} × {@code height}）里的两区，给保留原皮肤、按坐标摆放的界面（蒸汽部件）用：
-     * 操作区在上方剩余空间里居中，显示区贴底、宽 {@code displayWidth} 靠左（右边让出皮肤上的图案）。
-     */
-    public static UIElement fixedPage(int width, int height, Widget operation, UIElement display, int displayWidth) {
-        var center = new UIElement().layout(l -> l.column().flexGrow(1).alignCenter().justifyContent(AlignContent.CENTER));
-        center.addChild(operation);
-        display.layout(l -> l.width(displayWidth).alignSelf(AlignItems.START));
-        return new UIElement().layout(l -> l.column().size(width, height).gapAll(UISizes.SECTION_GAP))
-                .addChildren(center, display);
-    }
-
-    /** 固定区域里只有操作区（居中），给保留原皮肤、按坐标摆放的界面用。 */
-    public static UIElement fixedPage(int width, int height, Widget operation) {
-        return new UIElement().layout(l -> l.column().size(width, height).alignCenter().justifyContent(AlignContent.CENTER))
-                .addChild(operation);
     }
 
     /** 一行操作控件（一组），组内紧挨。 */
@@ -125,12 +83,7 @@ public final class HatchViews {
     // ==================== 槽位网格 ====================
 
     public static Widget items(KeyInventory<AEItemKey> storage, IO io) {
-        return scrollIfTall(itemGrid(storage, io, null), SlotGrid.squareRows(storage.size()));
-    }
-
-    /** 换了槽底图的物品网格（蒸汽部件用铜/钢色槽，与蒸汽界面皮肤一致）。 */
-    public static Widget items(KeyInventory<AEItemKey> storage, IO io, IGuiTexture slotTexture) {
-        return scrollIfTall(itemGrid(storage, io, slotTexture), SlotGrid.squareRows(storage.size()));
+        return scrollIfTall(itemGrid(storage, io), SlotGrid.squareRows(storage.size()));
     }
 
     public static Widget tanks(KeyInventory<AEFluidKey> tanks, IO io) {
@@ -143,17 +96,13 @@ public final class HatchViews {
         var slot = tankSlot(tanks, io);
         for (int i = 0; i < tanks.size(); i++) column.addChild(slot.apply(i));
         var content = new UIElement().layout(l -> l.row().gapAll(UISizes.SECTION_GAP).alignItems(AlignItems.START))
-                .addChildren(itemGrid(storage, io, null), column);
+                .addChildren(itemGrid(storage, io), column);
         return scrollIfTall(content, Math.max(SlotGrid.squareRows(storage.size()), tanks.size()));
     }
 
-    private static UIElement itemGrid(KeyInventory<AEItemKey> storage, IO io, @Nullable IGuiTexture slotTexture) {
+    private static UIElement itemGrid(KeyInventory<AEItemKey> storage, IO io) {
         var adapter = new MenuItemAdapter(storage);
-        return SlotGrid.square(storage.size(), i -> {
-            var slot = ItemSlot.of(adapter, i, true, io.support(IO.IN));
-            if (slotTexture != null) slot.setBackgroundTexture(slotTexture);
-            return slot;
-        });
+        return SlotGrid.square(storage.size(), i -> ItemSlot.of(adapter, i, true, io.support(IO.IN)));
     }
 
     private static IntFunction<Widget> tankSlot(KeyInventory<AEFluidKey> tanks, IO io) {
@@ -172,9 +121,9 @@ public final class HatchViews {
 
     // ==================== 单储罐 ====================
 
-    /** 只有一个储罐的仓：操作区是流体槽（输出仓另有锁定开关和锁定流体槽），显示区是流体、储量（输出仓另有锁定流体）。 */
+    /** 只有一个储罐的仓：操作区是流体槽（输出仓另有锁定开关和锁定流体槽）。 */
     public static UIElement singleTank(NotifiableInventory<AEFluidKey> tank, IO io) {
-        return page(tankOperation(tank, io), tankStatus(tank, io));
+        return page(tankOperation(tank, io));
     }
 
     /**
@@ -204,49 +153,8 @@ public final class HatchViews {
         return key instanceof AEFluidKey fluidKey ? fluidKey.getReadOnlyStack() : FluidStack.EMPTY;
     }
 
-    /** 单储罐的显示区：流体、储量；输出仓另有锁定流体。 */
-    public static StatusPanel tankStatus(NotifiableInventory<AEFluidKey> tank, IO io) {
-        var storage = tank.storage;
-        var status = new StatusPanel();
-        status.addLine(FLUID, new FluidName(() -> Keys.displayFluid(storage.keyAt(0)), EMPTY));
-        status.addLine(AMOUNT, new AmountText(storage));
-        if (io == IO.OUT) {
-            status.addLine(LOCKED, new FluidName(() -> lockedFluid(tank), NOT_LOCKED));
-        }
-        return status;
-    }
-
-    public static Supplier<Component> keyName(Supplier<? extends AEKey> key, String emptyKey) {
-        return new KeyName(key, emptyKey);
-    }
-
     public static Supplier<Component> amountText(LongSupplier amount, LongSupplier capacity, @Nullable String unit) {
         return new LimitText(amount, capacity, unit);
-    }
-
-    private static final class KeyName implements Supplier<Component> {
-
-        private final Supplier<? extends AEKey> key;
-        private final Component empty;
-        @Nullable
-        private AEKey last;
-        private Component text;
-
-        private KeyName(Supplier<? extends AEKey> key, String emptyKey) {
-            this.key = key;
-            this.empty = Component.translatable(emptyKey);
-            this.text = empty;
-        }
-
-        @Override
-        public Component get() {
-            AEKey current = key.get();
-            if (current != last) {
-                last = current;
-                text = current == null ? empty : current.getDisplayName();
-            }
-            return text;
-        }
     }
 
     private static final class LimitText implements Supplier<Component> {
@@ -272,54 +180,6 @@ public final class HatchViews {
                 lastCapacity = currentCapacity;
                 text = unit == null ? Component.translatable("gtceu.gui.hatch.amount_of", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity)) :
                         Component.translatable("gtceu.gui.hatch.amount_of_unit", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity), unit);
-            }
-            return text;
-        }
-    }
-
-    /** 流体名称，没有流体时显示 {@code emptyKey}。流体不变时复用上次的文字。 */
-    private static final class FluidName implements Supplier<Component> {
-
-        private final Supplier<FluidStack> fluid;
-        private final String emptyKey;
-        private FluidStack last = FluidStack.EMPTY;
-        private Component text;
-
-        private FluidName(Supplier<FluidStack> fluid, String emptyKey) {
-            this.fluid = fluid;
-            this.emptyKey = emptyKey;
-            this.text = Component.translatable(emptyKey);
-        }
-
-        @Override
-        public Component get() {
-            var current = fluid.get();
-            if (current.isEmpty() != last.isEmpty() || !current.isFluidEqual(last)) {
-                last = current.copy();
-                text = current.isEmpty() ? Component.translatable(emptyKey) : current.getDisplayName();
-            }
-            return text;
-        }
-    }
-
-    /** 储量"数量 / 容量 mB"。数量和容量不变时复用上次的文字。 */
-    private static final class AmountText implements Supplier<Component> {
-
-        private final KeyInventory<AEFluidKey> storage;
-        private long amount = -1, capacity = -1;
-        private Component text = Component.empty();
-
-        private AmountText(KeyInventory<AEFluidKey> storage) {
-            this.storage = storage;
-        }
-
-        @Override
-        public Component get() {
-            long currentAmount = storage.amountAt(0), currentCapacity = storage.slotLimit(0);
-            if (currentAmount != amount || currentCapacity != capacity) {
-                amount = currentAmount;
-                capacity = currentCapacity;
-                text = Component.literal(FormattingUtil.formatNumbers(amount) + " / " + FormattingUtil.formatNumbers(capacity) + " mB");
             }
             return text;
         }

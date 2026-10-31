@@ -1,9 +1,11 @@
 package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
@@ -15,9 +17,11 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,20 +29,62 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class CreativeComputationProviderMachine extends MetaMachine implements IFancyUIMachine, IOpticalComputationHatch {
+public class CreativeComputationProviderMachine extends MetaMachine implements IFancyUIMachine, IOpticalComputationHatch, IDropSaveMachine {
 
     @SaveToDisk(defaultValue = "0")
+    @SyncToClient
     private long maxCWUt;
+    @SyncToClient
     private long lastRequestedCWUt;
     private long requestedCWUPerSec;
     @Getter
     @SaveToDisk(defaultValue = "false")
+    @SyncToClient
     private boolean active;
     @Nullable
     private TickableSubscription computationSubs;
 
     public CreativeComputationProviderMachine(MetaMachineBlockEntity holder) {
         super(holder);
+    }
+
+    @Override
+    public @Nullable <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
+        if (cap == GTCapability.COMPUTATION_PROVIDER) {
+            return this;
+        }
+        return super.getGTCapability(cap, side);
+    }
+
+    @Override
+    public void saveToItem(CompoundTag tag) {
+        saveCustomPersistedData(tag, true);
+    }
+
+    @Override
+    public void loadFromItem(CompoundTag tag) {
+        loadCustomPersistedData(tag);
+    }
+
+    @Override
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
+        super.saveCustomPersistedData(tag, forDrop);
+        if (forDrop) {
+            tag.putLong("maxCWUt", maxCWUt);
+            tag.putBoolean("active", active);
+        }
+    }
+
+    @Override
+    public void loadCustomPersistedData(CompoundTag tag) {
+        super.loadCustomPersistedData(tag);
+        if (tag.contains("maxCWUt")) {
+            maxCWUt = tag.getLong("maxCWUt");
+        }
+        if (tag.contains("active")) {
+            active = tag.getBoolean("active");
+            updateComputationSubscription();
+        }
     }
 
     @Override
@@ -75,7 +121,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     public void setActive(boolean active) {
         this.active = active;
         updateComputationSubscription();
-        markAsDirty();
+        onChanged();
     }
 
     @Override
@@ -84,7 +130,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
         status.addLine("gtceu.creative.computation.average", MultiblockPage.numberText(() -> lastRequestedCWUt, "CWU/t"));
         var settings = NumberSettingPage.create(Component.literal("CWU/t"), () -> maxCWUt, value -> {
             maxCWUt = value;
-            markAsDirty();
+            onChanged();
         }, () -> 0, () -> Long.MAX_VALUE);
         settings.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isActive, this::setActive)));
         return Form.page().addChildren(status, settings);

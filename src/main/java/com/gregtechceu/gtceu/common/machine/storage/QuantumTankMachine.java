@@ -29,7 +29,6 @@ import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.IconToggle;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
-import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
@@ -433,13 +432,9 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         var limit = Form.numberRow(HatchViews.CAPACITY_LIMIT,
                 NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, () -> 1, this::getMax), HatchViews.CAPACITY_LIMIT_TIP);
         limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
-        var status = new StatusPanel();
-        status.addLine(HatchViews.FLUID, HatchViews.keyName(() -> storedKey, HatchViews.EMPTY));
-        status.addLine(HatchViews.AMOUNT, HatchViews.amountText(this::getStoredAmount, this::getMaxAmount, "mB"));
-        status.addLine(HatchViews.LOCKED, HatchViews.keyName(() -> lockedFluid.keyAt(0), HatchViews.NOT_LOCKED));
         var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
                 HatchViews.operations(tank, HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)), limit);
-        return HatchViews.page(operations, UIElement.column(LayoutStyle.AUTO).addChildren(status, storageUpgrades.createSlots()));
+        return HatchViews.page(operations, storageUpgrades.createSlots());
     }
 
     public void setVoiding(boolean voiding) {

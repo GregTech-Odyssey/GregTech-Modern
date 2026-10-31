@@ -2,19 +2,19 @@ package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomSlotWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.key.InfiniteKeySource;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.PhantomItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -26,6 +26,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,10 +38,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class CreativeChestMachine extends QuantumChestMachine {
 
     @SaveToDisk(defaultValue = "1")
-    @DropSaved
+    @SyncToClient
     private int itemsPerCycle = 1;
     @SaveToDisk(defaultValue = "1")
-    @DropSaved
+    @SyncToClient
     private int ticksPerCycle = 1;
 
     public CreativeChestMachine(MetaMachineBlockEntity holder) {
@@ -60,30 +61,44 @@ public class CreativeChestMachine extends QuantumChestMachine {
     private InteractionResult updateStored(ItemStack item) {
         var key = AEItemKey.of(item);
         cache.storage.set(0, key, key == null ? 0 : 1);
+        onItemChanged();
         return InteractionResult.SUCCESS;
     }
 
-    private static int parseCycleValue(String value) {
-        if (value.isEmpty()) return -1;
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return -1;
+    private void setStored(ItemStack stack) {
+        updateStored(stack);
+    }
+
+    @Override
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
+        super.saveCustomPersistedData(tag, forDrop);
+        if (forDrop) {
+            tag.putInt("itemsPerCycle", itemsPerCycle);
+            tag.putInt("ticksPerCycle", ticksPerCycle);
         }
     }
 
-    private void setTicksPerCycle(String value) {
-        int n = parseCycleValue(value);
-        if (n < 1) return;
-        ticksPerCycle = n;
-        if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
+    @Override
+    public void loadCustomPersistedData(CompoundTag tag) {
+        super.loadCustomPersistedData(tag);
+        if (tag.contains("itemsPerCycle")) {
+            itemsPerCycle = tag.getInt("itemsPerCycle");
+        }
+        if (tag.contains("ticksPerCycle")) {
+            ticksPerCycle = tag.getInt("ticksPerCycle");
+        }
+    }
+
+    public void setItemsPerCycle(int value) {
+        if (value < 1) return;
+        itemsPerCycle = value;
         onItemChanged();
     }
 
-    private void setItemsPerCycle(String value) {
-        int n = parseCycleValue(value);
-        if (n < 1) return;
-        itemsPerCycle = n;
+    public void setTicksPerCycle(int value) {
+        if (value < 1) return;
+        ticksPerCycle = value;
+        if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
         onItemChanged();
     }
 
@@ -110,17 +125,15 @@ public class CreativeChestMachine extends QuantumChestMachine {
 
     @Override
     public Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 176, 131);
-        group.addWidget(new PhantomSlotWidget(cache.storage, 0, 36, 6).setClearSlotOnRightClick(true).setMaxStackSize(1).setBackgroundTexture(GuiTextures.SLOT).setChangeListener(this::onChanged));
-        group.addWidget(new LabelWidget(7, 9, "gtceu.creative.chest.item"));
-        group.addWidget(new ImageWidget(7, 48, 154, 14, GuiTextures.DISPLAY));
-        group.addWidget(new TextFieldWidget(9, 50, 152, 10, () -> String.valueOf(itemsPerCycle), this::setItemsPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
-        group.addWidget(new LabelWidget(7, 28, "gtceu.creative.chest.ipc"));
-        group.addWidget(new ImageWidget(7, 85, 154, 14, GuiTextures.DISPLAY));
-        group.addWidget(new TextFieldWidget(9, 87, 152, 10, () -> String.valueOf(ticksPerCycle), this::setTicksPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
-        group.addWidget(new LabelWidget(7, 65, "gtceu.creative.chest.tpc"));
-        group.addWidget(new SwitchWidget(7, 101, 162, 20, (clickData, value) -> setWorkingEnabled(value)).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))).setPressed(isWorkingEnabled()));
-        return group;
+        var slot = PhantomItemSlot.of(this::getStored, this::setStored, stack -> true).xeiPhantom();
+        var page = Form.page();
+        page.addChild(Form.controlRow("gtceu.creative.chest.item", slot));
+        page.addChild(Form.numberRow("gtceu.creative.chest.ipc",
+                NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getItemsPerCycle, this::setItemsPerCycle, 1, Integer.MAX_VALUE)));
+        page.addChild(Form.numberRow("gtceu.creative.chest.tpc",
+                NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getTicksPerCycle, this::setTicksPerCycle, 1, Integer.MAX_VALUE)));
+        page.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled)));
+        return page;
     }
 
     private class InfiniteCache extends ItemCache {
@@ -133,7 +146,12 @@ public class CreativeChestMachine extends QuantumChestMachine {
 
         @Override
         public long slotLimit(int slot) {
-            return source.slotLimit(slot);
+            return storage.keyAt(0) != null ? itemsPerCycle : 0;
+        }
+
+        @Override
+        public long amountAt(int slot) {
+            return storage.keyAt(0) != null ? itemsPerCycle : 0;
         }
 
         @Override

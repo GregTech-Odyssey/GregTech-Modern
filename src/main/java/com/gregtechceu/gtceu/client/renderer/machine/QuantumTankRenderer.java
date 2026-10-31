@@ -128,7 +128,7 @@ public class QuantumTankRenderer extends StorageMachineRenderer {
         var facingYAxis = frontFacing.getAxis() == Direction.Axis.Y;
         if (!fluid.isEmpty()) {
             var ext = IClientFluidTypeExtensions.of(fluid.getFluid());
-            var texture = ext.getStillTexture();
+            var texture = ext.getStillTexture(fluid);
             var fluidTexture = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
 
             poseStack.pushPose();
@@ -156,7 +156,7 @@ public class QuantumTankRenderer extends StorageMachineRenderer {
                 maxZ = MAX;
             }
             RenderBufferUtils.renderCubeFace(poseStack, builder, MIN, minY, minZ, MAX, maxY, maxZ,
-                    ext.getTintColor() | 0xff000000, 0xf000f0, fluidTexture);
+                    ext.getTintColor(fluid) | 0xff000000, 0xf000f0, fluidTexture);
             poseStack.popPose();
         }
 

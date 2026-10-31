@@ -57,10 +57,12 @@ public final class StructureScene extends SceneView {
     private static final float FACE_FRAME = 0.07f;
     private static final int FACE_TEXELS = 16;
     private static final float TEXEL = 1f / FACE_TEXELS;
+    private static final LongArrayList EMPTY_HIGHLIGHT = new LongArrayList(0);
 
     private final StructureRenderer renderer = new StructureRenderer();
     private final SceneMarkers markers = new SceneMarkers();
     private final PreviewBounds bounds = new PreviewBounds();
+    private final PoseStack overlayPose = new PoseStack();
     @Nullable
     private PreviewLevel level;
     @Setter
@@ -87,6 +89,7 @@ public final class StructureScene extends SceneView {
     private int pendingLayer = ALL_LAYERS;
     private float pendingZoom = -1;
     private boolean hasPending;
+    private boolean hasPendingOverlay;
     @Nullable
     private BlockPos hoverPos;
     @Nullable
@@ -94,8 +97,12 @@ public final class StructureScene extends SceneView {
     @Nullable
     private BlockPos selectedPos;
     private ItemStack hoverItem = ItemStack.EMPTY;
+    @Nullable
+    private PreviewLevel.View pickView;
+    private final Vector3f pickFrom = new Vector3f(Float.NaN, Float.NaN, Float.NaN);
+    private final Vector3f pickTo = new Vector3f(Float.NaN, Float.NaN, Float.NaN);
     private final List<Overlay> overlays = new ArrayList<>();
-    private LongArrayList highlight = new LongArrayList();
+    private LongArrayList highlight = EMPTY_HIGHLIGHT;
     private int highlightColor;
     @Setter
     private boolean autoOrbit;
@@ -151,10 +158,28 @@ public final class StructureScene extends SceneView {
         final StructureRenderer renderer = new StructureRenderer();
         @Nullable
         PreviewLevel level;
+        @Nullable
+        Long2ObjectOpenHashMap<BlockState> pendingBlocks;
+        @Nullable
+        Long2ObjectOpenHashMap<BlockEntity> pendingEntities;
+        @Nullable
+        Long2ObjectOpenHashMap<PartOwner> pendingOwners;
+        boolean live;
+        boolean dirty;
         float alpha = 1;
 
         Overlay(int id) {
             this.id = id;
+        }
+
+        void dispose() {
+            renderer.dispose();
+            if (level != null) level.clear();
+            pendingBlocks = null;
+            pendingEntities = null;
+            pendingOwners = null;
+            live = false;
+            dirty = false;
         }
     }
 
@@ -186,34 +211,47 @@ public final class StructureScene extends SceneView {
 
     public void setOverlay(int id, @Nullable Long2ObjectOpenHashMap<BlockState> blocks, @Nullable Long2ObjectOpenHashMap<PartOwner> owners, float r, float g,
                            float b, float a) {
+        setOverlayInternal(id, blocks, null, owners, false, r, g, b, a);
+    }
+
+    public void setOverlayLive(int id, @Nullable Long2ObjectOpenHashMap<BlockState> blocks, @Nullable Long2ObjectOpenHashMap<BlockEntity> entities, float r,
+                               float g, float b, float a) {
+        setOverlayInternal(id, blocks, entities, null, true, r, g, b, a);
+    }
+
+    private void setOverlayInternal(int id, @Nullable Long2ObjectOpenHashMap<BlockState> blocks, @Nullable Long2ObjectOpenHashMap<BlockEntity> entities,
+                                    @Nullable Long2ObjectOpenHashMap<PartOwner> owners, boolean live, float r, float g, float b, float a) {
         Overlay overlay = null;
         for (var candidate : overlays) {
-            if (candidate.id == id) overlay = candidate;
+            if (candidate.id == id) {
+                overlay = candidate;
+                break;
+            }
         }
         if (blocks == null || blocks.isEmpty()) {
             if (overlay != null) {
-                overlay.renderer.dispose();
-                if (overlay.level != null) overlay.level.clear();
+                overlay.dispose();
                 overlays.remove(overlay);
             }
             return;
         }
-        var minecraft = Minecraft.getInstance();
-        if (minecraft.level == null) return;
         if (overlay == null) {
             overlay = new Overlay(id);
             overlays.add(overlay);
         }
-        if (overlay.level == null) overlay.level = new PreviewLevel(minecraft.level);
-        overlay.level.setBlocks(blocks, owners);
+        overlay.pendingBlocks = blocks;
+        overlay.pendingEntities = entities;
+        overlay.pendingOwners = owners;
+        overlay.live = live;
+        overlay.dirty = true;
         overlay.alpha = a;
         overlay.renderer.tint(r, g, b, a);
-        overlay.renderer.show(overlay.level.view(), true, camera.center());
         overlays.sort((x, y) -> Float.compare(y.alpha, x.alpha));
+        hasPendingOverlay = true;
     }
 
     public void setHighlight(@Nullable LongArrayList positions, int argb) {
-        this.highlight = positions == null ? new LongArrayList() : positions;
+        this.highlight = positions == null || positions.isEmpty() ? EMPTY_HIGHLIGHT : positions;
         this.highlightColor = argb;
     }
 
@@ -262,45 +300,71 @@ public final class StructureScene extends SceneView {
 
     public void dispose() {
         renderer.dispose();
-        for (var overlay : overlays) {
-            overlay.renderer.dispose();
-            if (overlay.level != null) overlay.level.clear();
-        }
+        for (var overlay : overlays) overlay.dispose();
         overlays.clear();
+        hasPendingOverlay = false;
         if (level != null) level.clear();
         level = null;
-        hoverPos = selectedPos = null;
+        clearHover();
+        selectedPos = null;
+    }
+
+    private void clearHover() {
+        hoverPos = null;
+        hoverFace = null;
         hoverItem = ItemStack.EMPTY;
+        pickView = null;
     }
 
     private void applyPending() {
-        if (!hasPending) return;
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) return;
-        hasPending = false;
-        boolean changed = pendingBlocks != null;
-        if (changed) {
-            if (level == null) level = new PreviewLevel(minecraft.level);
-            if (pendingEntities != null) level.setLiveBlocks(pendingBlocks, pendingEntities);
-            else level.setBlocks(pendingBlocks, pendingOwners);
-            pendingBlocks = null;
-            pendingEntities = null;
-            pendingOwners = null;
-            hoverPos = selectedPos = null;
-            hoverItem = ItemStack.EMPTY;
+        if (hasPending) {
+            hasPending = false;
+            boolean changed = pendingBlocks != null;
+            if (changed) {
+                if (level == null) level = new PreviewLevel(minecraft.level);
+                if (pendingEntities != null) level.setLiveBlocks(pendingBlocks, pendingEntities);
+                else level.setBlocks(pendingBlocks, pendingOwners);
+                pendingBlocks = null;
+                pendingEntities = null;
+                pendingOwners = null;
+                clearHover();
+                selectedPos = null;
+            }
+            if (level != null) {
+                var previousView = level.view();
+                level.setLayer(pendingLayer);
+                var view = level.view();
+                if (selectedPos != null && view.onlyY != ALL_LAYERS && selectedPos.getY() != view.onlyY) {
+                    selectedPos = null;
+                }
+                if (changed) bounds.measure(view.states);
+                if ((changed || !camera.hasHome()) && !bounds.empty) {
+                    float cx = (bounds.minX + bounds.maxX) / 2f + 0.5f, cz = (bounds.minZ + bounds.maxZ) / 2f + 0.5f;
+                    float cy = view.onlyY == ALL_LAYERS ? (bounds.minY + bounds.maxY) / 2f + 0.5f : view.onlyY + 0.5f;
+                    int size = Math.max(Math.max(bounds.width(), view.onlyY == ALL_LAYERS ? bounds.height() : 1), bounds.depth());
+                    camera.place(new Vector3f(cx, cy, cz), pendingZoom > 0 ? pendingZoom : fitZoom(size, DEFAULT_PER_SIZE));
+                }
+                pendingZoom = -1;
+                if (changed || view != previousView) renderer.show(view, changed, camera.center());
+            }
         }
-        if (level == null) return;
-        level.setLayer(pendingLayer);
-        var view = level.view();
-        if ((changed || !camera.hasHome()) && !view.states.isEmpty()) {
-            bounds.measure(view.states);
-            float cx = (bounds.minX + bounds.maxX) / 2f + 0.5f, cz = (bounds.minZ + bounds.maxZ) / 2f + 0.5f;
-            float cy = view.onlyY == ALL_LAYERS ? (bounds.minY + bounds.maxY) / 2f + 0.5f : view.onlyY + 0.5f;
-            int size = Math.max(Math.max(bounds.width(), view.onlyY == ALL_LAYERS ? bounds.height() : 1), bounds.depth());
-            camera.place(new Vector3f(cx, cy, cz), pendingZoom > 0 ? pendingZoom : fitZoom(size, DEFAULT_PER_SIZE));
+        if (hasPendingOverlay) {
+            hasPendingOverlay = false;
+            var center = camera.center();
+            for (var overlay : overlays) {
+                if (!overlay.dirty || overlay.pendingBlocks == null) continue;
+                overlay.dirty = false;
+                if (overlay.level == null) overlay.level = new PreviewLevel(minecraft.level);
+                if (overlay.live) overlay.level.setLiveBlocks(overlay.pendingBlocks, overlay.pendingEntities);
+                else overlay.level.setBlocks(overlay.pendingBlocks, overlay.pendingOwners);
+                overlay.pendingBlocks = null;
+                overlay.pendingEntities = null;
+                overlay.pendingOwners = null;
+                overlay.renderer.show(overlay.level.view(), true, center);
+            }
         }
-        pendingZoom = -1;
-        renderer.show(view, changed, camera.center());
     }
 
     @Override
@@ -321,7 +385,7 @@ public final class StructureScene extends SceneView {
     @Override
     protected void beforeRender() {
         if (!hasPending && !renderer.hasData() && reloader != null) reloader.run();
-        applyPending();
+        if (hasPending || hasPendingOverlay) applyPending();
         if (autoOrbit) {
             var minecraft = Minecraft.getInstance();
             float ticks = (minecraft.level == null ? 0 : minecraft.level.getGameTime() % ORBIT_TICKS) + minecraft.getFrameTime();
@@ -342,7 +406,7 @@ public final class StructureScene extends SceneView {
     protected void renderExtras(float partialTicks) {
         if (!highlight.isEmpty()) renderHighlight();
         if (facePainter != null) renderFaces(facePainter);
-        if (selectionBox && selectedPos != null) RenderUtils.renderBlockOverLay(new PoseStack(), selectedPos, SELECTION_RED, 0, 0, SELECTION_SCALE);
+        if (selectionBox && selectedPos != null) RenderUtils.renderBlockOverLay(overlayPose, selectedPos, SELECTION_RED, 0, 0, SELECTION_SCALE);
     }
 
     private void renderFaces(FacePainter painter) {
@@ -385,17 +449,18 @@ public final class StructureScene extends SceneView {
     }
 
     private static void faceQuad(BufferBuilder buffer, BlockPos pos, Direction face, float u0, float v0, float u1, float v1, int argb) {
-        float a = (argb >>> 24) / 255f, r = (argb >> 16 & 0xFF) / 255f, g = (argb >> 8 & 0xFF) / 255f, b = (argb & 0xFF) / 255f;
+        int a = argb >>> 24, r = argb >> 16 & 0xFF, g = argb >> 8 & 0xFF, b = argb & 0xFF;
         boolean positive = face.getAxisDirection() == Direction.AxisDirection.POSITIVE;
         float plane = positive ? 1 + FACE_OFFSET : -FACE_OFFSET;
-        faceVertex(buffer, pos, face.getAxis(), plane, u0, v0, r, g, b, a);
-        faceVertex(buffer, pos, face.getAxis(), plane, u1, v0, r, g, b, a);
-        faceVertex(buffer, pos, face.getAxis(), plane, u1, v1, r, g, b, a);
-        faceVertex(buffer, pos, face.getAxis(), plane, u0, v1, r, g, b, a);
+        var axis = face.getAxis();
+        faceVertex(buffer, pos, axis, plane, u0, v0, r, g, b, a);
+        faceVertex(buffer, pos, axis, plane, u1, v0, r, g, b, a);
+        faceVertex(buffer, pos, axis, plane, u1, v1, r, g, b, a);
+        faceVertex(buffer, pos, axis, plane, u0, v1, r, g, b, a);
     }
 
-    private static void faceVertex(BufferBuilder buffer, BlockPos pos, Direction.Axis axis, float plane, float u, float v, float r, float g,
-                                   float b, float a) {
+    private static void faceVertex(BufferBuilder buffer, BlockPos pos, Direction.Axis axis, float plane, float u, float v, int r, int g,
+                                   int b, int a) {
         float x, y, z;
         switch (axis) {
             case X -> {
@@ -418,29 +483,31 @@ public final class StructureScene extends SceneView {
     }
 
     private void renderHighlight() {
-        float a = (highlightColor >>> 24) / 255f, r = (highlightColor >> 16 & 0xFF) / 255f, g = (highlightColor >> 8 & 0xFF) / 255f,
-                b = (highlightColor & 0xFF) / 255f;
+        int a = highlightColor >>> 24;
+        if (a == 0) return;
+        int r = highlightColor >> 16 & 0xFF, g = highlightColor >> 8 & 0xFF, b = highlightColor & 0xFF;
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
+        RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.disableCull();
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         BufferBuilder buffer = Tesselator.getInstance().getBuilder();
         buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
         int onlyY = level == null ? ALL_LAYERS : level.view().onlyY;
-        for (int i = 0; i < highlight.size(); i++) {
+        float span = 1 - 2 * HIGHLIGHT_INSET;
+        for (int i = 0, n = highlight.size(); i < n; i++) {
             long pos = highlight.getLong(i);
             if (onlyY != ALL_LAYERS && BlockPos.getY(pos) != onlyY) continue;
             float x0 = BlockPos.getX(pos) + HIGHLIGHT_INSET, y0 = BlockPos.getY(pos) + HIGHLIGHT_INSET, z0 = BlockPos.getZ(pos) + HIGHLIGHT_INSET;
-            float x1 = x0 + 1 - 2 * HIGHLIGHT_INSET, y1 = y0 + 1 - 2 * HIGHLIGHT_INSET, z1 = z0 + 1 - 2 * HIGHLIGHT_INSET;
-            box(buffer, x0, y0, z0, x1, y1, z1, r, g, b, a);
+            box(buffer, x0, y0, z0, x0 + span, y0 + span, z0 + span, r, g, b, a);
         }
         Tesselator.getInstance().end();
         RenderSystem.enableCull();
         RenderSystem.depthMask(true);
     }
 
-    private static void box(BufferBuilder buffer, float x0, float y0, float z0, float x1, float y1, float z1, float r, float g, float b, float a) {
+    private static void box(BufferBuilder buffer, float x0, float y0, float z0, float x1, float y1, float z1, int r, int g, int b, int a) {
         buffer.vertex(x0, y0, z0).color(r, g, b, a).endVertex();
         buffer.vertex(x1, y0, z0).color(r, g, b, a).endVertex();
         buffer.vertex(x1, y0, z1).color(r, g, b, a).endVertex();
@@ -495,21 +562,28 @@ public final class StructureScene extends SceneView {
 
     @Override
     protected void onHoverRay(Vector3f from, Vector3f to, boolean pointerOver) {
-        var previous = hoverPos;
-        hoverPos = null;
-        hoverFace = null;
-        if (level != null && pointerOver) {
-            var hit = ScenePick.pick(level.view(), bounds, from, to);
-            if (hit != null) {
-                hoverPos = hit.getBlockPos();
-                hoverFace = hit.getDirection();
-            }
+        if (!pointerOver || level == null || bounds.empty) {
+            clearHover();
+            return;
         }
-        if (hoverPos == null) {
+        var view = level.view();
+        if (view == pickView && pickFrom.equals(from) && pickTo.equals(to)) return;
+        pickView = view;
+        pickFrom.set(from);
+        pickTo.set(to);
+        var previous = hoverPos;
+        var hit = ScenePick.pick(view, bounds, from, to);
+        if (hit == null) {
+            hoverPos = null;
+            hoverFace = null;
             hoverItem = ItemStack.EMPTY;
-        } else if (!hoverPos.equals(previous) && level != null) {
+            return;
+        }
+        hoverPos = hit.getBlockPos();
+        hoverFace = hit.getDirection();
+        if (!hoverPos.equals(previous)) {
             var state = level.getBlockState(hoverPos);
-            hoverItem = state.getBlock().getCloneItemStack(level, hoverPos, state);
+            hoverItem = new ItemStack(state.getBlock());
         }
     }
 

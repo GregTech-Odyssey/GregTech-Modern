@@ -474,9 +474,8 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
                 NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, () -> 1, this::getMax), HatchViews.CAPACITY_LIMIT_TIP);
         limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
         var status = new StatusPanel();
-        status.addLine(HatchViews.ITEM, HatchViews.keyName(() -> storedKey, HatchViews.EMPTY));
         status.addLine(HatchViews.STORED, HatchViews.amountText(this::getStoredAmount, this::getMaxAmount, null));
-        status.addLine(HatchViews.LOCKED_ITEM, HatchViews.keyName(() -> lockedItem.keyAt(0), HatchViews.NOT_LOCKED));
+
         var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
                 HatchViews.operations(importSlot, HatchViews.group(storedSlot, extract), HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)),
                 limit);

@@ -325,6 +325,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
             }
         }
         this.isInputLimited = data.readBoolean();
+        availableStacksCache.markAsDirty();
     }
 
     @Override
@@ -347,6 +348,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     @Override
     public void readValue(@NotNull Object data, @NotNull ValueOps ops) {
         GTDataFixer.decodeStackInventory(this, ops, data);
+        availableStacksCache.markAsDirty();
     }
 
     public final ByteArrayTag serializeNBT() {
@@ -357,6 +359,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
         if (tag instanceof ByteArrayTag byteTags) {
             readValue(JavaValueOps.INSTANCE.fromBytes(byteTags.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
         } else if (tag instanceof CompoundTag nbt) {
+            Arrays.fill(stacks, ItemStack.EMPTY);
             ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
             for (int i = 0; i < tagList.size(); i++) {
                 CompoundTag itemTags = tagList.getCompound(i);
@@ -366,6 +369,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
                 }
             }
             isInputLimited = nbt.getBoolean("il");
+            availableStacksCache.markAsDirty();
         }
     }
 }
