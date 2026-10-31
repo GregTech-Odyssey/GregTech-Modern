@@ -48,6 +48,8 @@ public final class HatchViews {
     public static final Component EXTRACT_STACK = Component.translatable("gtceu.gui.hatch.extract_stack");
     public static final Component CAPACITY_LIMIT = Component.translatable("gtceu.gui.hatch.capacity_limit");
     public static final Component CAPACITY_LIMIT_TIP = Component.translatable("gtceu.gui.hatch.capacity_limit.tooltip");
+    private static final String AMOUNT_OF = "gtceu.gui.hatch.amount_of";
+    private static final String AMOUNT_OF_UNIT = "gtceu.gui.hatch.amount_of_unit";
     private static final Component LOCK_ON = Component.translatable("gtceu.gui.hatch.lock_on");
     private static final Component LOCK_OFF = Component.translatable("gtceu.gui.hatch.lock_off");
     private static final Component LOCK_NEED_EMPTY = Component.translatable("gtceu.gui.hatch.lock_need_empty");
@@ -178,8 +180,8 @@ public final class HatchViews {
             if (currentAmount != lastAmount || currentCapacity != lastCapacity) {
                 lastAmount = currentAmount;
                 lastCapacity = currentCapacity;
-                text = unit == null ? Component.translatable("gtceu.gui.hatch.amount_of", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity)) :
-                        Component.translatable("gtceu.gui.hatch.amount_of_unit", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity), unit);
+                text = unit == null ? Component.translatable(AMOUNT_OF, FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity)) :
+                        Component.translatable(AMOUNT_OF_UNIT, FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity), unit);
             }
             return text;
         }
