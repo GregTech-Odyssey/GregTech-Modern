@@ -35,9 +35,9 @@ public final class StructureBuild {
 
     public static final String RESULT = "gtceu.structure_build.result";
     public static final String MISSING = "gtceu.structure_build.missing";
-    public static final String INVALID = "gtceu.structure_build.invalid";
+    public static final Component INVALID = Component.translatable("gtceu.structure_build.invalid");
     public static final String DEMOLISHED = "gtceu.structure_build.demolished";
-    public static final String NO_NETWORK = "gtceu.structure_build.no_network";
+    public static final Component NO_NETWORK = Component.translatable("gtceu.structure_build.no_network");
     public static final int FLAG_MIRROR = 1;
     public static final int FLAG_NETWORK = 2;
     public static final int FLAG_DEMOLISH = 4;
@@ -48,7 +48,7 @@ public final class StructureBuild {
         var structure = controller.self().getDefinition().displayStructure();
         var layout = structure == null ? null : structure.layout(values);
         if (layout == null) {
-            player.sendSystemMessage(Component.translatable(INVALID));
+            player.sendSystemMessage(INVALID);
             return;
         }
         build(player, controller, layout, choices);
@@ -64,7 +64,7 @@ public final class StructureBuild {
 
     public static void build(ServerPlayer player, IMultiController controller, Layout layout, Item[] choices, int flags, @Nullable boolean[] demolishNodes) {
         if (layout.cells().size() != choices.length) {
-            player.sendSystemMessage(Component.translatable(INVALID));
+            player.sendSystemMessage(INVALID);
             return;
         }
         if (!player.mayBuild()) return;
@@ -72,7 +72,7 @@ public final class StructureBuild {
         boolean flip = (flags & FLAG_MIRROR) != 0 && machine.allowFlip();
         boolean useNetwork = (flags & FLAG_NETWORK) != 0;
         if (useNetwork && !PlayerSupply.hasNetwork(player)) {
-            player.sendSystemMessage(Component.translatable(NO_NETWORK));
+            player.sendSystemMessage(NO_NETWORK);
             useNetwork = false;
         }
         if ((flags & FLAG_DEMOLISH) != 0) {

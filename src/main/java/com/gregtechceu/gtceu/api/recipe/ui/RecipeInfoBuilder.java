@@ -19,9 +19,9 @@ import java.util.function.Supplier;
 public interface RecipeInfoBuilder {
 
     /**
-     * 一行"名称 …… 数值"。{@code labelKey} 是名称的翻译键，数值单独给（不要用带 %s 的整句键）。
+     * 一行"名称 …… 数值"。{@code label} 是名称，数值单独给（不要用带 %s 的整句键）。
      */
-    RecipeInfoBuilder line(String labelKey, Supplier<Component> value);
+    RecipeInfoBuilder line(Component label, Supplier<Component> value);
 
     /** 一行整句（没有名称），用于不好拆成名称和数值的说明。 */
     RecipeInfoBuilder sentence(Supplier<Component> text);

@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.uiwidgets.filter.TagLookupView;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.hooks.IAEItem;
@@ -45,9 +46,12 @@ public class TagItemFilter extends TagFilter<ItemStack, ItemFilter> implements I
         return cache.computeIfAbsent(((IAEItem) itemStack.getItem()).ae2$getUid(), k -> TagExprFilter.tagsMatch(matchExpr, itemStack));
     }
 
+    private static final Component LOOKUP_ITEM = Component.translatable("cover.tag_filter.lookup_item");
+    private static final Component LOOKUP_ONLY = Component.translatable("cover.tag_filter.lookup_only");
+
     @Override
     TagLookupView createLookup(Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick) {
-        return TagLookupView.items("cover.tag_filter.tags", getter, setter, onServerPick, "cover.tag_filter.lookup_item", "cover.tag_filter.lookup_only");
+        return TagLookupView.items("cover.tag_filter.tags", getter, setter, onServerPick, LOOKUP_ITEM, LOOKUP_ONLY);
     }
 
     @Override
