@@ -28,15 +28,26 @@ public abstract class ToolSetting {
 
     public static final ToolSetting[] NONE = new ToolSetting[0];
     public static final ItemDataComponentKey<Byte, CompoundTag> SELECTED = ToolData.byteField(ToolData.BEHAVIOURS_TAG_KEY, "Setting");
+    private static final String SETTING_ADJUST = "item.gtceu.tool.setting.adjust";
+    private static final String SHIFT_KEY = "item.gtceu.tool.setting.shift_key";
+    private static final String SETTING_VALUE = "item.gtceu.tool.setting.value";
     private static final Component SETTING_SELECTED = Component.translatable("item.gtceu.tool.setting.selected");
     private static final Component SETTING_SELECTED_DETAIL = Component.translatable("item.gtceu.tool.setting.selected.detail");
+    private static final Component SETTING_SWITCH = Component.translatable("item.gtceu.tool.setting.switch");
+    private static final Component SNEAK_AIR = Component.translatable("item.gtceu.tool.setting.sneak_air");
+    private static final Component SETTING_OPEN = Component.translatable("item.gtceu.tool.setting.open");
+    private static final Component TOOLTIP_SETTINGS = Component.translatable("item.gtceu.tool.tooltip.settings");
 
     public final String nameKey;
     public final String detailKey;
+    public final Component name;
+    public final Component detail;
 
     protected ToolSetting(String nameKey, String detailKey) {
         this.nameKey = nameKey;
         this.detailKey = detailKey;
+        this.name = Component.translatable(nameKey);
+        this.detail = Component.translatable(detailKey);
     }
 
     public abstract Component value(ItemStack stack);
@@ -75,8 +86,7 @@ public abstract class ToolSetting {
             settings[index].cycle(stack);
         }
         ToolSetting setting = settings[index];
-        player.displayClientMessage(Component.translatable("item.gtceu.tool.setting.value",
-                Component.translatable(setting.nameKey), setting.value(stack)), true);
+        player.displayClientMessage(Component.translatable(SETTING_VALUE, setting.name, setting.value(stack)), true);
     }
 
     public static boolean canOpenUI(Player player, InteractionHand hand) {
@@ -89,7 +99,7 @@ public abstract class ToolSetting {
             UIElement page = Form.page();
             if (settings.length > 1) {
                 page.addChild(Form.choiceRow(SETTING_SELECTED, settings.length,
-                        i -> Component.translatable(settings[i].nameKey),
+                        i -> settings[i].name,
                         () -> selected(holder.getHeld(), settings),
                         i -> {
                             ItemStack held = heldTool(holder);
@@ -112,23 +122,21 @@ public abstract class ToolSetting {
     public static void addControls(ItemStack stack, ToolSetting[] settings, List<Component> tooltip) {
         if (settings.length == 0) return;
         ToolSetting current = settings[selected(stack, settings)];
-        tooltip.add(Tips.hotkey(KeyBind.TOOL_SETTING, Component.translatable("gtceu.tip.toggle",
-                Component.translatable("item.gtceu.tool.setting.adjust", Component.translatable(current.nameKey)), current.value(stack))));
+        tooltip.add(Tips.hotkey(KeyBind.TOOL_SETTING, Tips.toggle(
+                Component.translatable(SETTING_ADJUST, current.name), current.value(stack))));
         if (settings.length > 1) {
-            tooltip.add(Tips.control(Tips.keyAction(Component.translatable("item.gtceu.tool.setting.shift_key",
-                    Tips.keyName(KeyBind.TOOL_SETTING)), Component.translatable("item.gtceu.tool.setting.switch"))));
+            tooltip.add(Tips.control(Tips.keyAction(Component.translatable(SHIFT_KEY,
+                    Tips.keyName(KeyBind.TOOL_SETTING)), SETTING_SWITCH)));
         }
-        tooltip.add(Tips.rightClick(Tips.keyAction(Component.translatable("item.gtceu.tool.setting.sneak_air"),
-                Component.translatable("item.gtceu.tool.setting.open"))));
+        tooltip.add(Tips.rightClick(Tips.keyAction(SNEAK_AIR, SETTING_OPEN)));
     }
 
     public static void addSettings(ItemStack stack, ToolSetting[] settings, List<Component> tooltip, boolean details) {
         if (settings.length == 0) return;
-        tooltip.add(Tips.heading(Component.translatable("item.gtceu.tool.tooltip.settings")));
+        tooltip.add(Tips.heading(TOOLTIP_SETTINGS));
         for (ToolSetting setting : settings) {
-            tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.setting.value",
-                    Component.translatable(setting.nameKey), setting.value(stack))));
-            if (details) tooltip.add(Tips.detail(Component.translatable(setting.detailKey)));
+            tooltip.add(Tips.stat(Component.translatable(SETTING_VALUE, setting.name, setting.value(stack))));
+            if (details) tooltip.add(Tips.detail(setting.detail));
         }
     }
 
@@ -169,12 +177,12 @@ public abstract class ToolSetting {
         @Override
         public void addRows(UIElement page, HeldItemUIFactory.HeldItemHolder holder) {
             Component[] options = options(holder.getHeld());
-            page.addChild(Form.choiceRow(Component.translatable(nameKey), options.length, i -> options[i],
+            page.addChild(Form.choiceRow(name, options.length, i -> options[i],
                     () -> index(holder.getHeld(), options.length),
                     i -> {
                         ItemStack held = heldTool(holder);
                         if (!held.isEmpty()) setter.set(held, i);
-                    }, Component.translatable(detailKey)));
+                    }, detail));
         }
     }
 

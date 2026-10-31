@@ -351,23 +351,29 @@ public abstract class ProspectorMode<T> {
             return OreInfo.class;
         }
 
+        private static final String CHANCE_BASE_KEY = "gtceu.gui.content.chance_base";
+
         @Override
         public void appendTooltips(List<OreInfo[]> items, List<Component> tooltips, String selected) {
             for (var array : items) {
                 int totalWeight = Arrays.stream(array).mapToInt(OreInfo::weight).sum();
                 for (OreInfo item : array) {
                     float chance = (float) item.weight / totalWeight * 100;
-                    tooltips.add(Component.translatable(getDescriptionId(item)).append(" (").append(Component.translatable("gtceu.gui.content.chance_base", FormattingUtil.formatNumber2Places(chance))).append(") --- %s (%s%%)".formatted(item.yield, item.left)));
+                    tooltips.add(Component.translatable(getDescriptionId(item)).append(" (").append(Component.translatable(CHANCE_BASE_KEY, FormattingUtil.formatNumber2Places(chance))).append(") --- %s (%s%%)".formatted(item.yield, item.left)));
                 }
             }
         }
     };
     public final String unlocalizedName;
     public final int cellSize;
+    public final Component name;
+    public final List<Component> tooltip;
 
     ProspectorMode(@NotNull String unlocalizedName, int cellSize) {
         this.unlocalizedName = unlocalizedName;
         this.cellSize = cellSize;
+        this.name = Component.translatable(unlocalizedName);
+        this.tooltip = List.of(this.name);
     }
 
     public abstract void scan(T[][][] storage, LevelChunk chunk);

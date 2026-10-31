@@ -59,15 +59,17 @@ public class GTBucketItem extends BucketItem {
                 super.initCapabilities(stack, nbt);
     }
 
+    private static final String BUCKET_KEY = "item.gtceu.bucket";
+
     @Override
     public String getDescriptionId() {
-        return "item.gtceu.bucket";
+        return BUCKET_KEY;
     }
 
     @Override
     public Component getDescription() {
         Component materialName = material.getLocalizedName();
-        return Component.translatable("item.gtceu.bucket", Component.translatable(this.langKey, materialName));
+        return Component.translatable(BUCKET_KEY, Component.translatable(this.langKey, materialName));
     }
 
     @Override
