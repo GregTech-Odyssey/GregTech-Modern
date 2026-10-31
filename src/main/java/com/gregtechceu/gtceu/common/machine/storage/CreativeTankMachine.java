@@ -2,17 +2,17 @@ package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.PhantomFluidWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.InfiniteKeySource;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.PhantomFluidSlot;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
-import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
-import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib.gui.widget.*;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -29,6 +29,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +39,10 @@ public class CreativeTankMachine extends QuantumTankMachine {
     private static final int CONFIG_AMOUNT = 1000;
 
     @SaveToDisk(defaultValue = "1000")
+    @SyncToClient
     private int mBPerCycle = 1000;
     @SaveToDisk(defaultValue = "1")
+    @SyncToClient
     private int ticksPerCycle = 1;
 
     public CreativeTankMachine(MetaMachineBlockEntity holder) {
@@ -86,27 +89,16 @@ public class CreativeTankMachine extends QuantumTankMachine {
         }
     }
 
-    private static int parseCycleValue(String value) {
-        if (value.isEmpty()) return -1;
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
-    }
-
-    private void setTicksPerCycle(String value) {
-        int n = parseCycleValue(value);
-        if (n < 1) return;
-        ticksPerCycle = n;
-        if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
+    public void setMBPerCycle(int value) {
+        if (value < 1) return;
+        mBPerCycle = value;
         onFluidChanged();
     }
 
-    private void setmBPerCycle(String value) {
-        int n = parseCycleValue(value);
-        if (n < 1) return;
-        mBPerCycle = n;
+    public void setTicksPerCycle(int value) {
+        if (value < 1) return;
+        ticksPerCycle = value;
+        if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
         onFluidChanged();
     }
 
@@ -145,18 +137,17 @@ public class CreativeTankMachine extends QuantumTankMachine {
     }
 
     @Override
-    public WidgetGroup createUIWidget() {
-        var group = new WidgetGroup(0, 0, 176, 131);
-        group.addWidget(new PhantomFluidWidget(new ForgeFluidAdapter(cache.storage), 0, 36, 6, 18, 18, this::getStored, this::updateStored).setShowAmount(false).setBackground(GuiTextures.FLUID_SLOT));
-        group.addWidget(new LabelWidget(7, 9, "gtceu.creative.tank.fluid"));
-        group.addWidget(new ImageWidget(7, 45, 154, 14, GuiTextures.DISPLAY));
-        group.addWidget(new TextFieldWidget(9, 47, 152, 10, () -> String.valueOf(mBPerCycle), this::setmBPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
-        group.addWidget(new LabelWidget(7, 28, "gtceu.creative.tank.mbpc"));
-        group.addWidget(new ImageWidget(7, 82, 154, 14, GuiTextures.DISPLAY));
-        group.addWidget(new TextFieldWidget(9, 84, 152, 10, () -> String.valueOf(ticksPerCycle), this::setTicksPerCycle).setMaxStringLength(11).setNumbersOnly(1, Integer.MAX_VALUE));
-        group.addWidget(new LabelWidget(7, 65, "gtceu.creative.tank.tpc"));
-        group.addWidget(new SwitchWidget(7, 101, 162, 20, (clickData, value) -> setWorkingEnabled(value)).setTexture(new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.off")), new GuiTextureGroup(ResourceBorderTexture.BUTTON_COMMON, new TextTexture("gtceu.creative.activity.on"))).setPressed(isWorkingEnabled()));
-        return group;
+    public Widget createUIWidget() {
+        var slot = PhantomFluidSlot.of(new ForgeFluidAdapter(cache.storage), 0, this::getStored, this::updateStored).xeiPhantom();
+        slot.setShowAmount(false);
+        var page = Form.page();
+        page.addChild(Form.controlRow("gtceu.creative.tank.fluid", slot));
+        page.addChild(Form.numberRow("gtceu.creative.tank.mbpc",
+                NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getMBPerCycle, this::setMBPerCycle, 1, Integer.MAX_VALUE)));
+        page.addChild(Form.numberRow("gtceu.creative.tank.tpc",
+                NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getTicksPerCycle, this::setTicksPerCycle, 1, Integer.MAX_VALUE)));
+        page.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled)));
+        return page;
     }
 
     private class InfiniteCache extends FluidCache {
