@@ -14,6 +14,8 @@ import java.util.function.Predicate;
 
 public interface IAutoPullPart extends IMultiPart {
 
+    List<Component> AUTO_PULL_TOOLTIP = List.of(Component.translatable("gtceu.gui.me_bus.auto_pull_button"));
+
     boolean isAutoPull();
 
     void setAutoPull(boolean autoPull);
@@ -27,6 +29,6 @@ public interface IAutoPullPart extends IMultiPart {
                 WidgetIcons.AUTO_PULL_ON,
                 this::isAutoPull,
                 (clickData, pressed) -> setAutoPull(pressed))
-                .setTooltipsSupplier(pressed -> List.of(Component.translatable("gtceu.gui.me_bus.auto_pull_button"))));
+                .setTooltipsSupplier(pressed -> AUTO_PULL_TOOLTIP));
     }
 }

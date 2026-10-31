@@ -31,9 +31,12 @@ import java.util.function.Supplier;
 public interface IRecipeLogicMachine extends IRecipeHandlerHolder, IWorkable, ICleanroomReceiver,
                                      IVoidable {
 
+    List<Component> RECIPE_LOCK_ENABLED_TOOLTIP = List.of(Component.translatable("gtceu.machine.recipe_lock_enabled"));
+    List<Component> RECIPE_LOCK_DISABLED_TOOLTIP = List.of(Component.translatable("gtceu.machine.recipe_lock_disabled"));
+
     static void attachRecipeLockConfigurator(ConfiguratorPanel configuratorPanel, IRecipeLogicMachine machine) {
         if (machine.supportLockRecipe() && !machine.alwaysSearchRecipe()) configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.RECIPE_LOCK_OFF, WidgetIcons.RECIPE_LOCK_ON, () -> machine.getRecipeLogic().isRecipeLocked(), (clickData, pressed) -> machine.getRecipeLogic().setRecipeLocked(pressed))
-                .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "gtceu.machine.recipe_lock_enabled" : "gtceu.machine.recipe_lock_disabled"))));
+                .setTooltipsSupplier(pressed -> pressed ? RECIPE_LOCK_ENABLED_TOOLTIP : RECIPE_LOCK_DISABLED_TOOLTIP));
     }
 
     /**

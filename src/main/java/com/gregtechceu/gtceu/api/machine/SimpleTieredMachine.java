@@ -306,9 +306,12 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final List<Component> POWER_ON_TOOLTIP = List.of(Component.translatable("behaviour.soft_hammer.enabled"));
+    private static final List<Component> POWER_OFF_TOOLTIP = List.of(Component.translatable("behaviour.soft_hammer.disabled"));
+
     @Override
     public void attachConfigurators(ConfiguratorPanel configuratorPanel) {
-        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.POWER_OFF, WidgetIcons.POWER_ON, this::isWorkingEnabled, (clickData, pressed) -> this.setWorkingEnabled(pressed)).setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
+        configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.POWER_OFF, WidgetIcons.POWER_ON, this::isWorkingEnabled, (clickData, pressed) -> this.setWorkingEnabled(pressed)).setTooltipsSupplier(pressed -> pressed ? POWER_ON_TOOLTIP : POWER_OFF_TOOLTIP));
         IVoidable.attachConfigurators(configuratorPanel, this);
         IRecipeLogicMachine.attachRecipeLockConfigurator(configuratorPanel, this);
         super.attachConfigurators(configuratorPanel);
