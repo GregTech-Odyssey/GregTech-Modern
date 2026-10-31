@@ -11,10 +11,10 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -37,10 +37,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class CreativeChestMachine extends QuantumChestMachine {
 
     @SaveToDisk(defaultValue = "1")
-    @DropSaved
     private int itemsPerCycle = 1;
     @SaveToDisk(defaultValue = "1")
-    @DropSaved
     private int ticksPerCycle = 1;
 
     public CreativeChestMachine(MetaMachineBlockEntity holder) {
@@ -61,6 +59,26 @@ public class CreativeChestMachine extends QuantumChestMachine {
         var key = AEItemKey.of(item);
         cache.storage.set(0, key, key == null ? 0 : 1);
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
+        super.saveCustomPersistedData(tag, forDrop);
+        if (forDrop) {
+            tag.putInt("itemsPerCycle", itemsPerCycle);
+            tag.putInt("ticksPerCycle", ticksPerCycle);
+        }
+    }
+
+    @Override
+    public void loadCustomPersistedData(CompoundTag tag) {
+        super.loadCustomPersistedData(tag);
+        if (tag.contains("itemsPerCycle")) {
+            itemsPerCycle = tag.getInt("itemsPerCycle");
+        }
+        if (tag.contains("ticksPerCycle")) {
+            ticksPerCycle = tag.getInt("ticksPerCycle");
+        }
     }
 
     private static int parseCycleValue(String value) {
@@ -133,7 +151,12 @@ public class CreativeChestMachine extends QuantumChestMachine {
 
         @Override
         public long slotLimit(int slot) {
-            return source.slotLimit(slot);
+            return storage.keyAt(0) != null ? itemsPerCycle : 0;
+        }
+
+        @Override
+        public long amountAt(int slot) {
+            return storage.keyAt(0) != null ? itemsPerCycle : 0;
         }
 
         @Override

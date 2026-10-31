@@ -13,9 +13,9 @@ import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceBorderTexture;
 import com.lowdragmc.lowdraglib.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib.gui.widget.*;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -38,10 +38,8 @@ public class CreativeTankMachine extends QuantumTankMachine {
     private static final int CONFIG_AMOUNT = 1000;
 
     @SaveToDisk(defaultValue = "1000")
-    @DropSaved
     private int mBPerCycle = 1000;
     @SaveToDisk(defaultValue = "1")
-    @DropSaved
     private int ticksPerCycle = 1;
 
     public CreativeTankMachine(MetaMachineBlockEntity holder) {
@@ -66,6 +64,26 @@ public class CreativeTankMachine extends QuantumTankMachine {
         var key = Keys.fluidType(fluid);
         cache.storage.set(0, key, key == null ? 0 : CONFIG_AMOUNT);
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
+        super.saveCustomPersistedData(tag, forDrop);
+        if (forDrop) {
+            tag.putInt("mBPerCycle", mBPerCycle);
+            tag.putInt("ticksPerCycle", ticksPerCycle);
+        }
+    }
+
+    @Override
+    public void loadCustomPersistedData(CompoundTag tag) {
+        super.loadCustomPersistedData(tag);
+        if (tag.contains("mBPerCycle")) {
+            mBPerCycle = tag.getInt("mBPerCycle");
+        }
+        if (tag.contains("ticksPerCycle")) {
+            ticksPerCycle = tag.getInt("ticksPerCycle");
+        }
     }
 
     private static int parseCycleValue(String value) {
@@ -151,7 +169,12 @@ public class CreativeTankMachine extends QuantumTankMachine {
 
         @Override
         public long slotLimit(int slot) {
-            return source.slotLimit(slot);
+            return storage.keyAt(0) != null ? mBPerCycle : 0;
+        }
+
+        @Override
+        public long amountAt(int slot) {
+            return storage.keyAt(0) != null ? mBPerCycle : 0;
         }
 
         @Override

@@ -23,7 +23,6 @@ import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.Util;
@@ -73,7 +72,6 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @SaveToDisk
-    @DropSaved
     protected final NotifiableInventory<AEFluidKey> cache;
 
     private final TickTimeMonitor pumpMonitor = holder.monitorTick(GTTickTimeMonitors.PUMP, this::update);
