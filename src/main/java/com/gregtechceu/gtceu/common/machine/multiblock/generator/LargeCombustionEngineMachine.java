@@ -191,9 +191,12 @@ public class LargeCombustionEngineMachine extends WorkableElectricMultiblockMach
         return ChatFormatting.RED + FormattingUtil.formatNumbers(neededAmount) + "mB";
     }
 
+    private static final List<Component> INTAKES_OBSTRUCTED_TOOLTIP = List.of(
+            Component.translatable("gtceu.multiblock.large_combustion_engine.obstructed").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+
     @Override
     public void attachTooltips(TooltipsPanel tooltipsPanel) {
         super.attachTooltips(tooltipsPanel);
-        tooltipsPanel.attachTooltips(IFancyTooltip.covering("gtceu.issue.intake_obstructed", new IFancyTooltip.Basic(() -> WidgetIcons.STATUS_OBSTRUCTED, () -> List.of(Component.translatable("gtceu.multiblock.large_combustion_engine.obstructed").setStyle(Style.EMPTY.withColor(ChatFormatting.RED))), this::isIntakesObstructed, () -> null)));
+        tooltipsPanel.attachTooltips(IFancyTooltip.covering("gtceu.issue.intake_obstructed", new IFancyTooltip.Basic(() -> WidgetIcons.STATUS_OBSTRUCTED, () -> INTAKES_OBSTRUCTED_TOOLTIP, this::isIntakesObstructed, () -> null)));
     }
 }

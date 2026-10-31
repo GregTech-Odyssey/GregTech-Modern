@@ -599,6 +599,8 @@ public class MultiblockDisplayText {
         }
     }
 
+    private static final Component STATE_WAITING = Component.translatable("gtceu.issue.ui.state.waiting").withStyle(ChatFormatting.GOLD);
+
     private record ReasonDisplay(int statusValue, @Nullable Component reason, String idlingKey, String pausedKey,
                                  String runningKey, Component status, @Nullable Component title,
                                  @Nullable Component detail) {
@@ -606,7 +608,7 @@ public class MultiblockDisplayText {
         private static ReasonDisplay of(int statusValue, @Nullable Component reason, String idlingKey, String pausedKey, String runningKey) {
             Component status = switch (statusValue) {
                 case RecipeLogic.WORKING -> Component.translatable(runningKey).withStyle(ChatFormatting.GREEN);
-                case RecipeLogic.WAITING -> Component.translatable("gtceu.issue.ui.state.waiting").withStyle(ChatFormatting.GOLD);
+                case RecipeLogic.WAITING -> STATE_WAITING;
                 case RecipeLogic.SUSPEND -> Component.translatable(pausedKey).withStyle(ChatFormatting.GOLD);
                 default -> Component.translatable(idlingKey).withStyle(ChatFormatting.GRAY);
             };
