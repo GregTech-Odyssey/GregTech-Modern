@@ -46,12 +46,12 @@ import static com.gregtechceu.gtceu.common.data.GTMaterials.DrillingFluid;
 public class LargeMinerMachine extends WorkableElectricMultiblockMachine implements IMiner, IDataInfoProvider {
 
     public static final int CHUNK_LENGTH = 16;
-    private static final String CHUNK_MODE = "gtceu.multiblock.large_miner.chunk_mode";
-    private static final String CHUNK_MODE_LOCKED = "gtceu.multiblock.large_miner.chunk_mode.locked";
-    private static final String WORKING_AREA = "gtceu.multiblock.large_miner.working_area";
-    private static final String ENCHANTMENT = "gtceu.multiblock.large_miner.enchantment";
-    private static final String ENCHANTMENT_TOOLTIP = "gtceu.multiblock.large_miner.enchantment.tooltip";
-    private static final String WORKING_AREA_CHUNKS = "gtceu.multiblock.large_miner.working_area_chunks";
+    private static final Component CHUNK_MODE = Component.translatable("gtceu.multiblock.large_miner.chunk_mode");
+    private static final Component CHUNK_MODE_LOCKED = Component.translatable("gtceu.multiblock.large_miner.chunk_mode.locked");
+    private static final Component WORKING_AREA = Component.translatable("gtceu.multiblock.large_miner.working_area");
+    private static final Component ENCHANTMENT = Component.translatable("gtceu.multiblock.large_miner.enchantment");
+    private static final Component ENCHANTMENT_TOOLTIP = Component.translatable("gtceu.multiblock.large_miner.enchantment.tooltip");
+    private static final Component WORKING_AREA_CHUNKS = Component.translatable("gtceu.multiblock.large_miner.working_area_chunks");
     @Getter
     private final int tier;
     @Getter

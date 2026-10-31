@@ -35,6 +35,15 @@ public class RobotArmCover extends ConveyorCover {
 
     private static final Component SUPPLY_AMOUNT = Component.translatable("cover.robotic_arm.ui.supply_amount");
     private static final Component KEEP_AMOUNT = Component.translatable("cover.robotic_arm.ui.keep_amount");
+    private static final Component AMOUNT_TOOLTIP = Component.translatable("cover.robotic_arm.ui.amount.tooltip");
+    private static final Component AMOUNT_FROM_FILTER = Component.translatable("cover.conveyor.ui.amount_from_filter");
+    private static final Component AMOUNT_UNUSED = Component.translatable("cover.robotic_arm.ui.amount_unused");
+    private static final Component TRANSFER_MODE_TITLE = Component.translatable("cover.robotic_arm.ui.transfer_mode");
+    private static final Component[] TRANSFER_MODE_TOOLTIPS = {
+            Component.translatable("cover.robotic_arm.transfer_mode.description.0"),
+            Component.translatable("cover.robotic_arm.transfer_mode.description.1"),
+            Component.translatable("cover.robotic_arm.transfer_mode.description.2")
+    };
 
     @Getter
     @SaveToDisk
@@ -135,17 +144,15 @@ public class RobotArmCover extends ConveyorCover {
     protected void buildAdditionalUI(UIElement section) {
         var amountLabel = TextLine.of(LayoutStyle.AUTO, () -> transferMode == TransferMode.KEEP_EXACT ? KEEP_AMOUNT : SUPPLY_AMOUNT)
                 .bindClientColor(UITheme::panelText);
-        amountLabel.tooltips("cover.robotic_arm.ui.amount.tooltip");
+        amountLabel.tooltips(AMOUNT_TOOLTIP);
         var amount = NumberField.ofInt(LayoutStyle.AUTO, () -> globalTransferLimit, this::setGlobalTransferLimit,
                 () -> 1, () -> transferMode.maxStackSize);
-        amount.disabled(() -> transferMode != TransferMode.TRANSFER_ANY && isAmountFromFilter(), "cover.conveyor.ui.amount_from_filter");
+        amount.disabled(() -> transferMode != TransferMode.TRANSFER_ANY && isAmountFromFilter(), AMOUNT_FROM_FILTER);
         var amountRow = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(amountLabel, amount)
-                .disabled(() -> transferMode == TransferMode.TRANSFER_ANY, "cover.robotic_arm.ui.amount_unused");
+                .disabled(() -> transferMode == TransferMode.TRANSFER_ANY, AMOUNT_UNUSED);
         section.addChildren(
-                CoverUIs.enumRow("cover.robotic_arm.ui.transfer_mode", List.of(TransferMode.values()), this::getTransferMode, this::setTransferMode,
-                        "cover.robotic_arm.transfer_mode.description.0",
-                        "cover.robotic_arm.transfer_mode.description.1",
-                        "cover.robotic_arm.transfer_mode.description.2"),
+                CoverUIs.enumRow(TRANSFER_MODE_TITLE, List.of(TransferMode.values()), this::getTransferMode, this::setTransferMode,
+                        TRANSFER_MODE_TOOLTIPS),
                 amountRow);
     }
 

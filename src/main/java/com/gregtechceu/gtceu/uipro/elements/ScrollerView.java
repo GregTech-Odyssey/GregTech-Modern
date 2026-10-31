@@ -79,10 +79,10 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
 
     private static final int PAGE_HEIGHT_LIMIT = Integer.MAX_VALUE / 4;
 
-    public static final String GRIP_RESIZE = "gtceu.uipro.scroller.resize";
-    public static final String GRIP_LOCK = "gtceu.uipro.scroller.lock";
-    public static final String GRIP_LOCKED = "gtceu.uipro.scroller.locked";
-    public static final String GRIP_UNLOCK = "gtceu.uipro.scroller.unlock";
+    public static final Component GRIP_RESIZE = Component.translatable("gtceu.uipro.scroller.resize");
+    public static final Component GRIP_LOCK = Component.translatable("gtceu.uipro.scroller.lock");
+    public static final Component GRIP_LOCKED = Component.translatable("gtceu.uipro.scroller.locked");
+    public static final Component GRIP_UNLOCK = Component.translatable("gtceu.uipro.scroller.unlock");
 
     /** 固定的 id（按界面里的位置取，如 {@code wireless.networks}），锁定的尺寸按它保存。 */
     private final String id;
@@ -683,8 +683,8 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         UIClip.pop(graphics);
         if (resizing || !isOverGrip(mouseX, mouseY) || gui == null || gui.getModularUIGui() == null) return;
         var lines = isLocked() ?
-                List.<Component>of(Component.translatable(GRIP_LOCKED), Component.translatable(GRIP_UNLOCK).withStyle(ChatFormatting.GRAY)) :
-                List.<Component>of(Component.translatable(GRIP_RESIZE), Component.translatable(GRIP_LOCK).withStyle(ChatFormatting.GRAY));
+                List.<Component>of(GRIP_LOCKED, GRIP_UNLOCK.copy().withStyle(ChatFormatting.GRAY)) :
+                List.<Component>of(GRIP_RESIZE, GRIP_LOCK.copy().withStyle(ChatFormatting.GRAY));
         gui.getModularUIGui().setHoverTooltip(lines, ItemStack.EMPTY, null, null);
     }
 }

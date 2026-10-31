@@ -31,6 +31,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeComputationProviderMachine extends MetaMachine implements IFancyUIMachine, IOpticalComputationHatch, IDropSaveMachine {
 
+    private static final Component AVERAGE_COMPUTATION = Component.translatable("gtceu.creative.computation.average");
+    private static final Component ACTIVITY_ON = Component.translatable("gtceu.creative.activity.on");
+    private static final Component ACTIVITY_OFF = Component.translatable("gtceu.creative.activity.off");
+
     @SaveToDisk(defaultValue = "0")
     @SyncToClient
     private long maxCWUt;
@@ -127,12 +131,12 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     @Override
     public Widget createUIWidget() {
         var status = new StatusPanel();
-        status.addLine("gtceu.creative.computation.average", MultiblockPage.numberText(() -> lastRequestedCWUt, "CWU/t"));
+        status.addLine(AVERAGE_COMPUTATION, MultiblockPage.numberText(() -> lastRequestedCWUt, "CWU/t"));
         var settings = NumberSettingPage.create(Component.literal("CWU/t"), () -> maxCWUt, value -> {
             maxCWUt = value;
             onChanged();
         }, () -> 0, () -> Long.MAX_VALUE);
-        settings.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isActive, this::setActive)));
+        settings.addChild(Form.controlRow(() -> isActive() ? ACTIVITY_ON : ACTIVITY_OFF, Switch.of(this::isActive, this::setActive)));
         return Form.page().addChildren(status, settings);
     }
 

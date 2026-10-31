@@ -17,8 +17,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
  */
 public final class UIFaults {
 
-    public static final String OPEN_FAILED = "gtceu.uipro.fault.open";
-    public static final String CLOSED = "gtceu.uipro.fault.closed";
+    public static final Component OPEN_FAILED = Component.translatable("gtceu.uipro.fault.open").withStyle(ChatFormatting.RED);
+    public static final Component CLOSED = Component.translatable("gtceu.uipro.fault.closed").withStyle(ChatFormatting.RED);
 
     private UIFaults() {}
 
@@ -26,7 +26,7 @@ public final class UIFaults {
         GTCEu.LOGGER.error("UI open failed: factory={} holder={} player={}", factory.getClass().getName(), describe(holder),
                 player.getGameProfile().getName(), error);
         if (player.containerMenu != previous || player.containerMenu == player.inventoryMenu) closeSafely(player);
-        player.sendSystemMessage(Component.translatable(OPEN_FAILED).withStyle(ChatFormatting.RED));
+        player.sendSystemMessage(OPEN_FAILED);
     }
 
     public static void syncFailed(ModularUI ui, Throwable error) {
@@ -51,7 +51,7 @@ public final class UIFaults {
         if (!(ui.entityPlayer instanceof ServerPlayer player)) return;
         if (player.containerMenu instanceof ModularUIContainer container && container.getModularUI() == ui) {
             closeSafely(player);
-            player.sendSystemMessage(Component.translatable(CLOSED).withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(CLOSED);
         }
     }
 

@@ -91,10 +91,14 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
         }
     }
 
+    private static final Component STATUS_FLUID = Component.translatable("cover.ender_link.ui.fluid");
+    private static final Component STATUS_AMOUNT = Component.translatable("cover.ender_link.ui.amount");
+    static final Component ENTRY_EMPTY = Component.translatable("cover.ender_link.ui.empty");
+
     @Override
     protected void addEntryStatus(StatusPanel panel, BooleanSupplier visible) {
-        panel.addLine("cover.ender_link.ui.fluid", () -> visible.getAsBoolean() ? fluidName(Keys.displayFluid(getEntry().getFluidTank().keyAt(0))) : EnderLinkUI.NO_VALUE);
-        panel.addLine("cover.ender_link.ui.amount", () -> {
+        panel.addLine(STATUS_FLUID, () -> visible.getAsBoolean() ? fluidName(Keys.displayFluid(getEntry().getFluidTank().keyAt(0))) : EnderLinkUI.NO_VALUE);
+        panel.addLine(STATUS_AMOUNT, () -> {
             if (!visible.getAsBoolean()) return EnderLinkUI.NO_VALUE;
             var tank = getEntry().getFluidTank();
             return Component.literal(FormattingUtil.formatNumbers(tank.amountAt(0)) + " / " + FormattingUtil.formatNumbers(tank.slotLimit(0)) + " mB");
@@ -105,12 +109,12 @@ public class EnderFluidLinkCover extends AbstractEnderLinkCover<VirtualTank> {
     protected Component describeEntry(VirtualTank entry) {
         var tank = entry.getFluidTank();
         var key = tank.keyAt(0);
-        if (key == null) return Component.translatable("cover.ender_link.ui.empty");
+        if (key == null) return ENTRY_EMPTY;
         return key.getDisplayName().copy().append(" " + FormattingUtil.formatNumbers(tank.amountAt(0)) + " mB");
     }
 
     private static Component fluidName(FluidStack fluid) {
-        return fluid.isEmpty() ? Component.translatable("cover.ender_link.ui.empty") : fluid.getDisplayName();
+        return fluid.isEmpty() ? ENTRY_EMPTY : fluid.getDisplayName();
     }
 
     private boolean matchesFilter(AEKey key) {

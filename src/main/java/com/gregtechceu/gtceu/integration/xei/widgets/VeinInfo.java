@@ -41,21 +41,21 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
                        @Nullable List<DimensionMarker> dimensions, @Nullable VeinPreview preview) {
 
     private static final String WEIGHT = "gtceu.jei.ore_vein_diagram.weight";
-    private static final String HEIGHT = "gtceu.jei.vein.height";
-    private static final String DENSITY = "gtceu.jei.vein.density";
-    private static final String SIZE = "gtceu.jei.vein.size";
-    private static final String YIELD = "gtceu.jei.vein.yield";
-    private static final String DEPLETED_YIELD = "gtceu.jei.vein.depleted_yield";
-    private static final String RESERVE = "gtceu.jei.vein.reserve";
+    private static final Component HEIGHT = Component.translatable("gtceu.jei.vein.height");
+    private static final Component DENSITY = Component.translatable("gtceu.jei.vein.density");
+    private static final Component SIZE = Component.translatable("gtceu.jei.vein.size");
+    private static final Component YIELD = Component.translatable("gtceu.jei.vein.yield");
+    private static final Component DEPLETED_YIELD = Component.translatable("gtceu.jei.vein.depleted_yield");
+    private static final Component RESERVE = Component.translatable("gtceu.jei.vein.reserve");
     private static final String OPERATIONS = "gtceu.jei.vein.operations";
     private static final String OPERATIONS_ABOUT = "gtceu.jei.vein.operations_about";
-    private static final String INFINITE = "gtceu.jei.vein.infinite";
+    private static final Component INFINITE = Component.translatable("gtceu.jei.vein.infinite");
     private static final String RANGE = "%s ~ %s";
     private static final int BLOCK_COLOR = 0x8B8B8B;
 
     public record Entry(ItemStack stack, int weight, int color) {}
 
-    public record Spec(String labelKey, Component value) {}
+    public record Spec(Component label, Component value) {}
 
     public Component weightText() {
         return Component.translatable(WEIGHT, FormattingUtil.formatNumbers(weight));
@@ -148,7 +148,7 @@ public record VeinInfo(Component name, int weight, List<Entry> entries, FluidSta
 
     private static Component reserve(int maxOperations, int amount, int chance) {
         if (ConfigHolder.INSTANCE.worldgen.oreVeins.infiniteBedrockOresFluids || amount <= 0 || chance <= 0) {
-            return Component.translatable(INFINITE);
+            return INFINITE;
         }
         long operations = (maxOperations + amount - 1L) / amount;
         if (chance >= 100) return Component.translatable(OPERATIONS, FormattingUtil.formatNumbers(operations));

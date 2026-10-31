@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -41,13 +42,13 @@ import java.util.Objects;
 @OnlyIn(Dist.CLIENT)
 public final class MultiblockEmiActions {
 
-    public static final String FAVORITE = "gtceu.structure_preview.favorite";
-    public static final String TREE = "gtceu.structure_preview.tree";
+    public static final Component FAVORITE = Component.translatable("gtceu.structure_preview.favorite");
+    public static final Component TREE = Component.translatable("gtceu.structure_preview.tree");
     public static final String TREE_TITLE = "gtceu.structure_tree.title";
-    public static final String TREE_CONFIRM = "gtceu.structure_tree.confirm";
-    public static final String TREE_INCLUDE = "gtceu.structure_tree.include";
-    public static final String TREE_BLOCKED = "gtceu.structure_tree.blocked";
-    public static final String TREE_CATEGORY = "gtceu.structure_tree.category";
+    public static final Component TREE_CONFIRM = Component.translatable("gtceu.structure_tree.confirm");
+    public static final Component TREE_INCLUDE = Component.translatable("gtceu.structure_tree.include");
+    public static final Component TREE_BLOCKED = Component.translatable("gtceu.structure_tree.blocked");
+    public static final Component TREE_CATEGORY = Component.translatable("gtceu.structure_tree.category");
 
     private MultiblockEmiActions() {}
 

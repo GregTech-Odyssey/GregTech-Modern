@@ -34,12 +34,12 @@ import java.util.concurrent.CompletableFuture;
 
 public final class PartCellsConfigurator implements IFancyConfiguratorButton {
 
-    public static final String TITLE = "gtceu.gui.part_cells.title";
-    public static final String LEGEND = "gtceu.gui.part_cells.legend";
-    public static final String HINT = "gtceu.gui.part_cells.hint";
-    public static final String HIDE = "gtceu.gui.part_cells.hide";
-    public static final String NOT_FORMED = "gtceu.gui.part_cells.not_formed";
-    public static final String NONE = "gtceu.gui.part_cells.none";
+    public static final Component TITLE = Component.translatable("gtceu.gui.part_cells.title");
+    public static final Component LEGEND = Component.translatable("gtceu.gui.part_cells.legend");
+    public static final Component HINT = Component.translatable("gtceu.gui.part_cells.hint");
+    public static final Component HIDE = Component.translatable("gtceu.gui.part_cells.hide");
+    public static final Component NOT_FORMED = Component.translatable("gtceu.gui.part_cells.not_formed");
+    public static final Component NONE = Component.translatable("gtceu.gui.part_cells.none");
     public static final String TRUNCATED = "gtceu.gui.part_cells.truncated";
     private static final double MAX_DISTANCE_SQR = 64 * 64;
 
@@ -71,12 +71,12 @@ public final class PartCellsConfigurator implements IFancyConfiguratorButton {
 
     @Override
     public List<Component> getTooltips() {
-        if (isShowing()) return List.of(Component.translatable(TITLE), Component.translatable(HIDE).withStyle(ChatFormatting.GRAY));
+        if (isShowing()) return List.of(TITLE, HIDE.copy().withStyle(ChatFormatting.GRAY));
         if (formed == null || !formed.getValue()) {
-            return List.of(Component.translatable(TITLE), Component.translatable(NOT_FORMED).withStyle(ChatFormatting.RED));
+            return List.of(TITLE, NOT_FORMED.copy().withStyle(ChatFormatting.RED));
         }
-        return List.of(Component.translatable(TITLE), Component.translatable(LEGEND).withStyle(ChatFormatting.GRAY),
-                Component.translatable(HINT).withStyle(ChatFormatting.GRAY));
+        return List.of(TITLE, LEGEND.copy().withStyle(ChatFormatting.GRAY),
+                HINT.copy().withStyle(ChatFormatting.GRAY));
     }
 
     @Override
@@ -133,7 +133,7 @@ public final class PartCellsConfigurator implements IFancyConfiguratorButton {
         var result = PartCells.finish(controller, request, candidates, player.blockPosition());
         if (result == null) return;
         if (result.shown() == 0) {
-            player.displayClientMessage(Component.translatable(NONE), true);
+            player.displayClientMessage(NONE, true);
             return;
         }
         if (result.isTruncated()) player.displayClientMessage(Component.translatable(TRUNCATED, result.shown(), result.total()), true);

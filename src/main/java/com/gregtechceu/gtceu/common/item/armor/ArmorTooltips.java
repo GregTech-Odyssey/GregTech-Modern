@@ -28,6 +28,16 @@ import java.util.function.Predicate;
 public final class ArmorTooltips {
 
     public static final Component SHIFT_HINT = Tips.line(TipRole.FOOTER, Component.translatable("gtceu.tooltip.hold_shift"));
+    private static final Component NO_ENERGY_REASON = Component.translatable("metaarmor.gto.reason.no_energy");
+    private static final Component SPEED_BOOST_NAME = Component.translatable("metaarmor.gto.name.speed_boost");
+    private static final Component TOGGLE_OFF = Component.translatable("metaarmor.gto.toggle.off");
+    private static final Component TOGGLE_ON = Component.translatable("metaarmor.gto.toggle.on");
+    private static final Component EMERGENCY_TRIGGERED = Component.translatable("metaarmor.gto.toggle.emergency_triggered");
+    private static final Component SEPARATOR = Component.translatable("metaarmor.gto.separator");
+    private static final String TOGGLE_ON_INEFFECTIVE = "metaarmor.gto.toggle.on_ineffective";
+    private static final String TOGGLE_SPEED_INEFFECTIVE = "metaarmor.gto.toggle.speed_ineffective";
+    private static final String VALUE_MULTIPLIER = "metaarmor.gto.value.multiplier";
+    private static final String DETAIL_SPEED_BOOST = "metaarmor.gto.detail.speed_boost";
 
     private ArmorTooltips() {}
 
@@ -166,16 +176,15 @@ public final class ArmorTooltips {
 
     public static void addSpeedControl(ItemStack stack, ArmorLogicSuite suite, List<Component> controls) {
         int level = suite.getSpeedLevel(stack);
-        Component state = level <= 0 ? Tips.onOff(false) : Component.translatable("metaarmor.gto.value.multiplier", multiplier(level));
-        controls.add(Tips.hotkey(KeyBind.ARMOR_SPEED, Component.translatable("gtceu.tip.toggle",
-                Component.translatable("metaarmor.gto.name.speed_boost"), state)));
+        Component state = level <= 0 ? Tips.onOff(false) : Component.translatable(VALUE_MULTIPLIER, multiplier(level));
+        controls.add(Tips.hotkey(KeyBind.ARMOR_SPEED, Tips.toggle(SPEED_BOOST_NAME, state)));
         if (showDetails()) {
             MutableComponent levels = Component.empty();
             for (int i = 1; i <= suite.getMaxSpeedLevel(); i++) {
-                if (i > 1) levels.append(Component.translatable("metaarmor.gto.separator"));
+                if (i > 1) levels.append(SEPARATOR);
                 levels.append(multiplier(i));
             }
-            addDetail(controls, "metaarmor.gto.detail.speed_boost", levels, ampsPerSecond(ArmorLogicSuite.SPEED_AMPS_PER_LEVEL));
+            addDetail(controls, DETAIL_SPEED_BOOST, levels, ampsPerSecond(ArmorLogicSuite.SPEED_AMPS_PER_LEVEL));
         }
     }
 
@@ -204,9 +213,9 @@ public final class ArmorTooltips {
      */
     public static Component toggleMessage(ItemStack stack, String nameKey, boolean enabled, boolean effective) {
         MutableComponent state;
-        if (!enabled) state = Component.translatable("metaarmor.gto.toggle.off").withStyle(ChatFormatting.RED);
-        else if (effective) state = Component.translatable("metaarmor.gto.toggle.on").withStyle(ChatFormatting.GREEN);
-        else state = Component.translatable("metaarmor.gto.toggle.on_ineffective", Component.translatable("metaarmor.gto.reason.no_energy")).withStyle(ChatFormatting.YELLOW);
+        if (!enabled) state = TOGGLE_OFF.copy().withStyle(ChatFormatting.RED);
+        else if (effective) state = TOGGLE_ON.copy().withStyle(ChatFormatting.GREEN);
+        else state = Component.translatable(TOGGLE_ON_INEFFECTIVE, NO_ENERGY_REASON).withStyle(ChatFormatting.YELLOW);
         return Component.empty().append(stack.getDisplayName()).append(" ")
                 .append(Component.translatable(nameKey).withStyle(ChatFormatting.WHITE)).append(" ").append(state);
     }
@@ -216,16 +225,16 @@ public final class ArmorTooltips {
      */
     public static Component speedMessage(ItemStack stack, int level, boolean effective) {
         MutableComponent state;
-        if (level <= 0) state = Component.translatable("metaarmor.gto.toggle.off").withStyle(ChatFormatting.RED);
-        else if (effective) state = Component.translatable("metaarmor.gto.value.multiplier", multiplier(level)).withStyle(ChatFormatting.GREEN);
-        else state = Component.translatable("metaarmor.gto.toggle.speed_ineffective", multiplier(level), Component.translatable("metaarmor.gto.reason.no_energy"))
+        if (level <= 0) state = TOGGLE_OFF.copy().withStyle(ChatFormatting.RED);
+        else if (effective) state = Component.translatable(VALUE_MULTIPLIER, multiplier(level)).withStyle(ChatFormatting.GREEN);
+        else state = Component.translatable(TOGGLE_SPEED_INEFFECTIVE, multiplier(level), NO_ENERGY_REASON)
                 .withStyle(ChatFormatting.YELLOW);
         return Component.empty().append(stack.getDisplayName()).append(" ")
-                .append(Component.translatable("metaarmor.gto.name.speed_boost").withStyle(ChatFormatting.WHITE)).append(" ").append(state);
+                .append(SPEED_BOOST_NAME.copy().withStyle(ChatFormatting.WHITE)).append(" ").append(state);
     }
 
     public static Component emergencyHoverMessage(ItemStack stack) {
         return Component.empty().append(stack.getDisplayName()).append(" ")
-                .append(Component.translatable("metaarmor.gto.toggle.emergency_triggered").withStyle(ChatFormatting.YELLOW));
+                .append(EMERGENCY_TRIGGERED.copy().withStyle(ChatFormatting.YELLOW));
     }
 }

@@ -25,9 +25,11 @@ public class BiomeCondition extends RecipeCondition {
         return true;
     }
 
+    private static final String BIOME_TOOLTIP_KEY = "recipe.condition.biome.tooltip";
+
     @Override
     public Component getTooltips() {
-        return Component.translatable("recipe.condition.biome.tooltip", Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString()));
+        return Component.translatable(BIOME_TOOLTIP_KEY, Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString()));
     }
 
     @Override

@@ -19,6 +19,9 @@ import java.util.List;
 
 public interface IMufflerMachine extends IWorkableMultiPart {
 
+    List<Component> MUFFLER_OBSTRUCTED_TOOLTIP = List.of(Component.translatable("gtceu.multiblock.universal.muffler_obstructed")
+            .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+
     void recoverItemsTable(ItemStack recoveryItems);
 
     /**
@@ -77,8 +80,7 @@ public interface IMufflerMachine extends IWorkableMultiPart {
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
         tooltipsPanel.attachTooltips(IFancyTooltip.covering("gtceu.multiblock.universal.muffler_obstructed", new IFancyTooltip.Basic(
                 () -> WidgetIcons.STATUS_OBSTRUCTED,
-                () -> List.of(Component.translatable("gtceu.multiblock.universal.muffler_obstructed")
-                        .setStyle(Style.EMPTY.withColor(ChatFormatting.RED))),
+                () -> MUFFLER_OBSTRUCTED_TOOLTIP,
                 () -> !isFrontFaceFree(),
                 () -> null)));
     }

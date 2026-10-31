@@ -28,7 +28,7 @@ import java.util.function.IntSupplier;
  */
 public final class ModeSelector {
 
-    public static final String TITLE = "gtceu.gui.machinemode.title";
+    public static final Component TITLE = Component.translatable("gtceu.gui.machinemode.title");
 
     private ModeSelector() {}
 
@@ -40,7 +40,7 @@ public final class ModeSelector {
      */
     public static UIElement create(int count, IntFunction<Component> name, IntSupplier current, IntConsumer select) {
         var section = UIElement.section(UISizes.CONTENT_WIDTH);
-        section.addChild(TextLine.translatable(LayoutStyle.AUTO, TITLE).bindClientColor(UITheme::panelText));
+        section.addChild(TextLine.constant(LayoutStyle.AUTO, TITLE).bindClientColor(UITheme::panelText));
         return section.addChild(ButtonGroup.single(count, name, current, select));
     }
 }

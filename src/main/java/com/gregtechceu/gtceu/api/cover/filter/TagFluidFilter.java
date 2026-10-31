@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.uiwidgets.filter.TagLookupView;
 import com.gregtechceu.gtceu.utils.TagExprFilter;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -46,9 +47,12 @@ public class TagFluidFilter extends TagFilter<FluidStack, FluidFilter> implement
         return cache.computeIfAbsent(((IAEFluid) fluidStack.getFluid()).ae2$getUid(), k -> TagExprFilter.tagsMatch(matchExpr, fluidStack));
     }
 
+    private static final Component LOOKUP_FLUID = Component.translatable("cover.tag_filter.lookup_fluid");
+    private static final Component LOOKUP_ONLY = Component.translatable("cover.tag_filter.lookup_only");
+
     @Override
     TagLookupView createLookup(Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick) {
-        return TagLookupView.fluids("cover.tag_filter.tags", getter, setter, onServerPick, "cover.tag_filter.lookup_fluid", "cover.tag_filter.lookup_only");
+        return TagLookupView.fluids("cover.tag_filter.tags", getter, setter, onServerPick, LOOKUP_FLUID, LOOKUP_ONLY);
     }
 
     @Override

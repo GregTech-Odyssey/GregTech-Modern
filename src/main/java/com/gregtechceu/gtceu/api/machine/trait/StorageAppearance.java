@@ -31,9 +31,9 @@ import java.util.List;
 public final class StorageAppearance extends MachineTrait implements IFancyConfigurator {
 
     private static final String KEY = "storageAppearance";
-    private static final String TITLE = "gtceu.gui.storage_appearance";
-    private static final String SAMPLE = "gtceu.gui.storage_appearance.sample";
-    private static final String HELP = "gtceu.gui.storage_appearance.help";
+    private static final Component TITLE = Component.translatable("gtceu.gui.storage_appearance");
+    private static final Component SAMPLE = Component.translatable("gtceu.gui.storage_appearance.sample");
+    private static final Component HELP = Component.translatable("gtceu.gui.storage_appearance.help");
     private static final IGuiTexture ICON = new ItemStackTexture(Blocks.BRICKS.asItem());
 
     @Getter
@@ -87,7 +87,7 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
 
     @Override
     public Component getTitle() {
-        return Component.translatable(TITLE);
+        return TITLE;
     }
 
     @Override
@@ -97,7 +97,7 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
 
     @Override
     public List<Component> getTooltips() {
-        return List.of(getTitle(), Component.translatable(HELP));
+        return List.of(getTitle(), HELP);
     }
 
     @Override

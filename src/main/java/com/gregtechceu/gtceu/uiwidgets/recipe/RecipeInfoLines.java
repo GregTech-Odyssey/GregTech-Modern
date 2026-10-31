@@ -21,16 +21,16 @@ import java.util.function.Supplier;
  */
 public final class RecipeInfoLines implements RecipeInfoBuilder {
 
-    /** 一行：{@code labelKey} 为 null 时是整句。 */
-    public record Line(@Nullable String labelKey, Supplier<Component> value, @Nullable Runnable onClick) {}
+    /** 一行：{@code label} 为 null 时是整句。 */
+    public record Line(@Nullable Component label, Supplier<Component> value, @Nullable Runnable onClick) {}
 
     private final List<Line> lines = new ArrayList<>();
     private final List<Supplier<Widget>> slots = new ArrayList<>(2);
     private final ArrayList<Supplier<Widget>> panelSlots = new ArrayList<>(2);
 
     @Override
-    public RecipeInfoLines line(String labelKey, Supplier<Component> value) {
-        lines.add(new Line(labelKey, Suppliers.memoize(() -> nonNull(value.get())), null));
+    public RecipeInfoLines line(Component label, Supplier<Component> value) {
+        lines.add(new Line(label, Suppliers.memoize(() -> nonNull(value.get())), null));
         return this;
     }
 
@@ -47,8 +47,8 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
     }
 
     /** 数值随页面状态变化（如超频预览的电压档）的一行，每次取值都调用 {@code value}，调用方负责让它廉价。 */
-    public RecipeInfoLines dynamicLine(String labelKey, Supplier<Component> value) {
-        lines.add(new Line(labelKey, value, null));
+    public RecipeInfoLines dynamicLine(Component label, Supplier<Component> value) {
+        lines.add(new Line(label, value, null));
         return this;
     }
 
@@ -90,7 +90,7 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
         private final List<@Nullable Supplier<Component>> sentenceTexts = new ArrayList<>();
 
         @Override
-        public Counter line(String labelKey, Supplier<Component> value) {
+        public Counter line(Component label, Supplier<Component> value) {
             labeled++;
             return this;
         }

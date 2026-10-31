@@ -5,6 +5,8 @@ import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
+import net.minecraft.network.chat.Component;
+
 import org.jetbrains.annotations.Nullable;
 
 public enum RecipeIssue {
@@ -43,6 +45,8 @@ public enum RecipeIssue {
     private final FlowState state;
     private final String key;
     private final String descriptionKey;
+    private final Component title;
+    private final Component description;
     private final IssueView view;
 
     RecipeIssue(@Nullable IGuiTexture icon, FlowState state, String key, String descriptionKey) {
@@ -50,6 +54,8 @@ public enum RecipeIssue {
         this.state = state;
         this.key = key;
         this.descriptionKey = descriptionKey;
+        this.title = Component.translatable(key);
+        this.description = Component.translatable(descriptionKey);
         this.view = new IssueView(this, null, null);
     }
 
@@ -72,6 +78,14 @@ public enum RecipeIssue {
 
     public String descriptionKey() {
         return descriptionKey;
+    }
+
+    public Component title() {
+        return title;
+    }
+
+    public Component description() {
+        return description;
     }
 
     public IssueView view() {

@@ -19,6 +19,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -215,11 +216,11 @@ public class UIElement extends WidgetGroup implements ElementState.Host<UIElemen
 
     /**
      * 按服务端条件禁用（LDLib2 {@code disabled()}）：本元素下所有可操作的控件都禁用、叠统一斜纹，
-     * 悬停提示先"禁止操作"再原因 {@code reasonKey}（翻译键，可为 null）。整行、整个区块设一次即可。建界面时两端都要调用。
+     * 悬停提示先"禁止操作"再原因 {@code reason}（可为 null）。整行、整个区块设一次即可。建界面时两端都要调用。
      */
     @Override
-    public UIElement disabled(BooleanSupplier serverCondition, @Nullable String reasonKey) {
-        return ElementState.Host.super.disabled(serverCondition, reasonKey);
+    public UIElement disabled(BooleanSupplier serverCondition, @Nullable Component reason) {
+        return ElementState.Host.super.disabled(serverCondition, reason);
     }
 
     /** 选中框画在前景层：所有元素的背景（含之后才绘制的相邻槽）都画完后再画，外扩的那 1 像素不会被邻格盖住。 */

@@ -289,11 +289,21 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         return Pair.of(null, InteractionResult.PASS);
     }
 
+    private static final Component MUFFLE_ON = Component.translatable("gtceu.machine.muffle.on");
+    private static final Component MUFFLE_OFF = Component.translatable("gtceu.machine.muffle.off");
+    private static final Component SOFT_HAMMER_ENABLED = Component.translatable("behaviour.soft_hammer.enabled");
+    private static final Component SOFT_HAMMER_DISABLED = Component.translatable("behaviour.soft_hammer.disabled");
+    private static final Component SOFT_HAMMER_IDLE_AFTER_CYCLE = Component.translatable("behaviour.soft_hammer.idle_after_cycle");
+    private static final Component INPUT_FROM_OUTPUT_SIDE_ALLOW = Component.translatable("gtceu.machine.basic.input_from_output_side.allow");
+    private static final Component INPUT_FROM_OUTPUT_SIDE_DISALLOW = Component.translatable("gtceu.machine.basic.input_from_output_side.disallow");
+    private static final Component CHEST_ITEM = Component.translatable("gtceu.creative.chest.item");
+    private static final Component TANK_FLUID = Component.translatable("gtceu.creative.tank.fluid");
+
     protected InteractionResult onHardHammerClick(Player playerIn, InteractionHand hand, Direction gridSide, BlockHitResult hitResult) {
         if (this instanceof IMufflableMachine mufflableMachine) {
             if (!isRemote()) {
                 mufflableMachine.setMuffled(!mufflableMachine.isMuffled());
-                playerIn.sendSystemMessage(Component.translatable(mufflableMachine.isMuffled() ? "gtceu.machine.muffle.on" : "gtceu.machine.muffle.off"));
+                playerIn.sendSystemMessage(mufflableMachine.isMuffled() ? MUFFLE_ON : MUFFLE_OFF);
             }
             return InteractionResult.sidedSuccess(playerIn.level().isClientSide);
         }
@@ -340,10 +350,10 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
         if (!isRemote()) {
             if (!playerIn.isShiftKeyDown() || !controllable.isWorkingEnabled()) {
                 controllable.setWorkingEnabled(!controllable.isWorkingEnabled());
-                playerIn.sendSystemMessage(Component.translatable(controllable.isWorkingEnabled() ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"));
+                playerIn.sendSystemMessage(controllable.isWorkingEnabled() ? SOFT_HAMMER_ENABLED : SOFT_HAMMER_DISABLED);
             } else {
                 controllable.setSuspendAfterFinish(true);
-                playerIn.sendSystemMessage(Component.translatable("behaviour.soft_hammer.idle_after_cycle"));
+                playerIn.sendSystemMessage(SOFT_HAMMER_IDLE_AFTER_CYCLE);
             }
         }
         return InteractionResult.sidedSuccess(playerIn.level().isClientSide);
@@ -356,14 +366,14 @@ public class MetaMachine implements ISync, ITickSubscription, IFancyTooltip, IPa
             if (this instanceof IAutoOutputItem autoOutputItem) {
                 if (autoOutputItem.getOutputFacingItems() == gridSide) {
                     autoOutputItem.setAllowInputFromOutputSideItems(!autoOutputItem.isAllowInputFromOutputSideItems());
-                    playerIn.displayClientMessage(Component.translatable("gtceu.machine.basic.input_from_output_side." + (autoOutputItem.isAllowInputFromOutputSideItems() ? "allow" : "disallow")).append(Component.translatable("gtceu.creative.chest.item")), true);
+                    playerIn.displayClientMessage((autoOutputItem.isAllowInputFromOutputSideItems() ? INPUT_FROM_OUTPUT_SIDE_ALLOW : INPUT_FROM_OUTPUT_SIDE_DISALLOW).copy().append(CHEST_ITEM), true);
                     changed = true;
                 }
             }
             if (this instanceof IAutoOutputFluid autoOutputFluid) {
                 if (autoOutputFluid.getOutputFacingFluids() == gridSide) {
                     autoOutputFluid.setAllowInputFromOutputSideFluids(!autoOutputFluid.isAllowInputFromOutputSideFluids());
-                    playerIn.displayClientMessage(Component.translatable("gtceu.machine.basic.input_from_output_side." + (autoOutputFluid.isAllowInputFromOutputSideFluids() ? "allow" : "disallow")).append(Component.translatable("gtceu.creative.tank.fluid")), true);
+                    playerIn.displayClientMessage((autoOutputFluid.isAllowInputFromOutputSideFluids() ? INPUT_FROM_OUTPUT_SIDE_ALLOW : INPUT_FROM_OUTPUT_SIDE_DISALLOW).copy().append(TANK_FLUID), true);
                     changed = true;
                 }
             }

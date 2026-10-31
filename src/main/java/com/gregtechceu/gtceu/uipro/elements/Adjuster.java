@@ -50,15 +50,15 @@ public abstract class Adjuster extends UIElement {
     /// 原版字体里数字和 "+" "-" "%" 都是 6 像素宽（含 1 像素字距）
     protected static final int GLYPH_WIDTH = 6;
 
-    private static final String AT_MIN = "gtceu.uipro.stepper.at_min";
-    private static final String AT_MAX = "gtceu.uipro.stepper.at_max";
-    private static final String STEP_TOOLTIP = "gui.widget.incrementButton.default_tooltip";
+    private static final Component AT_MIN = Component.translatable("gtceu.uipro.stepper.at_min");
+    private static final Component AT_MAX = Component.translatable("gtceu.uipro.stepper.at_max");
+    private static final Component STEP_TOOLTIP = Component.translatable("gui.widget.incrementButton.default_tooltip");
     private static final String RANGE_TOOLTIP = "gtceu.uipro.adjuster.range";
     private static final String STEP_LINE = "gtceu.uipro.adjuster.step";
     private static final String STEP_LINE_MODIFIED = "gtceu.uipro.adjuster.step_modified";
-    private static final String STEP_SEPARATOR = "gtceu.uipro.adjuster.step_separator";
+    private static final Component STEP_SEPARATOR = Component.translatable("gtceu.uipro.adjuster.step_separator");
     private static final String[] STEP_MODIFIERS = { "", "Shift", "Ctrl", "Ctrl+Shift" };
-    private static final String UNBOUNDED = "gtceu.uipro.adjuster.unbounded";
+    private static final Component UNBOUNDED = Component.translatable("gtceu.uipro.adjuster.unbounded");
 
     /**
      * 刻度与文字的换算。构造时传入而不做成抽象方法：父类构造里就要用它算按钮宽度，那时子类字段还没赋值。
@@ -189,7 +189,7 @@ public abstract class Adjuster extends UIElement {
 
     /// 上下限是 long 的边界时写"不限"，不写 19 位数字
     private Component boundText(long ticks, long unbounded) {
-        return ticks == unbounded ? Component.translatable(UNBOUNDED) : Component.literal(scale.formatStep(ticks));
+        return ticks == unbounded ? UNBOUNDED : Component.literal(scale.formatStep(ticks));
     }
 
     /** 放得下 "±最长一档步长" 的按钮宽度：每个字 {@link #GLYPH_WIDTH}，两侧各留 {@link UISizes#TEXT_PADDING}。 */
@@ -245,7 +245,7 @@ public abstract class Adjuster extends UIElement {
             long step = syncedStep(tier);
             if (step == syncedStep(tier - 1)) continue;
             if (modified == null) modified = Component.empty();
-            else modified.append(Component.translatable(STEP_SEPARATOR));
+            else modified.append(STEP_SEPARATOR);
             modified.append(STEP_MODIFIERS[tier] + " " + scale.formatStep(step));
         }
         String base = scale.formatStep(syncedStep(0));

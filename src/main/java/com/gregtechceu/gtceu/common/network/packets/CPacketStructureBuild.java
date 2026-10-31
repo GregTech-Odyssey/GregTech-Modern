@@ -11,7 +11,6 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class CPacketStructureBuild implements IPacket {
@@ -75,7 +74,7 @@ public class CPacketStructureBuild implements IPacket {
         var layout = structure == null ? null : structure.layout(values);
         var choices = layout == null ? null : BuildUpload.take(player, upload, definition, values, layout.cells().size());
         if (choices == null) {
-            player.sendSystemMessage(Component.translatable(StructureBuild.INVALID));
+            player.sendSystemMessage(StructureBuild.INVALID);
             return;
         }
         StructureBuild.build(player, controller, layout, choices, flags, demolishNodes.length == 0 ? null : demolishNodes);

@@ -36,8 +36,8 @@ import java.util.Objects;
 
 public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformation {
 
-    private static final String DARK_MAP = "gtceu.prospector.ui.dark_map";
-    private static final String LIGHT_MAP = "gtceu.prospector.ui.light_map";
+    private static final Component DARK_MAP = Component.translatable("gtceu.prospector.ui.dark_map");
+    private static final Component LIGHT_MAP = Component.translatable("gtceu.prospector.ui.light_map");
 
     private final int radius;
     private final long cost;
@@ -98,7 +98,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
         var buttons = new IFancyConfigurator[modes.length > 1 ? modes.length + 1 : 1];
         buttons[0] = new IFancyConfiguratorButton.Toggle(WidgetIcons.MAP_LIGHT, WidgetIcons.MAP_DARK,
                 () -> isDarkMap(held(holder)), (clickData, pressed) -> setDarkMap(held(holder), pressed))
-                .setTooltipsSupplier(pressed -> Collections.singletonList(Component.translatable(pressed ? DARK_MAP : LIGHT_MAP)));
+                .setTooltipsSupplier(pressed -> Collections.singletonList(pressed ? DARK_MAP : LIGHT_MAP));
         if (modes.length > 1) {
             for (int i = 0; i < modes.length; i++) buttons[i + 1] = modeButton(holder, i);
         }
@@ -112,7 +112,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
                 (clickData, pressed) -> {
                     if (pressed) setMode(held(holder), index);
                 })
-                .setTooltipsSupplier(pressed -> Collections.singletonList(Component.translatable(mode.unlocalizedName)));
+                .setTooltipsSupplier(pressed -> mode.tooltip);
     }
 
     private static ItemStack held(HeldItemUIFactory.HeldItemHolder holder) {

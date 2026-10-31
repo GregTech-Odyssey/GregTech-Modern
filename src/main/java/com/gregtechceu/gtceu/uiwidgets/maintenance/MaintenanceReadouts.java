@@ -23,15 +23,15 @@ import java.util.function.Supplier;
  */
 public final class MaintenanceReadouts {
 
-    public static final String STATE = "gtceu.maintenance.state";
-    public static final String PROBLEMS = "gtceu.maintenance.problems";
-    public static final String WEAR = "gtceu.maintenance.wear";
-    public static final String DURATION = "gtceu.maintenance.duration";
-    public static final String WEAR_RATE = "gtceu.maintenance.wear_rate";
-    public static final String REPAIR = "gtceu.maintenance.repair";
-    public static final String REPAIR_TOOLTIP = "gtceu.maintenance.repair.tooltip";
-    public static final String MAINTAIN = "gtceu.maintenance.maintain";
-    public static final String DURATION_TOOLTIP = "gtceu.maintenance.duration.tooltip";
+    public static final Component STATE = Component.translatable("gtceu.maintenance.state");
+    public static final Component PROBLEMS = Component.translatable("gtceu.maintenance.problems");
+    public static final Component WEAR = Component.translatable("gtceu.maintenance.wear");
+    public static final Component DURATION = Component.translatable("gtceu.maintenance.duration");
+    public static final Component WEAR_RATE = Component.translatable("gtceu.maintenance.wear_rate");
+    public static final Component REPAIR = Component.translatable("gtceu.maintenance.repair");
+    public static final Component REPAIR_TOOLTIP = Component.translatable("gtceu.maintenance.repair.tooltip");
+    public static final Component MAINTAIN = Component.translatable("gtceu.maintenance.maintain");
+    public static final Component DURATION_TOOLTIP = Component.translatable("gtceu.maintenance.duration.tooltip");
 
     private static final int STATE_OK = 0;
     private static final int STATE_BROKEN = 1;

@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
@@ -79,9 +80,9 @@ public class ServerList<K> extends UIElement {
         return this;
     }
 
-    public ServerList<K> emptyText(String key) {
+    public ServerList<K> emptyText(Component text) {
         if (emptyLine == null) {
-            emptyLine = TextLine.translatable(LayoutStyle.AUTO, key).bindClientColor(UITheme::textSecondary);
+            emptyLine = TextLine.constant(LayoutStyle.AUTO, text).bindClientColor(UITheme::textSecondary);
             body.addChild(emptyLine);
             emptyLine.setDisplay(rows.shownCount == 0);
         }

@@ -12,6 +12,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -31,8 +32,8 @@ import java.util.function.IntSupplier;
  */
 public class Stepper extends UIElement {
 
-    private static final String AT_MIN = "gtceu.uipro.stepper.at_min";
-    private static final String AT_MAX = "gtceu.uipro.stepper.at_max";
+    private static final Component AT_MIN = Component.translatable("gtceu.uipro.stepper.at_min");
+    private static final Component AT_MAX = Component.translatable("gtceu.uipro.stepper.at_max");
 
     public static final int HEIGHT = UISizes.CONTROL_HEIGHT;
 

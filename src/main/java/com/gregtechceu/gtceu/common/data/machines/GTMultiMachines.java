@@ -256,14 +256,17 @@ public class GTMultiMachines {
             })
             .register();
 
+    private static final String AVAILABLE_RECIPE_MAP_2 = "gtceu.machine.available_recipe_map_2.tooltip";
+    private static final Component ELECTRIC_FURNACE = Component.translatable("gtceu.electric_furnace");
+    private static final Component ALLOY_SMELTER = Component.translatable("gtceu.alloy_smelter");
+
     public static final MultiblockMachineDefinition MULTI_SMELTER = REGISTRATE
             .multiblock("multi_smelter", CoilWorkableElectricMultiblockMachine::new)
             .nonYAxisRotation()
             .recipeTypes(GTRecipeTypes.FURNACE_RECIPES, GTRecipeTypes.ALLOY_SMELTER_RECIPES)
             .recipeModifiers(RecipeModifier.MULTI_SMELTER_OVERCLOCK)
             .appearanceBlock(CASING_INVAR_HEATPROOF)
-            .tips(Tips.stat(Component.translatable("gtceu.machine.available_recipe_map_2.tooltip",
-                    Component.translatable("gtceu.electric_furnace"), Component.translatable("gtceu.alloy_smelter"))))
+            .tips(Tips.stat(Component.translatable(AVAILABLE_RECIPE_MAP_2, ELECTRIC_FURNACE, ALLOY_SMELTER)))
             .structure(definition -> {
                 var symbols = Symbols.create()
                         .where('S', controller(definition))

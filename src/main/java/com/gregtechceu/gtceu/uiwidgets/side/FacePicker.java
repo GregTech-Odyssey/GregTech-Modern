@@ -41,13 +41,26 @@ public final class FacePicker {
 
     private static Widget button(@Nullable Direction direction, SyncValue<Integer> selected, Consumer<Direction> select) {
         if (direction == null) return UIElement.spacer(BUTTON, BUTTON);
-        var name = Component.translatable(FaceNet.nameKey(direction));
-        var shortName = Component.translatable(shortKey(direction));
+        var name = FaceNet.name(direction);
+        var shortName = shortName(direction);
         var button = Button.text(BUTTON, BUTTON, shortName)
                 .bindClientVariant(() -> selected.getValue() == direction.get3DDataValue() ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
                 .setOnServerClick(() -> select.accept(direction));
         button.tooltips(Component.translatable(SELECT, name));
         return button;
+    }
+
+    private static final Component[] SHORT_NAMES = {
+            Component.translatable("gtceu.gui.face_picker.short.down"),
+            Component.translatable("gtceu.gui.face_picker.short.up"),
+            Component.translatable("gtceu.gui.face_picker.short.north"),
+            Component.translatable("gtceu.gui.face_picker.short.south"),
+            Component.translatable("gtceu.gui.face_picker.short.west"),
+            Component.translatable("gtceu.gui.face_picker.short.east")
+    };
+
+    public static Component shortName(Direction direction) {
+        return SHORT_NAMES[direction.get3DDataValue()];
     }
 
     public static String shortKey(Direction direction) {

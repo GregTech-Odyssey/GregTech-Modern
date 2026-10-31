@@ -334,23 +334,37 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         });
     }
 
+    private static final String START_X = "gtceu.machine.miner.startx";
+    private static final String MINE_X = "gtceu.machine.miner.minex";
+    private static final String START_Y = "gtceu.machine.miner.starty";
+    private static final String MINE_Y = "gtceu.machine.miner.miney";
+    private static final String START_Z = "gtceu.machine.miner.startz";
+    private static final String MINE_Z = "gtceu.machine.miner.minez";
+    private static final String WORKING_AREA = "gtceu.universal.tooltip.working_area";
+    private static final String ISSUE_EU_SHORT = "gtceu.issue.eu_short";
+    private static final Component MINER_DONE = Component.translatable("gtceu.multiblock.large_miner.done").setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN));
+    private static final Component MINER_WORKING = Component.translatable("gtceu.multiblock.large_miner.working").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD));
+    private static final Component WORK_PAUSED = Component.translatable("gtceu.multiblock.work_paused");
+    private static final Component MINER_INVFULL = Component.translatable("gtceu.multiblock.large_miner.invfull").setStyle(Style.EMPTY.withColor(ChatFormatting.RED));
+    private static final Component MINER_NEEDSPOWER = Component.translatable("gtceu.multiblock.large_miner.needspower").setStyle(Style.EMPTY.withColor(ChatFormatting.RED));
+
     private void addDisplayText(List<Component> textList) {
         int workingArea = IMiner.getWorkingArea(getRecipeLogic().getCurrentRadius());
-        textList.add(Component.translatable("gtceu.machine.miner.startx", getRecipeLogic().getX()).append(" ").append(Component.translatable("gtceu.machine.miner.minex", getRecipeLogic().getMineX())));
-        textList.add(Component.translatable("gtceu.machine.miner.starty", getRecipeLogic().getY()).append(" ").append(Component.translatable("gtceu.machine.miner.miney", getRecipeLogic().getMineY())));
-        textList.add(Component.translatable("gtceu.machine.miner.startz", getRecipeLogic().getZ()).append(" ").append(Component.translatable("gtceu.machine.miner.minez", getRecipeLogic().getMineZ())));
-        textList.add(Component.translatable("gtceu.universal.tooltip.working_area", workingArea, workingArea));
-        if (getRecipeLogic().isDone()) textList.add(Component.translatable("gtceu.multiblock.large_miner.done").setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
-        else if (getRecipeLogic().isWorking()) textList.add(Component.translatable("gtceu.multiblock.large_miner.working").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
-        else if (!this.isWorkingEnabled()) textList.add(Component.translatable("gtceu.multiblock.work_paused"));
-        if (getRecipeLogic().isInventoryFull()) textList.add(Component.translatable("gtceu.multiblock.large_miner.invfull").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-        if (!drainEnergy(true)) textList.add(Component.translatable("gtceu.multiblock.large_miner.needspower").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+        textList.add(Component.translatable(START_X, getRecipeLogic().getX()).append(" ").append(Component.translatable(MINE_X, getRecipeLogic().getMineX())));
+        textList.add(Component.translatable(START_Y, getRecipeLogic().getY()).append(" ").append(Component.translatable(MINE_Y, getRecipeLogic().getMineY())));
+        textList.add(Component.translatable(START_Z, getRecipeLogic().getZ()).append(" ").append(Component.translatable(MINE_Z, getRecipeLogic().getMineZ())));
+        textList.add(Component.translatable(WORKING_AREA, workingArea, workingArea));
+        if (getRecipeLogic().isDone()) textList.add(MINER_DONE);
+        else if (getRecipeLogic().isWorking()) textList.add(MINER_WORKING);
+        else if (!this.isWorkingEnabled()) textList.add(WORK_PAUSED);
+        if (getRecipeLogic().isInventoryFull()) textList.add(MINER_INVFULL);
+        if (!drainEnergy(true)) textList.add(MINER_NEEDSPOWER);
     }
 
     @Override
     public boolean drainInput(boolean simulate) {
         if (drainEnergy(simulate)) return true;
-        if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", ElectricText.power(energyPerTick)));
+        if (!isRemote()) setIdleReason(Component.translatable(ISSUE_EU_SHORT, ElectricText.power(energyPerTick)));
         return false;
     }
 

@@ -35,9 +35,8 @@ public class Indicator extends UIElement {
     /** 一个状态：灯的颜色与悬浮提示（提示在客户端取值）。 */
     public record State(int color, Supplier<Component> tooltip) {
 
-        public static State of(int color, String translationKey) {
-            var text = Component.translatable(translationKey);
-            return new State(color, () -> text);
+        public static State of(int color, Component tooltip) {
+            return new State(color, () -> tooltip);
         }
     }
 

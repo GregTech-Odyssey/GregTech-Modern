@@ -19,6 +19,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
@@ -100,17 +101,26 @@ public class AdvancedItemDetectorCover extends ItemDetectorCover implements IUIC
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final Component OUTPUT_SECTION = Component.translatable("cover.advanced_detector.output");
+    private static final Component INVERTED_TITLE = Component.translatable("cover.advanced_detector.inverted");
+    private static final Component INVERTED_TOOLTIP = Component.translatable("cover.advanced_detector.inverted.tooltip");
+    private static final Component LATCHED_TITLE = Component.translatable("cover.advanced_detector.latched");
+    private static final Component LATCHED_TOOLTIP = Component.translatable("cover.advanced_detector.latched.tooltip");
+    private static final Component THRESHOLDS_SECTION = Component.translatable("cover.advanced_detector.thresholds");
+    private static final Component MIN_TITLE = Component.translatable("cover.advanced_item_detector.min");
+    private static final Component MAX_TITLE = Component.translatable("cover.advanced_item_detector.max");
+
     @Override
     public Widget createUIWidget() {
-        var output = Form.section("cover.advanced_detector.output").addChildren(
-                Form.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
-                        "cover.advanced_detector.inverted.tooltip"),
-                Form.controlRow("cover.advanced_detector.latched", Switch.of(this::isLatched, this::setLatched),
-                        "cover.advanced_detector.latched.tooltip"));
-        var thresholds = Form.section("cover.advanced_detector.thresholds").addChildren(
-                Form.numberRow("cover.advanced_item_detector.min", NumberField.ofInt(LayoutStyle.AUTO, this::getMinValue,
+        var output = Form.section(OUTPUT_SECTION).addChildren(
+                Form.controlRow(INVERTED_TITLE, Switch.of(this::isInverted, this::setInverted),
+                        INVERTED_TOOLTIP),
+                Form.controlRow(LATCHED_TITLE, Switch.of(this::isLatched, this::setLatched),
+                        LATCHED_TOOLTIP));
+        var thresholds = Form.section(THRESHOLDS_SECTION).addChildren(
+                Form.numberRow(MIN_TITLE, NumberField.ofInt(LayoutStyle.AUTO, this::getMinValue,
                         this::setMinValue, () -> 0, () -> Math.max(0, maxValue - 1))),
-                Form.numberRow("cover.advanced_item_detector.max", NumberField.ofInt(LayoutStyle.AUTO, this::getMaxValue,
+                Form.numberRow(MAX_TITLE, NumberField.ofInt(LayoutStyle.AUTO, this::getMaxValue,
                         this::setMaxValue, 0, Integer.MAX_VALUE)));
         return Form.page().addChildren(output, thresholds, CoverUIs.filterSection(filterHandler));
     }

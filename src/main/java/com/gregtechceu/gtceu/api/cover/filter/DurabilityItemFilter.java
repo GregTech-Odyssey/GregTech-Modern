@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import lombok.Getter;
@@ -118,6 +119,11 @@ public class DurabilityItemFilter implements ItemFilter {
         return test(itemStack) ? Integer.MAX_VALUE : 0;
     }
 
+    private static final Component MIN_LABEL = Component.translatable("cover.durability_filter.min");
+    private static final Component MIN_INFO = Component.translatable("cover.durability_filter.info");
+    private static final Component MAX_LABEL = Component.translatable("cover.durability_filter.max");
+    private static final Component REVERSE_ENABLED = Component.translatable("cover.durability_filter.reverse.enabled");
+
     @Override
     public boolean supportsAmounts() {
         return false;
@@ -126,11 +132,11 @@ public class DurabilityItemFilter implements ItemFilter {
     @Override
     public Widget createConfigUI() {
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(
-                Form.numberRow("cover.durability_filter.min",
+                Form.numberRow(MIN_LABEL,
                         NumberField.ofInt(LayoutStyle.AUTO, this::getMinPercent, this::setMinPercent, 0, 100),
-                        "cover.durability_filter.info"),
-                Form.numberRow("cover.durability_filter.max",
+                        MIN_INFO),
+                Form.numberRow(MAX_LABEL,
                         NumberField.ofInt(LayoutStyle.AUTO, this::getMaxPercent, this::setMaxPercent, 0, 100)),
-                Form.controlRow("cover.durability_filter.reverse.enabled", Switch.of(this::isReverse, this::setReverse)));
+                Form.controlRow(REVERSE_ENABLED, Switch.of(this::isReverse, this::setReverse)));
     }
 }

@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 public class TagLookupView extends UIElement {
 
     public static final int MAX_LINES = 6;
-    private static final String TAG_ENTRY_TOOLTIP = "cover.tag_filter.tag_entry.tooltip";
+    private static final Component TAG_ENTRY_TOOLTIP = Component.translatable("cover.tag_filter.tag_entry.tooltip");
 
     private final TextField field;
     private final UIElement inputRow;
@@ -70,22 +70,22 @@ public class TagLookupView extends UIElement {
     }
 
     public static TagLookupView items(String scrollerId, Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick,
-                                      String... slotTooltipKeys) {
+                                      Component... slotTooltips) {
         var handler = new ItemStackTransfer(1);
         var query = new TagQuery(() -> handler.getStackInSlot(0).getItem(), () -> handler.getStackInSlot(0).getTags().map(t -> t));
         var slot = PhantomItemSlot.of(handler, 0).xeiPhantom();
         slot.setMaxStackSize(1);
-        slot.tooltips(slotTooltipKeys);
+        slot.tooltips(slotTooltips);
         return new TagLookupView(scrollerId, getter, setter, onServerPick, slot, query);
     }
 
     public static TagLookupView fluids(String scrollerId, Supplier<String> getter, Consumer<String> setter, Consumer<String> onServerPick,
-                                       String... slotTooltipKeys) {
+                                       Component... slotTooltips) {
         var tank = KeyInventory.fluids(1, 1);
         var adapter = new ForgeFluidAdapter(tank);
         var query = new TagQuery(() -> fluidOf(tank), () -> fluidOf(tank).defaultFluidState().getTags().map(t -> t));
         var slot = PhantomFluidSlot.of(adapter, 0, () -> adapter.getFluidInTank(0), fluid -> tank.set(0, Keys.fluid(fluid), fluid.getAmount())).xeiPhantom();
-        slot.tooltips(slotTooltipKeys);
+        slot.tooltips(slotTooltips);
         return new TagLookupView(scrollerId, getter, setter, onServerPick, slot, query);
     }
 
@@ -136,7 +136,7 @@ public class TagLookupView extends UIElement {
             loaded = true;
             lastKey = current;
             var names = source.get().map(tag -> tag.location().toString()).toList();
-            var hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable(TAG_ENTRY_TOOLTIP));
+            var hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, TAG_ENTRY_TOOLTIP);
             var newLines = new ArrayList<Component>(names.size());
             for (var name : names) {
                 newLines.add(ComponentPanelWidget.withButton(Component.literal(name), name).copy().withStyle(s -> s.withHoverEvent(hover)));

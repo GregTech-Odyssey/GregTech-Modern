@@ -73,11 +73,11 @@ public final class StructurePreviewWidget extends UIElement implements ILocalUI 
         stage.addChild(InfoIcon.of(Level.NORMAL, SceneView.controlTips().toArray(Component[]::new))
                 .layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(TITLE_INSET).top(TITLE_INSET)));
         if (actions.isEmpty()) {
-            addChildren(stage, Button.translatable(width, StructurePreviewScreen.OPEN).setOnClientClick(openFull));
+            addChildren(stage, Button.text(width, StructurePreviewScreen.OPEN).setOnClientClick(openFull));
         } else {
             var row = UIElement.centeredRow(Button.HEIGHT).layout(l -> l.width(width));
             for (var action : actions) row.addChild(action);
-            row.addChild(Button.translatable(LayoutStyle.AUTO, StructurePreviewScreen.OPEN).layout(l -> l.flex(1)).setOnClientClick(openFull));
+            row.addChild(Button.text(LayoutStyle.AUTO, StructurePreviewScreen.OPEN).layout(l -> l.flex(1)).setOnClientClick(openFull));
             addChildren(stage, row);
         }
     }

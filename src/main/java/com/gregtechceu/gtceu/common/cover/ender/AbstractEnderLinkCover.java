@@ -213,8 +213,10 @@ public abstract class AbstractEnderLinkCover<T extends VirtualEntry> extends Cov
         return true;
     }
 
-    protected String ioTooltipKey() {
-        return "cover.ender_link.ui.io.tooltip";
+    private static final Component IO_TOOLTIP = Component.translatable("cover.ender_link.ui.io.tooltip");
+
+    protected Component ioTooltip() {
+        return IO_TOOLTIP;
     }
 
     protected abstract void addEntryStatus(StatusPanel panel, BooleanSupplier visible);

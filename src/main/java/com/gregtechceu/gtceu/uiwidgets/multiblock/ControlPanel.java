@@ -45,8 +45,7 @@ import java.util.function.Supplier;
  */
 public final class ControlPanel {
 
-    public static final String SLOT_EMPTY = "gtceu.gui.multiblock.slot_empty";
-    private static final Component EMPTY_SLOT = Component.translatable(SLOT_EMPTY);
+    public static final Component SLOT_EMPTY = Component.translatable("gtceu.gui.multiblock.slot_empty");
 
     private static final int PADDING = 7;
     private static final int INNER_WIDTH = UISizes.CONTENT_WIDTH - 2 * PADDING;
@@ -77,70 +76,70 @@ public final class ControlPanel {
         return empty;
     }
 
-    public UIElement addToggle(String labelKey, BooleanSupplier getter, BooleanConsumer setter, String... tooltipKeys) {
+    public UIElement addToggle(Component label, BooleanSupplier getter, BooleanConsumer setter, Component... tooltips) {
         var control = Switch.of(getter, value -> {
             if (value == getter.getAsBoolean()) return;
             setter.accept(value);
             machine.onChanged();
         });
-        return add(Form.controlRow(ROW_HEIGHT, labelKey, control, tooltipKeys));
+        return add(Form.controlRow(ROW_HEIGHT, label, control, tooltips));
     }
 
-    public UIElement addNumber(String labelKey, LongSupplier getter, LongConsumer setter, long min, long max, String... tooltipKeys) {
-        return addNumber(labelKey, getter, setter, () -> min, () -> max, tooltipKeys);
+    public UIElement addNumber(Component label, LongSupplier getter, LongConsumer setter, long min, long max, Component... tooltips) {
+        return addNumber(label, getter, setter, () -> min, () -> max, tooltips);
     }
 
-    public UIElement addNumber(String labelKey, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, String... tooltipKeys) {
+    public UIElement addNumber(Component label, LongSupplier getter, LongConsumer setter, LongSupplier min, LongSupplier max, Component... tooltips) {
         var field = NumberField.ofLong(UISizes.INLINE_ADJUSTER_WIDTH, getter, value -> {
             if (value == getter.getAsLong()) return;
             setter.accept(value);
             machine.onChanged();
         }, min, max);
-        return add(numberRows.add(labelKey, field, tooltipKeys));
+        return add(numberRows.add(label, field, tooltips));
     }
 
-    public UIElement addInt(String labelKey, IntSupplier getter, IntConsumer setter, int min, int max, String... tooltipKeys) {
-        return addInt(labelKey, getter, setter, () -> min, () -> max, tooltipKeys);
+    public UIElement addInt(Component label, IntSupplier getter, IntConsumer setter, int min, int max, Component... tooltips) {
+        return addInt(label, getter, setter, () -> min, () -> max, tooltips);
     }
 
-    public UIElement addInt(String labelKey, IntSupplier getter, IntConsumer setter, IntSupplier min, IntSupplier max, String... tooltipKeys) {
+    public UIElement addInt(Component label, IntSupplier getter, IntConsumer setter, IntSupplier min, IntSupplier max, Component... tooltips) {
         var field = NumberField.ofInt(UISizes.INLINE_ADJUSTER_WIDTH, getter, value -> {
             if (value == getter.getAsInt()) return;
             setter.accept(value);
             machine.onChanged();
         }, min, max);
-        return add(numberRows.add(labelKey, field, tooltipKeys));
+        return add(numberRows.add(label, field, tooltips));
     }
 
-    public UIElement addDecimal(String labelKey, DoubleSupplier getter, DoubleConsumer setter, double min, double max, double step, String... tooltipKeys) {
-        return addDecimal(labelKey, getter, setter, () -> min, () -> max, step, tooltipKeys);
+    public UIElement addDecimal(Component label, DoubleSupplier getter, DoubleConsumer setter, double min, double max, double step, Component... tooltips) {
+        return addDecimal(label, getter, setter, () -> min, () -> max, step, tooltips);
     }
 
-    public UIElement addDecimal(String labelKey, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max, double step, String... tooltipKeys) {
+    public UIElement addDecimal(Component label, DoubleSupplier getter, DoubleConsumer setter, DoubleSupplier min, DoubleSupplier max, double step, Component... tooltips) {
         var field = DecimalField.of(UISizes.INLINE_ADJUSTER_WIDTH, getter, value -> {
             double clamped = Mth.clamp(value, min.getAsDouble(), max.getAsDouble());
             if (clamped == getter.getAsDouble()) return;
             setter.accept(clamped);
             machine.onChanged();
         }, min, max, step);
-        return add(numberRows.add(labelKey, field, tooltipKeys));
+        return add(numberRows.add(label, field, tooltips));
     }
 
-    public UIElement addChoice(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
-        return add(Form.choiceRow(labelKey, count, option, getter, index -> {
+    public UIElement addChoice(Component label, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, Component... tooltips) {
+        return add(Form.choiceRow(label, count, option, getter, index -> {
             setter.accept(index);
             machine.onChanged();
-        }, tooltipKeys));
+        }, tooltips));
     }
 
-    public UIElement addSegments(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
-        return add(Form.segmentRow(labelKey, count, option, getter, index -> {
+    public UIElement addSegments(Component label, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, Component... tooltips) {
+        return add(Form.segmentRow(label, count, option, getter, index -> {
             setter.accept(index);
             machine.onChanged();
-        }, tooltipKeys));
+        }, tooltips));
     }
 
-    public UIElement addCycle(String labelKey, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, String... tooltipKeys) {
+    public UIElement addCycle(Component label, int count, IntFunction<Component> option, IntSupplier getter, IntConsumer setter, Component... tooltips) {
         var labels = new String[Math.max(1, count)];
         var stepper = Stepper.of(INNER_WIDTH - 2 * UISizes.ICON_BUTTON_SIZE - 2 * UISizes.GAP, getter, index -> {
             if (index < 0 || index >= count || index == getter.getAsInt()) return;
@@ -148,63 +147,63 @@ public final class ControlPanel {
             machine.onChanged();
         }, 0, Math.max(0, count - 1)).wrap().setFormatter(index -> {
             if (index < 0 || index >= count) return "";
-            var label = labels[index];
-            if (label == null) labels[index] = label = option.apply(index).getString();
-            return label;
+            var optLabel = labels[index];
+            if (optLabel == null) labels[index] = optLabel = option.apply(index).getString();
+            return optLabel;
         });
-        return add(UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(Form.fieldLabel(labelKey, tooltipKeys), stepper));
+        return add(UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(Form.fieldLabel(label, tooltips), stepper));
     }
 
-    public UIElement addServerButton(String labelKey, String buttonKey, Runnable onServerClick, String... tooltipKeys) {
-        var button = Button.translatable(UISizes.BUTTON_WIDTH, buttonKey).setOnServerClick(() -> {
+    public UIElement addServerButton(Component label, Component buttonText, Runnable onServerClick, Component... tooltips) {
+        var button = Button.text(UISizes.BUTTON_WIDTH, buttonText).setOnServerClick(() -> {
             onServerClick.run();
             machine.onChanged();
         });
-        return add(Form.controlRow(ROW_HEIGHT, labelKey, button, tooltipKeys));
+        return add(Form.controlRow(ROW_HEIGHT, label, button, tooltips));
     }
 
-    public UIElement addServerButton(String labelKey, String buttonKey, Consumer<Player> onServerClick, String... tooltipKeys) {
-        return addServerButton(labelKey, Button.translatable(UISizes.BUTTON_WIDTH, buttonKey), onServerClick, tooltipKeys);
+    public UIElement addServerButton(Component label, Component buttonText, Consumer<Player> onServerClick, Component... tooltips) {
+        return addServerButton(label, Button.text(UISizes.BUTTON_WIDTH, buttonText), onServerClick, tooltips);
     }
 
-    public UIElement addServerButton(String labelKey, Button button, Consumer<Player> onServerClick, String... tooltipKeys) {
+    public UIElement addServerButton(Component label, Button button, Consumer<Player> onServerClick, Component... tooltips) {
         button.setOnServerClick(() -> {
             var gui = button.getGui();
             if (gui == null || gui.entityPlayer == null) return;
             onServerClick.accept(gui.entityPlayer);
             machine.onChanged();
         });
-        return add(Form.controlRow(ROW_HEIGHT, labelKey, button, tooltipKeys));
+        return add(Form.controlRow(ROW_HEIGHT, label, button, tooltips));
     }
 
-    public UIElement addClientButton(String labelKey, String buttonKey, Runnable onClientClick, String... tooltipKeys) {
-        var button = Button.translatable(UISizes.BUTTON_WIDTH, buttonKey).setOnClientClick(onClientClick);
-        return add(Form.controlRow(ROW_HEIGHT, labelKey, button, tooltipKeys));
+    public UIElement addClientButton(Component label, Component buttonText, Runnable onClientClick, Component... tooltips) {
+        var button = Button.text(UISizes.BUTTON_WIDTH, buttonText).setOnClientClick(onClientClick);
+        return add(Form.controlRow(ROW_HEIGHT, label, button, tooltips));
     }
 
-    public UIElement addSlot(KeyInventory<AEItemKey> inventory, int index, String labelKey, String... tooltipKeys) {
-        return addSlot(ItemSlot.of(inventory, index), labelKey, contentName(inventory, index), tooltipKeys);
+    public UIElement addSlot(KeyInventory<AEItemKey> inventory, int index, Component label, Component... tooltips) {
+        return addSlot(ItemSlot.of(inventory, index), label, contentName(inventory, index), tooltips);
     }
 
-    public UIElement addSlot(StackInventory inventory, int index, String labelKey, String... tooltipKeys) {
-        return addSlot(ItemSlot.of(inventory, index), labelKey, contentName(inventory, index), tooltipKeys);
+    public UIElement addSlot(StackInventory inventory, int index, Component label, Component... tooltips) {
+        return addSlot(ItemSlot.of(inventory, index), label, contentName(inventory, index), tooltips);
     }
 
-    public UIElement addSlot(Widget slot, String labelKey, @Nullable Supplier<Component> detail, String... tooltipKeys) {
-        var text = UIElement.column(0).layout(l -> l.flex(1).gapAll(1)).addChild(Form.fieldLabel(labelKey, tooltipKeys));
+    public UIElement addSlot(Widget slot, Component label, @Nullable Supplier<Component> detail, Component... tooltips) {
+        var text = UIElement.column(0).layout(l -> l.flex(1).gapAll(1)).addChild(Form.fieldLabel(label, tooltips));
         if (detail != null) text.addChild(TextLine.of(LayoutStyle.AUTO, detail).bindClientColor(UITheme::textSecondary));
         return add(UIElement.centeredRow(SLOT_ROW_HEIGHT).addChildren(text, slot));
     }
 
-    public UIElement addSlots(String labelKey, Widget... slots) {
-        var row = UIElement.row(SLOT_ROW_HEIGHT).layout(l -> l.alignCenter()).addChild(Form.label(labelKey));
+    public UIElement addSlots(Component label, Widget... slots) {
+        var row = UIElement.row(SLOT_ROW_HEIGHT).layout(l -> l.alignCenter()).addChild(Form.label(label));
         for (var slot : slots) row.addChild(slot);
         return add(row);
     }
 
-    public UIElement addGrid(String labelKey, Widget grid) {
+    public UIElement addGrid(Component label, Widget grid) {
         return add(new UIElement().layout(l -> l.row().width(LayoutStyle.AUTO).gapAll(UISizes.GAP).alignCenter().paddingVertical(1))
-                .addChildren(Form.label(labelKey), grid));
+                .addChildren(Form.label(label), grid));
     }
 
     public static Supplier<Component> contentName(KeyInventory<AEItemKey> inventory, int index) {
@@ -216,11 +215,11 @@ public final class ControlPanel {
     }
 
     private static Component keyName(@Nullable AEItemKey key) {
-        return key == null ? EMPTY_SLOT : Keys.displayStack(key).getHoverName();
+        return key == null ? SLOT_EMPTY : Keys.displayStack(key).getHoverName();
     }
 
     private static Component stackName(ItemStack stack) {
-        return stack.isEmpty() ? EMPTY_SLOT : stack.getHoverName();
+        return stack.isEmpty() ? SLOT_EMPTY : stack.getHoverName();
     }
 
     public UIElement add(UIElement row) {

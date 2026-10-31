@@ -156,6 +156,9 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final Component STEAM_LABEL = Component.translatable("gtceu.gui.steam_machine.steam");
+    private static final Component STEAM_WAITING = Component.translatable("gtceu.gui.steam_machine.waiting");
+
     @Override
     public ModularUI createUI(Player entityPlayer) {
         return MachineWindow.createUI(this, this, entityPlayer);
@@ -178,9 +181,9 @@ public class SimpleSteamMachine extends SteamWorkableMachine implements IExhaust
         var indicator = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(width / 2 - 9).top(height / 2 - 9).size(18, 18));
         indicator.addChild(new PredicatedImageWidget(0, 0, 18, 18, GuiTextures.INDICATOR_NO_STEAM.get(isHighPressure)).setPredicate(recipeLogic::isWaiting));
         stage.addChild(indicator);
-        var steam = StatusLine.of(UISizes.CONTENT_WIDTH, Component.translatable("gtceu.gui.steam_machine.steam"), new SteamText())
+        var steam = StatusLine.of(UISizes.CONTENT_WIDTH, STEAM_LABEL, new SteamText())
                 .bindLevel(() -> recipeLogic.isWaiting() ? Level.WARNING : Level.NORMAL)
-                .bindDetail(() -> recipeLogic.isWaiting() ? Component.translatable("gtceu.gui.steam_machine.waiting") : Component.empty());
+                .bindDetail(() -> recipeLogic.isWaiting() ? STEAM_WAITING : Component.empty());
         return RecipeMachinePage.page(stage, steam);
     }
 

@@ -70,10 +70,10 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     private static final float MAX_DURATION_MULTIPLIER = 1.1F;
     private static final float MIN_DURATION_MULTIPLIER = 0.9F;
     private static final double DURATION_STEP = 0.01;
-    private static final String DURATION_LABEL = "gtceu.maintenance.configurable_duration.label";
-    private static final String TAPE_LABEL = "gtceu.machine.maintenance_hatch.tape";
-    private static final String FIX_LABEL = "gtceu.machine.maintenance_hatch.fix";
-    private static final String TAPE_TOOLTIP = "gtceu.machine.maintenance_hatch_tape_slot.tooltip";
+    private static final Component DURATION_LABEL = Component.translatable("gtceu.maintenance.configurable_duration.label");
+    private static final Component TAPE_LABEL = Component.translatable("gtceu.machine.maintenance_hatch.tape");
+    private static final Component FIX_LABEL = Component.translatable("gtceu.machine.maintenance_hatch.fix");
+    private static final Component TAPE_TOOLTIP = Component.translatable("gtceu.machine.maintenance_hatch_tape_slot.tooltip");
     @Getter
     private final boolean isConfigurable;
     @SaveToDisk
@@ -406,7 +406,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
             tapeSlot.tooltips(TAPE_TOOLTIP);
             controls.addSlot(tapeSlot, TAPE_LABEL, ControlPanel.contentName(itemStackHandler.storage, 0), TAPE_TOOLTIP);
             var fixButton = Button.of(UISizes.BUTTON_WIDTH)
-                    .bindClientText(() -> Component.translatable(hasMaintenanceProblems() ? MaintenanceReadouts.REPAIR : MaintenanceReadouts.MAINTAIN).getString());
+                    .bindClientText(() -> (hasMaintenanceProblems() ? MaintenanceReadouts.REPAIR : MaintenanceReadouts.MAINTAIN).getString());
             controls.addServerButton(FIX_LABEL, fixButton, this::fixMaintenanceProblems, MaintenanceReadouts.REPAIR_TOOLTIP);
             if (isConfigurable) {
                 controls.addDecimal(DURATION_LABEL, () -> durationMultiplier, value -> durationMultiplier = (float) value,

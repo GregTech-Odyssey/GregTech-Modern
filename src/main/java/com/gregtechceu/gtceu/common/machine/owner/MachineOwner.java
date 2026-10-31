@@ -106,20 +106,25 @@ public abstract sealed class MachineOwner permits PlayerOwner, FTBOwner {
         return owner.isPlayerInTeam(player);
     }
 
+    private static final String PLAYER_NAME_KEY = "behavior.portable_scanner.player_name";
+    private static final Component ONLINE_TRUE = Component.translatable("gtceu.tooltip.status.trinary.true");
+    private static final Component ONLINE_FALSE = Component.translatable("gtceu.tooltip.status.trinary.false");
+    private static final Component ONLINE_UNKNOWN = Component.translatable("gtceu.tooltip.status.trinary.unknown");
+
     public static void displayPlayerInfo(List<Component> compList, UUID playerUUID) {
         final var playerName = UsernameCache.getLastKnownUsername(playerUUID);
-        var online = "gtceu.tooltip.status.trinary.";
+        Component onlineStatus;
         if (GTCEu.isClientThread()) {
             var connection = Minecraft.getInstance().getConnection();
             if (connection != null) {
-                online += connection.getOnlinePlayerIds().contains(playerUUID);
+                onlineStatus = connection.getOnlinePlayerIds().contains(playerUUID) ? ONLINE_TRUE : ONLINE_FALSE;
             } else {
-                online += "unknown";
+                onlineStatus = ONLINE_UNKNOWN;
             }
         } else {
-            online += GTCEu.getMinecraftServer().getPlayerList().getPlayer(playerUUID) != null;
+            onlineStatus = GTCEu.getMinecraftServer().getPlayerList().getPlayer(playerUUID) != null ? ONLINE_TRUE : ONLINE_FALSE;
         }
-        compList.add(Component.translatable("behavior.portable_scanner.player_name", playerName, Component.translatable(online)));
+        compList.add(Component.translatable(PLAYER_NAME_KEY, playerName, onlineStatus));
     }
 
     @Override

@@ -21,18 +21,18 @@ import java.util.List;
  */
 public final class ZoomBar extends UIElement {
 
-    public static final String ZOOM_IN = "gtceu.uipro.canvas.zoom_in";
-    public static final String ZOOM_OUT = "gtceu.uipro.canvas.zoom_out";
-    public static final String FIT = "gtceu.uipro.canvas.fit";
-    public static final String MINIMAP = "gtceu.uipro.canvas.minimap";
-    public static final String PERCENT = "gtceu.uipro.view.zoom_percent";
-    public static final String RESET = "gtceu.uipro.view.reset";
-    public static final String DISTANCE = "gtceu.uipro.view.zoom_distance";
-    public static final String ZOOM_LOCKED = "gtceu.uipro.view.zoom_locked";
-    public static final String ZOOM_LOCKED_HINT = "gtceu.uipro.view.zoom_locked.hint";
-    public static final String ZOOM_LOCKED_REASON = "gtceu.uipro.view.zoom_locked.reason";
-    public static final String ZOOM_UNLOCKED = "gtceu.uipro.view.zoom_unlocked";
-    public static final String ZOOM_UNLOCKED_HINT = "gtceu.uipro.view.zoom_unlocked.hint";
+    public static final Component ZOOM_IN = Component.translatable("gtceu.uipro.canvas.zoom_in");
+    public static final Component ZOOM_OUT = Component.translatable("gtceu.uipro.canvas.zoom_out");
+    public static final Component FIT = Component.translatable("gtceu.uipro.canvas.fit");
+    public static final Component MINIMAP = Component.translatable("gtceu.uipro.canvas.minimap");
+    public static final Component PERCENT = Component.translatable("gtceu.uipro.view.zoom_percent");
+    public static final Component RESET = Component.translatable("gtceu.uipro.view.reset");
+    public static final Component DISTANCE = Component.translatable("gtceu.uipro.view.zoom_distance");
+    public static final Component ZOOM_LOCKED = Component.translatable("gtceu.uipro.view.zoom_locked");
+    public static final Component ZOOM_LOCKED_HINT = Component.translatable("gtceu.uipro.view.zoom_locked.hint");
+    public static final Component ZOOM_LOCKED_REASON = Component.translatable("gtceu.uipro.view.zoom_locked.reason");
+    public static final Component ZOOM_UNLOCKED = Component.translatable("gtceu.uipro.view.zoom_unlocked");
+    public static final Component ZOOM_UNLOCKED_HINT = Component.translatable("gtceu.uipro.view.zoom_unlocked.hint");
     private static final int PERCENT_WIDTH = 32;
 
     private final ViewController view;
@@ -88,12 +88,12 @@ public final class ZoomBar extends UIElement {
 
     private void lockTooltips(Button lock) {
         boolean locked = view.isZoomLocked();
-        lock.tooltips(Component.translatable(locked ? ZOOM_LOCKED : ZOOM_UNLOCKED),
-                Component.translatable(locked ? ZOOM_LOCKED_HINT : ZOOM_UNLOCKED_HINT).withStyle(ChatFormatting.GRAY));
+        lock.tooltips(locked ? ZOOM_LOCKED : ZOOM_UNLOCKED,
+                (locked ? ZOOM_LOCKED_HINT : ZOOM_UNLOCKED_HINT).copy().withStyle(ChatFormatting.GRAY));
     }
 
-    public ZoomBar fit(String tooltipKey) {
-        return add(button(UITheme.CANVAS_FIT, tooltipKey, view::fitView));
+    public ZoomBar fit(Component tooltip) {
+        return add(button(UITheme.CANVAS_FIT, tooltip, view::fitView));
     }
 
     public ZoomBar minimap() {
@@ -120,16 +120,16 @@ public final class ZoomBar extends UIElement {
         return this;
     }
 
-    public Button button(IGuiTexture icon, String tooltipKey, Runnable onClick) {
-        return button(icon, tooltipKey, onClick, size);
+    public Button button(IGuiTexture icon, Component tooltip, Runnable onClick) {
+        return button(icon, tooltip, onClick, size);
     }
 
-    public static Button button(IGuiTexture icon, String tooltipKey, Runnable onClick, int size) {
-        return Button.icon(size, icon).setOnClientClick(onClick).tooltips(tooltipKey);
+    public static Button button(IGuiTexture icon, Component tooltip, Runnable onClick, int size) {
+        return Button.icon(size, icon).setOnClientClick(onClick).tooltips(tooltip);
     }
 
-    public static Button dockButton(IGuiTexture icon, String tooltipKey, Runnable onClick) {
-        return button(icon, tooltipKey, onClick, UISizes.DOCK_BUTTON_SIZE);
+    public static Button dockButton(IGuiTexture icon, Component tooltip, Runnable onClick) {
+        return button(icon, tooltip, onClick, UISizes.DOCK_BUTTON_SIZE);
     }
 
     public static UIElement dockRow() {

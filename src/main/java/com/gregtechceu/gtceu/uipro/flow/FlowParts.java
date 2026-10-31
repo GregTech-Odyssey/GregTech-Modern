@@ -38,10 +38,6 @@ public final class FlowParts {
                 .addChildren(icon, TextLine.constant(0, title).layout(l -> l.flex(1)));
     }
 
-    public static UIElement header(Widget icon, String titleKey) {
-        return header(icon, Component.translatable(titleKey));
-    }
-
     public static UIElement centered(Widget child) {
         return UIElement.row(child.getSizeHeight()).layout(l -> l.justifyContent(AlignContent.CENTER)).addChild(child);
     }

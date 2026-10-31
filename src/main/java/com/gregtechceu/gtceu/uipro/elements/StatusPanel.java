@@ -36,8 +36,8 @@ public class StatusPanel extends UIElement {
     }
 
     /** 加一行"名称 …… 数值"，返回该行以便继续设置等级、说明。 */
-    public StatusLine addLine(String labelKey, Supplier<Component> value) {
-        return addLine(StatusLine.of(LayoutStyle.AUTO, labelKey, value));
+    public StatusLine addLine(Component label, Supplier<Component> value) {
+        return addLine(StatusLine.of(LayoutStyle.AUTO, label, value));
     }
 
     /** 加一行整句状态（没有名称）。 */
