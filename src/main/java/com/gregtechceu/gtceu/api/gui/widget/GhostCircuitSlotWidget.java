@@ -55,7 +55,7 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
     private static final int NO_CONFIG = -1;
     /// 弹出面板的键；这种面板只有一个，参数恒为 0
     private static final String POPUP_KEY = "gtceu.circuit_configurator";
-    private static final String CONFIGURATOR_TITLE = "gtceu.gui.programmed_circuit_configuration";
+    private static final Component CONFIGURATOR_TITLE = Component.translatable("gtceu.gui.programmed_circuit_configuration");
 
     @Getter
     private KeyInventory<AEItemKey> circuitInventory;
@@ -237,7 +237,7 @@ public class GhostCircuitSlotWidget extends SlotWidget implements UIChannel.Host
 
     /** 面板内容：一个区块，里面是电路选择器；标题由面板外框显示。 */
     private Popup createPopup() {
-        return Popup.of(() -> Component.translatable(CONFIGURATOR_TITLE),
+        return Popup.of(() -> CONFIGURATOR_TITLE,
                 column -> column.addChild(UIElement.section().addChild(CircuitSelector.create(circuitInventory))));
     }
 

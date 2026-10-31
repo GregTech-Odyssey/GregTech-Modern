@@ -25,7 +25,7 @@ public interface RecipeTierPreview {
 
     int duration(int tier, boolean perfect);
 
-    List<String> rowLabels();
+    List<Component> rowLabels();
 
     Component rowValue(int row, int tier, boolean perfect);
 
@@ -35,8 +35,10 @@ public interface RecipeTierPreview {
 
     boolean hasStepper();
 
+    Component PREVIEW_TIER = Component.translatable("gtceu.recipe.info.preview_tier");
+
     default Component stepperLabel() {
-        return Component.translatable("gtceu.recipe.info.preview_tier");
+        return PREVIEW_TIER;
     }
 
     List<Function<GTRecipeDefinition, @Nullable RecipeTierPreview>> FACTORIES = new ArrayList<>(List.of(EnergyTierPreview::of));

@@ -19,6 +19,7 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -36,6 +37,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class SimpleFluidFilter implements FluidFilter {
+
+    private static final Component BLACKLIST_ENABLED = Component.translatable("cover.filter.blacklist.enabled");
+    private static final Component IGNORE_NBT_ENABLED = Component.translatable("cover.item_filter.ignore_nbt.enabled");
 
     private static final int MAX_SCROLL_DELTA = 100_000;
 
@@ -120,8 +124,8 @@ public class SimpleFluidFilter implements FluidFilter {
             grid.addChild(line);
         }
         var options = UIElement.column(LayoutStyle.AUTO).layout(l -> l.flex(1).gapAll(UISizes.GAP)).addChildren(
-                Form.controlRow("cover.filter.blacklist.enabled", Switch.of(this::isBlackList, this::setBlackList)),
-                Form.controlRow("cover.item_filter.ignore_nbt.enabled", Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
+                Form.controlRow(BLACKLIST_ENABLED, Switch.of(this::isBlackList, this::setBlackList)),
+                Form.controlRow(IGNORE_NBT_ENABLED, Switch.of(this::isIgnoreNbt, this::setIgnoreNbt)));
         return UIElement.row(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP)).addChildren(grid, options);
     }
 

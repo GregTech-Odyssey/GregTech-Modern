@@ -28,6 +28,8 @@ public abstract class ToolSetting {
 
     public static final ToolSetting[] NONE = new ToolSetting[0];
     public static final ItemDataComponentKey<Byte, CompoundTag> SELECTED = ToolData.byteField(ToolData.BEHAVIOURS_TAG_KEY, "Setting");
+    private static final Component SETTING_SELECTED = Component.translatable("item.gtceu.tool.setting.selected");
+    private static final Component SETTING_SELECTED_DETAIL = Component.translatable("item.gtceu.tool.setting.selected.detail");
 
     public final String nameKey;
     public final String detailKey;
@@ -86,14 +88,14 @@ public abstract class ToolSetting {
         return new HeldItemPage(holder, window -> {
             UIElement page = Form.page();
             if (settings.length > 1) {
-                page.addChild(Form.choiceRow("item.gtceu.tool.setting.selected", settings.length,
+                page.addChild(Form.choiceRow(SETTING_SELECTED, settings.length,
                         i -> Component.translatable(settings[i].nameKey),
                         () -> selected(holder.getHeld(), settings),
                         i -> {
                             ItemStack held = heldTool(holder);
                             if (!held.isEmpty()) select(held, i);
                         },
-                        "item.gtceu.tool.setting.selected.detail"));
+                        SETTING_SELECTED_DETAIL));
             }
             for (ToolSetting setting : settings) {
                 setting.addRows(page, holder);
@@ -167,12 +169,12 @@ public abstract class ToolSetting {
         @Override
         public void addRows(UIElement page, HeldItemUIFactory.HeldItemHolder holder) {
             Component[] options = options(holder.getHeld());
-            page.addChild(Form.choiceRow(nameKey, options.length, i -> options[i],
+            page.addChild(Form.choiceRow(Component.translatable(nameKey), options.length, i -> options[i],
                     () -> index(holder.getHeld(), options.length),
                     i -> {
                         ItemStack held = heldTool(holder);
                         if (!held.isEmpty()) setter.set(held, i);
-                    }, detailKey));
+                    }, Component.translatable(detailKey)));
         }
     }
 

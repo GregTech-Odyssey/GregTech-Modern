@@ -28,6 +28,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class PageSwitcher implements IFancyUIProvider {
 
+    public static final Component TITLE = Component.translatable("gtceu.gui.title_bar.page_switcher");
+
     private final Consumer<IFancyUIProvider> onPageSwitched;
 
     private List<IFancyUIProvider> pages = Collections.emptyList();
@@ -64,7 +66,7 @@ public class PageSwitcher implements IFancyUIProvider {
                 .forEachOrdered(group -> {
                     var section = UIElement.section();
                     if (group.groupKey() != null) {
-                        section.addChild(TextLine.translatable(LayoutStyle.AUTO, group.groupKey()).bindClientColor(UITheme::panelText));
+                        section.addChild(TextLine.constant(LayoutStyle.AUTO, Component.translatable(group.groupKey())).bindClientColor(UITheme::panelText));
                     }
                     var groupPages = groupedPages.get(group);
                     for (int rowStart = 0; rowStart < groupPages.size(); rowStart += PAGES_PER_ROW) {
@@ -90,7 +92,7 @@ public class PageSwitcher implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.translatable("gtceu.gui.title_bar.page_switcher");
+        return TITLE;
     }
 
     @Override
