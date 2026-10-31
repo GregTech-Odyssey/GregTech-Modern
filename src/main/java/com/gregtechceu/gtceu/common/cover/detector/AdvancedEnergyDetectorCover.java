@@ -132,25 +132,38 @@ public class AdvancedEnergyDetectorCover extends EnergyDetectorCover implements 
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final Component OUTPUT_SECTION = Component.translatable("cover.advanced_detector.output");
+    private static final Component INVERTED_TITLE = Component.translatable("cover.advanced_detector.inverted");
+    private static final Component INVERTED_TOOLTIP = Component.translatable("cover.advanced_energy_detector.inverted.tooltip");
+    private static final Component THRESHOLDS_SECTION = Component.translatable("cover.advanced_detector.thresholds");
+    private static final Component MIN_PERCENT = Component.translatable("cover.advanced_energy_detector.min.percent");
+    private static final Component MIN_EU = Component.translatable("cover.advanced_energy_detector.min.eu");
+    private static final Component MAX_PERCENT = Component.translatable("cover.advanced_energy_detector.max.percent");
+    private static final Component MAX_EU = Component.translatable("cover.advanced_energy_detector.max.eu");
+    private static final Component MODE_LABEL = Component.translatable("cover.advanced_energy_detector.mode");
+    private static final Component MODE_TOOLTIP = Component.translatable("cover.advanced_energy_detector.mode.tooltip");
+    private static final Component MODE_EU = Component.translatable("cover.advanced_energy_detector.mode.eu");
+    private static final Component MODE_PERCENT = Component.translatable("cover.advanced_energy_detector.mode.percent");
+
     @Override
     public Widget createUIWidget() {
-        var output = Form.section("cover.advanced_detector.output").addChildren(
-                Form.controlRow("cover.advanced_detector.inverted", Switch.of(this::isInverted, this::setInverted),
-                        "cover.advanced_energy_detector.inverted.tooltip"),
+        var output = Form.section(OUTPUT_SECTION).addChildren(
+                Form.controlRow(INVERTED_TITLE, Switch.of(this::isInverted, this::setInverted),
+                        INVERTED_TOOLTIP),
                 modeRow());
-        var thresholds = Form.section("cover.advanced_detector.thresholds").addChildren(
-                thresholdRow(() -> Component.translatable(usePercent ? "cover.advanced_energy_detector.min.percent" : "cover.advanced_energy_detector.min.eu"),
+        var thresholds = Form.section(THRESHOLDS_SECTION).addChildren(
+                thresholdRow(() -> usePercent ? MIN_PERCENT : MIN_EU,
                         NumberField.ofLong(LayoutStyle.AUTO, this::getMinValue, this::setMinValue, () -> 0, this::maxThreshold)),
-                thresholdRow(() -> Component.translatable(usePercent ? "cover.advanced_energy_detector.max.percent" : "cover.advanced_energy_detector.max.eu"),
+                thresholdRow(() -> usePercent ? MAX_PERCENT : MAX_EU,
                         NumberField.ofLong(LayoutStyle.AUTO, this::getMaxValue, this::setMaxValue, () -> 0, this::maxThreshold)));
         return Form.page().addChildren(output, thresholds);
     }
 
     private UIElement modeRow() {
-        var label = TextLine.translatable(LayoutStyle.AUTO, "cover.advanced_energy_detector.mode").bindClientColor(UITheme::panelText);
-        label.tooltips("cover.advanced_energy_detector.mode.tooltip");
+        var label = TextLine.constant(LayoutStyle.AUTO, MODE_LABEL).bindClientColor(UITheme::panelText);
+        label.tooltips(MODE_TOOLTIP);
         var modes = ButtonGroup.single(2,
-                i -> Component.translatable(i == 1 ? "cover.advanced_energy_detector.mode.percent" : "cover.advanced_energy_detector.mode.eu"),
+                i -> i == 1 ? MODE_PERCENT : MODE_EU,
                 () -> usePercent ? 1 : 0, i -> setUsePercent(i == 1)).horizontal();
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(label, modes);
     }

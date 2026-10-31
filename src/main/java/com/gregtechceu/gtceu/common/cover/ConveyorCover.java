@@ -29,6 +29,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 
@@ -260,21 +261,33 @@ public class ConveyorCover extends CoverBehavior implements IUICover, IControlla
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
+    private static final Component TRANSFER_SECTION = Component.translatable("cover.ui.transfer");
+    private static final Component TRANSFER_RATE = Component.translatable("cover.conveyor.ui.transfer_rate");
+    private static final Component IO_TITLE = Component.translatable("cover.ui.io");
+    private static final Component IO_TOOLTIP = Component.translatable("cover.conveyor.ui.io.tooltip");
+    private static final Component DISTRIBUTION = Component.translatable("cover.conveyor.ui.distribution");
+    private static final Component DISTRIBUTION_NO_PIPE = Component.translatable("cover.conveyor.ui.distribution_no_pipe");
+    private static final Component MODES_SECTION = Component.translatable("cover.ui.modes");
+    private static final Component MANUAL_IO_TITLE = Component.translatable("cover.ui.manual_io");
+    private static final Component[] MANUAL_IO_TOOLTIPS = {
+            Component.translatable("cover.universal.manual_import_export.mode.description.0"),
+            Component.translatable("cover.universal.manual_import_export.mode.description.1"),
+            Component.translatable("cover.universal.manual_import_export.mode.description.2")
+    };
+
     @Override
     public Widget createUIWidget() {
-        var transfer = Form.section("cover.ui.transfer").addChildren(
-                Form.numberRow("cover.conveyor.ui.transfer_rate",
+        var transfer = Form.section(TRANSFER_SECTION).addChildren(
+                Form.numberRow(TRANSFER_RATE,
                         NumberField.ofInt(LayoutStyle.AUTO, () -> transferRate, this::setTransferRate, 1, maxItemTransferRate)),
-                CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), this::getIo, this::setIo, "cover.conveyor.ui.io.tooltip"));
+                CoverUIs.enumRow(IO_TITLE, List.of(IO.IN, IO.OUT), this::getIo, this::setIo, IO_TOOLTIP));
         buildAdditionalUI(transfer);
-        var distribution = CoverUIs.enumRow("cover.conveyor.ui.distribution", List.of(DistributionMode.VALUES),
+        var distribution = CoverUIs.enumRow(DISTRIBUTION, List.of(DistributionMode.VALUES),
                 this::getDistributionMode, this::setDistributionMode)
-                .disabled(() -> !shouldDisplayDistributionMode(), "cover.conveyor.ui.distribution_no_pipe");
-        var modes = Form.section("cover.ui.modes").addChildren(distribution,
-                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
-                        "cover.universal.manual_import_export.mode.description.0",
-                        "cover.universal.manual_import_export.mode.description.1",
-                        "cover.universal.manual_import_export.mode.description.2"));
+                .disabled(() -> !shouldDisplayDistributionMode(), DISTRIBUTION_NO_PIPE);
+        var modes = Form.section(MODES_SECTION).addChildren(distribution,
+                CoverUIs.enumRow(MANUAL_IO_TITLE, List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
+                        MANUAL_IO_TOOLTIPS));
         return Form.page().addChildren(transfer, modes, CoverUIs.filterSection(filterHandler));
     }
 

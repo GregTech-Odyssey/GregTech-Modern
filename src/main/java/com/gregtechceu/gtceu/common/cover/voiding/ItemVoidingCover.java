@@ -75,11 +75,15 @@ public class ItemVoidingCover extends ConveyorCover {
     // *********** GUI ***********//
     //////////////////////////////////////
 
+    private static final Component VOIDING_SECTION = Component.translatable("cover.ui.voiding");
+    private static final Component VOIDING_ENABLED = Component.translatable("cover.ui.voiding.enabled");
+    private static final Component VOIDING_TOOLTIP = Component.translatable("cover.voiding.tooltip");
+
     @Override
     public Widget createUIWidget() {
-        var settings = Form.section("cover.ui.voiding").addChild(
-                Form.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
-                        "cover.voiding.tooltip"));
+        var settings = Form.section(VOIDING_SECTION).addChild(
+                Form.controlRow(VOIDING_ENABLED, Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
+                        VOIDING_TOOLTIP));
         buildAdditionalUI(settings);
         return Form.page().addChildren(settings, CoverUIs.filterSection(filterHandler));
     }

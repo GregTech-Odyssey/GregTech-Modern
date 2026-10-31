@@ -79,22 +79,27 @@ public class EnderRedstoneLinkCover extends AbstractEnderLinkCover<VirtualRedsto
         return false;
     }
 
+    private static final Component IO_TOOLTIP = Component.translatable("cover.ender_link.ui.io.redstone.tooltip");
+    private static final Component STATUS_SIGNAL = Component.translatable("cover.ender_link.ui.signal");
+    private static final Component STATUS_MEMBERS = Component.translatable("cover.ender_link.ui.members");
+    private static final String SUMMARY_SIGNAL_KEY = "cover.ender_link.ui.summary.signal";
+
     @Override
-    protected String ioTooltipKey() {
-        return "cover.ender_link.ui.io.redstone.tooltip";
+    protected Component ioTooltip() {
+        return IO_TOOLTIP;
     }
 
     @Override
     protected void addEntryStatus(StatusPanel panel, BooleanSupplier visible) {
-        panel.addLine("cover.ender_link.ui.signal", () -> visible.getAsBoolean() ?
+        panel.addLine(STATUS_SIGNAL, () -> visible.getAsBoolean() ?
                 Component.literal(String.valueOf(getEntry().getSignal())) : EnderLinkUI.NO_VALUE);
-        panel.addLine("cover.ender_link.ui.members", () -> visible.getAsBoolean() ?
+        panel.addLine(STATUS_MEMBERS, () -> visible.getAsBoolean() ?
                 Component.literal(String.valueOf(getEntry().getMembers().size())) : EnderLinkUI.NO_VALUE);
     }
 
     @Override
     protected Component describeEntry(VirtualRedstone entry) {
-        return Component.translatable("cover.ender_link.ui.summary.signal", entry.getSignal());
+        return Component.translatable(SUMMARY_SIGNAL_KEY, entry.getSignal());
     }
 
     @Override

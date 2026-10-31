@@ -77,11 +77,15 @@ public class FluidVoidingCover extends PumpCover {
     // *********** GUI ***********//
     //////////////////////////////////////
 
+    private static final Component VOIDING_SECTION = Component.translatable("cover.ui.voiding");
+    private static final Component VOIDING_ENABLED = Component.translatable("cover.ui.voiding.enabled");
+    private static final Component VOIDING_TOOLTIP = Component.translatable("cover.voiding.tooltip");
+
     @Override
     public Widget createUIWidget() {
-        var page = Form.page().addChild(Form.section("cover.ui.voiding").addChild(
-                Form.controlRow("cover.ui.voiding.enabled", Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
-                        "cover.voiding.tooltip")));
+        var page = Form.page().addChild(Form.section(VOIDING_SECTION).addChild(
+                Form.controlRow(VOIDING_ENABLED, Switch.of(this::isWorkingEnabled, this::setWorkingEnabled),
+                        VOIDING_TOOLTIP)));
         buildAdditionalUI(page);
         return page.addChild(CoverUIs.filterSection(filterHandler));
     }

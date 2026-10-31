@@ -88,6 +88,15 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
         this.transferBucketMode = transferBucketMode;
     }
 
+    private static final Component AMOUNT_FROM_FILTER = Component.translatable("cover.fluid.voiding.ui.amount_from_filter");
+    private static final Component AMOUNT_UNUSED = Component.translatable("cover.fluid.voiding.ui.amount_unused");
+    private static final Component MODE_SETTINGS_SECTION = Component.translatable("cover.fluid.voiding.ui.mode_settings");
+    private static final Component VOIDING_MODE_TITLE = Component.translatable("cover.fluid.voiding.ui.mode");
+    private static final Component[] VOIDING_MODE_TOOLTIPS = {
+            Component.translatable("cover.voiding.voiding_mode.description.0"),
+            Component.translatable("cover.voiding.voiding_mode.description.1")
+    };
+
     //////////////////////////////////////
     // *********** GUI ***********//
     //////////////////////////////////////
@@ -97,13 +106,12 @@ public class AdvancedFluidVoidingCover extends FluidVoidingCover {
                 () -> 1, () -> Integer.MAX_VALUE / transferBucketMode.multiplier);
         var amount = fluidAmountRow(this::getKeepAmountLabel, List.of(BucketMode.values()), () -> transferBucketMode,
                 this::setTransferBucketMode, field)
-                .disabled(this::isStackSizeFromFilter, "cover.fluid.voiding.ui.amount_from_filter");
+                .disabled(this::isStackSizeFromFilter, AMOUNT_FROM_FILTER);
         var amountRow = UIElement.column(LayoutStyle.AUTO).addChild(amount)
-                .disabled(() -> voidingMode == VoidingMode.VOID_ANY, "cover.fluid.voiding.ui.amount_unused");
-        page.addChild(Form.section("cover.fluid.voiding.ui.mode_settings").addChildren(
-                CoverUIs.enumRow("cover.fluid.voiding.ui.mode", List.of(VoidingMode.values()), () -> voidingMode, this::setVoidingMode,
-                        "cover.voiding.voiding_mode.description.0",
-                        "cover.voiding.voiding_mode.description.1"),
+                .disabled(() -> voidingMode == VoidingMode.VOID_ANY, AMOUNT_UNUSED);
+        page.addChild(Form.section(MODE_SETTINGS_SECTION).addChildren(
+                CoverUIs.enumRow(VOIDING_MODE_TITLE, List.of(VoidingMode.values()), () -> voidingMode, this::setVoidingMode,
+                        VOIDING_MODE_TOOLTIPS),
                 amountRow));
     }
 
