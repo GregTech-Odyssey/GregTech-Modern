@@ -410,6 +410,19 @@ public class ConfigHolder {
     public static class MachineConfigs {
 
         @Configurable
+        @Configurable.Synchronized
+        @Configurable.Comment({ "Interaction mode for Super/Quantum Chests and Tanks.",
+                "GTCEU: original chest interactions; right-click tanks to fill or empty containers.",
+                "DRAWER: right-click the display to insert, left-click to extract; hold to repeat, sneak to extract a stack.",
+                "Default: GTCEU" })
+        public SuperStorageInteraction superStorageInteraction = SuperStorageInteraction.GTCEU;
+
+        public enum SuperStorageInteraction {
+            GTCEU,
+            DRAWER
+        }
+
+        @Configurable
         @Configurable.Comment({ "Whether insufficient energy supply should reset Machine recipe progress to zero.",
                 "If true, progress will reset.", "If false, progress will decrease to zero with 2x speed",
                 "Default: false" })

@@ -23,6 +23,8 @@ final class StorageInteraction {
     private InteractionHand lastHand;
     private long lastUseTick;
     private long lastExtractTick = -3;
+    private UUID lastGtceuPlayer;
+    private long lastGtceuUseTime;
 
     static boolean isDisplayHit(BlockPos pos, Direction front, BlockHitResult hit) {
         if (hit.getType() != HitResult.Type.BLOCK || hit.getDirection() != front || !pos.equals(hit.getBlockPos())) {
@@ -57,6 +59,13 @@ final class StorageInteraction {
         if (tick - lastExtractTick < 3) return false;
         lastExtractTick = tick;
         return true;
+    }
+
+    boolean recordGtceuUse(UUID player, long time) {
+        boolean repeated = player.equals(lastGtceuPlayer) && time - lastGtceuUseTime < 300;
+        lastGtceuPlayer = player;
+        lastGtceuUseTime = time;
+        return repeated;
     }
 
     static ItemStack transferContainers(ItemStack stack, IFluidHandler tank, IItemHandler inventory,

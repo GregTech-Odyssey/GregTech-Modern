@@ -87,6 +87,13 @@ public final class StorageInteractionCheck {
         check(!interaction.claimExtraction(0), "duplicate extraction");
         check(!interaction.claimExtraction(1) && !interaction.claimExtraction(2), "held extraction cooldown");
         check(interaction.claimExtraction(3) && interaction.claimExtraction(6), "continuous extraction");
+
+        check(!interaction.recordGtceuUse(player, 1000), "first GTCEu empty-hand click");
+        check(interaction.recordGtceuUse(player, 1000), "GTCEu allows a double click in the same tick");
+        check(interaction.recordGtceuUse(player, 1299), "GTCEu double click inside 300 milliseconds");
+        check(!interaction.recordGtceuUse(player, 1599), "GTCEu double click expires at 300 milliseconds");
+        check(!interaction.recordGtceuUse(other, 1600), "GTCEu does not share double clicks between players");
+        check(!new StorageInteraction().recordGtceuUse(other, 1601), "GTCEu double clicks stay on one block");
     }
 
     private static void checkContainers() {

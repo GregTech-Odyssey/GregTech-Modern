@@ -25,6 +25,7 @@ import com.gregtechceu.gtceu.api.transfer.key.MEStorageProvider;
 import com.gregtechceu.gtceu.api.transfer.key.MEStorageProviderIndex;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.Button;
@@ -57,6 +58,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.items.ItemHandlerHelper;
 
@@ -314,6 +316,9 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (ConfigHolder.INSTANCE.machines.superStorageInteraction == ConfigHolder.MachineConfigs.SuperStorageInteraction.GTCEU) {
+            return onGtceuUse(world, player, hit);
+        }
         if (!StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit)) return InteractionResult.PASS;
         if (!world.isClientSide) {
             boolean repeated = interaction.recordUse(player.getUUID(), hand, world.getGameTime());
@@ -336,9 +341,42 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         return InteractionResult.sidedSuccess(world.isClientSide);
     }
 
+    private InteractionResult onGtceuUse(Level world, Player player, BlockHitResult hit) {
+        if (hit.getDirection() != getFrontFacing() || world.isClientSide) return InteractionResult.PASS;
+        var frame = new AABB(hit.getBlockPos()).deflate(0.12);
+        if (!frame.contains(hit.getLocation().relative(getFrontFacing(), -0.5))) return InteractionResult.PASS;
+        var held = player.getMainHandItem();
+        var key = AEItemKey.of(held);
+        if (key != null && cache.canInsert(key)) {
+            held.shrink((int) cache.insert(0, key, held.getCount(), false));
+        } else if (interaction.recordGtceuUse(player.getUUID(), System.currentTimeMillis())) {
+            for (var stack : player.getInventory().items) {
+                key = AEItemKey.of(stack);
+                if (key != null && cache.canInsert(key)) {
+                    stack.shrink((int) cache.insert(0, key, stack.getCount(), false));
+                }
+            }
+        }
+        player.getInventory().setChanged();
+        return InteractionResult.SUCCESS;
+    }
+
     @Override
     public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
         if (direction != getFrontFacing() || player.getItemInHand(hand).is(GTToolType.WRENCH.itemTags.getFirst())) return false;
+        if (ConfigHolder.INSTANCE.machines.superStorageInteraction == ConfigHolder.MachineConfigs.SuperStorageInteraction.GTCEU) {
+            if (!world.isClientSide) {
+                var key = cache.storage.keyAt(0);
+                if (key != null) {
+                    long drained = cache.extract(0, key, player.isShiftKeyDown() ? key.getMaxStackSize() : 1, false);
+                    if (drained > 0) {
+                        var stack = Keys.toStack(key, drained);
+                        if (!player.addItem(stack)) Block.popResourceFromFace(world, getPos(), getFrontFacing(), stack);
+                    }
+                }
+            }
+            return IInteractedMachine.super.onLeftClick(player, world, hand, pos, direction);
+        }
         if (!(player.pick(player.getBlockReach(), 1, false) instanceof BlockHitResult hit) ||
                 !StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit))
             return false;

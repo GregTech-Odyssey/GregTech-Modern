@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
 import com.gregtechceu.gtceu.common.network.packets.CPacketToolSetting;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
 import com.gregtechceu.gtceu.uiwidgets.structure.PartCellsOverlay;
@@ -85,6 +86,7 @@ public class ForgeClientEventListener {
     @SubscribeEvent
     public static void onStorageDisplayHold(PlayerInteractEvent.LeftClickBlock event) {
         if (event.getAction() != PlayerInteractEvent.LeftClickBlock.Action.CLIENT_HOLD) return;
+        if (ConfigHolder.INSTANCE.machines.superStorageInteraction != ConfigHolder.MachineConfigs.SuperStorageInteraction.DRAWER) return;
         var machine = MetaMachine.getMachine(event.getLevel(), event.getPos());
         if ((machine instanceof QuantumChestMachine || machine instanceof QuantumTankMachine)) {
             IInteractedMachine interacted = (IInteractedMachine) machine;

@@ -21,6 +21,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.*;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
@@ -52,6 +53,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidUtil;
 
 import appeng.api.stacks.*;
 import appeng.api.storage.StorageAccess;
@@ -300,6 +302,12 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public InteractionResult onUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (ConfigHolder.INSTANCE.machines.superStorageInteraction == ConfigHolder.MachineConfigs.SuperStorageInteraction.GTCEU) {
+            if (hit.getDirection() == getFrontFacing() && !world.isClientSide &&
+                    FluidUtil.interactWithFluidHandler(player, hand, interactionTank))
+                return InteractionResult.SUCCESS;
+            return IInteractedMachine.super.onUse(state, world, pos, player, hand, hit);
+        }
         if (!StorageInteraction.isDisplayHit(getPos(), getFrontFacing(), hit)) return InteractionResult.PASS;
         if (!world.isClientSide) {
             boolean repeated = interaction.recordUse(player.getUUID(), hand, world.getGameTime());
@@ -326,6 +334,9 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public boolean onLeftClick(Player player, Level world, InteractionHand hand, BlockPos pos, Direction direction) {
+        if (ConfigHolder.INSTANCE.machines.superStorageInteraction == ConfigHolder.MachineConfigs.SuperStorageInteraction.GTCEU) {
+            return IInteractedMachine.super.onLeftClick(player, world, hand, pos, direction);
+        }
         var stack = player.getItemInHand(hand);
         if (direction != getFrontFacing() || stack.is(GTToolType.WRENCH.itemTags.getFirst()) ||
                 !stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent())
