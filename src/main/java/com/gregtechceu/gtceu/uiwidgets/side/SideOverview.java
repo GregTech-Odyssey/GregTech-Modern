@@ -353,8 +353,8 @@ public final class SideOverview {
         if (side == null) {
             selectedText = NONE_SELECTED;
         } else {
-            var face = Component.translatable(FACE, Component.translatable(side.translationKey),
-                    Component.translatable(FaceNet.nameKey(side.toDirection(machine))));
+            var face = Component.translatable(FACE, side.name,
+                    FaceNet.name(side.toDirection(machine)));
             selectedText = Component.translatable(SELECTED_COVER, face,
                     cover == null ? NO_COVER : cover.getAttachItem().getHoverName());
         }
@@ -591,7 +591,7 @@ public final class SideOverview {
         if (cached != null) return cached;
         var lines = new ArrayList<Component>(4);
         var direction = direction(side);
-        lines.add(Component.translatable(FACE, Component.translatable(side.translationKey), Component.translatable(FaceNet.nameKey(direction))));
+        lines.add(Component.translatable(FACE, side.name, FaceNet.name(direction)));
         var cell = cells[side.ordinal()];
         var stack = cell == null ? ItemStack.EMPTY : cell.getStack();
         lines.add(stack.isEmpty() ? NO_COVER.copy().withStyle(ChatFormatting.GRAY) : stack.getHoverName().copy().withStyle(ChatFormatting.AQUA));
