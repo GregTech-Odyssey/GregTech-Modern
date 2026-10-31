@@ -11,7 +11,6 @@ import com.lowdragmc.lowdraglib.networking.IPacket;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class CPacketStructureBuild implements IPacket {
