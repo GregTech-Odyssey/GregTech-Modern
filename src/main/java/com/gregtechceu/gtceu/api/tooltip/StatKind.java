@@ -12,7 +12,13 @@ import org.jetbrains.annotations.Nullable;
  * <b>仅用于物品/方块 tooltip（悬停提示框），不是通用的文字渲染设施</b>：机器界面、说明页、显示行、聊天一律用普通
  * {@code Component} 与 uipro 文本组件，不要拿这里的行或规格去拼。
  */
-public record StatKind(String id, String labelKey, int color, @Nullable String unitKey) {
+public record StatKind(String id, String labelKey, int color, @Nullable String unitKey, Component label) {
+
+    public StatKind(String id, String labelKey, int color, @Nullable String unitKey) {
+        this(id, labelKey, color, unitKey, Component.translatable(labelKey));
+    }
+
+    private static final String STAT_TEMPLATE = "gtceu.tip.stat";
 
     public static final StatKind VOLTAGE_IN = new StatKind("voltage_in", "gtceu.tip.stat.voltage_in", TipTheme.ENERGY_VOLTAGE, null);
     public static final StatKind VOLTAGE_OUT = new StatKind("voltage_out", "gtceu.tip.stat.voltage_out", TipTheme.ENERGY_VOLTAGE, null);
@@ -50,7 +56,7 @@ public record StatKind(String id, String labelKey, int color, @Nullable String u
 
     public MutableComponent line(Component value) {
         Component shown = Component.empty().withStyle(s -> s.withColor(TipTheme.VALUE)).append(value);
-        return Component.translatable("gtceu.tip.stat", Component.translatable(labelKey), shown)
+        return Component.translatable(STAT_TEMPLATE, label, shown)
                 .withStyle(s -> s.withColor(color));
     }
 

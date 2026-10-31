@@ -112,7 +112,7 @@ public class ProspectorScannerBehavior implements IItemUIFactory, IAddInformatio
                 (clickData, pressed) -> {
                     if (pressed) setMode(held(holder), index);
                 })
-                .setTooltipsSupplier(pressed -> Collections.singletonList(Component.translatable(mode.unlocalizedName)));
+                .setTooltipsSupplier(pressed -> mode.tooltip);
     }
 
     private static ItemStack held(HeldItemUIFactory.HeldItemHolder holder) {
