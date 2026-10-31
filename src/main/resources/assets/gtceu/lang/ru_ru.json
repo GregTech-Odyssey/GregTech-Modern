@@ -1417,6 +1417,8 @@
     "cover.machine_controller.mode.machine": "Контролирует работу механизма",
     "cover.machine_controller.normal": "Нормально",
     "cover.machine_controller.redstone": "Минимальный Редстоун сигнал: %d",
+    "cover.machine_controller.redstone_mode": "Режим редстоуна",
+    "cover.machine_controller.redstone_mode.tooltip": "Если включено, работа механизма контролируется сигналом редстоуна.",
     "cover.machine_controller.title": "Настройки контроллера механизма",
     "cover.tag_filter.info.0": "§bПринимает сложные выражения",
     "cover.tag_filter.info.1": "§6a & b§r = И",

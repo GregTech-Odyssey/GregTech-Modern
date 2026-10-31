@@ -2405,6 +2405,8 @@
     "item.gtceu.advanced_machine_controller_cover": "高级机器控制覆盖板",
     "cover.machine_controller.section.signal": "红石信号",
     "cover.machine_controller.min_strength": "最小红石信号强度",
+    "cover.machine_controller.redstone_mode": "红石控制模式",
+    "cover.machine_controller.redstone_mode.tooltip": "开启后，仓室将根据红石信号控制机器的运行状态。",
     "cover.machine_controller.target.machine": "机器",
     "cover.machine_controller.target.cover_up": "顶面覆盖板",
     "cover.machine_controller.target.cover_down": "底面覆盖板",

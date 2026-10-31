@@ -2,9 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.fluids.PropertyFluidFilter;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
@@ -12,14 +9,17 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerView;
+import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
+import com.gregtechceu.gtceu.uipro.elements.IconToggle;
+import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
@@ -96,22 +96,19 @@ public class MultiblockTankMachine extends MultiblockControllerMachine implement
         handlerLocked = true;
     }
 
+    private static final Component FLUID_AMOUNT = Component.translatable("gtceu.gui.fluid_amount");
+    private static final Component FLUID_VOIDING_ENABLED = Component.translatable("gtceu.gui.fluid_voiding_partial.tooltip.enabled");
+    private static final Component FLUID_VOIDING_DISABLED = Component.translatable("gtceu.gui.fluid_voiding_partial.tooltip.disabled");
+
     /////////////////////////////////////
     // *********** GUI ***********//
     /////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 90, 63);
-        group.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        group.addWidget(new ImageWidget(4, 4, 82, 55, GuiTextures.DISPLAY));
-        group.addWidget(new LabelWidget(8, 8, "gtceu.gui.fluid_amount"));
-        group.addWidget(new LabelWidget(8, 18, this::getFluidLabel).setTextColor(-1).setDropShadow(true));
-        group.addWidget(new TankWidget(new ForgeFluidAdapter(tank.storage), 0, 68, 23, true, true).setBackground(GuiTextures.FLUID_SLOT));
-        group.addWidget(new ToggleButtonWidget(6, 40, 18, 18, GuiTextures.BUTTON_VOID, () -> tank.isVoiding, b -> tank.isVoiding = b).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_voiding_partial.tooltip"));
-        return group;
-    }
-
-    private String getFluidLabel() {
-        return String.valueOf(tank.storage.amountAt(0));
+        var slot = FluidSlot.of(new ForgeFluidAdapter(tank.storage), 0, true, true);
+        var voiding = IconToggle.of(WidgetIcons.VOID_OVERFLOW, () -> tank.isVoiding, b -> tank.isVoiding = b)
+                .onOffTooltips(FLUID_VOIDING_ENABLED, FLUID_VOIDING_DISABLED);
+        var operations = HatchViews.operations(slot, voiding);
+        return HatchViews.page(operations);
     }
 }

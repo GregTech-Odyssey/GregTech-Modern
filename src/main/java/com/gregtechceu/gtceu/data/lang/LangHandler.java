@@ -1631,6 +1631,8 @@ public class LangHandler {
         provider.add("cover.machine_controller.section.target", "Target");
         provider.add("cover.machine_controller.section.signal", "Redstone");
         provider.add("cover.machine_controller.min_strength", "Min Redstone Strength");
+        provider.add("cover.machine_controller.redstone_mode", "Redstone Mode");
+        provider.add("cover.machine_controller.redstone_mode.tooltip", "When enabled, machine operation is controlled by the redstone signal.");
         provider.add("cover.machine_controller.target.machine", "Machine");
         provider.add("cover.machine_controller.target.cover_up", "Top Cover");
         provider.add("cover.machine_controller.target.cover_down", "Bottom Cover");

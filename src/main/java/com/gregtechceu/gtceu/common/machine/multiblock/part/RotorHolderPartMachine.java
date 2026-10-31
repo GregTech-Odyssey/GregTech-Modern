@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.BlockableSlotWidget;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
@@ -24,9 +23,12 @@ import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 
+import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -228,12 +230,9 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var group = new WidgetGroup(0, 0, 18 + 16, 18 + 16);
-        var container = new WidgetGroup(4, 4, 18 + 8, 18 + 8);
-        container.addWidget(new BlockableSlotWidget(inventory.storage, 0, 4, 4).setIsBlocked(() -> rotorSpeed != 0).setBackground(GuiTextures.SLOT, GuiTextures.TURBINE_OVERLAY));
-        container.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        group.addWidget(container);
-        return group;
+        var slot = ItemSlot.of(inventory.storage, 0).disabled(() -> rotorSpeed != 0, null);
+        slot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.TURBINE_OVERLAY));
+        return HatchViews.page(slot);
     }
 
     public static class RotorInventory extends NotifiableContentHandler implements IRecipeHandler, ICapabilityTrait, IKeyHandler<AEItemKey> {

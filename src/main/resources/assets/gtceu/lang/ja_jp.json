@@ -1983,6 +1983,8 @@
   "cover.machine_controller.mode.null": "制御しない",
   "cover.machine_controller.normal": "通常",
   "cover.machine_controller.redstone": "最小レッドストーン強度: %d",
+  "cover.machine_controller.redstone_mode": "レッドストーン制御モード",
+  "cover.machine_controller.redstone_mode.tooltip": "有効にすると、レッドストーン信号に基づいてマシンの動作を制御します。",
   "cover.machine_controller.title": "マシンコントローラーの設定",
   "cover.pump.fluid_filter.title": "液体フィルター",
   "cover.pump.mode.export": "モード: 搬出",

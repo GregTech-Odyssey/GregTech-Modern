@@ -2,31 +2,41 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
-import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
+import com.gregtechceu.gtceu.uipro.elements.Form;
+import com.gregtechceu.gtceu.uipro.elements.NumberField;
+import com.gregtechceu.gtceu.uipro.elements.Switch;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.gto.datasynclib.annotations.SyncToClient;
 
 public class ControlPartMachine extends MultiblockPartMachine implements IControllable {
 
+    private static final Component MIN_STRENGTH = Component.translatable("cover.machine_controller.min_strength");
+    private static final Component INVERTED = Component.translatable("cover.machine_controller.inverted");
+    private static final Component INVERTED_TIP = Component.translatable("cover.machine_controller.inverted.tooltip");
+    private static final Component REDSTONE_MODE = Component.translatable("cover.machine_controller.redstone_mode");
+    private static final Component REDSTONE_MODE_TIP = Component.translatable("cover.machine_controller.redstone_mode.tooltip");
+
     @SaveToDisk
+    @SyncToClient
     private boolean isInverted = false;
     @SaveToDisk
+    @SyncToClient
     private int minRedstoneStrength = 1;
     @SaveToDisk
+    @SyncToClient
     private boolean isRed = false;
 
     @SaveToDisk
@@ -91,11 +101,11 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
 
     @Override
     public Widget createUIWidget() {
-        WidgetGroup group = new WidgetGroup(0, 0, 176, 75);
-        group.addWidget(new LabelWidget(10, 5, "cover.machine_controller.title"));
-        group.addWidget(new IntInputWidget(10, 50, 131, 20, () -> minRedstoneStrength, this::setMinRedstoneStrength).setMin(1).setMax(15));
-        group.addWidget(new ToggleButtonWidget(146, 50, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isInverted, this::setInverted).isMultiLang().setTooltipText("cover.machine_controller.invert"));
-        group.addWidget(new ToggleButtonWidget(20, 20, 20, 20, GuiTextures.INVERT_REDSTONE_BUTTON, () -> isRed, this::setRed).setTooltipText("gui.tooltips.redstone_mode"));
-        return group;
+        var page = Form.page();
+        page.addChild(Form.numberRow(MIN_STRENGTH,
+                NumberField.ofInt(UISizes.CONTENT_WIDTH, () -> minRedstoneStrength, this::setMinRedstoneStrength, 1, 15)));
+        page.addChild(Form.controlRow(INVERTED, Switch.of(() -> isInverted, this::setInverted), INVERTED_TIP));
+        page.addChild(Form.controlRow(REDSTONE_MODE, Switch.of(() -> isRed, this::setRed), REDSTONE_MODE_TIP));
+        return page;
     }
 }
