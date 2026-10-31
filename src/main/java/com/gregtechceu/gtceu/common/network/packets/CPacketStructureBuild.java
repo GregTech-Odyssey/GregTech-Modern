@@ -75,7 +75,7 @@ public class CPacketStructureBuild implements IPacket {
         var layout = structure == null ? null : structure.layout(values);
         var choices = layout == null ? null : BuildUpload.take(player, upload, definition, values, layout.cells().size());
         if (choices == null) {
-            player.sendSystemMessage(Component.translatable(StructureBuild.INVALID));
+            player.sendSystemMessage(StructureBuild.INVALID);
             return;
         }
         StructureBuild.build(player, controller, layout, choices, flags, demolishNodes.length == 0 ? null : demolishNodes);

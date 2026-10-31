@@ -150,7 +150,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
             }
             MultiblockDisplayText.builder(textList, true, false).addReasonLines(recipeLogic);
             if (recipeLogic.isWaiting() && IdleReasonInfo.reasonOf(recipeLogic) == null) {
-                textList.add(Component.translatable("gtceu.multiblock.steam.low_steam").setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+                textList.add(LOW_STEAM.copy());
             }
             if (isWorkingEnabled() && isActive()) {
                 if (maxParallels > 1) textList.add(Component.translatable("gtceu.multiblock.parallel", maxParallels));
@@ -166,7 +166,7 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
     public void onWaiting() {
         super.onWaiting();
         var recipe = recipeLogic.getLastRecipe();
-        if (recipe != null && recipe.eut > 0 && !useEnergy(recipe.eut, true)) setIdleReason(Component.translatable("gtceu.issue.steam_short"));
+        if (recipe != null && recipe.eut > 0 && !useEnergy(recipe.eut, true)) setIdleReason(STEAM_SHORT);
     }
 
     @Override
@@ -174,8 +174,10 @@ public class SteamParallelMultiblockMachine extends WorkableMultiblockMachine im
         return GuiTextures.DISPLAY_STEAM.get(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks);
     }
 
-    public static final String LANG_STEAM = "gtceu.gui.multiblock.steam";
-    public static final String LANG_STEAM_USAGE = "gtceu.gui.multiblock.steam_usage";
+    public static final Component LANG_STEAM = Component.translatable("gtceu.gui.multiblock.steam");
+    public static final Component LANG_STEAM_USAGE = Component.translatable("gtceu.gui.multiblock.steam_usage");
+    private static final Component LOW_STEAM = Component.translatable("gtceu.multiblock.steam.low_steam").setStyle(Style.EMPTY.withColor(ChatFormatting.RED));
+    private static final Component STEAM_SHORT = Component.translatable("gtceu.issue.steam_short");
 
     protected MachineEra getEra() {
         return MachineEra.steam(ConfigHolder.INSTANCE.machines.steelSteamMultiblocks);

@@ -56,7 +56,7 @@ public class InfiniteSprayCanBehaviour implements IItemUIFactory, IDurabilityBar
     /** Total selectable slots: every dye plus the solvent. */
     public static final int SLOT_COUNT = SOLVENT_SLOT + 1;
     private static final int SOLVENT_COLOR = 0x969696;
-    private static final String CURRENT_COLOR = "behaviour.infinite_spray_can.current_color";
+    private static final Component CURRENT_COLOR = Component.translatable("behaviour.infinite_spray_can.current_color");
 
     public static int getColorSlot(ItemStack stack) {
         CompoundTag tag = stack.getTag();

@@ -81,6 +81,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IStorageAppearance, MEStorageProvider {
 
+    private static final Component ITEM_LOCK_ENABLED = Component.translatable("gtceu.gui.item_lock.tooltip.enabled");
+    private static final Component ITEM_LOCK_DISABLED = Component.translatable("gtceu.gui.item_lock.tooltip.disabled");
+    private static final Component ITEM_AUTO_OUTPUT_ENABLED = Component.translatable("gtceu.gui.item_auto_output.tooltip.enabled");
+    private static final Component ITEM_AUTO_OUTPUT_DISABLED = Component.translatable("gtceu.gui.item_auto_output.tooltip.disabled");
+    private static final Component ITEM_VOIDING_ENABLED = Component.translatable("gtceu.gui.item_voiding_partial.tooltip.enabled");
+    private static final Component ITEM_VOIDING_DISABLED = Component.translatable("gtceu.gui.item_voiding_partial.tooltip.disabled");
+    private static final Component INPUT_DISALLOW = Component.translatable("gtceu.machine.basic.input_from_output_side.disallow");
+    private static final Component INPUT_ALLOW = Component.translatable("gtceu.machine.basic.input_from_output_side.allow");
+    private static final Component CHEST_ITEM = Component.translatable("gtceu.creative.chest.item");
+
     private final StorageInteraction interaction = new StorageInteraction();
     @Getter
     @SaveToDisk
@@ -415,10 +425,10 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
             if (gridSide == getOutputFacingItems()) {
                 if (isAllowInputFromOutputSideItems()) {
                     setAllowInputFromOutputSideItems(false);
-                    playerIn.sendSystemMessage(Component.translatable("gtceu.machine.basic.input_from_output_side.disallow").append(Component.translatable("gtceu.creative.chest.item")));
+                    playerIn.sendSystemMessage(INPUT_DISALLOW.copy().append(CHEST_ITEM));
                 } else {
                     setAllowInputFromOutputSideItems(true);
-                    playerIn.sendSystemMessage(Component.translatable("gtceu.machine.basic.input_from_output_side.allow").append(Component.translatable("gtceu.creative.chest.item")));
+                    playerIn.sendSystemMessage(INPUT_ALLOW.copy().append(CHEST_ITEM));
                 }
             }
             return InteractionResult.SUCCESS;
@@ -464,12 +474,12 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         var extract = Button.icon(UISizes.SLOT_SIZE, UITheme.ARROW_DOWN).tooltips(HatchViews.EXTRACT_STACK);
         extract.setOnServerClick(() -> extractStack(extract.getGui() == null ? null : extract.getGui().entityPlayer));
         var lock = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, this::isLocked, this::setLocked)
-                .onOffTooltips("gtceu.gui.item_lock.tooltip.enabled", "gtceu.gui.item_lock.tooltip.disabled");
+                .onOffTooltips(ITEM_LOCK_ENABLED, ITEM_LOCK_DISABLED);
         var lockSlot = PhantomItemSlot.of(this::getLockedItem, this::setLockedItem, this::canLockTo).xeiPhantom();
         var output = IconToggle.of(WidgetIcons.EXPORT, this::isAutoOutputItems, this::setAutoOutputItems)
-                .onOffTooltips("gtceu.gui.item_auto_output.tooltip.enabled", "gtceu.gui.item_auto_output.tooltip.disabled");
+                .onOffTooltips(ITEM_AUTO_OUTPUT_ENABLED, ITEM_AUTO_OUTPUT_DISABLED);
         var voiding = IconToggle.of(WidgetIcons.VOID_OVERFLOW, this::isVoiding, this::setVoiding)
-                .onOffTooltips("gtceu.gui.item_voiding_partial.tooltip.enabled", "gtceu.gui.item_voiding_partial.tooltip.disabled");
+                .onOffTooltips(ITEM_VOIDING_ENABLED, ITEM_VOIDING_DISABLED);
         var limit = Form.numberRow(HatchViews.CAPACITY_LIMIT,
                 NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, () -> 1, this::getMax), HatchViews.CAPACITY_LIMIT_TIP);
         limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
