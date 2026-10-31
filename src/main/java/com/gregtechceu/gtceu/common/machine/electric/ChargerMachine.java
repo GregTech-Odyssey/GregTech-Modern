@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -15,13 +14,17 @@ import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
+import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
+import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 import com.gregtechceu.gtceu.utils.GTMath;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
-import com.lowdragmc.lowdraglib.utils.Position;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -30,6 +33,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import dev.vfyjxf.taffy.style.AlignContent;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -114,29 +118,22 @@ public class ChargerMachine extends TieredEnergyMachine implements IControllable
     @Override
     public Widget createUIWidget() {
         int rowSize = (int) Math.sqrt(inventorySize);
-        int colSize = rowSize;
         if (inventorySize == 8) {
             rowSize = 4;
-            colSize = 2;
         }
-        var template = new WidgetGroup(0, 0, 18 * rowSize + 8, 18 * colSize + 8);
-        template.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        int index = 0;
-        for (int y = 0; y < colSize; y++) {
-            for (int x = 0; x < rowSize; x++) {
-                template.addWidget(new SlotWidget(chargerInventory, index++, 4 + x * 18, 4 + y * 18, true, true).setBackgroundTexture(new GuiTextureGroup(GuiTextures.SLOT, GuiTextures.CHARGER_OVERLAY)));
-            }
-        }
-        var editableUI = createEnergyBar();
-        var energyBar = editableUI.createDefault();
-        var group = new WidgetGroup(0, 0, Math.max(energyBar.getSize().width + template.getSize().width + 4 + 8, 172), Math.max(template.getSize().height + 8, energyBar.getSize().height + 8));
-        var size = group.getSize();
-        energyBar.setSelfPosition(new Position(3, (size.height - energyBar.getSize().height) / 2));
-        template.setSelfPosition(new Position((size.width - energyBar.getSize().width - 4 - template.getSize().width) / 2 + 2 + energyBar.getSize().width + 2, (size.height - template.getSize().height) / 2));
-        group.addWidget(energyBar);
-        group.addWidget(template);
-        editableUI.setupUI(group, this);
-        return group;
+        var energyBar = createEnergyBar().createDefault();
+        var slots = SlotGrid.of(rowSize, inventorySize, i -> {
+            var slot = ItemSlot.of(chargerInventory, i);
+            slot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.CHARGER_OVERLAY));
+            return slot;
+        });
+        var slotsContainer = new UIElement().layout(l -> l.flex(1).alignCenter().justifyContent(AlignContent.CENTER))
+                .addChild(slots);
+        var spacer = new UIElement().layout(l -> l.width(energyBar.getSize().width));
+        var operations = new UIElement().layout(l -> l.row().width(UISizes.CONTENT_WIDTH).alignCenter())
+                .addChildren(energyBar, slotsContainer, spacer);
+        createEnergyBar().setupUI(operations, this);
+        return HatchViews.page(operations);
     }
 
     //////////////////////////////////////

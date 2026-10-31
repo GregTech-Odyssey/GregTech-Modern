@@ -507,10 +507,6 @@ public class LangHandler {
                 "Distribution Mode: §bRound Robin with Priority\n§7Tries to split items across connected inventories and considers higher priorities first.\n§7Restrictive item pipes lower the priority of a path.");
         multilineLang(provider, "cover.conveyor.distribution.insert_first",
                 "Distribution Mode: §bPriority\n§7Will insert into the first inventory with the highest priority it can find.\n§7Restrictive item pipes lower the priority of a path.");
-        multilineLang(provider, "cover.conveyor.blocks_input.enabled",
-                "If enabled, items will not be inserted when cover is set to pull items from the inventory into pipe.\n§aEnabled");
-        multilineLang(provider, "cover.conveyor.blocks_input.disabled",
-                "If enabled, items will not be inserted when cover is set to pull items from the inventory into pipe.\n§cDisabled");
         multilineLang(provider, "cover.universal.manual_import_export.mode.disabled",
                 "Manual I/O: §bDisabled\n§7Items / Fluids will only move as specified by the cover and its filter.");
         multilineLang(provider, "cover.universal.manual_import_export.mode.filtered",
@@ -540,14 +536,7 @@ public class LangHandler {
                 "§eTransfer Any§r - in this mode, cover will transfer as many fluids matching its filter as possible.\n§eSupply Exact§r - in this mode, cover will supply fluids in portions specified in the window underneath this button. If amount of fluids is less than portion size, fluids won't be moved.\n§eKeep Exact§r - in this mode, cover will keep specified amount of fluids in the destination inventory, supplying additional amount of fluids if required.\n§7Tip: shift click will multiply increase/decrease amounts by 10 and ctrl click will multiply by 100.");
         provider.add("cover.fluid_regulator.supply_exact", "Supply Exact: %s");
         provider.add("cover.fluid_regulator.keep_exact", "Keep Exact: %s");
-        provider.add("cover.machine_controller.title", "Machine Controller Settings");
-        provider.add("cover.machine_controller.normal", "Normal");
         provider.add("cover.machine_controller.inverted", "Inverted");
-        multilineLang(provider, "cover.machine_controller.invert.enabled",
-                "§eInverted§r - in this mode, the cover will require a signal not weaker than the set redstone level to run");
-        multilineLang(provider, "cover.machine_controller.invert.disabled",
-                "§eNormal§r - in this mode, the cover will require a signal weaker than the set redstone level to run");
-        provider.add("cover.machine_controller.redstone", "Min Redstone Strength: %d");
         provider.add("cover.machine_controller.mode.machine", "Control Machine");
         provider.add("cover.machine_controller.mode.cover_up", "Control Cover (Top)");
         provider.add("cover.machine_controller.mode.cover_down", "Control Cover (Bottom)");
@@ -573,45 +562,9 @@ public class LangHandler {
         provider.add("cover.detector_base.message_normal_state", "Monitoring Status: Normal");
         provider.add("cover.detector_base.message_inverted_state", "Monitoring Status: Inverted");
 
-        var detectorLatchDescription = """
-                Change the redstone behavior of this Cover.
-                §eContinuous§7 - Default; values less than the minimum output 0; values higher than the maximum output 15; values between min and max output between 0 and 15
-                §eLatched§7 - output 15 until above max, then output 0 until below min""";
-        multilineLang(provider, "cover.advanced_detector.latch.enabled",
-                "Behavior: Latched\n\n" + detectorLatchDescription);
-        multilineLang(provider, "cover.advanced_detector.latch.disabled",
-                "Behavior: Continuous\n\n" + detectorLatchDescription);
-
-        provider.add("cover.advanced_energy_detector.label", "Advanced Energy Detector");
-        provider.add("cover.advanced_energy_detector.min", "Min");
-        provider.add("cover.advanced_energy_detector.max", "Max");
-
-        var advancedEnergyDetectorInvertDescription = "Toggle to invert the redstone logic\nBy default, redstone is emitted when less than the minimum EU, and stops emitting when greater than the max EU";
-        multilineLang(provider, "cover.advanced_energy_detector.invert.enabled",
-                "Output: Inverted\n\n" + advancedEnergyDetectorInvertDescription);
-        multilineLang(provider, "cover.advanced_energy_detector.invert.disabled",
-                "Output: Normal\n\n" + advancedEnergyDetectorInvertDescription);
-        var advancedEnergyDetectorModeDescription = "Change between using discrete EU values or percentages for comparing min/max against an attached energy storage.";
-        multilineLang(provider, "cover.advanced_energy_detector.use_percent.enabled",
-                "Mode: Percentage\n\n" + advancedEnergyDetectorModeDescription);
-        multilineLang(provider, "cover.advanced_energy_detector.use_percent.disabled",
-                "Mode: Discrete EU\n\n" + advancedEnergyDetectorModeDescription);
-
-        provider.add("cover.advanced_fluid_detector.label", "Advanced Fluid Detector");
-        var advancedFluidDetectorInvertDescription = "Toggle to invert the redstone logic\nBy default, redstone stops emitting when less than the minimum mB of fluid, and starts emitting when greater than the min mB of fluid up to the set maximum";
-        multilineLang(provider, "cover.advanced_fluid_detector.invert.enabled",
-                "Output: Inverted\n\n" + advancedFluidDetectorInvertDescription);
-        multilineLang(provider, "cover.advanced_fluid_detector.invert.disabled",
-                "Output: Normal\n\n" + advancedFluidDetectorInvertDescription);
         provider.add("cover.advanced_fluid_detector.max", "Max Fluid (mB)");
         provider.add("cover.advanced_fluid_detector.min", "Min Fluid (mB)");
 
-        provider.add("cover.advanced_item_detector.label", "Advanced Item Detector");
-        var advancedItemDetectorInvertDescription = "Toggle to invert the redstone logic\nBy default, redstone stops emitting when less than the minimum amount of items, and starts emitting when greater than the min amount of items up to the set maximum";
-        multilineLang(provider, "cover.advanced_item_detector.invert.enabled",
-                "Output: Inverted\n\n" + advancedItemDetectorInvertDescription);
-        multilineLang(provider, "cover.advanced_item_detector.invert.disabled",
-                "Output: Normal\n\n" + advancedItemDetectorInvertDescription);
         provider.add("cover.advanced_item_detector.max", "Max Items");
         provider.add("cover.advanced_item_detector.min", "Min Items");
         provider.add("cover.shutter.message.enabled", "Closed shutter");
@@ -1633,6 +1586,9 @@ public class LangHandler {
         provider.add("cover.machine_controller.section.target", "Target");
         provider.add("cover.machine_controller.section.signal", "Redstone");
         provider.add("cover.machine_controller.min_strength", "Min Redstone Strength");
+        provider.add("cover.machine_controller.min_strength.tooltip", "Threshold signal strength (1~15) required at the front face to trigger control.");
+        provider.add("cover.machine_controller.redstone_mode", "Redstone Mode");
+        provider.add("cover.machine_controller.redstone_mode.tooltip", "When enabled, machine operation is controlled by redstone signals received at the front face. When disabled, redstone is ignored and the machine runs normally.");
         provider.add("cover.machine_controller.target.machine", "Machine");
         provider.add("cover.machine_controller.target.cover_up", "Top Cover");
         provider.add("cover.machine_controller.target.cover_down", "Bottom Cover");
