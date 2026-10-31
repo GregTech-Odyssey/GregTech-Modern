@@ -1,5 +1,5 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:item/handheld",
   "overrides": [
     {
       "model": "gtceu:item/nano_saber_iv/active",
