@@ -18,12 +18,12 @@ import net.minecraft.network.chat.Component;
 public final class VeinDrillReadouts {
 
     public static final String VEIN = "gtceu.gui.vein_drill.vein";
-    public static final String NO_VEIN = "gtceu.gui.vein_drill.no_vein";
-    public static final String RESERVE = "gtceu.jei.vein.reserve";
+    public static final Component NO_VEIN = Component.translatable("gtceu.gui.vein_drill.no_vein");
+    public static final Component RESERVE = Component.translatable("gtceu.jei.vein.reserve");
     public static final String ORE_RATE = "gtceu.multiblock.ore_rig.ore_amount";
     public static final String FLUID_RATE = "gtceu.multiblock.fluid_rig.fluid_amount";
 
-    private static final Component NONE = Component.translatable(NO_VEIN).withStyle(ChatFormatting.RED);
+    private static final Component NONE = NO_VEIN.copy().withStyle(ChatFormatting.RED);
 
     private VeinDrillReadouts() {}
 

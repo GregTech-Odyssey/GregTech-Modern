@@ -64,21 +64,21 @@ import java.util.function.Function;
 public final class StructurePreviewScreen extends ModularUIGuiContainer {
 
     public static final String TITLE = "gtceu.structure_preview.title";
-    public static final String CONFIG = "gtceu.structure_preview.config";
-    public static final String PARTS = "gtceu.structure_preview.parts";
-    public static final String PARTS_FILTER = "gtceu.structure_preview.parts.filter";
-    public static final String LAYER = "gtceu.structure_preview.layer";
-    public static final String LAYER_ALL = "gtceu.structure_preview.layer.all";
+    public static final Component CONFIG = Component.translatable("gtceu.structure_preview.config");
+    public static final Component PARTS = Component.translatable("gtceu.structure_preview.parts");
+    public static final Component PARTS_FILTER = Component.translatable("gtceu.structure_preview.parts.filter");
+    public static final Component LAYER = Component.translatable("gtceu.structure_preview.layer");
+    public static final Component LAYER_ALL = Component.translatable("gtceu.structure_preview.layer.all");
     public static final String LAYER_N = "gtceu.structure_preview.layer.n";
-    public static final String OPEN = "gtceu.structure_preview.open";
-    public static final String ENCODE = "gtceu.structure_preview.encode";
-    public static final String BUILD = "gtceu.structure_preview.build";
-    public static final String PROJECT = "gtceu.structure_preview.project";
-    public static final String CANDIDATES = "gtceu.structure_preview.candidates";
-    public static final String HIGHLIGHT = "gtceu.structure_preview.highlight";
-    public static final String BACK = "gtceu.structure_preview.back";
-    public static final String FORWARD = "gtceu.structure_preview.forward";
-    public static final String ROOT_ONLY = "gtceu.structure_preview.root_only";
+    public static final Component OPEN = Component.translatable("gtceu.structure_preview.open");
+    public static final Component ENCODE = Component.translatable("gtceu.structure_preview.encode");
+    public static final Component BUILD = Component.translatable("gtceu.structure_preview.build");
+    public static final Component PROJECT = Component.translatable("gtceu.structure_preview.project");
+    public static final Component CANDIDATES = Component.translatable("gtceu.structure_preview.candidates");
+    public static final Component HIGHLIGHT = Component.translatable("gtceu.structure_preview.highlight");
+    public static final Component BACK = Component.translatable("gtceu.structure_preview.back");
+    public static final Component FORWARD = Component.translatable("gtceu.structure_preview.forward");
+    public static final Component ROOT_ONLY = Component.translatable("gtceu.structure_preview.root_only");
     private static final String VIEW_ID = "structure_preview";
     private static final String HIGHLIGHT_PREFERENCE = "structure_preview.highlight";
     private static final String LEGACY_MINIMAP_PREFERENCE = "structure_preview.minimap";
@@ -99,7 +99,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         void closePreview();
     }
 
-    public record Action(String labelKey, Consumer<Context> run) {}
+    public record Action(Component label, Consumer<Context> run) {}
 
     @FunctionalInterface
     public interface ActionProvider {
@@ -501,15 +501,15 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private void openCard() {
             if (card != null) return;
             shownLayers = layerCount();
-            var popup = Popup.of(() -> Component.translatable(CONFIG), column -> {
+            var popup = Popup.of(() -> CONFIG, column -> {
                 column.addChild(config);
                 var layerRow = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
-                        TextLine.translatable(LayoutStyle.AUTO, LAYER).setColor(UITheme.PANEL_TEXT).layout(l -> l.flex(1)),
+                        TextLine.constant(LayoutStyle.AUTO, LAYER).setColor(UITheme.PANEL_TEXT).layout(l -> l.flex(1)),
                         Stepper.of(UISizes.VALUE_WIDTH * 2, () -> layer, this::setLayer, 0, shownLayers).wrap()
-                                .setFormatter(value -> value == 0 ? I18n.get(LAYER_ALL) : I18n.get(LAYER_N, value)));
+                                .setFormatter(value -> value == 0 ? LAYER_ALL.getString() : I18n.get(LAYER_N, value)));
                 column.addChild(UIElement.section().addChild(layerRow));
                 partsSection = UIElement.section();
-                partsSection.addChild(TextLine.translatable(LayoutStyle.AUTO, PARTS).setColor(UITheme.PANEL_TEXT));
+                partsSection.addChild(TextLine.constant(LayoutStyle.AUTO, PARTS).setColor(UITheme.PANEL_TEXT));
                 partsSection.addChild(parts);
                 column.addChild(partsSection);
                 if (modes != null) column.addChild(UIElement.section().addChild(modes.options()));
@@ -527,8 +527,8 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             if (single) row.addChild(UIElement.flexSpacer());
             for (int i = 0; i < actions.size(); i++) {
                 var action = actions.get(i);
-                var button = single ? Button.translatable(UISizes.BUTTON_WIDTH * 2, action.labelKey()) :
-                        Button.translatable(LayoutStyle.AUTO, action.labelKey()).layout(l -> l.flex(1));
+                var button = single ? Button.text(UISizes.BUTTON_WIDTH * 2, action.label()) :
+                        Button.text(LayoutStyle.AUTO, action.label()).layout(l -> l.flex(1));
                 row.addChild(button
                         .setVariant(i == actions.size() - 1 ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
                         .disabled(() -> config.currentLayout() == null, StructureConfigView.INVALID)
@@ -567,7 +567,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         }
 
         private void openControls() {
-            var popup = Popup.of(() -> Component.translatable(SceneView.CONTROLS), column -> {
+            var popup = Popup.of(() -> SceneView.CONTROLS, column -> {
                 var section = UIElement.section();
                 for (var tip : SceneView.controlTips()) {
                     section.addChild(Label.of(UISizes.POPUP_CONTENT_WIDTH, () -> tip).bindClientColor(() -> UITheme.PANEL_TEXT));
@@ -591,7 +591,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             closeControls();
             closeCandidates();
             if (predicate == null) return;
-            var popup = Popup.of(() -> Component.translatable(CANDIDATES),
+            var popup = Popup.of(() -> CANDIDATES,
                     column -> predicate.forEachSimple(simple -> addCandidates(column, predicate, simple)));
             candidates = new PopupCard(CANDIDATES_ID, popup, Math.max(UISizes.SLOT_SIZE, frameHeight()), this::closeCandidates);
             place();
@@ -670,7 +670,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         }
 
         private void fillParts(List<ItemStack> stacks) {
-            parts.fill(stacks, PartSlots.create(stacks, Component.translatable(PARTS_FILTER)), page.shown, PARTS_PER_ROW);
+            parts.fill(stacks, PartSlots.create(stacks, PARTS_FILTER), page.shown, PARTS_PER_ROW);
         }
 
         private void fitParts() {

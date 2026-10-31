@@ -41,10 +41,10 @@ import java.util.function.Supplier;
 @OnlyIn(Dist.CLIENT)
 public final class PatternBuilderScreen extends ModularUIGuiContainer {
 
-    public static final String SORT = "gtceu.pattern_builder.sort";
-    public static final String SORT_STOCK = "gtceu.pattern_builder.sort.stock";
-    public static final String SORT_CRAFTABLE = "gtceu.pattern_builder.sort.craftable";
-    public static final String SORT_NONE = "gtceu.pattern_builder.sort.none";
+    public static final Component SORT = Component.translatable("gtceu.pattern_builder.sort");
+    public static final Component SORT_STOCK = Component.translatable("gtceu.pattern_builder.sort.stock");
+    public static final Component SORT_CRAFTABLE = Component.translatable("gtceu.pattern_builder.sort.craftable");
+    public static final Component SORT_NONE = Component.translatable("gtceu.pattern_builder.sort.none");
     private static final PatternBuilderModel.Sort[] SORTS = PatternBuilderModel.Sort.values();
 
     public interface Navigator {
@@ -253,7 +253,7 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
 
         @Override
         public Component getTitle() {
-            return Component.translatable(SORT);
+            return SORT;
         }
 
         @Override
@@ -263,11 +263,11 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
 
         @Override
         public Widget createConfigurator() {
-            return ButtonGroup.single(SORTS.length, index -> Component.translatable(switch (SORTS[index]) {
+            return ButtonGroup.single(SORTS.length, index -> switch (SORTS[index]) {
                 case STOCK -> SORT_STOCK;
                 case CRAFTABLE -> SORT_CRAFTABLE;
                 case NONE -> SORT_NONE;
-            }), () -> panel.getSort().ordinal(), index -> panel.setSort(SORTS[index])).layout(l -> l.width(WIDTH));
+            }, () -> panel.getSort().ordinal(), index -> panel.setSort(SORTS[index])).layout(l -> l.width(WIDTH));
         }
     }
 
@@ -280,8 +280,8 @@ public final class PatternBuilderScreen extends ModularUIGuiContainer {
 
         @Override
         public List<Component> getTooltips() {
-            return List.of(Component.translatable(PatternBuilderPanel.isNoHatches() ? PatternBuilderPanel.NO_HATCHES_ON : PatternBuilderPanel.NO_HATCHES_OFF),
-                    Component.translatable(PatternBuilderPanel.NO_HATCHES_DESC).withStyle(ChatFormatting.GRAY));
+            return List.of(PatternBuilderPanel.isNoHatches() ? PatternBuilderPanel.NO_HATCHES_ON : PatternBuilderPanel.NO_HATCHES_OFF,
+                    PatternBuilderPanel.NO_HATCHES_DESC.copy().withStyle(ChatFormatting.GRAY));
         }
 
         @Override

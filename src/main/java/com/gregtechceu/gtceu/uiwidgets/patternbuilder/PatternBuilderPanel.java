@@ -36,42 +36,49 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 @OnlyIn(Dist.CLIENT)
 public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
     public static final String TITLE = "gtceu.pattern_builder.title";
-    public static final String BLOCKS = "gtceu.pattern_builder.blocks";
-    public static final String INCLUDE = "gtceu.pattern_builder.include";
-    public static final String CHANGE_BLOCK = "gtceu.pattern_builder.change_block";
-    public static final String SELECT = "gtceu.pattern_builder.select";
-    public static final String SELECTED = "gtceu.pattern_builder.selected";
+    public static final Component BLOCKS = Component.translatable("gtceu.pattern_builder.blocks");
+    public static final Component INCLUDE = Component.translatable("gtceu.pattern_builder.include");
+    public static final Component CHANGE_BLOCK = Component.translatable("gtceu.pattern_builder.change_block");
+    public static final Component SELECT = Component.translatable("gtceu.pattern_builder.select");
+    public static final Component SELECTED = Component.translatable("gtceu.pattern_builder.selected");
     public static final String STOCK = "gtceu.pattern_builder.stock";
     public static final String CARRIED = "gtceu.pattern_builder.carried";
-    public static final String CRAFTABLE = "gtceu.pattern_builder.craftable";
-    public static final String OPTIONAL = "gtceu.pattern_builder.optional";
-    public static final String INPUTS = "gtceu.pattern_builder.inputs";
-    public static final String WRITE = "gtceu.pattern_builder.write";
-    public static final String CANCEL = "gtceu.pattern_builder.cancel";
-    public static final String CANNOT_WRITE = "gtceu.pattern_builder.cannot_write";
+    public static final Component CRAFTABLE = Component.translatable("gtceu.pattern_builder.craftable");
+    public static final Component OPTIONAL = Component.translatable("gtceu.pattern_builder.optional");
+    public static final Component INPUTS = Component.translatable("gtceu.pattern_builder.inputs");
+    public static final Component WRITE = Component.translatable("gtceu.pattern_builder.write");
+    public static final Component CANCEL = Component.translatable("gtceu.pattern_builder.cancel");
+    public static final Component CANNOT_WRITE = Component.translatable("gtceu.pattern_builder.cannot_write");
     public static final String SORT_PREFERENCE = "pattern_builder.sort";
-    public static final String BACK = "gtceu.pattern_builder.back";
-    public static final String EXTRAS = "gtceu.pattern_builder.extras";
-    public static final String FAVORITE = "gtceu.pattern_builder.favorite";
+    public static final Component BACK = Component.translatable("gtceu.pattern_builder.back");
+    public static final Component EXTRAS = Component.translatable("gtceu.pattern_builder.extras");
+    public static final Component FAVORITE = Component.translatable("gtceu.pattern_builder.favorite");
     public static final String TOTAL = "gtceu.pattern_builder.total";
-    public static final String NO_HATCHES_ON = "gtceu.pattern_builder.no_hatches.on";
-    public static final String NO_HATCHES_OFF = "gtceu.pattern_builder.no_hatches.off";
-    public static final String NO_HATCHES_DESC = "gtceu.pattern_builder.no_hatches.desc";
+    public static final Component NO_HATCHES_ON = Component.translatable("gtceu.pattern_builder.no_hatches.on");
+    public static final Component NO_HATCHES_OFF = Component.translatable("gtceu.pattern_builder.no_hatches.off");
+    public static final Component NO_HATCHES_DESC = Component.translatable("gtceu.pattern_builder.no_hatches.desc");
     private static final String NO_HATCHES_PREFERENCE = "pattern_builder.no_hatches";
 
-    public record Footer(String titleKey, String confirmKey, String includeKey, String blockedKey, boolean showInputs, boolean requireComplete,
-                         @Nullable Runnable back, boolean hatchToggle) {
+    public record Footer(UnaryOperator<Component> titleFormat, Component confirmText, Component includeTooltip, Component blockedReason,
+                         boolean showInputs, boolean requireComplete, @Nullable Runnable back, boolean hatchToggle) {
 
-        public static final Footer ENCODE = new Footer(TITLE, WRITE, INCLUDE, CANNOT_WRITE, true, false, null, true);
+        public static final Footer ENCODE = new Footer(TITLE, WRITE,
+                INCLUDE, CANNOT_WRITE, true, false, null, true);
 
-        public Footer(String titleKey, String confirmKey, String includeKey, String blockedKey, boolean showInputs, boolean requireComplete,
-                      @Nullable Runnable back) {
-            this(titleKey, confirmKey, includeKey, blockedKey, showInputs, requireComplete, back, false);
+        public Footer(String titleFormatKey, Component confirmText, Component includeTooltip, Component blockedReason,
+                      boolean showInputs, boolean requireComplete, @Nullable Runnable back, boolean hatchToggle) {
+            this(title -> Component.translatable(titleFormatKey, title), confirmText, includeTooltip, blockedReason, showInputs, requireComplete, back, hatchToggle);
+        }
+
+        public Footer(UnaryOperator<Component> titleFormat, Component confirmText, Component includeTooltip, Component blockedReason,
+                      boolean showInputs, boolean requireComplete, @Nullable Runnable back) {
+            this(titleFormat, confirmText, includeTooltip, blockedReason, showInputs, requireComplete, back, false);
         }
     }
 
@@ -132,7 +139,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         close.tooltips(MachineWindow.POPUP_CLOSE);
         var titleRow = UIElement.centeredRow(UISizes.CONTROL_HEIGHT);
         if (!icon.isEmpty()) titleRow.addChild(ItemView.of(icon));
-        titleRow.addChildren(TextLine.constant(LayoutStyle.AUTO, Component.translatable(footer.titleKey(), title)).layout(l -> l.flex(1)), close);
+        titleRow.addChildren(TextLine.constant(LayoutStyle.AUTO, footer.titleFormat().apply(title)).layout(l -> l.flex(1)), close);
 
         var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
         if (!model.getFixed().isEmpty() || !model.getGroups().isEmpty()) content.addChild(blocksSection());
@@ -146,14 +153,14 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
         var back = footer.back();
         var actions = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
-                back == null ? Button.translatable(UISizes.BUTTON_WIDTH, CANCEL).setOnClientClick(onClose) :
-                        Button.translatable(UISizes.BUTTON_WIDTH, BACK).setOnClientClick(back),
+                back == null ? Button.text(UISizes.BUTTON_WIDTH, CANCEL).setOnClientClick(onClose) :
+                        Button.text(UISizes.BUTTON_WIDTH, BACK).setOnClientClick(back),
                 UIElement.flexSpacer(),
-                Button.translatable(UISizes.BUTTON_WIDTH, footer.confirmKey()).setVariant(UITheme.ButtonVariant.CONFIRM)
-                        .disabled(() -> !canWrite(), footer.blockedKey())
+                Button.text(UISizes.BUTTON_WIDTH, footer.confirmText()).setVariant(UITheme.ButtonVariant.CONFIRM)
+                        .disabled(() -> !canWrite(), footer.blockedReason())
                         .setOnServerClick(onWrite));
         var counter = footer.showInputs() ?
-                TextLine.of(LayoutStyle.AUTO, () -> Component.translatable(INPUTS).append(" " + model.getInputs().size() + " / " + inputLimit))
+                TextLine.of(LayoutStyle.AUTO, () -> INPUTS.copy().append(" " + model.getInputs().size() + " / " + inputLimit))
                         .setTextAlign(Horizontal.RIGHT).bindLevel(() -> model.getInputs().size() <= inputLimit ? Level.NORMAL : Level.ERROR) :
                 null;
 
@@ -223,7 +230,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
     private UIElement blocksSection() {
         var section = UIElement.section();
-        section.addChild(TextLine.translatable(LayoutStyle.AUTO, BLOCKS));
+        section.addChild(TextLine.constant(LayoutStyle.AUTO, BLOCKS));
         boolean choices = !model.getGroups().isEmpty();
         var fixed = model.getFixed();
         if (!fixed.isEmpty()) {
@@ -300,14 +307,14 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     }
 
     private Popup fillPopup(PatternBuilderModel.Group group) {
-        return Popup.of(() -> Component.translatable(CHANGE_BLOCK), column -> {
+        return Popup.of(() -> CHANGE_BLOCK, column -> {
             var section = UIElement.section();
             section.layout(l -> l.minWidth(FILL_POPUP_WIDTH));
             var fills = group.getSortedFills();
             section.addChild(new VirtualList(1, UISizes.SLOT_SIZE, UISizes.GAP, fills::size, index -> {
                 var stack = fills.get(index);
                 var candidate = group.getFillCandidate(stack);
-                var choose = Button.of(UISizes.BUTTON_WIDTH).bindClientText(() -> I18n.get(group.getFillStack() == stack ? SELECTED : SELECT))
+                var choose = Button.of(UISizes.BUTTON_WIDTH).bindClientText(() -> (group.getFillStack() == stack ? SELECTED : SELECT).getString())
                         .bindClientVariant(() -> group.getFillStack() == stack ? UITheme.ButtonVariant.CONFIRM : UITheme.ButtonVariant.DEFAULT)
                         .setOnServerClick(() -> {
                             group.setFill(stack);
@@ -331,7 +338,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
             var extras = group.getExtras();
             if (extras.isEmpty()) return;
             var extraSection = UIElement.section();
-            extraSection.addChild(TextLine.translatable(LayoutStyle.AUTO, EXTRAS));
+            extraSection.addChild(TextLine.constant(LayoutStyle.AUTO, EXTRAS));
             extraSection.addChild(new VirtualList(1, UISizes.SLOT_SIZE, UISizes.GAP, extras::size, index -> {
                 var candidate = extras.get(index);
                 var field = NumberField.ofInt(COUNT_FIELD_WIDTH, candidate::getSelected, candidate::setSelected, () -> 0, candidate::getMax).setSteps(COUNT_STEPS);
@@ -349,7 +356,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
                                 .bindLevel(() -> stockLevel(stack.get(), need.getAsInt())));
         var row = UIElement.centeredRow(UISizes.SLOT_SIZE);
         if (include != null) {
-            include.tooltips(footer.includeKey());
+            include.tooltips(footer.includeTooltip());
             row.addChild(include);
         }
         return row.addChildren(cell, names, trailing);
@@ -373,7 +380,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
             text.append(Component.translatable(CARRIED, FormattingUtil.formatNumberReadable(stock.carried())));
         }
         if (stock.craftable()) {
-            text.append(" · ").append(Component.translatable(CRAFTABLE).withStyle(style -> style.withColor(UITheme.STATUS_TEXT_WARNING & 0xFFFFFF)));
+            text.append(" · ").append(CRAFTABLE.copy().withStyle(style -> style.withColor(UITheme.STATUS_TEXT_WARNING & 0xFFFFFF)));
         }
         return text;
     }
@@ -386,12 +393,12 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
 
     private static Component tallyText(PatternBuilderModel.Role role) {
         var requirement = requirement(role);
-        return Component.literal(role.getTally() + " / ").append(requirement.isEmpty() ? Component.translatable(OPTIONAL) : Component.literal(requirement));
+        return Component.literal(role.getTally() + " / ").append(requirement.isEmpty() ? OPTIONAL : Component.literal(requirement));
     }
 
     private static Component tallyText(PatternBuilderModel.Role role, int section) {
         var requirement = requirement(role);
-        return Component.literal(role.getTally(section) + " / ").append(requirement.isEmpty() ? Component.translatable(OPTIONAL) : Component.literal(requirement));
+        return Component.literal(role.getTally(section) + " / ").append(requirement.isEmpty() ? OPTIONAL : Component.literal(requirement));
     }
 
     private static Level roleLevel(PatternBuilderModel.Role role) {

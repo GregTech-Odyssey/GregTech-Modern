@@ -40,20 +40,20 @@ public final class MachineScreen {
         return this;
     }
 
-    public StatusLine addLine(String labelKey, Supplier<Component> value) {
-        return addLine(StatusLine.of(LayoutStyle.AUTO, labelKey, value));
+    public StatusLine addLine(Component label, Supplier<Component> value) {
+        return addLine(StatusLine.of(LayoutStyle.AUTO, label, value));
     }
 
     public StatusLine addLine(StatusLine line) {
         return panel.addLine(line.screenStyle());
     }
 
-    public ProgressBar addBar(String labelKey, IntSupplier color, Supplier<ProgressBar.Progress> progress) {
-        return addGauge(ProgressBar.of(LayoutStyle.AUTO, Component.translatable(labelKey), 0, progress).bindClientColor(color));
+    public ProgressBar addBar(Component label, IntSupplier color, Supplier<ProgressBar.Progress> progress) {
+        return addGauge(ProgressBar.of(LayoutStyle.AUTO, label, 0, progress).bindClientColor(color));
     }
 
-    public ProgressBar addBar(String labelKey, int color, Supplier<ProgressBar.Progress> progress) {
-        return addGauge(ProgressBar.of(LayoutStyle.AUTO, Component.translatable(labelKey), color, progress));
+    public ProgressBar addBar(Component label, int color, Supplier<ProgressBar.Progress> progress) {
+        return addGauge(ProgressBar.of(LayoutStyle.AUTO, label, color, progress));
     }
 
     public ProgressBar addGauge(ProgressBar bar) {

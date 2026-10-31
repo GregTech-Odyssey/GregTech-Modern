@@ -51,10 +51,10 @@ import java.util.function.Supplier;
  */
 public class RecipeIOList extends UIElement {
 
-    public static final String INPUTS = "gtceu.gui.recipe_io.inputs";
-    public static final String OUTPUTS = "gtceu.gui.recipe_io.outputs";
-    public static final String NONE = "gtceu.gui.recipe_io.none";
-    public static final String NOT_CONSUMED = "gtceu.gui.recipe_io.not_consumed";
+    public static final Component INPUTS = Component.translatable("gtceu.gui.recipe_io.inputs");
+    public static final Component OUTPUTS = Component.translatable("gtceu.gui.recipe_io.outputs");
+    public static final Component NONE = Component.translatable("gtceu.gui.recipe_io.none");
+    public static final Component NOT_CONSUMED = Component.translatable("gtceu.gui.recipe_io.not_consumed");
     public static final String PER_SECOND = "gtceu.gui.recipe_io.per_second";
     public static final String CHANCE = "gtceu.gui.recipe_io.chance";
     public static final String EXACT = "gtceu.gui.recipe_io.exact";
@@ -143,9 +143,9 @@ public class RecipeIOList extends UIElement {
     private IntPredicate fluidOutputBlocked;
     private long cachedBlocked;
     @Nullable
-    private String blockedKey;
+    private Component blockedText;
     @Nullable
-    private String blockedDetailKey;
+    private Component blockedDetail;
     @Nullable
     private GTRecipe cachedRecipe;
     private Snapshot cached = Snapshot.EMPTY;
@@ -170,10 +170,10 @@ public class RecipeIOList extends UIElement {
         return new RecipeIOList(null, source);
     }
 
-    public RecipeIOList setFluidOutputBlocked(IntPredicate blocked, String shortKey, String detailKey) {
+    public RecipeIOList setFluidOutputBlocked(IntPredicate blocked, Component shortText, @Nullable Component detailText) {
         this.fluidOutputBlocked = blocked;
-        this.blockedKey = shortKey;
-        this.blockedDetailKey = detailKey;
+        this.blockedText = shortText;
+        this.blockedDetail = detailText;
         return this;
     }
 
@@ -267,7 +267,7 @@ public class RecipeIOList extends UIElement {
         var list = new ArrayList<Row>(value.entries.size() + 2);
         int y = TOP;
         if (value.entries.isEmpty()) {
-            list.add(new Row(null, TOP, HEADER, Component.translatable(NONE).getString(), "", "", TONE_LABEL, Collections.emptyList()));
+            list.add(new Row(null, TOP, HEADER, NONE.getString(), "", "", TONE_LABEL, Collections.emptyList()));
         }
         int rateWidth = 0;
         var rates = new String[value.entries.size()];
@@ -284,17 +284,17 @@ public class RecipeIOList extends UIElement {
             if (section == null || section != entry.output) {
                 if (section != null) y += SECTION_GAP;
                 section = entry.output;
-                list.add(new Row(null, y, HEADER, Component.translatable(entry.output ? OUTPUTS : INPUTS).getString(), "", "", TONE_TEXT, Collections.emptyList()));
+                list.add(new Row(null, y, HEADER, (entry.output ? OUTPUTS : INPUTS).getString(), "", "", TONE_TEXT, Collections.emptyList()));
                 y += HEADER;
             }
             String amount;
             String rate = "";
             int tone = TONE_TEXT;
-            if (entry.blocked && blockedKey != null) {
-                amount = Component.translatable(blockedKey).getString();
+            if (entry.blocked && blockedText != null) {
+                amount = blockedText.getString();
                 tone = TONE_ERROR;
             } else if (entry.chance <= 0) {
-                amount = Component.translatable(NOT_CONSUMED).getString();
+                amount = NOT_CONSUMED.getString();
                 tone = TONE_LABEL;
             } else {
                 amount = amountText(entry);
@@ -417,7 +417,7 @@ public class RecipeIOList extends UIElement {
         if (entry.chance > 0 && entry.chance < FULL_CHANCE) {
             tooltips.add(Component.translatable(CHANCE, FormattingUtil.formatNumbers(entry.chance / 100.0)).withStyle(ChatFormatting.YELLOW));
         }
-        if (entry.blocked && blockedDetailKey != null) tooltips.add(Component.translatable(blockedDetailKey).withStyle(ChatFormatting.RED));
+        if (entry.blocked && blockedDetail != null) tooltips.add(blockedDetail.copy().withStyle(ChatFormatting.RED));
         gui.getModularUIGui().setHoverTooltip(tooltips, itemStack, null, itemStack.getTooltipImage().orElse(null));
     }
 
