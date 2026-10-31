@@ -41,9 +41,13 @@ public class IconToggle extends Button {
         return (IconToggle) bindTooltip(() -> getter.getAsBoolean() ? onTooltip : offTooltip);
     }
 
-    public IconToggle onOffTooltips(Function<Boolean, List<Component>> tooltips) {
-        on.onChanged(value -> setHoverTooltips(tooltips.apply(value)));
-        setHoverTooltips(tooltips.apply(on.getValue()));
+    public IconToggle onOffTooltips(Function<Boolean, ? extends List<? extends Component>> tooltips) {
+        on.onChanged(value -> {
+            var list = tooltips.apply(value);
+            setHoverTooltips(list == null ? List.of() : List.copyOf(list));
+        });
+        var initial = tooltips.apply(on.getValue());
+        setHoverTooltips(initial == null ? List.of() : List.copyOf(initial));
         return this;
     }
 

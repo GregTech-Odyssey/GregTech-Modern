@@ -2350,6 +2350,8 @@
     "item.gtceu.advanced_machine_controller_cover": "高級機器控制覆蓋板",
     "cover.machine_controller.section.signal": "紅石信號",
     "cover.machine_controller.min_strength": "最小紅石信號強度",
+    "cover.machine_controller.redstone_mode": "紅石控制模式",
+    "cover.machine_controller.redstone_mode.tooltip": "開啟後，倉室將根據紅石訊號控制機器的運行狀態。",
     "cover.machine_controller.target.machine": "機器",
     "cover.machine_controller.target.cover_up": "頂面覆蓋板",
     "cover.machine_controller.target.cover_down": "底面覆蓋板",

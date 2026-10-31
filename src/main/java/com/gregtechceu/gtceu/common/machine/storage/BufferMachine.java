@@ -2,8 +2,6 @@ package com.gregtechceu.gtceu.common.machine.storage;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredMachine;
@@ -13,16 +11,14 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
-import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
-import com.gregtechceu.gtceu.api.transfer.forge.MenuItemAdapter;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.DualHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
-import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -199,24 +195,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     ////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        int invTier = getTankSize(tier);
-        var group = new WidgetGroup(0, 0, 18 * (invTier + 1) + 16, 18 * invTier + 16);
-        var container = new WidgetGroup(4, 4, 18 * (invTier + 1) + 8, 18 * invTier + 8);
-        var items = new MenuItemAdapter(getInventory().storage);
-        var fluids = new ForgeFluidAdapter(tank.storage);
-        int index = 0;
-        for (int y = 0; y < invTier; y++) {
-            for (int x = 0; x < invTier; x++) {
-                container.addWidget(new SlotWidget(items, index++, 4 + x * 18, 4 + y * 18, true, true).setBackgroundTexture(GuiTextures.SLOT));
-            }
-        }
-        index = 0;
-        for (int y = 0; y < invTier; y++) {
-            container.addWidget(new TankWidget(fluids, index++, 4 + invTier * 18, 4 + y * 18, true, true).setBackground(GuiTextures.FLUID_SLOT));
-        }
-        container.setBackground(GuiTextures.BACKGROUND_INVERSE);
-        group.addWidget(container);
-        return group;
+        return HatchViews.page(HatchViews.dual(getInventory().storage, tank.storage, IO.BOTH));
     }
 
     ///////////////////////////////

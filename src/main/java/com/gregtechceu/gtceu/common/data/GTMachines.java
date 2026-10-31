@@ -321,7 +321,6 @@ public class GTMachines {
     public static final MachineDefinition[] FISHER = registerTieredMachines("fisher", FisherMachine::new,
             (tier, builder) -> builder
                     .allRotation()
-                    .editableUI(FisherMachine.EDITABLE_UI_CREATOR.apply(GTCEu.id("fisher"), (tier + 1) * (tier + 1)))
                     .tieredHullRenderer(GTCEu.id("block/machine/fisher_machine"))
                     .langValue("%s Fisher%s".formatted(VLVH[tier], VLVT[tier]))
                     .tips(Tips.feature(Component.translatable("gtceu.machine.fisher.tooltip")),
@@ -428,7 +427,7 @@ public class GTMachines {
                     .noneRotation()
                     .tieredHullRenderer(GTCEu.id("block/machine/buffer"))
                     .tips(Tips.feature(Component.translatable("gtceu.machine.buffer.tooltip")), Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_capacity", BufferMachine.getInventorySize(tier))),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", BufferMachine.getTankSize(tier), FluidHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier))))
+                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", BufferMachine.getTankSize(tier), FormattingUtil.formatNumbers(FluidHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))))
                     .register(),
             tiersBetween(LV, MAX));
 
@@ -820,7 +819,7 @@ public class GTMachines {
                     .overlayTieredHullRenderer("dual_hatch.import")
                     .tips(Tips.feature(Component.translatable("gtceu.machine.dual_hatch.import.tooltip")),
                             Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier)),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier, DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier))),
+                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier, FormattingUtil.formatNumbers(DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))),
                             Tips.stat(Component.translatable("gtceu.part_sharing.enabled")))
                     .register(),
             GTValues.tiersBetween(LV, MAX));
@@ -835,7 +834,7 @@ public class GTMachines {
                     .overlayTieredHullRenderer("dual_hatch.export")
                     .tips(Tips.feature(Component.translatable("gtceu.machine.dual_hatch.export.tooltip")),
                             Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier)),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier, DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier))),
+                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier,FormattingUtil.formatNumbers(DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))),
                             Tips.stat(Component.translatable("gtceu.part_sharing.enabled")))
                     .register(),
             GTValues.tiersBetween(LV, MAX));
