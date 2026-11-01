@@ -34,6 +34,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.ToolAction;
 
 import com.google.common.collect.Multimap;
 import lombok.Getter;
@@ -268,6 +269,16 @@ public class ComponentItem extends Item implements HeldItemUIFactory.IHeldItemUI
             }
         }
         return super.canAttackBlock(state, level, pos, player);
+    }
+
+    @Override
+    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
+        for (IItemComponent component : components) {
+            if (component instanceof IInteractionItem interactionItem && interactionItem.canPerformAction(stack, toolAction)) {
+                return true;
+            }
+        }
+        return super.canPerformAction(stack, toolAction);
     }
 
     @Override

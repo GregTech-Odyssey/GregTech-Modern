@@ -30,6 +30,7 @@
     "BlockMixin",
     "BlockPropertiesAccessor",
     "ChunkGeneratorMixin",
+    "EnchantmentMixin",
     "EntityMixin",
     "FriendlyByteBufMixin",
     "IFoliagePlacerTypeAccessor",

@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.ToolAction;
 
 public interface IInteractionItem extends IItemComponent {
 
@@ -70,6 +71,10 @@ public interface IInteractionItem extends IItemComponent {
 
     default boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
         return true;
+    }
+
+    default boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
+        return false;
     }
 
     static BlockHitResult getPlayerPOVHitResult(Level level, Player player, ClipContext.Fluid fluidMode) {

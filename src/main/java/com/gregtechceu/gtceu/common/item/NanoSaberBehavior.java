@@ -34,6 +34,8 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.ToolAction;
+import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 
 import com.google.common.collect.HashMultimap;
@@ -57,13 +59,13 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
 
     public static final int[] TIERS = { 0, GTValues.MV, GTValues.EV, GTValues.LuV, GTValues.UV };
     public static final int[] HOURS = { 0, 1, 3, 9, 27 };
-    private static final double[] ACTIVE_DAMAGE = { 0, 20, 40, 60, 80 };
+    private static final double[] ACTIVE_DAMAGE = { 0, 30, 90, 540, 2160 };
     private static final double[] ATTACK_SPEED = { 0, 2.0, 2.3, 2.6, 3.0 };
     private static final double[] ATTACK_RANGE = { 0, 3, 3, 4, 5 };
     /**
      * 附加伤害，单位为目标最大生命值的百分比
      */
-    private static final double[] HEALTH_PERCENT = { 0, 0.1, 0.15, 0.2, 0.3 };
+    private static final double[] HEALTH_PERCENT = { 0, 0.1, 0.25, 0.5, 1.0 };
 
     public static final double ACTIVE_AMPS = 1.0;
     public static final double INACTIVE_DAMAGE_RATIO = 0.3;
@@ -183,6 +185,11 @@ public class NanoSaberBehavior extends ToggleEnergyConsumerBehavior implements I
                     ArmorTooltips.toggleMessage(stack, "metaarmor.gto.name.energy_blade", enabled, isPowered(stack)), false);
         }
         return InteractionResultHolder.sidedSuccess(stack, world.isClientSide);
+    }
+
+    @Override
+    public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
+        return ToolActions.DEFAULT_SWORD_ACTIONS.contains(toolAction);
     }
 
     @Override
