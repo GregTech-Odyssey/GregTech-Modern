@@ -137,7 +137,7 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
         }
         FluidStack contained = this.getFluid();
         long fluidAmount = this.getFluidAmount();
-        if (fluidAmount <= 0 || !this.canDrainFluidType(contained)) {
+        if (contained.isEmpty() || fluidAmount <= 0 || !this.canDrainFluidType(contained)) {
             return FluidStack.EMPTY;
         }
         // Can drain at most Integer.MAX_VALUE
