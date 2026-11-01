@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.asm.EmptyMethodChecker;
 
@@ -54,6 +55,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import com.gto.datasynclib.blockentity.IDropSave;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,15 +138,16 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
                     machine.setOwnerUUID(sPlayer.getUUID());
                     machine.onChanged();
                 }
-            }
-            if (machine instanceof IDropSaveMachine dropSaveMachine) {
                 CompoundTag tag = pStack.getTag();
                 if (tag != null) {
-                    dropSaveMachine.loadFromItem(tag);
+                    if (machine instanceof IDropSaveMachine dropSaveMachine) {
+                        dropSaveMachine.loadFromItem(tag);
+                    }
+                    IDropSave.loadFromItem(machine, tag);
                 }
-            }
-            if (machine instanceof IMachineLife machineLife) {
-                machineLife.onMachinePlaced(player, pStack);
+                if (machine instanceof IMachineLife machineLife) {
+                    machineLife.onMachinePlaced(player, pStack);
+                }
             }
         }
     }
@@ -198,9 +201,14 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
     @Override
     public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
         ItemStack itemStack = super.getCloneItemStack(level, pos, state);
-        if (getMachine(level, pos) instanceof IDropSaveMachine dropSaveMachine && dropSaveMachine.savePickClone()) {
-            dropSaveMachine.saveToItem(itemStack.getOrCreateTag());
+        var machine = getMachine(level, pos);
+        if (machine != null) {
+            if (getMachine(level, pos) instanceof IDropSaveMachine dropSaveMachine && dropSaveMachine.savePickClone()) {
+                dropSaveMachine.saveToItem(itemStack.getOrCreateTag());
+            }
+            IDropSave.saveToItem(machine, itemStack.getOrCreateTag(), true, GTDataFixer.VERSION);
         }
+        if (!itemStack.hasTag()) itemStack.setTag(null);
         return itemStack;
     }
 
@@ -244,14 +252,19 @@ public class MetaMachineBlock extends AppearanceBlock implements IBlockRendererP
             if (machine instanceof IMachineModifyDrops machineModifyDrops) {
                 machineModifyDrops.onDrops(drops);
             }
-            if (machine instanceof IDropSaveMachine dropSaveMachine && dropSaveMachine.saveBreak()) {
-                for (ItemStack drop : drops) {
-                    if (drop.getItem() instanceof MetaMachineItem item && item.getBlock() == this) {
-                        dropSaveMachine.saveToItem(drop.getOrCreateTag());
-                        // break here to not dupe contents if a machine drops multiple of itself for whatever reason.
-                        break;
-                    }
+            ItemStack drop = null;
+            for (ItemStack d : drops) {
+                if (d.getItem() instanceof MetaMachineItem item && item.getBlock() == this) {
+                    drop = d;
+                    break;
                 }
+            }
+            if (drop != null) {
+                if (machine instanceof IDropSaveMachine dropSaveMachine && dropSaveMachine.saveBreak()) {
+                    dropSaveMachine.saveToItem(drop.getOrCreateTag());
+                }
+                IDropSave.saveToItem(machine, drop.getOrCreateTag(), false, GTDataFixer.VERSION);
+                if (!drop.hasTag()) drop.setTag(null);
             }
         }
         return drops;

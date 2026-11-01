@@ -243,7 +243,8 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     protected void autoSync() {
         if (remove) return;
-        if (needSync() || periodID++ % 40 == 0) {
+        periodID++;
+        if (needSync() || periodID % 40 == 0) {
             DataSyncNetwork.syncBlockEntityToClient(this);
         }
     }
