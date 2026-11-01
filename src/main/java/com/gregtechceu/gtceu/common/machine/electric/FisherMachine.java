@@ -38,9 +38,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-
-import dev.vfyjxf.taffy.style.AlignContent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -65,12 +62,12 @@ import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import dev.vfyjxf.taffy.style.AlignContent;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
-import java.util.function.BiFunction;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 

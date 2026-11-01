@@ -835,7 +835,7 @@ public class GTMachines {
                     .overlayTieredHullRenderer("dual_hatch.export")
                     .tips(Tips.feature(Component.translatable("gtceu.machine.dual_hatch.export.tooltip")),
                             Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_capacity", tier * tier)),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier,FormattingUtil.formatNumbers(DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))),
+                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity_mult", tier, FormattingUtil.formatNumbers(DualHatchPartMachine.getTankCapacity(DualHatchPartMachine.INITIAL_TANK_CAPACITY, tier)))),
                             Tips.stat(Component.translatable("gtceu.part_sharing.enabled")))
                     .register(),
             GTValues.tiersBetween(LV, MAX));

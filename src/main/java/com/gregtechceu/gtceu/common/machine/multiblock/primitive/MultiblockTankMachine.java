@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyHandlerView;
 import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
 import com.gregtechceu.gtceu.uipro.elements.IconToggle;
-import com.gregtechceu.gtceu.uipro.elements.StatusPanel;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 
