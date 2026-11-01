@@ -657,7 +657,6 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         for (long a : amounts) {
             if (a > 0) count++;
         }
-        if (count == 0 && !uniqueKeys) return ops.createNull();
         return ops.createByteArray(KeyInventoryCodec.encode(this, MAGIC | FLAG_COMPACT | (uniqueKeys ? FLAG_UNIQUE : 0), count));
     }
 
