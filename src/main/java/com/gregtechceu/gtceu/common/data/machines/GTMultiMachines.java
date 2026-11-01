@@ -806,7 +806,7 @@ public class GTMultiMachines {
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
     public static final MultiblockMachineDefinition WOODEN_MULTIBLOCK_TANK = registerMultiblockTank(
             "wooden_multiblock_tank", "Wooden Multiblock Tank", 500 * 10000,
-            CASING_WOOD_WALL, WOODEN_TANK_VALVE::get,
+            CASING_WOOD_WALL, WOODEN_TANK_VALVE,
             new PropertyFluidFilter(false, false),
             (builder, overlay) -> builder.sidedWorkableCasingRenderer("block/casings/wood_wall", overlay));
 
@@ -816,7 +816,7 @@ public class GTMultiMachines {
                     .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), overlay));
     public static final MultiblockMachineDefinition BRONZE_MULTIBLOCK_TANK = registerMultiblockTank(
             "bronze_multiblock_tank", "Bronze Multiblock Tank", 1000 * 10000,
-            CASING_BRONZE_BRICKS, BRONZE_TANK_VALVE::get,
+            CASING_BRONZE_BRICKS, BRONZE_TANK_VALVE,
             new PropertyFluidFilter(true, false),
             (builder, overlay) -> builder
                     .workableCasingRenderer(GTCEu.id("block/casings/solid/machine_casing_bronze_plated_bricks"), overlay));
@@ -827,7 +827,7 @@ public class GTMultiMachines {
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));
     public static final MultiblockMachineDefinition STEEL_MULTIBLOCK_TANK = registerMultiblockTank(
             "steel_multiblock_tank", "Steel Multiblock Tank", 10000 * 10000,
-            CASING_STEEL_SOLID, STEEL_TANK_VALVE::get,
+            CASING_STEEL_SOLID, STEEL_TANK_VALVE,
             null,
             (builder, overlay) -> builder.workableCasingRenderer(
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));
