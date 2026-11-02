@@ -67,10 +67,6 @@ public class TextLine extends UIElement {
         return new TextLine(width, () -> text, text);
     }
 
-    public static TextLine translatable(int width, String key) {
-        return constant(width, Component.translatable(key));
-    }
-
     public TextLine setColor(int color) {
         return bindClientColor(() -> color);
     }

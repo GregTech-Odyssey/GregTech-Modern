@@ -22,6 +22,9 @@ import java.util.List;
 
 public interface IRotorHolderMachine extends IWorkableMultiPart {
 
+    List<Component> ROTOR_OBSTRUCTED_TOOLTIP = List.of(Component.translatable("gtceu.multiblock.universal.rotor_obstructed")
+            .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+
     int SPEED_INCREMENT = 1;
     int SPEED_DECREMENT = 3;
 
@@ -213,8 +216,7 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
     default void attachTooltips(TooltipsPanel tooltipsPanel) {
         tooltipsPanel.attachTooltips(IFancyTooltip.covering("gtceu.multiblock.universal.rotor_obstructed", new IFancyTooltip.Basic(
                 () -> WidgetIcons.STATUS_OBSTRUCTED,
-                () -> List.of(Component.translatable("gtceu.multiblock.universal.rotor_obstructed")
-                        .setStyle(Style.EMPTY.withColor(ChatFormatting.RED))),
+                () -> ROTOR_OBSTRUCTED_TOOLTIP,
                 () -> !isFrontFaceFree(),
                 () -> null)));
     }

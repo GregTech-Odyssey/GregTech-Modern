@@ -18,12 +18,12 @@ import static com.gregtechceu.gtceu.api.GTValues.*;
 
 public final class EnergyTierPreview implements RecipeTierPreview {
 
-    private static final String TOTAL_EU = "gtceu.recipe.info.total_eu";
-    private static final String MAX_EU = "gtceu.recipe.info.max_eu";
-    private static final String EU_USAGE = "gtceu.recipe.info.eu_usage";
-    private static final String EU_GENERATION = "gtceu.recipe.info.eu_generation";
+    private static final Component TOTAL_EU = Component.translatable("gtceu.recipe.info.total_eu");
+    private static final Component MAX_EU = Component.translatable("gtceu.recipe.info.max_eu");
+    private static final Component EU_USAGE = Component.translatable("gtceu.recipe.info.eu_usage");
+    private static final Component EU_GENERATION = Component.translatable("gtceu.recipe.info.eu_generation");
     private static final String OVERCLOCK_INFO = "gtceu.recipe.info.overclock";
-    private static final String OVERCLOCK_PERFECT = "gtceu.recipe.info.overclock_perfect";
+    private static final Component OVERCLOCK_PERFECT = Component.translatable("gtceu.recipe.info.overclock_perfect");
 
     private final GTRecipeDefinition recipe;
     private final boolean input;
@@ -65,7 +65,7 @@ public final class EnergyTierPreview implements RecipeTierPreview {
     @Override
     public List<Component> tooltip() {
         return List.of(Component.translatable(OVERCLOCK_INFO, VNF[recipe.tier]),
-                Component.translatable(OVERCLOCK_PERFECT).withStyle(ChatFormatting.GRAY));
+                OVERCLOCK_PERFECT.copy().withStyle(ChatFormatting.GRAY));
     }
 
     @Override
@@ -86,7 +86,7 @@ public final class EnergyTierPreview implements RecipeTierPreview {
     }
 
     @Override
-    public List<String> rowLabels() {
+    public List<Component> rowLabels() {
         return List.of(isTotalCwu(recipe) ? MAX_EU : TOTAL_EU, input ? EU_USAGE : EU_GENERATION);
     }
 

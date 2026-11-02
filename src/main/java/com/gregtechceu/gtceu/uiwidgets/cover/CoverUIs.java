@@ -13,6 +13,8 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import net.minecraft.network.chat.Component;
+
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
@@ -25,14 +27,14 @@ public final class CoverUIs {
 
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
-    public static UIElement controlRow(String labelKey, Widget control, String... tooltipKeys) {
-        return Form.controlRow(labelKey, control, tooltipKeys);
+    public static UIElement controlRow(Component label, Widget control, Component... tooltips) {
+        return Form.controlRow(label, control, tooltips);
     }
 
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "27.0")
-    public static UIElement inlineNumberRow(String labelKey, Adjuster field, String... tooltipKeys) {
-        return Form.inlineNumberRow(labelKey, field, tooltipKeys);
+    public static UIElement inlineNumberRow(Component label, Adjuster field, Component... tooltips) {
+        return Form.inlineNumberRow(label, field, tooltips);
     }
 
     public static <E extends EnumSelectorWidget.SelectableEnum> ButtonGroup enumIcons(List<E> values, Supplier<E> current, Consumer<E> set) {
@@ -40,10 +42,10 @@ public final class CoverUIs {
                 .optionTooltips(i -> LangHandler.getSingleOrMultiLang(values.get(i).getTooltip()));
     }
 
-    public static <E extends EnumSelectorWidget.SelectableEnum> UIElement enumRow(String labelKey, List<E> values, Supplier<E> current,
-                                                                                  Consumer<E> set, String... tooltipKeys) {
+    public static <E extends EnumSelectorWidget.SelectableEnum> UIElement enumRow(Component label, List<E> values, Supplier<E> current,
+                                                                                  Consumer<E> set, Component... tooltips) {
         return UIElement.centeredRow(UISizes.SLOT_SIZE)
-                .addChildren(Form.label(labelKey, tooltipKeys), enumIcons(values, current, set));
+                .addChildren(Form.label(label, tooltips), enumIcons(values, current, set));
     }
 
     public static UIElement filterSection(FilterHandler<?, ?> handler) {

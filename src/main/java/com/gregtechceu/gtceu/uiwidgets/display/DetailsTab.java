@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 public final class DetailsTab implements IFancyUIProvider {
 
-    public static final String TITLE = "gtceu.gui.details";
+    public static final Component TITLE = Component.translatable("gtceu.gui.details");
 
     private final Function<FancyMachineUIWidget, Widget> page;
 
@@ -43,12 +43,12 @@ public final class DetailsTab implements IFancyUIProvider {
 
     @Override
     public Component getTitle() {
-        return Component.translatable(TITLE);
+        return TITLE;
     }
 
     @Override
     public List<Component> getTabTooltips() {
-        return List.of(Component.translatable(TITLE));
+        return List.of(TITLE);
     }
 
     @Override

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ConfirmButton extends Button {
 
-    public static final String ARMED = "gtceu.uipro.confirm.armed";
+    public static final Component ARMED = Component.translatable("gtceu.uipro.confirm.armed");
     public static final int CONFIRM_TICKS = 60;
 
     private final Component idleText;
@@ -33,12 +33,12 @@ public class ConfirmButton extends Button {
         setOnServerClick(this::serverClick);
     }
 
-    public static ConfirmButton translatable(int width, String key) {
-        return translatable(width, key, ARMED);
+    public static ConfirmButton of(int width, Component idleText) {
+        return of(width, idleText, ARMED);
     }
 
-    public static ConfirmButton translatable(int width, String key, String armedKey) {
-        return new ConfirmButton(width, Component.translatable(key), Component.translatable(armedKey));
+    public static ConfirmButton of(int width, Component idleText, Component armedText) {
+        return new ConfirmButton(width, idleText, armedText);
     }
 
     public ConfirmButton setOnServerConfirm(Runnable onServerConfirm) {

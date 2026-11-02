@@ -64,13 +64,20 @@ public final class AoEBehavior implements IToolBehavior {
             return AoESymmetrical.of(Math.min(level, max.column()), Math.min(level, max.row()), Math.min(level, max.layer()));
         }
 
+        private static final Component COLUMNS = Component.translatable("item.gtceu.tool.aoe.columns");
+        private static final Component COLUMNS_DETAIL = Component.translatable("item.gtceu.tool.aoe.columns.detail");
+        private static final Component ROWS = Component.translatable("item.gtceu.tool.aoe.rows");
+        private static final Component ROWS_DETAIL = Component.translatable("item.gtceu.tool.aoe.rows.detail");
+        private static final Component LAYERS = Component.translatable("item.gtceu.tool.aoe.layers");
+        private static final Component LAYERS_DETAIL = Component.translatable("item.gtceu.tool.aoe.layers.detail");
+
         @Override
         public void addRows(UIElement page, HeldItemUIFactory.HeldItemHolder holder) {
             AoESymmetrical max = ToolHelper.getMaxAoEDefinition(holder.getHeld());
             page.addChildren(
-                    Form.controlRow("item.gtceu.tool.aoe.columns", stepper(holder, AoESymmetrical::column, AoESymmetrical::withColumn, max.column(), true), "item.gtceu.tool.aoe.columns.detail"),
-                    Form.controlRow("item.gtceu.tool.aoe.rows", stepper(holder, AoESymmetrical::row, AoESymmetrical::withRow, max.row(), true), "item.gtceu.tool.aoe.rows.detail"),
-                    Form.controlRow("item.gtceu.tool.aoe.layers", stepper(holder, AoESymmetrical::layer, AoESymmetrical::withLayer, max.layer(), false), "item.gtceu.tool.aoe.layers.detail"));
+                    Form.controlRow(COLUMNS, stepper(holder, AoESymmetrical::column, AoESymmetrical::withColumn, max.column(), true), COLUMNS_DETAIL),
+                    Form.controlRow(ROWS, stepper(holder, AoESymmetrical::row, AoESymmetrical::withRow, max.row(), true), ROWS_DETAIL),
+                    Form.controlRow(LAYERS, stepper(holder, AoESymmetrical::layer, AoESymmetrical::withLayer, max.layer(), false), LAYERS_DETAIL));
         }
 
         private static Stepper stepper(HeldItemUIFactory.HeldItemHolder holder, ToIntFunction<AoESymmetrical> getter,

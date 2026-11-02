@@ -69,11 +69,11 @@ import java.util.function.IntSupplier;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ProspectorMapView extends UIElement {
 
-    private static final String SEARCH = "gtceu.prospector.ui.search";
-    private static final String OUT_OF_RANGE = "gtceu.prospector.ui.out_of_range";
-    private static final String HELP_WAYPOINT = "gtceu.prospector.ui.help.waypoint";
-    private static final String HELP_FILTER = "gtceu.prospector.ui.help.filter";
-    private static final String HELP_PICK = "gtceu.prospector.ui.help.pick";
+    private static final Component SEARCH = Component.translatable("gtceu.prospector.ui.search");
+    private static final Component OUT_OF_RANGE = Component.translatable("gtceu.prospector.ui.out_of_range");
+    private static final Component HELP_WAYPOINT = Component.translatable("gtceu.prospector.ui.help.waypoint");
+    private static final Component HELP_FILTER = Component.translatable("gtceu.prospector.ui.help.filter");
+    private static final Component HELP_PICK = Component.translatable("gtceu.prospector.ui.help.pick");
     private static final int REGION_FILL = 0x3055FF55;
     private static final int REGION_EDGE = 0xFF2E9E3A;
     private static final int PENDING_COLOR = 0xC0FFD24A;
@@ -180,7 +180,7 @@ public class ProspectorMapView extends UIElement {
 
         mapSize = height;
         canvas = new MapCanvas(height);
-        var search = TextField.of(SIDE_WIDTH, () -> query, this::search).setPlaceholder(Component.translatable(SEARCH));
+        var search = TextField.of(SIDE_WIDTH, () -> query, this::search).setPlaceholder(SEARCH);
         list = new ScrollerView("prospector.list", SIDE_WIDTH, ROW_HEIGHT);
         list.setResizable(false);
         list.getLayoutStyle().flex(1);
@@ -190,7 +190,7 @@ public class ProspectorMapView extends UIElement {
         list.setClientSideWidget();
 
         var side = UIElement.column(SIDE_WIDTH).layout(l -> l.height(height).gapAll(UISizes.GAP)).addChildren(
-                TextLine.translatable(SIDE_WIDTH, mode.unlocalizedName),
+                TextLine.constant(SIDE_WIDTH, Component.translatable(mode.unlocalizedName)),
                 search, list);
         if (options.sideList()) addChildren(canvas, side);
         else addChild(canvas);
@@ -207,11 +207,11 @@ public class ProspectorMapView extends UIElement {
 
         window.addTitleTool(() -> ZoomBar.title(canvas));
         if (picker != null) {
-            window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, Component.translatable(HELP_PICK),
-                    Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
+            window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, HELP_PICK,
+                    CanvasView.HELP_PAN, CanvasView.HELP_ZOOM));
         } else {
-            window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, Component.translatable(HELP_FILTER), Component.translatable(HELP_WAYPOINT),
-                    Component.translatable(CanvasView.HELP_PAN), Component.translatable(CanvasView.HELP_ZOOM)));
+            window.addTitleTool(() -> InfoIcon.of(Level.NORMAL, HELP_FILTER, HELP_WAYPOINT,
+                    CanvasView.HELP_PAN, CanvasView.HELP_ZOOM));
         }
     }
 
@@ -561,7 +561,7 @@ public class ProspectorMapView extends UIElement {
 
         @Override
         public List<Component> tooltip() {
-            if (!inScan) return Collections.singletonList(Component.translatable(OUT_OF_RANGE));
+            if (!inScan) return Collections.singletonList(OUT_OF_RANGE);
             List<Component> tooltips = new ArrayList<>();
             tooltips.add(Component.translatable(mode.unlocalizedName));
             if (texture != null) {

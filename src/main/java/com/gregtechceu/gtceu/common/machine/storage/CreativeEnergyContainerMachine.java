@@ -40,6 +40,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class CreativeEnergyContainerMachine extends TieredMachine implements ILaserContainer, IFancyUIMachine, IDropSaveMachine, IEnergyInfoProvider {
 
+    private static final Component AVERAGE_ENERGY = Component.translatable("gtceu.creative.energy.average");
+    private static final Component TIER_LABEL = Component.translatable("gtceu.creative.energy.tier");
+    private static final Component VOLTAGE_LABEL = Component.translatable("gtceu.creative.energy.voltage");
+    private static final Component AMPERAGE_LABEL = Component.translatable("gtceu.creative.energy.amperage");
+    private static final Component MODE_LABEL = Component.translatable("gtceu.creative.energy.mode");
+    private static final Component MODE_SINK = Component.translatable("gtceu.creative.energy.sink");
+    private static final Component MODE_SOURCE = Component.translatable("gtceu.creative.energy.source");
+    private static final Component ACTIVITY_ON = Component.translatable("gtceu.creative.activity.on");
+    private static final Component ACTIVITY_OFF = Component.translatable("gtceu.creative.activity.off");
+
     @Getter
     @SaveToDisk(defaultValue = "0")
     @SyncToClient
@@ -305,22 +315,22 @@ public class CreativeEnergyContainerMachine extends TieredMachine implements ILa
     @Override
     public Widget createUIWidget() {
         var status = new StatusPanel();
-        status.addLine("gtceu.creative.energy.average", MultiblockPage.numberText(() -> lastAverageEnergyIOPerTick, "EU/t"));
+        status.addLine(AVERAGE_ENERGY, MultiblockPage.numberText(() -> lastAverageEnergyIOPerTick, "EU/t"));
 
         var page = Form.page();
         page.addChild(status);
-        page.addChild(Form.controlRow("gtceu.creative.energy.tier",
+        page.addChild(Form.controlRow(TIER_LABEL,
                 Stepper.of(50, this::getSetTier, this::setSetTier, 0, GTValues.VNF.length - 1)
                         .setFormatter(idx -> GTValues.VNF[idx])));
-        page.addChild(Form.numberRow("gtceu.creative.energy.voltage",
+        page.addChild(Form.numberRow(VOLTAGE_LABEL,
                 NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getVoltage, this::setVoltage, 0L, Long.MAX_VALUE)));
-        page.addChild(Form.numberRow("gtceu.creative.energy.amperage",
+        page.addChild(Form.numberRow(AMPERAGE_LABEL,
                 NumberField.ofInt(UISizes.CONTENT_WIDTH, this::getAmps, this::setAmps, 0, Integer.MAX_VALUE)));
-        page.addChild(Form.segmentRow("gtceu.creative.energy.mode", 2,
-                i -> Component.translatable(i == 0 ? "gtceu.creative.energy.sink" : "gtceu.creative.energy.source"),
+        page.addChild(Form.segmentRow(MODE_LABEL, 2,
+                i -> i == 0 ? MODE_SINK : MODE_SOURCE,
                 () -> source ? 1 : 0,
                 i -> setSource(i == 1)));
-        page.addChild(Form.controlRow("gtceu.creative.activity.on", Switch.of(this::isActive, this::setActive)));
+        page.addChild(Form.controlRow(() -> isActive() ? ACTIVITY_ON : ACTIVITY_OFF, Switch.of(this::isActive, this::setActive)));
         return page;
     }
 }

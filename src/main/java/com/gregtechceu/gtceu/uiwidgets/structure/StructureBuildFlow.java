@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderPanel;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.PatternBuilderScreen;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,10 +35,10 @@ import java.util.function.Function;
 public final class StructureBuildFlow {
 
     public static final String BUILD_TITLE = "gtceu.structure_build.title";
-    public static final String BUILD = "gtceu.structure_build.confirm";
-    public static final String INCLUDE = "gtceu.structure_build.include";
-    public static final String BLOCKED = "gtceu.structure_build.blocked";
-    public static final String DEMOLISH_CONFIRM = "gtceu.structure_build.demolish.confirm";
+    public static final Component BUILD = Component.translatable("gtceu.structure_build.confirm");
+    public static final Component INCLUDE = Component.translatable("gtceu.structure_build.include");
+    public static final Component BLOCKED = Component.translatable("gtceu.structure_build.blocked");
+    public static final Component DEMOLISH_CONFIRM = Component.translatable("gtceu.structure_build.demolish.confirm");
 
     private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, int[]> REMEMBERED = new Reference2ObjectOpenHashMap<>();
     private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, Choices> CHOICES = new Reference2ObjectOpenHashMap<>();
@@ -69,8 +70,8 @@ public final class StructureBuildFlow {
         REMEMBERED.put(definition, values.clone());
     }
 
-    public static StructurePreviewScreen.Action action(String labelKey, SecondPage second) {
-        return new StructurePreviewScreen.Action(labelKey, preview -> PatternBuilderScreen.open(
+    public static StructurePreviewScreen.Action action(Component label, SecondPage second) {
+        return new StructurePreviewScreen.Action(label, preview -> PatternBuilderScreen.open(
                 navigator -> second.create(preview.layout(), preview.values(), navigator, preview)));
     }
 
@@ -117,8 +118,9 @@ public final class StructureBuildFlow {
                         (demolish ? StructureBuild.FLAG_DEMOLISH : 0);
                 if (upload >= 0) GTNetwork.NETWORK.sendToServer(new CPacketStructureBuild(pos, values, upload, flags, modes.getDemolishNodes()));
                 preview.closePreview();
-            }, navigator::close, new PatternBuilderPanel.Footer(BUILD_TITLE, demolish ? DEMOLISH_CONFIRM : BUILD, INCLUDE, BLOCKED, false, !demolish,
-                    navigator::close));
+            }, navigator::close, new PatternBuilderPanel.Footer(title -> Component.translatable(BUILD_TITLE, title),
+                    demolish ? DEMOLISH_CONFIRM : BUILD, INCLUDE, BLOCKED,
+                    false, !demolish, navigator::close));
         }));
     }
 

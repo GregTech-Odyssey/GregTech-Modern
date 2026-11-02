@@ -110,8 +110,8 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     public static final int CLEAN_AMOUNT_THRESHOLD = 95;
     public static final int MIN_CLEAN_AMOUNT = 0;
-    public static final String LANG_CLEANLINESS = "gtceu.gui.multiblock.cleanliness";
-    public static final String LANG_CLEAN_PER_CYCLE = "gtceu.gui.multiblock.clean_per_cycle";
+    public static final Component LANG_CLEANLINESS = Component.translatable("gtceu.gui.multiblock.cleanliness");
+    public static final Component LANG_CLEAN_PER_CYCLE = Component.translatable("gtceu.gui.multiblock.clean_per_cycle");
     public static final int MIN_RADIUS = 2;
     public static final int MIN_DEPTH = 4;
     public static final int MAX_RADIUS = 7;

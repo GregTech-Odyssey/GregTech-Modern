@@ -41,20 +41,20 @@ public class InfoIcon extends UIElement {
         return new InfoIcon(level, tooltips);
     }
 
-    public static InfoIcon info(String... translationKeys) {
-        return (InfoIcon) new InfoIcon(Level.NORMAL).tooltips(translationKeys);
+    public static InfoIcon info(Component... tooltips) {
+        return new InfoIcon(Level.NORMAL, tooltips);
     }
 
-    public static InfoIcon warning(String... translationKeys) {
-        return (InfoIcon) new InfoIcon(Level.WARNING).tooltips(translationKeys);
+    public static InfoIcon warning(Component... tooltips) {
+        return new InfoIcon(Level.WARNING, tooltips);
     }
 
-    public static InfoIcon error(String... translationKeys) {
-        return (InfoIcon) new InfoIcon(Level.ERROR).tooltips(translationKeys);
+    public static InfoIcon error(Component... tooltips) {
+        return new InfoIcon(Level.ERROR, tooltips);
     }
 
-    public static InfoIcon success(String... translationKeys) {
-        return (InfoIcon) new InfoIcon(Level.GOOD).tooltips(translationKeys);
+    public static InfoIcon success(Component... tooltips) {
+        return new InfoIcon(Level.GOOD, tooltips);
     }
 
     public Level getLevel() {

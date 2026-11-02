@@ -14,6 +14,7 @@ import com.gregtechceu.gtceu.uipro.elements.IconToggle;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.side.FaceNet;
 import com.gregtechceu.gtceu.uiwidgets.side.MachineSide;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -31,20 +32,20 @@ import java.util.function.BooleanSupplier;
 
 public final class OutputSideConfigurator implements IFancyConfigurator {
 
-    private static final String TITLE = "gtceu.gui.output_setting.title";
-    private static final String ITEMS = "gtceu.gui.output_side.items";
-    private static final String FLUIDS = "gtceu.gui.output_side.fluids";
+    private static final Component TITLE = Component.translatable("gtceu.gui.output_setting.title");
+    private static final Component ITEMS = Component.translatable("gtceu.gui.output_side.items");
+    private static final Component FLUIDS = Component.translatable("gtceu.gui.output_side.fluids");
     private static final String FACE = "gtceu.gui.output_side.face";
     private static final String ITEM_CURRENT = "gtceu.gui.output_side.item_current";
     private static final String FLUID_CURRENT = "gtceu.gui.output_side.fluid_current";
     private static final String SET_ITEM = "gtceu.gui.output_side.set_item";
     private static final String SET_FLUID = "gtceu.gui.output_side.set_fluid";
-    private static final String FRONT = "gtceu.gui.output_side.front";
-    private static final String NO_FACE = "gtceu.gui.output_side.no_face";
-    private static final String AUTO = "gtceu.gui.output_side.auto";
-    private static final String AUTO_TOOLTIP = "gtceu.gui.output_side.auto.tooltip";
-    private static final String ALLOW_INPUT = "gtceu.gui.output_side.allow_input";
-    private static final String ALLOW_INPUT_TOOLTIP = "gtceu.gui.output_side.allow_input.tooltip";
+    private static final Component FRONT = Component.translatable("gtceu.gui.output_side.front");
+    private static final Component NO_FACE = Component.translatable("gtceu.gui.output_side.no_face");
+    private static final Component AUTO = Component.translatable("gtceu.gui.output_side.auto");
+    private static final Component AUTO_TOOLTIP = Component.translatable("gtceu.gui.output_side.auto.tooltip");
+    private static final Component ALLOW_INPUT = Component.translatable("gtceu.gui.output_side.allow_input");
+    private static final Component ALLOW_INPUT_TOOLTIP = Component.translatable("gtceu.gui.output_side.allow_input.tooltip");
     private static final int FACE_BUTTON = UISizes.SLOT_SIZE + 2;
     private static final int CONTENT_WIDTH = 6 * UISizes.SLOT_SIZE;
 
@@ -75,7 +76,7 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
 
     @Override
     public Component getTitle() {
-        return Component.translatable(TITLE);
+        return TITLE;
     }
 
     @Override
@@ -93,7 +94,7 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
         var channel = new Channel(items == null);
         var page = UIElement.column(LayoutStyle.AUTO).layout(l -> l.minWidth(CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
         if (items != null && fluids != null) {
-            page.addChild(ButtonGroup.single(2, i -> Component.translatable(i == 0 ? ITEMS : FLUIDS),
+            page.addChild(ButtonGroup.single(2, i -> i == 0 ? ITEMS : FLUIDS,
                     () -> channel.fluid ? 1 : 0, i -> channel.fluid = i == 1).horizontal());
         }
         page.addChild(faceGrid(channel));
@@ -126,14 +127,7 @@ public final class OutputSideConfigurator implements IFancyConfigurator {
 
     private Component faceTooltip(Channel channel, MachineSide side) {
         var direction = side.toDirection(machine);
-        var name = Component.translatable(FACE, Component.translatable(side.translationKey), Component.translatable(switch (direction) {
-            case UP -> "gtceu.gui.output_side.dir.up";
-            case DOWN -> "gtceu.gui.output_side.dir.down";
-            case NORTH -> "gtceu.gui.output_side.dir.north";
-            case SOUTH -> "gtceu.gui.output_side.dir.south";
-            case WEST -> "gtceu.gui.output_side.dir.west";
-            case EAST -> "gtceu.gui.output_side.dir.east";
-        }));
+        var name = Component.translatable(FACE, side.name, FaceNet.name(direction));
         boolean current = facing(channel) == direction;
         if (channel.fluid) return Component.translatable(current ? FLUID_CURRENT : SET_FLUID, name);
         return Component.translatable(current ? ITEM_CURRENT : SET_ITEM, name);

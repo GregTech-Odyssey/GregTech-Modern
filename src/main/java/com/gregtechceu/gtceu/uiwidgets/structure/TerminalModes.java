@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.utils.UIPreferences;
 
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -19,15 +20,15 @@ import java.util.Arrays;
 @OnlyIn(Dist.CLIENT)
 public final class TerminalModes {
 
-    public static final String MIRROR = "gtceu.structure_build.mirror";
-    public static final String MIRROR_DESC = "gtceu.structure_build.mirror.desc";
-    public static final String MIRROR_UNSUPPORTED = "gtceu.structure_build.mirror.unsupported";
-    public static final String DEMOLISH = "gtceu.structure_build.demolish";
-    public static final String DEMOLISH_DESC = "gtceu.structure_build.demolish.desc";
-    public static final String DEMOLISH_NODE = "gtceu.structure_build.demolish.node";
-    public static final String DEMOLISH_NODE_DESC = "gtceu.structure_build.demolish.node.desc";
-    public static final String NETWORK = "gtceu.structure_build.network";
-    public static final String NETWORK_DESC = "gtceu.structure_build.network.desc";
+    public static final Component MIRROR = Component.translatable("gtceu.structure_build.mirror");
+    public static final Component MIRROR_DESC = Component.translatable("gtceu.structure_build.mirror.desc");
+    public static final Component MIRROR_UNSUPPORTED = Component.translatable("gtceu.structure_build.mirror.unsupported");
+    public static final Component DEMOLISH = Component.translatable("gtceu.structure_build.demolish");
+    public static final Component DEMOLISH_DESC = Component.translatable("gtceu.structure_build.demolish.desc");
+    public static final Component DEMOLISH_NODE = Component.translatable("gtceu.structure_build.demolish.node");
+    public static final Component DEMOLISH_NODE_DESC = Component.translatable("gtceu.structure_build.demolish.node.desc");
+    public static final Component NETWORK = Component.translatable("gtceu.structure_build.network");
+    public static final Component NETWORK_DESC = Component.translatable("gtceu.structure_build.network.desc");
     private static final String MIRROR_PREFERENCE = "structure_build.mirror";
     private static final String NETWORK_PREFERENCE = "structure_build.network";
 

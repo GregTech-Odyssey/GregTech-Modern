@@ -89,10 +89,10 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         IMultiblockFancyUIMachine.super.addDisplayText(textList);
     }
 
-    public static final String LANG_MAX_POWER = "gtceu.gui.multiblock.max_power";
-    public static final String LANG_ENERGY_USAGE = "gtceu.gui.multiblock.energy_usage";
-    public static final String LANG_ENERGY_OUTPUT = "gtceu.gui.multiblock.energy_output";
-    public static final String LANG_ENERGY = "gtceu.gui.multiblock.energy";
+    public static final Component LANG_MAX_POWER = Component.translatable("gtceu.gui.multiblock.max_power");
+    public static final Component LANG_ENERGY_USAGE = Component.translatable("gtceu.gui.multiblock.energy_usage");
+    public static final Component LANG_ENERGY_OUTPUT = Component.translatable("gtceu.gui.multiblock.energy_output");
+    public static final Component LANG_ENERGY = Component.translatable("gtceu.gui.multiblock.energy");
 
     @Override
     public UIElement createUIWidget() {

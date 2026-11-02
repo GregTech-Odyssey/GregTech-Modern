@@ -109,8 +109,10 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
             return filters.computeIfAbsent(filter, f -> ItemFilter.loadFilter(stack(f)));
         }
 
+        private static final Component FILTER_TYPE = Component.translatable("behavior.item_magnet.filter_type");
+
         private Widget createPage() {
-            var type = UIElement.section().addChild(CoverUIs.enumRow("behavior.item_magnet.filter_type",
+            var type = UIElement.section().addChild(CoverUIs.enumRow(FILTER_TYPE,
                     List.of(Filter.values()), this::selected, this::select));
             var config = new SwitchedContent(() -> selected().ordinal(), (key, remote) -> {
                 var filter = Filter.get(key);
@@ -124,12 +126,15 @@ public class ItemMagnetBehavior implements IItemLifeCycle, IAddInformation, IIte
         }
     }
 
+    private static final Component MAGNET_ENABLED = Component.translatable("behavior.item_magnet.enabled");
+    private static final Component MAGNET_DISABLED = Component.translatable("behavior.item_magnet.disabled");
+
     @Override
     public InteractionResultHolder<ItemStack> use(Item item, Level world, @NotNull Player player,
                                                   InteractionHand hand) {
         if (!player.level().isClientSide && player.isShiftKeyDown()) {
-            player.displayClientMessage(Component.translatable(toggleActive(player.getItemInHand(hand)) ?
-                    "behavior.item_magnet.enabled" : "behavior.item_magnet.disabled"), true);
+            player.displayClientMessage(toggleActive(player.getItemInHand(hand)) ?
+                    MAGNET_ENABLED : MAGNET_DISABLED, true);
         } else {
             IItemUIFactory.super.use(item, world, player, hand);
         }

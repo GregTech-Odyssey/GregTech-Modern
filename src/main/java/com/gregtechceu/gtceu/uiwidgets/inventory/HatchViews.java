@@ -43,14 +43,16 @@ public final class HatchViews {
     private HatchViews() {}
 
     /** "存储数量"（超级箱等）。 */
-    public static final String STORED = "gtceu.gui.hatch.stored";
+    public static final Component STORED = Component.translatable("gtceu.gui.hatch.stored");
     /** "取出一组"按钮说明。 */
-    public static final String EXTRACT_STACK = "gtceu.gui.hatch.extract_stack";
-    public static final String CAPACITY_LIMIT = "gtceu.gui.hatch.capacity_limit";
-    public static final String CAPACITY_LIMIT_TIP = "gtceu.gui.hatch.capacity_limit.tooltip";
-    private static final String LOCK_ON = "gtceu.gui.hatch.lock_on";
-    private static final String LOCK_OFF = "gtceu.gui.hatch.lock_off";
-    private static final String LOCK_NEED_EMPTY = "gtceu.gui.hatch.lock_need_empty";
+    public static final Component EXTRACT_STACK = Component.translatable("gtceu.gui.hatch.extract_stack");
+    public static final Component CAPACITY_LIMIT = Component.translatable("gtceu.gui.hatch.capacity_limit");
+    public static final Component CAPACITY_LIMIT_TIP = Component.translatable("gtceu.gui.hatch.capacity_limit.tooltip");
+    private static final String AMOUNT_OF = "gtceu.gui.hatch.amount_of";
+    private static final String AMOUNT_OF_UNIT = "gtceu.gui.hatch.amount_of_unit";
+    private static final Component LOCK_ON = Component.translatable("gtceu.gui.hatch.lock_on");
+    private static final Component LOCK_OFF = Component.translatable("gtceu.gui.hatch.lock_off");
+    private static final Component LOCK_NEED_EMPTY = Component.translatable("gtceu.gui.hatch.lock_need_empty");
 
     /** 槽位网格最多直接显示的行数，超出放进滚动区（与多方块状态显示窗同高）。 */
     public static final int MAX_GRID_ROWS = UISizes.MACHINE_PAGE_HEIGHT / UISizes.SLOT_SIZE;
@@ -178,8 +180,8 @@ public final class HatchViews {
             if (currentAmount != lastAmount || currentCapacity != lastCapacity) {
                 lastAmount = currentAmount;
                 lastCapacity = currentCapacity;
-                text = unit == null ? Component.translatable("gtceu.gui.hatch.amount_of", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity)) :
-                        Component.translatable("gtceu.gui.hatch.amount_of_unit", FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity), unit);
+                text = unit == null ? Component.translatable(AMOUNT_OF, FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity)) :
+                        Component.translatable(AMOUNT_OF_UNIT, FormattingUtil.formatNumbers(currentAmount), FormattingUtil.formatNumbers(currentCapacity), unit);
             }
             return text;
         }

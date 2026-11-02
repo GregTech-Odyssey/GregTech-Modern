@@ -23,6 +23,14 @@ import java.util.function.Supplier;
  */
 public final class Tips {
 
+    private static final String KEY_ACTION = "gtceu.tip.key_action";
+    private static final String TOGGLE = "gtceu.tip.toggle";
+    private static final String DURABILITY_UNIT = "gtceu.tip.unit.durability";
+    private static final Component KEY_UNBOUND = Component.translatable("gtceu.tip.key.unbound").withStyle(Style.EMPTY.withColor(TipTheme.ATTENTION));
+    private static final Component STATE_ON = Component.translatable("gtceu.tip.state.on").withStyle(Style.EMPTY.withColor(TipTheme.VALUE));
+    private static final Component STATE_OFF = Component.translatable("gtceu.tip.state.off").withStyle(Style.EMPTY.withColor(TipTheme.NOTE));
+    private static final Component CHARGE_NONE = Component.translatable("gtceu.tip.unit.charge_none");
+
     private Tips() {}
 
     public static MutableComponent line(TipRole role, Component body) {
@@ -102,21 +110,23 @@ public final class Tips {
     }
 
     public static MutableComponent keyAction(Component key, Component action) {
-        return Component.translatable("gtceu.tip.key_action", key, action);
+        return Component.translatable(KEY_ACTION, key, action);
     }
 
     public static Component keyName(KeyBind key) {
-        return GTCEu.isClientSide() ? TipKeyText.of(key) :
-                Component.translatable("gtceu.tip.key.unbound").withStyle(Style.EMPTY.withColor(TipTheme.ATTENTION));
+        return GTCEu.isClientSide() ? TipKeyText.of(key) : KEY_UNBOUND;
     }
 
     public static MutableComponent toggle(Component name, boolean on) {
-        return Component.translatable("gtceu.tip.toggle", name, onOff(on));
+        return toggle(name, onOff(on));
+    }
+
+    public static MutableComponent toggle(Component name, Component state) {
+        return Component.translatable(TOGGLE, name, state);
     }
 
     public static MutableComponent onOff(boolean on) {
-        return on ? Component.translatable("gtceu.tip.state.on").withStyle(Style.EMPTY.withColor(TipTheme.VALUE)) :
-                Component.translatable("gtceu.tip.state.off").withStyle(Style.EMPTY.withColor(TipTheme.NOTE));
+        return (on ? STATE_ON : STATE_OFF).copy();
     }
 
     public static MutableComponent lore(Component body) {
@@ -134,7 +144,7 @@ public final class Tips {
     public static MutableComponent charge(long current, long max, int tier) {
         MutableComponent value;
         if (max <= 0) {
-            value = Component.translatable("gtceu.tip.unit.charge_none");
+            value = CHARGE_NONE.copy();
         } else if (GTUtil.isShiftDown()) {
             value = ElectricText.chargeExact(current, max);
         } else {
@@ -152,7 +162,7 @@ public final class Tips {
         if (total <= 0 || total >= Long.MAX_VALUE / 2) {
             return stat(kind, FormattingUtil.formatNumbers(shown));
         }
-        Component value = Component.translatable("gtceu.tip.unit.durability", FormattingUtil.formatNumbers(shown),
+        Component value = Component.translatable(DURABILITY_UNIT, FormattingUtil.formatNumbers(shown),
                 FormattingUtil.formatNumbers(total));
         float ratio = Math.min(1f, (float) shown / total);
         int left = shown >= total ? TipTheme.ENERGY_BAR_DEPLETED_LEFT : ratio >= 0.75f ? TipTheme.USAGE_WARN_LEFT : TipTheme.ENERGY_BAR_LEFT;
@@ -170,7 +180,7 @@ public final class Tips {
 
     public static MutableComponent mana(long current, long max) {
         long shown = Math.max(0, Math.min(current, max));
-        Component value = Component.translatable("gtceu.tip.unit.durability", FormattingUtil.formatNumbers(shown),
+        Component value = Component.translatable(DURABILITY_UNIT, FormattingUtil.formatNumbers(shown),
                 FormattingUtil.formatNumbers(max));
         float ratio = max <= 0 ? 0 : (float) shown / max;
         return TipContents.meter(StatKind.MANA.line(value), ratio, TipTheme.MANA_BAR_LEFT, TipTheme.MANA_BAR_RIGHT);
@@ -178,7 +188,7 @@ public final class Tips {
 
     public static MutableComponent durability(long remaining, long max) {
         long shown = Math.max(0, Math.min(remaining, max));
-        Component value = Component.translatable("gtceu.tip.unit.durability", FormattingUtil.formatNumbers(shown),
+        Component value = Component.translatable(DURABILITY_UNIT, FormattingUtil.formatNumbers(shown),
                 FormattingUtil.formatNumbers(max));
         float ratio = max <= 0 ? 0 : (float) shown / max;
         boolean depleted = max > 0 && shown * 4 <= max;

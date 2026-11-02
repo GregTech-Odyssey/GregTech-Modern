@@ -33,6 +33,10 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
     /** 全局唯一实例，注册名为 {@code cwut}。 */
     public static final CWUTRecipeExtension INSTANCE = new CWUTRecipeExtension();
 
+    private static final Component NOT_ENOUGH_COMPUTATION = Component.translatable("gtceu.multiblock.computation.not_enough_computation");
+    private static final Component CWUT_LABEL = Component.translatable("gtceu.recipe.info.cwut");
+    private static final Component TOTAL_CWU_LABEL = Component.translatable("gtceu.recipe.info.total_cwu");
+
     private CWUTRecipeExtension() {
         super("cwut", DataSyncCodec.LONG_CODEC, true);
     }
@@ -54,7 +58,7 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
             result = false;
         }
         if (result) return true;
-        holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
+        holder.setIdleReason(() -> NOT_ENOUGH_COMPUTATION);
         return false;
     }
 
@@ -76,7 +80,7 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
             parallel = 0;
         }
         if (parallel > 0) return parallel;
-        holder.setIdleReason(() -> Component.translatable("gtceu.multiblock.computation.not_enough_computation"));
+        holder.setIdleReason(() -> NOT_ENOUGH_COMPUTATION);
         return 0;
     }
 
@@ -95,9 +99,9 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
      */
     @Override
     public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
-        info.line("gtceu.recipe.info.cwut", () -> Component.literal(FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)) + " CWU/t"));
+        info.line(CWUT_LABEL, () -> Component.literal(FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)) + " CWU/t"));
         if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
-            info.line("gtceu.recipe.info.total_cwu", () -> Component.literal(FormattingUtil.formatNumbers(recipe.duration) + " CWU"));
+            info.line(TOTAL_CWU_LABEL, () -> Component.literal(FormattingUtil.formatNumbers(recipe.duration) + " CWU"));
         }
     }
 }

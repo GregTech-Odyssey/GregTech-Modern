@@ -38,7 +38,7 @@ public final class CircuitSelector {
 
     /// 每行几个编号（与槽位行对齐）
     private static final int PER_ROW = UISizes.SLOTS_PER_ROW;
-    private static final String CLEAR = "gtceu.gui.circuit.clear";
+    private static final Component CLEAR = Component.translatable("gtceu.gui.circuit.clear");
 
     private CircuitSelector() {}
 
@@ -50,7 +50,7 @@ public final class CircuitSelector {
         var root = UIElement.column(UISizes.SLOT_ROW_WIDTH).layout(l -> l.gapAll(UISizes.SECTION_GAP));
         var clear = Button.glyph("×").setVariant(UITheme.ButtonVariant.DANGER)
                 .setOnServerClick(() -> Circuits.set(circuitSlot, 0, -1));
-        clear.tooltips(Component.translatable(CLEAR));
+        clear.tooltips(CLEAR);
         root.addChild(UIElement.row(UISizes.SLOT_SIZE).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter())
                 .addChildren(ItemSlot.display(circuitSlot, 0, null), clear));
 

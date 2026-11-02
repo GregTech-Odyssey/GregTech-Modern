@@ -29,6 +29,9 @@ import java.util.List;
 
 public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
 
+    List<Component> POWER_ON_TOOLTIP = List.of(Component.translatable("behaviour.soft_hammer.enabled"));
+    List<Component> POWER_OFF_TOOLTIP = List.of(Component.translatable("behaviour.soft_hammer.disabled"));
+
     @Override
     default ModularUI createUI(Player entityPlayer) {
         return MachineWindow.createUI(this, this, entityPlayer);
@@ -98,9 +101,7 @@ public interface IFancyUIMachine extends IUIMachine, IFancyUIProvider {
                     WidgetIcons.POWER_OFF,
                     WidgetIcons.POWER_ON,
                     controllable::isWorkingEnabled, (clickData, pressed) -> controllable.setWorkingEnabled(pressed))
-                    .setTooltipsSupplier(pressed -> List.of(
-                            Component.translatable(
-                                    pressed ? "behaviour.soft_hammer.enabled" : "behaviour.soft_hammer.disabled"))));
+                    .setTooltipsSupplier(pressed -> pressed ? POWER_ON_TOOLTIP : POWER_OFF_TOOLTIP));
         }
     }
 

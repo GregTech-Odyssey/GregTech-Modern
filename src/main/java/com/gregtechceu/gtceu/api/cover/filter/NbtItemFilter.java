@@ -15,6 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 import lombok.Getter;
@@ -161,6 +162,9 @@ public class NbtItemFilter implements ItemFilter {
         return Objects.equals(input, written);
     }
 
+    private static final Component SLOT_TOOLTIP = Component.translatable("cover.nbt_filter.slot.tooltip");
+    private static final Component STRICT_ENABLED = Component.translatable("cover.nbt_filter.strict.enabled");
+
     @Override
     public Widget createConfigUI() {
         var handler = new ItemStackTransfer(1);
@@ -168,7 +172,7 @@ public class NbtItemFilter implements ItemFilter {
         field.layout(l -> l.flexGrow(1));
         var slot = PhantomItemSlot.of(handler, 0).xeiPhantom();
         slot.setMaxStackSize(1);
-        slot.tooltips("cover.nbt_filter.slot.tooltip");
+        slot.tooltips(SLOT_TOOLTIP);
         slot.setChangeListener(() -> {
             if (slot.isRemote()) return;
             var stack = handler.getStackInSlot(0);
@@ -176,7 +180,7 @@ public class NbtItemFilter implements ItemFilter {
             if (tag != null && !tag.isEmpty()) setNbt(tag);
         });
         var inputRow = UIElement.centeredRow(UISizes.SLOT_SIZE).addChildren(field, slot);
-        var mode = Form.controlRow("cover.nbt_filter.strict.enabled", Switch.of(this::isStrict, this::setStrict));
+        var mode = Form.controlRow(STRICT_ENABLED, Switch.of(this::isStrict, this::setStrict));
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(inputRow, mode);
     }
 }

@@ -28,6 +28,7 @@ import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -487,11 +488,14 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     //////////////////////////////////////
     // ********** Gui ***********//
     //////////////////////////////////////
+    private static final Component FLUID_AUTO_OUTPUT_ENABLED = Component.translatable("gtceu.gui.fluid_auto_output.tooltip.enabled");
+    private static final Component FLUID_AUTO_OUTPUT_DISABLED = Component.translatable("gtceu.gui.fluid_auto_output.tooltip.disabled");
+
     @Override
     public Widget createUIWidget() {
         var slot = FluidSlot.of(new ForgeFluidAdapter(cache.storage), 0, true, true);
         var output = IconToggle.of(WidgetIcons.EXPORT, this::isAutoOutputFluids, this::setAutoOutputFluids)
-                .onOffTooltips("gtceu.gui.fluid_auto_output.tooltip.enabled", "gtceu.gui.fluid_auto_output.tooltip.disabled");
+                .onOffTooltips(FLUID_AUTO_OUTPUT_ENABLED, FLUID_AUTO_OUTPUT_DISABLED);
         var operations = HatchViews.operations(slot, output);
         return HatchViews.page(operations);
     }

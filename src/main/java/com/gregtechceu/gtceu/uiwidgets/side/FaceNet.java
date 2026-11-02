@@ -28,12 +28,12 @@ public class FaceNet extends UIElement {
 
     private static final int CELL = 4;
     private static final int CELL_GAP = 2;
-    private static final String PASS_THROUGH_KEY = "gtceu.gui.face_net.pass_through";
-    private static final String PASS_THROUGH_DETAIL = "gtceu.gui.face_net.pass_through.detail";
+    private static final Component PASS_THROUGH_KEY = Component.translatable("gtceu.gui.face_net.pass_through");
+    private static final Component PASS_THROUGH_DETAIL = Component.translatable("gtceu.gui.face_net.pass_through.detail");
     private static final String SINGLE = "gtceu.gui.face_net.single";
-    private static final String NONE = "gtceu.gui.face_net.none";
-    private static final String LEGEND = "gtceu.gui.face_net.legend";
-    private static final String CLICK = "gtceu.gui.face_net.click";
+    private static final Component NONE = Component.translatable("gtceu.gui.face_net.none");
+    private static final Component LEGEND = Component.translatable("gtceu.gui.face_net.legend");
+    private static final Component CLICK = Component.translatable("gtceu.gui.face_net.click");
 
     private final SyncValue<Integer> mask;
     @Nullable
@@ -51,6 +51,19 @@ public class FaceNet extends UIElement {
 
     public static int maskOf(@Nullable Direction face) {
         return face == null ? PASS_THROUGH : bit(face);
+    }
+
+    private static final Component[] DIRECTION_NAMES = {
+            Component.translatable("gtceu.gui.output_side.dir.down"),
+            Component.translatable("gtceu.gui.output_side.dir.up"),
+            Component.translatable("gtceu.gui.output_side.dir.north"),
+            Component.translatable("gtceu.gui.output_side.dir.south"),
+            Component.translatable("gtceu.gui.output_side.dir.west"),
+            Component.translatable("gtceu.gui.output_side.dir.east")
+    };
+
+    public static Component name(Direction direction) {
+        return DIRECTION_NAMES[direction.get3DDataValue()];
     }
 
     public static String nameKey(Direction direction) {
@@ -82,8 +95,8 @@ public class FaceNet extends UIElement {
         }
         var lines = new ArrayList<Component>(4);
         if ((value & PASS_THROUGH) != 0) {
-            lines.add(Component.translatable(PASS_THROUGH_KEY));
-            lines.add(Component.translatable(PASS_THROUGH_DETAIL).withStyle(ChatFormatting.GRAY));
+            lines.add(PASS_THROUGH_KEY);
+            lines.add(PASS_THROUGH_DETAIL.copy().withStyle(ChatFormatting.GRAY));
         } else {
             Direction single = null;
             for (var direction : Direction.values()) {
@@ -92,10 +105,10 @@ public class FaceNet extends UIElement {
                     break;
                 }
             }
-            lines.add(single == null ? Component.translatable(NONE) : Component.translatable(SINGLE, Component.translatable(nameKey(single))));
+            lines.add(single == null ? NONE : Component.translatable(SINGLE, name(single)));
         }
-        lines.add(Component.translatable(LEGEND).withStyle(ChatFormatting.GRAY));
-        if (onClientClick != null) lines.add(Component.translatable(CLICK).withStyle(ChatFormatting.YELLOW));
+        lines.add(LEGEND.copy().withStyle(ChatFormatting.GRAY));
+        if (onClientClick != null) lines.add(CLICK.copy().withStyle(ChatFormatting.YELLOW));
         setHoverTooltips(lines);
     }
 

@@ -89,15 +89,15 @@ public class ItemSlot extends SlotWidget implements ElementState.Host<ItemSlot>,
         return new ItemSlot(new ForgeStackAdapter(inventory), index, canTakeItems, canPutItems);
     }
 
-    /** 只作展示的槽：不可取放、始终禁用，EMI 里只作展示；{@code reasonKey} 说明原因（如"由步进器设置"），可为 null。 */
-    public static ItemSlot display(KeyInventory<AEItemKey> inventory, int index, @Nullable String reasonKey) {
-        return display(new MenuItemAdapter(inventory), index, reasonKey);
+    /** 只作展示的槽：不可取放、始终禁用，EMI 里只作展示；{@code reason} 说明原因（如"由步进器设置"），可为 null。 */
+    public static ItemSlot display(KeyInventory<AEItemKey> inventory, int index, @Nullable Component reason) {
+        return display(new MenuItemAdapter(inventory), index, reason);
     }
 
-    public static ItemSlot display(IItemHandlerModifiable handler, int index, @Nullable String reasonKey) {
+    public static ItemSlot display(IItemHandlerModifiable handler, int index, @Nullable Component reason) {
         var slot = new ItemSlot(handler, index, false, false);
         slot.setIngredientIO(IngredientIO.RENDER_ONLY);
-        slot.disabled(() -> true, reasonKey);
+        slot.disabled(() -> true, reason);
         return slot;
     }
 

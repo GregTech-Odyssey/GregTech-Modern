@@ -81,10 +81,17 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class GTToolItem extends DiggerItem implements IGTTool {
 
-    private static final String[] HARVEST_LEVEL_KEYS = {
-            "item.gtceu.tool.harvest_level.0", "item.gtceu.tool.harvest_level.1", "item.gtceu.tool.harvest_level.2",
-            "item.gtceu.tool.harvest_level.3", "item.gtceu.tool.harvest_level.4", "item.gtceu.tool.harvest_level.5",
-            "item.gtceu.tool.harvest_level.6" };
+    private static final String HARVEST_LEVEL_EXTRA = "item.gtceu.tool.tooltip.harvest_level_extra";
+    private static final String HARVEST_LEVEL_SIMPLE = "item.gtceu.tool.tooltip.harvest_level";
+    private static final Component[] HARVEST_LEVEL_NAMES = {
+            Component.translatable("item.gtceu.tool.harvest_level.0"),
+            Component.translatable("item.gtceu.tool.harvest_level.1"),
+            Component.translatable("item.gtceu.tool.harvest_level.2"),
+            Component.translatable("item.gtceu.tool.harvest_level.3"),
+            Component.translatable("item.gtceu.tool.harvest_level.4"),
+            Component.translatable("item.gtceu.tool.harvest_level.5"),
+            Component.translatable("item.gtceu.tool.harvest_level.6")
+    };
 
     protected final GTToolType toolType;
     protected final Material material;
@@ -492,11 +499,11 @@ public class GTToolItem extends DiggerItem implements IGTTool {
             tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.mining_speed",
                     FormattingUtil.formatNumbers(getTotalToolSpeed(stack)))));
             int harvestLevel = getTotalHarvestLevel(stack);
-            if (harvestLevel >= 0 && harvestLevel < HARVEST_LEVEL_KEYS.length) {
-                tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.harvest_level_extra", harvestLevel,
-                        Component.translatable(HARVEST_LEVEL_KEYS[harvestLevel]))));
+            if (harvestLevel >= 0 && harvestLevel < HARVEST_LEVEL_NAMES.length) {
+                tooltip.add(Tips.stat(Component.translatable(HARVEST_LEVEL_EXTRA, harvestLevel,
+                        HARVEST_LEVEL_NAMES[harvestLevel])));
             } else {
-                tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.tooltip.harvest_level", harvestLevel)));
+                tooltip.add(Tips.stat(Component.translatable(HARVEST_LEVEL_SIMPLE, harvestLevel)));
             }
         }
         tooltip.add(Tips.stat(Component.translatable("item.gtceu.tool.usable_as", toolType.usableAs())));

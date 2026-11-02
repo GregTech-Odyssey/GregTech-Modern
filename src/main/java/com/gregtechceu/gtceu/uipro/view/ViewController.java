@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.uipro.view;
 
+import net.minecraft.network.chat.Component;
+
 public interface ViewController {
 
     default boolean canZoom() {
@@ -26,7 +28,7 @@ public interface ViewController {
         fitView();
     }
 
-    default String percentTooltip() {
+    default Component percentTooltip() {
         return ZoomBar.PERCENT;
     }
 

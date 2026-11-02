@@ -62,41 +62,44 @@ public final class SideOverview {
     private static final int NONE = 0, OUTPUT = 1, AUTO_OUTPUT = 2;
     private static final int NO_TARGET = -1, ITEM_TARGET = 0, FLUID_TARGET = 1;
     private static final int KEY_SPAN = 64;
-    private static final String[] MODES = { "gtceu.gui.side_overview.mode.none", "gtceu.gui.side_overview.mode.output",
-            "gtceu.gui.side_overview.mode.auto" };
+    private static final Component[] MODES = {
+            Component.translatable("gtceu.gui.side_overview.mode.none"),
+            Component.translatable("gtceu.gui.side_overview.mode.output"),
+            Component.translatable("gtceu.gui.side_overview.mode.auto")
+    };
     private static final List<List<Component>> MODE_TOOLTIPS = List.of(
             List.of(Component.translatable("gtceu.gui.side_overview.mode.none.tooltip")),
             List.of(Component.translatable("gtceu.gui.side_overview.mode.output.tooltip")),
             List.of(Component.translatable("gtceu.gui.side_overview.mode.auto.tooltip")));
     private static final String FACE = "gtceu.gui.output_side.face";
-    private static final String NO_COVER = "gtceu.gui.side_overview.no_cover";
+    private static final Component NO_COVER = Component.translatable("gtceu.gui.side_overview.no_cover");
     private static final String ITEM_OUTPUT = "gtceu.gui.side_overview.item_output";
     private static final String FLUID_OUTPUT = "gtceu.gui.side_overview.fluid_output";
-    private static final String AUTO_ON = "gtceu.gui.side_overview.auto_on";
-    private static final String AUTO_OFF = "gtceu.gui.side_overview.auto_off";
-    private static final String SHOW_FACE = "gtceu.gui.side_overview.show_face";
-    private static final String OPEN_COVER = "gtceu.gui.side_overview.open_cover";
-    private static final String NO_COVER_SETTINGS = "gtceu.gui.side_overview.no_cover_settings";
-    private static final String OPEN_COVER_SHORT = "gtceu.gui.side_overview.open_cover_short";
-    private static final String NO_SELECTION = "gtceu.gui.side_overview.no_selection";
-    private static final String NONE_SELECTED = "gtceu.gui.side_overview.none_selected";
+    private static final Component AUTO_ON = Component.translatable("gtceu.gui.side_overview.auto_on");
+    private static final Component AUTO_OFF = Component.translatable("gtceu.gui.side_overview.auto_off");
+    private static final Component SHOW_FACE = Component.translatable("gtceu.gui.side_overview.show_face");
+    private static final Component OPEN_COVER = Component.translatable("gtceu.gui.side_overview.open_cover");
+    private static final Component NO_COVER_SETTINGS = Component.translatable("gtceu.gui.side_overview.no_cover_settings");
+    private static final Component OPEN_COVER_SHORT = Component.translatable("gtceu.gui.side_overview.open_cover_short");
+    private static final Component NO_SELECTION = Component.translatable("gtceu.gui.side_overview.no_selection");
+    private static final Component NONE_SELECTED = Component.translatable("gtceu.gui.side_overview.none_selected");
     private static final String SELECTED_COVER = "gtceu.gui.side_overview.selected_cover";
-    private static final String ITEM_MODE = "gtceu.gui.side_overview.item_mode";
-    private static final String FLUID_MODE = "gtceu.gui.side_overview.fluid_mode";
-    private static final String FRONT = "gtceu.gui.output_side.front";
-    private static final String ITEM_ALLOW_INPUT = "gtceu.gui.side_overview.item_allow_input";
-    private static final String FLUID_ALLOW_INPUT = "gtceu.gui.side_overview.fluid_allow_input";
-    private static final String ALLOW_INPUT_TOOLTIP = "gtceu.gui.output_side.allow_input.tooltip";
-    private static final String NOT_ITEM_OUTPUT = "gtceu.gui.side_overview.not_item_output";
-    private static final String NOT_FLUID_OUTPUT = "gtceu.gui.side_overview.not_fluid_output";
-    private static final String COVER_SLOT_PLACE = "gtceu.gui.side_overview.cover_slot.place";
-    private static final String COVER_SLOT_TAKE = "gtceu.gui.side_overview.cover_slot.take";
-    private static final String COVER_SLOT_NOT_COVER = "gtceu.gui.side_overview.cover_slot.not_cover";
-    private static final String COVER_SLOT_CANNOT_PLACE = "gtceu.gui.side_overview.cover_slot.cannot_place";
-    private static final String COVER_SLOT_FRONT = "gtceu.gui.side_overview.cover_slot.front";
+    private static final Component ITEM_MODE = Component.translatable("gtceu.gui.side_overview.item_mode");
+    private static final Component FLUID_MODE = Component.translatable("gtceu.gui.side_overview.fluid_mode");
+    private static final Component FRONT = Component.translatable("gtceu.gui.output_side.front");
+    private static final Component ITEM_ALLOW_INPUT = Component.translatable("gtceu.gui.side_overview.item_allow_input");
+    private static final Component FLUID_ALLOW_INPUT = Component.translatable("gtceu.gui.side_overview.fluid_allow_input");
+    private static final Component ALLOW_INPUT_TOOLTIP = Component.translatable("gtceu.gui.output_side.allow_input.tooltip");
+    private static final Component NOT_ITEM_OUTPUT = Component.translatable("gtceu.gui.side_overview.not_item_output");
+    private static final Component NOT_FLUID_OUTPUT = Component.translatable("gtceu.gui.side_overview.not_fluid_output");
+    private static final Component COVER_SLOT_PLACE = Component.translatable("gtceu.gui.side_overview.cover_slot.place");
+    private static final Component COVER_SLOT_TAKE = Component.translatable("gtceu.gui.side_overview.cover_slot.take");
+    private static final Component COVER_SLOT_NOT_COVER = Component.translatable("gtceu.gui.side_overview.cover_slot.not_cover");
+    private static final Component COVER_SLOT_CANNOT_PLACE = Component.translatable("gtceu.gui.side_overview.cover_slot.cannot_place");
+    private static final Component COVER_SLOT_FRONT = Component.translatable("gtceu.gui.side_overview.cover_slot.front");
     private static final int FEEDBACK_TICKS = 60;
-    private static final Component HINT_SELECT = Component.translatable(SHOW_FACE).withStyle(ChatFormatting.DARK_GRAY);
-    private static final Component HINT_FRONT = Component.translatable(FRONT).withStyle(ChatFormatting.GRAY);
+    private static final Component HINT_SELECT = SHOW_FACE.copy().withStyle(ChatFormatting.DARK_GRAY);
+    private static final Component HINT_FRONT = FRONT.copy().withStyle(ChatFormatting.GRAY);
     private static final Component HINT_BOTH = Component.translatable("gtceu.gui.side_overview.hint.both").withStyle(ChatFormatting.YELLOW);
     private static final Component HINT_ITEM = Component.translatable("gtceu.gui.side_overview.hint.item").withStyle(ChatFormatting.YELLOW);
     private static final Component HINT_FLUID = Component.translatable("gtceu.gui.side_overview.hint.fluid").withStyle(ChatFormatting.YELLOW);
@@ -192,11 +195,13 @@ public final class SideOverview {
     private UIElement faceSettings() {
         var section = UIElement.section();
         section.disabled(() -> selectedSide() == null, NO_SELECTION);
-        var slot = ItemCell.of(this::selectedCoverStack).setOnServerClick(this::clickCoverSlot).tooltips(COVER_SLOT_PLACE, COVER_SLOT_TAKE);
+        var slot = ItemCell.of(this::selectedCoverStack).setOnServerClick(this::clickCoverSlot)
+                .tooltips(COVER_SLOT_PLACE, COVER_SLOT_TAKE);
         slot.disabled(this::isCoverSlotLocked, COVER_SLOT_FRONT);
         var name = TextLine.of(0, this::selectedText).bindClientColor(UITheme::panelText).bindLevel(() -> hasFeedback() ? Level.ERROR : Level.NORMAL);
         name.layout(l -> l.flex(1));
-        var open = Button.translatable(UISizes.BUTTON_WIDTH, OPEN_COVER_SHORT).tooltips(OPEN_COVER).setOnClientClick(this::openSelectedCover);
+        var open = Button.text(UISizes.BUTTON_WIDTH, OPEN_COVER_SHORT)
+                .tooltips(OPEN_COVER).setOnClientClick(this::openSelectedCover);
         open.disabled(() -> !(selectedCover() instanceof IUICover), NO_COVER_SETTINGS);
         section.addChild(UIElement.centeredRow(UISizes.SLOT_SIZE).layout(l -> l.gapAll(UISizes.GAP)).addChildren(slot, name, open));
         if (items != null) {
@@ -237,7 +242,7 @@ public final class SideOverview {
     }
 
     private ButtonGroup modeGroup(boolean fluid) {
-        return ButtonGroup.single(MODES.length, i -> Component.translatable(MODES[i]), () -> selectedMode(fluid), i -> setSelectedMode(fluid, i))
+        return ButtonGroup.single(MODES.length, i -> MODES[i], () -> selectedMode(fluid), i -> setSelectedMode(fluid, i))
                 .compact().optionTooltips(MODE_TOOLTIPS::get);
     }
 
@@ -276,8 +281,8 @@ public final class SideOverview {
         return isSelectedFront() && !machine.getDefinition().isAllowCoverOnFront() && selectedCover() == null;
     }
 
-    private void showFeedback(String key) {
-        feedback = Component.translatable(key);
+    private void showFeedback(Component feedback) {
+        this.feedback = feedback;
         feedbackUntil = machine.getOffsetTimer() + FEEDBACK_TICKS;
     }
 
@@ -346,12 +351,12 @@ public final class SideOverview {
         selectedKey = key;
         selectedTextCover = cover;
         if (side == null) {
-            selectedText = Component.translatable(NONE_SELECTED);
+            selectedText = NONE_SELECTED;
         } else {
-            var face = Component.translatable(FACE, Component.translatable(side.translationKey),
-                    Component.translatable(FaceNet.nameKey(side.toDirection(machine))));
+            var face = Component.translatable(FACE, side.name,
+                    FaceNet.name(side.toDirection(machine)));
             selectedText = Component.translatable(SELECTED_COVER, face,
-                    cover == null ? Component.translatable(NO_COVER) : cover.getAttachItem().getHoverName());
+                    cover == null ? NO_COVER : cover.getAttachItem().getHoverName());
         }
         return selectedText;
     }
@@ -586,10 +591,10 @@ public final class SideOverview {
         if (cached != null) return cached;
         var lines = new ArrayList<Component>(4);
         var direction = direction(side);
-        lines.add(Component.translatable(FACE, Component.translatable(side.translationKey), Component.translatable(FaceNet.nameKey(direction))));
+        lines.add(Component.translatable(FACE, side.name, FaceNet.name(direction)));
         var cell = cells[side.ordinal()];
         var stack = cell == null ? ItemStack.EMPTY : cell.getStack();
-        lines.add(stack.isEmpty() ? Component.translatable(NO_COVER).withStyle(ChatFormatting.GRAY) : stack.getHoverName().copy().withStyle(ChatFormatting.AQUA));
+        lines.add(stack.isEmpty() ? NO_COVER.copy().withStyle(ChatFormatting.GRAY) : stack.getHoverName().copy().withStyle(ChatFormatting.AQUA));
         if (isItemOutput(side)) lines.add(outputLine(ITEM_OUTPUT, itemOutput.getValue()));
         if (isFluidOutput(side)) lines.add(outputLine(FLUID_OUTPUT, fluidOutput.getValue()));
         var list = Collections.unmodifiableList(lines);
@@ -598,7 +603,7 @@ public final class SideOverview {
     }
 
     private static Component outputLine(String key, int state) {
-        return Component.translatable(key, Component.translatable(isAuto(state) ? AUTO_ON : AUTO_OFF)).withStyle(ChatFormatting.GOLD);
+        return Component.translatable(key, isAuto(state) ? AUTO_ON : AUTO_OFF).withStyle(ChatFormatting.GOLD);
     }
 
     private static final class FaceCell extends UIElement {

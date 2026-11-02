@@ -53,7 +53,7 @@ public class RecipeSpecPanel extends UIElement {
     private static final int TEXT_LINE = 8;
     private static final int LINK_ARROW_WIDTH = 4;
     private static final int LINK_ARROW_SPACE = LINK_ARROW_WIDTH + 3;
-    private static final String LINK_HINT = "gtceu.recipe.info.link";
+    private static final Component LINK_HINT = Component.translatable("gtceu.recipe.info.link");
     private static final int PAIR_GAP = 6;
 
     private int rows;
@@ -285,7 +285,7 @@ public class RecipeSpecPanel extends UIElement {
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
             if (gui == null || gui.getModularUIGui() == null || !isMouseOverElement(mouseX, mouseY)) return;
             if (onClick != null) {
-                var hint = Component.translatable(LINK_HINT).withStyle(ChatFormatting.DARK_GRAY);
+                var hint = LINK_HINT.copy().withStyle(ChatFormatting.DARK_GRAY);
                 var lines = truncated ? List.<Component>of(value.getValue(), hint) : List.<Component>of(hint);
                 gui.getModularUIGui().setHoverTooltip(lines, ItemStack.EMPTY, null, null);
                 return;

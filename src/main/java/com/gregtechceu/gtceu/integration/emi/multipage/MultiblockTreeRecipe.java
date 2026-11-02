@@ -39,7 +39,7 @@ final class MultiblockTreeRecipe implements EmiRecipe {
 
         @Override
         public Component getName() {
-            return Component.translatable(MultiblockEmiActions.TREE_CATEGORY);
+            return MultiblockEmiActions.TREE_CATEGORY;
         }
     };
 

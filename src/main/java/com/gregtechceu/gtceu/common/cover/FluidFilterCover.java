@@ -20,6 +20,7 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
@@ -103,14 +104,20 @@ public class FluidFilterCover extends CoverBehavior implements IUICover {
         return fluidFilterWrapper;
     }
 
+    private static final Component FILTER_MODE_TITLE = Component.translatable("cover.filter.mode.title");
+    private static final Component MANUAL_IO_TITLE = Component.translatable("cover.ui.manual_io");
+    private static final Component[] MANUAL_IO_TOOLTIPS = {
+            Component.translatable("cover.universal.manual_import_export.mode.description.0"),
+            Component.translatable("cover.universal.manual_import_export.mode.description.1"),
+            Component.translatable("cover.universal.manual_import_export.mode.description.2")
+    };
+
     @Override
     public Widget createUIWidget() {
         var modes = UIElement.section().addChildren(
-                CoverUIs.enumRow("cover.filter.mode.title", List.of(FilterMode.VALUES), this::getFilterMode, this::setFilterMode),
-                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getAllowFlow, this::setAllowFlow,
-                        "cover.universal.manual_import_export.mode.description.0",
-                        "cover.universal.manual_import_export.mode.description.1",
-                        "cover.universal.manual_import_export.mode.description.2"));
+                CoverUIs.enumRow(FILTER_MODE_TITLE, List.of(FilterMode.VALUES), this::getFilterMode, this::setFilterMode),
+                CoverUIs.enumRow(MANUAL_IO_TITLE, List.of(ManualIOMode.VALUES), this::getAllowFlow, this::setAllowFlow,
+                        MANUAL_IO_TOOLTIPS));
         return Form.page().addChildren(modes, UIElement.section().addChild(getFluidFilter().createConfigUI()));
     }
 

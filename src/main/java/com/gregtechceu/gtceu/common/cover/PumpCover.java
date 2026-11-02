@@ -251,29 +251,38 @@ public class PumpCover extends CoverBehavior implements IUICover, IControllable 
         return true;
     }
 
+    private static final Component TRANSFER_SECTION = Component.translatable("cover.ui.transfer");
+    private static final String TRANSFER_RATE_TEMPLATE = "cover.pump.ui.transfer_rate";
+    private static final Component MODES_SECTION = Component.translatable("cover.ui.modes");
+    private static final Component IO_TITLE = Component.translatable("cover.ui.io");
+    private static final Component MANUAL_IO_TITLE = Component.translatable("cover.ui.manual_io");
+    private static final Component[] MANUAL_IO_TOOLTIPS = {
+            Component.translatable("cover.universal.manual_import_export.mode.description.0"),
+            Component.translatable("cover.universal.manual_import_export.mode.description.1"),
+            Component.translatable("cover.universal.manual_import_export.mode.description.2")
+    };
+
     private UIElement createTransferSection() {
         var modes = Arrays.stream(BucketMode.values()).filter(m -> m.multiplier <= maxFluidTransferRate).toList();
         var field = NumberField.ofInt(LayoutStyle.AUTO, this::getCurrentBucketModeTransferRate, this::setCurrentBucketModeTransferRate,
                 () -> 0, () -> maxFluidTransferRate / bucketMode.multiplier);
-        return Form.section("cover.ui.transfer").addChild(fluidAmountRow(
-                () -> Component.translatable("cover.pump.ui.transfer_rate", Component.translatable(bucketMode.getTooltip())),
+        return Form.section(TRANSFER_SECTION).addChild(fluidAmountRow(
+                () -> Component.translatable(TRANSFER_RATE_TEMPLATE, bucketMode.name),
                 modes, this::getBucketMode, this::setBucketMode, field));
     }
 
     private UIElement createModeSection() {
-        return Form.section("cover.ui.modes").addChildren(
-                CoverUIs.enumRow("cover.ui.io", List.of(IO.IN, IO.OUT), this::getIo, this::setIo),
-                CoverUIs.enumRow("cover.ui.manual_io", List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
-                        "cover.universal.manual_import_export.mode.description.0",
-                        "cover.universal.manual_import_export.mode.description.1",
-                        "cover.universal.manual_import_export.mode.description.2"));
+        return Form.section(MODES_SECTION).addChildren(
+                CoverUIs.enumRow(IO_TITLE, List.of(IO.IN, IO.OUT), this::getIo, this::setIo),
+                CoverUIs.enumRow(MANUAL_IO_TITLE, List.of(ManualIOMode.VALUES), this::getManualIOMode, this::setManualIOMode,
+                        MANUAL_IO_TOOLTIPS));
     }
 
     protected static UIElement fluidAmountRow(Supplier<Component> label, List<BucketMode> modes, Supplier<BucketMode> current,
-                                              Consumer<BucketMode> set, NumberField field, String... tooltipKeys) {
+                                              Consumer<BucketMode> set, NumberField field, Component... tooltips) {
         var text = TextLine.of(0, label).bindClientColor(UITheme::panelText);
         text.layout(l -> l.flex(1));
-        if (tooltipKeys.length > 0) text.tooltips(tooltipKeys);
+        if (tooltips.length > 0) text.tooltips(tooltips);
         boolean selectable = modes.size() > 1;
         var head = UIElement.row(selectable ? UISizes.SLOT_SIZE : UISizes.TEXT_HEIGHT).layout(l -> l.gapAll(UISizes.GAP).alignCenter()).addChild(text);
         if (selectable) head.addChild(CoverUIs.enumIcons(modes, current, set));

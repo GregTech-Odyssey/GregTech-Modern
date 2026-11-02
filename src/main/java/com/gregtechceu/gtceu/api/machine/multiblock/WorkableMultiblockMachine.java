@@ -166,10 +166,13 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         IRecipeLogicMachine.attachRecipeLockConfigurator(configuratorPanel, this);
     }
 
+    private static final List<Component> BATCH_ENABLED_TOOLTIP = List.of(Component.translatable("gtceu.machine.batch_enabled"));
+    private static final List<Component> BATCH_DISABLED_TOOLTIP = List.of(Component.translatable("gtceu.machine.batch_disabled"));
+
     public void attachBatchConfigurator(ConfiguratorPanel configuratorPanel) {
         if (!hasBatchConfig()) return;
         configuratorPanel.attachConfigurators(new IFancyConfiguratorButton.Toggle(WidgetIcons.BATCH_OFF, WidgetIcons.BATCH_ON, this::isBatchEnabled, (clickData, pressed) -> setBatchEnabled(pressed))
-                .setTooltipsSupplier(pressed -> List.of(Component.translatable(pressed ? "gtceu.machine.batch_enabled" : "gtceu.machine.batch_disabled"))));
+                .setTooltipsSupplier(pressed -> pressed ? BATCH_ENABLED_TOOLTIP : BATCH_DISABLED_TOOLTIP));
     }
 
     @Deprecated(since = "0.6.0", forRemoval = true)

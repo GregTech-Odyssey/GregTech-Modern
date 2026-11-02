@@ -73,6 +73,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class QuantumTankMachine extends TieredMachine implements IAutoOutputFluid, IInteractedMachine, IControllable, IDropSaveMachine, IStorageAppearance, MEStorageProvider {
 
+    private static final Component FLUID_LOCK_ENABLED = Component.translatable("gtceu.gui.fluid_lock.tooltip.enabled");
+    private static final Component FLUID_LOCK_DISABLED = Component.translatable("gtceu.gui.fluid_lock.tooltip.disabled");
+    private static final Component FLUID_AUTO_OUTPUT_ENABLED = Component.translatable("gtceu.gui.fluid_auto_output.tooltip.enabled");
+    private static final Component FLUID_AUTO_OUTPUT_DISABLED = Component.translatable("gtceu.gui.fluid_auto_output.tooltip.disabled");
+    private static final Component FLUID_VOIDING_ENABLED = Component.translatable("gtceu.gui.fluid_voiding_partial.tooltip.enabled");
+    private static final Component FLUID_VOIDING_DISABLED = Component.translatable("gtceu.gui.fluid_voiding_partial.tooltip.disabled");
+    private static final Component INPUT_DISALLOW = Component.translatable("gtceu.machine.basic.input_from_output_side.disallow");
+    private static final Component INPUT_ALLOW = Component.translatable("gtceu.machine.basic.input_from_output_side.allow");
+    private static final Component TANK_FLUID = Component.translatable("gtceu.creative.tank.fluid");
+
     private static final int LOCK_MARKER = 1000;
 
     private final StorageInteraction interaction = new StorageInteraction();
@@ -377,10 +387,10 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
             if (gridSide == getOutputFacingFluids()) {
                 if (isAllowInputFromOutputSideFluids()) {
                     setAllowInputFromOutputSideFluids(false);
-                    playerIn.sendSystemMessage(Component.translatable("gtceu.machine.basic.input_from_output_side.disallow").append(Component.translatable("gtceu.creative.tank.fluid")));
+                    playerIn.sendSystemMessage(INPUT_DISALLOW.copy().append(TANK_FLUID));
                 } else {
                     setAllowInputFromOutputSideFluids(true);
-                    playerIn.sendSystemMessage(Component.translatable("gtceu.machine.basic.input_from_output_side.allow").append(Component.translatable("gtceu.creative.tank.fluid")));
+                    playerIn.sendSystemMessage(INPUT_ALLOW.copy().append(TANK_FLUID));
                 }
             }
             return InteractionResult.SUCCESS;
@@ -423,12 +433,12 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     public Widget createUIWidget() {
         var tank = FluidSlot.of(new ForgeFluidAdapter(cache), 0, true, true);
         var lock = IconToggle.of(WidgetIcons.ACCESS_PRIVATE, this::isLocked, this::setLocked)
-                .onOffTooltips("gtceu.gui.fluid_lock.tooltip.enabled", "gtceu.gui.fluid_lock.tooltip.disabled");
+                .onOffTooltips(FLUID_LOCK_ENABLED, FLUID_LOCK_DISABLED);
         var lockSlot = PhantomFluidSlot.of(null, 0, this::getLockedFluid, this::setLocked).xeiPhantom();
         var output = IconToggle.of(WidgetIcons.EXPORT, this::isAutoOutputFluids, this::setAutoOutputFluids)
-                .onOffTooltips("gtceu.gui.fluid_auto_output.tooltip.enabled", "gtceu.gui.fluid_auto_output.tooltip.disabled");
+                .onOffTooltips(FLUID_AUTO_OUTPUT_ENABLED, FLUID_AUTO_OUTPUT_DISABLED);
         var voiding = IconToggle.of(WidgetIcons.VOID_OVERFLOW, this::isVoiding, this::setVoiding)
-                .onOffTooltips("gtceu.gui.fluid_voiding_partial.tooltip.enabled", "gtceu.gui.fluid_voiding_partial.tooltip.disabled");
+                .onOffTooltips(FLUID_VOIDING_ENABLED, FLUID_VOIDING_DISABLED);
         var limit = Form.numberRow(HatchViews.CAPACITY_LIMIT,
                 NumberField.ofLong(UISizes.CONTENT_WIDTH, this::getMaxAmount, this::setMaxAmount, () -> 1, this::getMax), HatchViews.CAPACITY_LIMIT_TIP);
         limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
