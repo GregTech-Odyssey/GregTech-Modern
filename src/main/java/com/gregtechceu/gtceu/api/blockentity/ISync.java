@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
+import com.gto.datasynclib.util.ByteBufUtil;
 import net.minecraftforge.network.PacketDistributor;
 
 import com.gto.datasynclib.FieldDataManager;
@@ -17,18 +18,18 @@ public interface ISync extends IFieldDataHolder {
     }
 
     default void syncToServer() {
-        DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, false)));
+        DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), ByteBufUtil.writeToBytes(ByteBufUtil.FRIENDLY_BYTE_BUF_WRAPPER,buf->getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, buf,false))));
     }
 
     default void syncToClient() {
-        DataSyncNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> getHolder().getChunk()), new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, false)));
+        DataSyncNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> getHolder().getChunk()), new BlockEntitySyncPacket(getHolder().getBlockPos(), ByteBufUtil.writeToBytes(ByteBufUtil.FRIENDLY_BYTE_BUF_WRAPPER,buf->getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER,  buf,false))));
     }
 
     default void syncAllToServer() {
-        DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, true)));
+        DataSyncNetwork.CHANNEL.sendToServer(new BlockEntitySyncPacket(getHolder().getBlockPos(), ByteBufUtil.writeToBytes(ByteBufUtil.FRIENDLY_BYTE_BUF_WRAPPER,buf->getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.CLIENT, buf, true))));
     }
 
     default void syncAllToClient() {
-        DataSyncNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> getHolder().getChunk()), new BlockEntitySyncPacket(getHolder().getBlockPos(), getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true)));
+        DataSyncNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> getHolder().getChunk()), new BlockEntitySyncPacket(getHolder().getBlockPos(), ByteBufUtil.writeToBytes(ByteBufUtil.FRIENDLY_BYTE_BUF_WRAPPER,buf->getHolder().getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER,  buf,true))));
     }
 }

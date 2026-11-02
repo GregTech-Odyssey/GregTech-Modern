@@ -10,6 +10,7 @@ import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
+import com.gto.datasynclib.util.ByteBufUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -253,7 +254,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public CompoundTag getUpdateTag() {
         var tag = super.getUpdateTag();
         if (getFieldDataManager().hasSyncFields(LogicalSide.SERVER)) {
-            tag.putByteArray("field_sync", getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, true));
+            tag.putByteArray("field_sync", ByteBufUtil.writeToBytes(ByteBufUtil.FRIENDLY_BYTE_BUF_WRAPPER,buf-> getFieldDataManager().writeToNetworkBuffer(LogicalSide.SERVER, buf,true)));
         }
         return tag;
     }
@@ -262,7 +263,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public final void load(@NotNull CompoundTag tag) {
         super.load(tag);
         if (tag.get("field_sync") instanceof ByteArrayTag byteArrayTag) {
-            getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT, byteArrayTag.getAsByteArray());
+            ByteBufUtil.readFromBytes(ByteBufUtil.FRIENDLY_BYTE_BUF_WRAPPER,byteArrayTag.getAsByteArray(),buf->    getFieldDataManager().readFromNetworkBuffer(LogicalSide.CLIENT,buf));
         } else {
             loadCustomPersistedData(tag);
             if (tag.get("field_save") instanceof ByteArrayTag byteArrayTag) {
