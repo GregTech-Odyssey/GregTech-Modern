@@ -17,13 +17,13 @@ import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.FieldDataManager;
 import com.gto.datasynclib.FieldDefinitionStorage;
 import com.gto.datasynclib.FieldDefinitionStorage.AnnotatedField;
-import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
+import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.util.ReflectUtil;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
+import java.lang.invoke.MethodHandles;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -92,15 +92,14 @@ public final class DataStickData {
             var metadata = (Metadata) field.metadata();
             Object value;
             if (metadata.getter() != null) {
-                var projected = metadata.get(manager.holder.getSource(definition));
-                value = projected == null ? OPS.createNull() : metadata.codec().encode(OPS, projected);
+                value = metadata.codec().encode(OPS, metadata.get(manager.holder.getSource(definition)));
             } else {
                 value = manager.writeFieldToValue(definition, OPS);
             }
             if (value == DataField.NOT_PERSISTED) {
                 // Disk persistence omits defaults; a configuration copy must overwrite the target's value.
                 if (!definition.hasDefaultValue()) continue;
-                value = writeDefault(manager, definition, metadata.skipWhen());
+                value = writeDefault(manager, definition, metadata);
                 if (value == DataField.NOT_PERSISTED) continue;
             }
             values.put(definition.key, value);
@@ -111,16 +110,10 @@ public final class DataStickData {
 
     @SuppressWarnings("unchecked")
     private static <T> Object writeDefault(FieldDataManager manager, DataFieldDefinition<T> definition,
-                                           MethodHandle skipWhen) {
+                                           Metadata metadata) {
         var source = manager.holder.getSource(definition);
         T value = definition.get(source);
-        if (skipWhen != null) {
-            try {
-                if ((boolean) skipWhen.invokeExact(source, (Object) value)) return DataField.NOT_PERSISTED;
-            } catch (Throwable e) {
-                throw new IllegalStateException("Cannot evaluate data-stick skip predicate", e);
-            }
-        }
+        if (metadata.skip(source, value)) return DataField.NOT_PERSISTED;
         if (definition.field.getType().isPrimitive()) return value;
         return definition.instanceAsValue ? definition.encode(source, value, OPS) :
                 ((DataSyncCodec<T>) DataSyncCodec.get(definition.field.getType())).encode(OPS, value);
@@ -140,7 +133,7 @@ public final class DataStickData {
             var metadata = (Metadata) field.metadata();
             if (metadata.setter() != null) {
                 metadata.set(manager.holder.getSource(definition),
-                        ops.isNull(value) ? null : metadata.codec().decode(ops, value));
+                        metadata.codec().decode(ops, value));
             } else {
                 if (ops.isNull(value) && !definition.instanceAsValue) {
                     // DataSyncLib treats an empty container's null payload as absent on disk load.
@@ -155,41 +148,46 @@ public final class DataStickData {
         }
     }
 
-    private record Metadata(MethodHandle skipWhen, MethodHandle getter, MethodHandle setter,
-                            DataSyncCodec<Object> codec) {
+    private record Metadata(MethodHandle skipSave, MethodHandle getter, MethodHandle setter,
+                            ValueCodec<Object> codec) {
 
         @SuppressWarnings("unchecked")
-        private static Metadata create(java.lang.invoke.MethodHandles.Lookup lookup, DataFieldDefinition<?> definition,
+        private static Metadata create(MethodHandles.Lookup lookup, DataFieldDefinition<?> definition,
                                        Class<?> type, SaveToDataStick annotation) {
             var owner = definition.field.getDeclaringClass();
-            try {
-                var save = definition.field.getAnnotation(SaveToDisk.class);
-                MethodHandle skip = save == null || save.skipWhen().isEmpty() ? null :
-                        lookup.unreflect(ReflectUtil.getAccessibleMethod(owner, save.skipWhen(), type))
-                                .asType(MethodType.methodType(boolean.class, Object.class, Object.class));
-                MethodHandle getter = null;
-                if (!annotation.getter().isEmpty()) {
-                    var method = ReflectUtil.getAccessibleMethod(owner, annotation.getter());
-                    type = method.getReturnType();
-                    getter = lookup.unreflect(method).asType(MethodType.methodType(Object.class, Object.class));
-                    if (annotation.setter().isEmpty()) {
-                        throw new IllegalArgumentException("Projected data-stick fields require a setter: " + definition.key);
-                    }
+            // Bind the library's typed predicate entry point instead of resolving @SaveToDisk again.
+            var skip = ReflectUtil.createAdaptedMethodHandle(lookup,
+                    ReflectUtil.getAccessibleMethod(DataFieldDefinition.class, "skipSave", Object.class,
+                            type.isPrimitive() ? type : Object.class))
+                    .bindTo(definition);
+            MethodHandle getter = null;
+            if (!annotation.getter().isEmpty()) {
+                var method = ReflectUtil.getAccessibleMethod(owner, annotation.getter());
+                type = method.getReturnType();
+                getter = ReflectUtil.createAdaptedMethodHandle(lookup, method);
+                if (annotation.setter().isEmpty()) {
+                    throw new IllegalArgumentException("Projected data-stick fields require a setter: " + definition.key);
                 }
-                MethodHandle setter = annotation.setter().isEmpty() ? null :
-                        lookup.unreflect(ReflectUtil.getAccessibleMethod(owner, annotation.setter(), type))
-                                .asType(MethodType.methodType(void.class, Object.class, Object.class));
-                var codec = setter == null ? null :
-                        (DataSyncCodec<Object>) DataSyncCodec.get(ClassUtils.primitiveToWrapper(type));
-                return new Metadata(skip, getter, setter, codec);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Cannot access data-stick configuration methods", e);
+            }
+            var setter = annotation.setter().isEmpty() ? null :
+                    ReflectUtil.createAdaptedMethodHandle(lookup,
+                            ReflectUtil.getAccessibleMethod(owner, annotation.setter(), type));
+            var codec = setter == null ? null :
+                    ((DataSyncCodec<Object>) DataSyncCodec.get(ClassUtils.primitiveToWrapper(type))).toValueCodec().optional();
+            return new Metadata(skip, getter, setter, codec);
+        }
+
+        private boolean skip(Object source, Object value) {
+            try {
+                return (boolean) skipSave.invoke(source, value);
+            } catch (Throwable e) {
+                throw new IllegalStateException("Cannot evaluate data-stick skip predicate", e);
             }
         }
 
         private Object get(Object source) {
             try {
-                return getter.invokeExact(source);
+                return getter.invoke(source);
             } catch (Throwable e) {
                 throw new IllegalStateException("Cannot read data-stick configuration", e);
             }
@@ -197,7 +195,7 @@ public final class DataStickData {
 
         private void set(Object source, Object value) {
             try {
-                setter.invokeExact(source, value);
+                setter.invoke(source, value);
             } catch (Throwable e) {
                 throw new IllegalStateException("Cannot apply data-stick configuration", e);
             }
