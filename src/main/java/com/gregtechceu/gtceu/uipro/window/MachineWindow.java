@@ -58,6 +58,7 @@ import com.gto.datasynclib.datastream.codec.ByteBufCodecs;
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.emi.emi.config.EmiConfig;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -66,7 +67,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -322,7 +322,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    protected void drawBackgroundTexture(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void drawBackgroundTexture(@NotNull GuiGraphics graphics, int mouseX, int mouseY) {
         int x = getPosition().x, y = getPosition().y, height = getSizeHeight();
         int previousRight = x + mainPanelWidth;
         UITheme.WINDOW.draw(graphics, mouseX, mouseY, x, y, mainPanelWidth, height);
@@ -340,7 +340,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    protected void drawWidgetsBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    protected void drawWidgetsBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         drawLogo(graphics);
         var cover = coverAt(mouseX, mouseY);
         if (cover == null) {
@@ -359,7 +359,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    protected void drawWidgetsForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    protected void drawWidgetsForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         var cover = coverAt(mouseX, mouseY);
         if (cover == null) {
             super.drawWidgetsForeground(graphics, mouseX, mouseY, partialTicks);
@@ -574,7 +574,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         var target = navigation.getTarget();
         if (!target.back().isEmpty()) {
             var back = new ArrayList<>(target.back());
-            var entry = back.remove(back.size() - 1);
+            var entry = back.removeLast();
             navigation.request(new NavState(entry.home(), entry.tab(), List.copyOf(back), -1));
         } else if (backToMachine != null) {
             backToMachineRequest.send(Unit.INSTANCE);
@@ -585,7 +585,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         var target = navigation.getTarget();
         if (target.home() == SWITCHER) return;
         var back = new ArrayList<>(target.back());
-        if (target.tab() != 0 && !back.isEmpty()) back.remove(back.size() - 1);
+        if (target.tab() != 0 && !back.isEmpty()) back.removeLast();
         back.add(new NavEntry(target.home(), 0));
         navigation.request(new NavState(SWITCHER, 0, trimHistory(back), -1));
     }
@@ -597,8 +597,8 @@ public class MachineWindow extends FancyMachineUIWidget {
         var back = new ArrayList<>(target.back());
         if (target.home() == 0 && index == 0) {
             back.clear();
-        } else if (!back.isEmpty() && back.get(back.size() - 1).equals(new NavEntry(target.home(), index))) {
-            back.remove(back.size() - 1);
+        } else if (!back.isEmpty() && back.getLast().equals(new NavEntry(target.home(), index))) {
+            back.removeLast();
         } else if (index != target.tab()) {
             back.add(new NavEntry(target.home(), target.tab()));
         }
@@ -901,7 +901,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         if (root == popups) {
             relayoutAnimated(this::updatePlacement);
         } else if (rightAccessories.contains(root)) {
-            if (!pageContainer.widgets.isEmpty()) onContentResized(pageContainer.widgets.get(0));
+            if (!pageContainer.widgets.isEmpty()) onContentResized(pageContainer.widgets.getFirst());
         } else if (root.getParent() == pageContainer && pageContainer.widgets.contains(root)) {
             relayoutAnimated(() -> {
                 title.resize(placePage(root, pageShowsInventory));
@@ -951,16 +951,16 @@ public class MachineWindow extends FancyMachineUIWidget {
             applyCenteredPlacement(screenWidth, screenHeight, width, height, tabsHeight);
             return;
         }
-        if (anchorWidth <= 0 || centered) anchorWidth = width;
-        // 打开阶段（首屏数据陆续到达、页面还在变高）一直按屏幕居中，之后才固定；始终居中的窗口每次都重新居中
-        if (centered || anchorTop == Integer.MIN_VALUE || isOpening() || anchorScreenWidth != screenWidth || anchorScreenHeight != screenHeight) {
+        if (anchorWidth <= 0) anchorWidth = width;
+        // 打开阶段（首屏数据陆续到达、页面还在变高）一直按屏幕居中，之后才固定
+        if (anchorTop == Integer.MIN_VALUE || isOpening() || anchorScreenWidth != screenWidth || anchorScreenHeight != screenHeight) {
             anchorTop = (screenHeight - height - tabsHeight) / 2 + tabsHeight;
             anchorScreenWidth = screenWidth;
             anchorScreenHeight = screenHeight;
         }
         int bottomLimit = screenHeight - clientBottomMargin();
         int minTop = tabsHeight + UISizes.SCREEN_MARGIN;
-        int top = centered ? Math.max(minTop, anchorTop) : Math.max(minTop, Math.min(anchorTop, bottomLimit - height));
+        int top = Math.clamp(anchorTop, minTop, bottomLimit - height);
 
         int extra = Math.max(0, width - anchorWidth);
         int[] placement = clientPlacement(screenWidth, screenHeight, width, top);
@@ -984,7 +984,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         int overflow = left + width + UISizes.POPUP_GAP + popupWidth + margin - screenWidth;
         int reserved = configurators.getTabs().isEmpty() ? 0 : configurators.getSizeWidth() + UISizes.GAP;
         int maxShift = Math.max(0, left - reserved - margin);
-        int shift = Math.max(0, Math.min(overflow, maxShift));
+        int shift = Math.clamp(overflow, 0, maxShift);
         int offsetY = Math.min(0, screenHeight - margin - top - popupHeight);
         offsetY = Math.max(offsetY, margin - top);
         return new int[] { shift, offsetY };
@@ -1003,8 +1003,8 @@ public class MachineWindow extends FancyMachineUIWidget {
         if (popupWidth > 0) {
             int overflow = left + width + UISizes.POPUP_GAP + popupWidth - area.right();
             int maxShift = Math.max(0, left - reserved - area.left());
-            left -= Math.max(0, Math.min(overflow, maxShift));
-            popupY = Math.max(area.top() - top, Math.min(0, area.bottom() - top - popupHeight));
+            left -= Math.clamp(overflow, 0, maxShift);
+            popupY = Math.clamp(area.bottom() - top - popupHeight, area.top() - top, 0);
         }
         int groupRight = left + width + (popupWidth > 0 ? UISizes.POPUP_GAP + popupWidth : 0);
         int halfWidth = Math.max(screenWidth / 2 - (left - reserved), groupRight - screenWidth / 2);
@@ -1092,7 +1092,7 @@ public class MachineWindow extends FancyMachineUIWidget {
             int count = count();
             int left = UISizes.WINDOW_PADDING_X - TAB_BORDER;
             int available = UISizes.WINDOW_WIDTH - 2 * left;
-            tabWidth = Math.max(UISizes.PAGE_TAB_MIN_WIDTH, Math.min(UISizes.PAGE_TAB_WIDTH, (available + TAB_GAP) / count - TAB_GAP));
+            tabWidth = Math.clamp((available + TAB_GAP) / count - TAB_GAP, UISizes.PAGE_TAB_MIN_WIDTH, UISizes.PAGE_TAB_WIDTH);
             int top = -UISizes.PAGE_TAB_HEIGHT - UISizes.PAGE_TAB_RAISE;
             setSelfPosition(new Position(left, top));
             setSize(new Size(count * (tabWidth + TAB_GAP) - TAB_GAP, -top + UISizes.PAGE_TAB_OVERLAP));
@@ -1101,25 +1101,19 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         private void setupHints(int count) {
             if (hints.length != count) hints = new boolean[count];
-            var player = hintPlayer();
+            if (!isRemote()) return;
             var selected = sideTabsWidget.getSelectedTab();
             for (int i = 0; i < count; i++) {
                 var tab = tab(i);
-                hints[i] = player != null && tab instanceof IFirstVisitTab visit && !UIPreferences.hasVisitedTab(player, visit.getFirstVisitKey());
+                hints[i] = tab instanceof IFirstVisitTab visit && !UIPreferences.hasVisitedTab(visit.getFirstVisitKey());
                 if (hints[i] && tab == selected) markVisited(i);
             }
-        }
-
-        @Nullable
-        private UUID hintPlayer() {
-            return gui != null && gui.entityPlayer != null && gui.entityPlayer.level().isClientSide ? gui.entityPlayer.getUUID() : null;
         }
 
         private void markVisited(int index) {
             if (index < 0 || index >= hints.length || !hints[index]) return;
             hints[index] = false;
-            var player = hintPlayer();
-            if (player != null && tab(index) instanceof IFirstVisitTab visit) UIPreferences.markTabVisited(player, visit.getFirstVisitKey());
+            if (isRemote() && tab(index) instanceof IFirstVisitTab visit) UIPreferences.markTabVisited(visit.getFirstVisitKey());
         }
 
         private void markVisited(IFancyUIProvider tab) {
@@ -1171,7 +1165,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         @Override
         @OnlyIn(Dist.CLIENT)
-        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             if (!shown()) return;
             var selected = sideTabsWidget.getSelectedTab();
             int hovered = hoveredIndex(mouseX, mouseY);
@@ -1293,7 +1287,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         @Override
         @OnlyIn(Dist.CLIENT)
-        public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             if (!shown() || gui == null || gui.getModularUIGui() == null) return;
             int hovered = hoveredIndex(mouseX, mouseY);
             if (hovered < 0) return;
@@ -1344,7 +1338,6 @@ public class MachineWindow extends FancyMachineUIWidget {
         @Nullable
         private IFancyUIProvider page;
         private boolean customContent;
-        private int iconLeft;
         private int textLeft;
         private int textRight;
         private int tooltipsRight;
@@ -1399,7 +1392,6 @@ public class MachineWindow extends FancyMachineUIWidget {
                 rightTools.add(tool);
                 right -= UISizes.GAP;
             }
-            iconLeft = left;
             if (content != null && contentHasIcon) {
                 textLeft = left;
             } else {
@@ -1440,7 +1432,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         @Override
         @OnlyIn(Dist.CLIENT)
-        public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        public void drawInBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
             if (page == null) return;
             int x = getPositionX(), y = getPositionY(), h = getSizeHeight();
@@ -1463,7 +1455,7 @@ public class MachineWindow extends FancyMachineUIWidget {
 
         @Override
         @OnlyIn(Dist.CLIENT)
-        public void drawInForeground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        public void drawInForeground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             super.drawInForeground(graphics, mouseX, mouseY, partialTicks);
             if (gui == null || gui.getModularUIGui() == null || page == null) return;
             var tooltip = hoveredTooltip(mouseX, mouseY);

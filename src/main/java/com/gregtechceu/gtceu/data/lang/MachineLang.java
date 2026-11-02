@@ -799,6 +799,7 @@ public class MachineLang {
                 "Holds Rotor in place so it will not fly away", "Requires exclusive 5x5 space");
         // Maintenance tooltips
         provider.add("gtceu.machine.maintenance_hatch.tooltip", "For maintaining Multiblocks");
+        provider.add("gtceu.machine.control_hatch.tooltip", "Allows controlling multiblock operation via redstone signals input into the front face.");
         multilineLang(provider, "gtceu.machine.maintenance_hatch_configurable.tooltip",
                 "For finer control over Multiblocks\nStarts with no Maintenance problems!");
         provider.add("gtceu.machine.maintenance_hatch_configurable.summary", "Higher load: faster recipes, faster damage");

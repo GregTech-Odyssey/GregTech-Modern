@@ -426,7 +426,7 @@ public class GTMachineUtils {
                 .checkPriority(1)
                 .tips(
                         Tips.feature(Component.translatable("gtceu.machine.multiblock.tank.tooltip")),
-                        Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity", capacity)))
+                        Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity", FormattingUtil.formatNumbers(capacity))))
                 .allRotation()
                 .recipeType(DUMMY_RECIPES)
                 .structure(definition -> {
