@@ -960,7 +960,7 @@ public class MachineWindow extends FancyMachineUIWidget {
         }
         int bottomLimit = screenHeight - clientBottomMargin();
         int minTop = tabsHeight + UISizes.SCREEN_MARGIN;
-        int top = Math.clamp(anchorTop, minTop, bottomLimit - height);
+        int top = Math.max(minTop, Math.min(anchorTop, bottomLimit - height));
 
         int extra = Math.max(0, width - anchorWidth);
         int[] placement = clientPlacement(screenWidth, screenHeight, width, top);
