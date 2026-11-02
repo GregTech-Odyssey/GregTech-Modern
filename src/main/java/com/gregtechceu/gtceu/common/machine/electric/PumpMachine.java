@@ -3,27 +3,25 @@ package com.gregtechceu.gtceu.common.machine.electric;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.gui.UITemplate;
-import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
-import com.gregtechceu.gtceu.api.gui.widget.ToggleButtonWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
+import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
-import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
+import com.gregtechceu.gtceu.uipro.elements.FluidSlot;
+import com.gregtechceu.gtceu.uipro.elements.IconToggle;
+import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
+import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
 
-import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
-import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
-import com.lowdragmc.lowdraglib.gui.widget.LabelWidget;
-import com.lowdragmc.lowdraglib.syncdata.annotation.DropSaved;
+import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.Util;
@@ -57,7 +55,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid, IUIMachine, IMachineLife {
+public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid, IFancyUIMachine, IMachineLife {
 
     public static final int BASE_PUMP_RADIUS = 16;
     public static final int EXTRA_PUMP_RADIUS = 4;
@@ -73,7 +71,6 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     @SyncToClient(scheduleUpdate = true)
     protected boolean autoOutputFluids;
     @SaveToDisk
-    @DropSaved
     protected final NotifiableInventory<AEFluidKey> cache;
 
     private final TickTimeMonitor pumpMonitor = holder.monitorTick(GTTickTimeMonitors.PUMP, this::update);
@@ -491,8 +488,12 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     // ********** Gui ***********//
     //////////////////////////////////////
     @Override
-    public ModularUI createUI(Player entityPlayer) {
-        return new ModularUI(176, 166, this, entityPlayer).background(GuiTextures.BACKGROUND).widget(new ImageWidget(7, 16, 81, 55, GuiTextures.DISPLAY)).widget(new LabelWidget(11, 20, "gtceu.gui.fluid_amount")).widget(new LabelWidget(11, 30, () -> cache.storage.amountAt(0) + "").setTextColor(-1).setDropShadow(true)).widget(new LabelWidget(6, 6, getBlockState().getBlock().getDescriptionId())).widget(new TankWidget(new ForgeFluidAdapter(cache.storage), 90, 35, true, true).setBackground(GuiTextures.FLUID_SLOT)).widget(new ToggleButtonWidget(7, 53, 18, 18, GuiTextures.BUTTON_FLUID_OUTPUT, this::isAutoOutputFluids, this::setAutoOutputFluids).setShouldUseBaseBackground().setTooltipText("gtceu.gui.fluid_auto_output.tooltip")).widget(UITemplate.bindPlayerInventory(entityPlayer.getInventory(), GuiTextures.SLOT, 7, 84, true));
+    public Widget createUIWidget() {
+        var slot = FluidSlot.of(new ForgeFluidAdapter(cache.storage), 0, true, true);
+        var output = IconToggle.of(WidgetIcons.EXPORT, this::isAutoOutputFluids, this::setAutoOutputFluids)
+                .onOffTooltips("gtceu.gui.fluid_auto_output.tooltip.enabled", "gtceu.gui.fluid_auto_output.tooltip.disabled");
+        var operations = HatchViews.operations(slot, output);
+        return HatchViews.page(operations);
     }
 
     //////////////////////////////////////

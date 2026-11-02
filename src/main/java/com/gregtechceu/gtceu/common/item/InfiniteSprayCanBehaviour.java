@@ -72,7 +72,6 @@ public class InfiniteSprayCanBehaviour implements IItemUIFactory, IDurabilityBar
 
     public static void setColorSlot(HeldItemUIFactory.HeldItemHolder holder, int slot) {
         setColorSlot(holder.getHeld(), slot);
-        holder.markAsDirty();
     }
 
     /** @return the selected dye color, or {@code null} when the solvent slot is selected. */

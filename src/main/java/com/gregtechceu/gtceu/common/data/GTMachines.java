@@ -461,7 +461,8 @@ public class GTMachines {
                 if (tag != null && tag.contains("stored", Tag.TAG_COMPOUND)) {
                     FluidStack f = FluidStack.loadFluidStackFromNBT(tag.getCompound("stored"));
                     if (!f.isEmpty()) {
-                        int perCycle = tag.getInt("mBPerCycle");
+                        int perCycle = tag.contains("mBPerCycle") ? tag.getInt("mBPerCycle") : 1000;
+                        if (perCycle <= 0) perCycle = 1000;
                         list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_stored", f.getDisplayName(),
                                 FormattingUtil.formatNumbers(perCycle))));
                     }
@@ -482,7 +483,8 @@ public class GTMachines {
                 if (tag != null && tag.contains("stored", Tag.TAG_COMPOUND)) {
                     ItemStack i = ItemStack.of(tag.getCompound("stored"));
                     if (!i.isEmpty()) {
-                        int perCycle = tag.getInt("itemsPerCycle");
+                        int perCycle = tag.contains("itemsPerCycle") ? tag.getInt("itemsPerCycle") : 1;
+                        if (perCycle <= 0) perCycle = 1;
                         list.add(1, Tips.stat(Component.translatable("gtceu.universal.tooltip.item_stored", i.getHoverName(),
                                 FormattingUtil.formatNumbers(perCycle))));
                     }

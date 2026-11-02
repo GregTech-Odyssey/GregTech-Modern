@@ -40,6 +40,8 @@ final class PreviewLevel extends DummyWorld {
 
     static final int ALL_LAYERS = Integer.MIN_VALUE;
     private static final BlockState AIR = Blocks.AIR.defaultBlockState();
+    private static final Long2ObjectOpenHashMap<BlockState> EMPTY_STATES = new Long2ObjectOpenHashMap<>(0);
+    private static final Long2ObjectOpenHashMap<BlockEntity> EMPTY_ENTITIES = new Long2ObjectOpenHashMap<>(0);
 
     @Nullable
     private final Holder<Biome> biome;
@@ -48,7 +50,7 @@ final class PreviewLevel extends DummyWorld {
     PreviewLevel(Level level) {
         super(level);
         this.biome = level.registryAccess().registryOrThrow(Registries.BIOME).getHolder(Biomes.PLAINS).orElse(null);
-        this.view = new View(this, new Long2ObjectOpenHashMap<>(), new Long2ObjectOpenHashMap<>(), ALL_LAYERS);
+        this.view = new View(this, EMPTY_STATES, EMPTY_ENTITIES, ALL_LAYERS);
     }
 
     View view() {
@@ -60,11 +62,16 @@ final class PreviewLevel extends DummyWorld {
     }
 
     void setBlocks(Long2ObjectOpenHashMap<BlockState> states, @Nullable Long2ObjectOpenHashMap<StructureScene.PartOwner> owners) {
-        states = connectShapes(connectShapes(states));
+        if (states.isEmpty()) {
+            clear();
+            return;
+        }
+        states = connectShapes(states);
         var entities = new Long2ObjectOpenHashMap<BlockEntity>();
         var parts = new Long2ObjectOpenHashMap<IMultiPart>();
         var controllers = new Long2ObjectOpenHashMap<IMultiController>();
         IMultiController controller = null;
+        view = new View(this, states, entities, ALL_LAYERS);
         for (var it = states.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             var entity = createEntity(entry.getLongKey(), entry.getValue());
@@ -97,7 +104,6 @@ final class PreviewLevel extends DummyWorld {
             var finalController = controller;
             parts.values().forEach(entry -> entry.addedToController(finalController));
         }
-        view = new View(this, states, entities, ALL_LAYERS);
     }
 
     @Nullable
@@ -124,18 +130,27 @@ final class PreviewLevel extends DummyWorld {
     }
 
     private Long2ObjectOpenHashMap<BlockState> connectShapes(Long2ObjectOpenHashMap<BlockState> states) {
-        view = new View(this, states, new Long2ObjectOpenHashMap<>(), ALL_LAYERS);
-        var connected = new Long2ObjectOpenHashMap<BlockState>(states.size());
+        var connected = new Long2ObjectOpenHashMap<BlockState>(states);
+        view = new View(this, connected, EMPTY_ENTITIES, ALL_LAYERS);
+        var pos = new BlockPos.MutableBlockPos();
+        if (connectPass(connected, pos)) connectPass(connected, pos);
+        return connected;
+    }
+
+    private boolean connectPass(Long2ObjectOpenHashMap<BlockState> states, BlockPos.MutableBlockPos pos) {
+        boolean changed = false;
         for (var it = states.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             var state = entry.getValue();
             try {
-                var updated = Block.updateFromNeighbourShapes(state, this, BlockPos.of(entry.getLongKey()));
-                if (updated.getBlock() == state.getBlock()) state = updated;
+                var updated = Block.updateFromNeighbourShapes(state, this, pos.set(entry.getLongKey()));
+                if (updated != state && updated.getBlock() == state.getBlock()) {
+                    entry.setValue(updated);
+                    changed = true;
+                }
             } catch (Throwable ignored) {}
-            connected.put(entry.getLongKey(), state);
         }
-        return connected;
+        return changed;
     }
 
     void setLiveBlocks(Long2ObjectOpenHashMap<BlockState> states, Long2ObjectOpenHashMap<BlockEntity> entities) {
@@ -147,7 +162,7 @@ final class PreviewLevel extends DummyWorld {
     }
 
     void clear() {
-        view = new View(this, new Long2ObjectOpenHashMap<>(), new Long2ObjectOpenHashMap<>(), ALL_LAYERS);
+        view = new View(this, EMPTY_STATES, EMPTY_ENTITIES, ALL_LAYERS);
     }
 
     @Override
@@ -201,6 +216,11 @@ final class PreviewLevel extends DummyWorld {
             return state == null ? AIR : state;
         }
 
+        @Nullable
+        BlockEntity getEntity(long pos) {
+            return entities.isEmpty() || !visible(pos) ? null : entities.get(pos);
+        }
+
         @Override
         public BlockState getBlockState(BlockPos pos) {
             return get(pos.asLong());
@@ -214,8 +234,7 @@ final class PreviewLevel extends DummyWorld {
         @Nullable
         @Override
         public BlockEntity getBlockEntity(BlockPos pos) {
-            long key = pos.asLong();
-            return visible(key) ? entities.get(key) : null;
+            return getEntity(pos.asLong());
         }
 
         @Override

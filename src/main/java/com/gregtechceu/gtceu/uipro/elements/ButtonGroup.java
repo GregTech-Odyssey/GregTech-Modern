@@ -177,7 +177,7 @@ public class ButtonGroup extends UIElement {
         for (var child : widgets) {
             if (child instanceof Option option) {
                 int width = UISizes.widthFor(option.label.getString()) + 2 * UISizes.TEXT_PADDING;
-                option.layout(l -> l.width(width));
+                option.layout(l -> l.width(width).flexGrow(1));
             }
         }
         return this;

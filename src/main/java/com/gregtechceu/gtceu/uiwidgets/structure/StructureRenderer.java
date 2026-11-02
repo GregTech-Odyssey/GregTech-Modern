@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.lowdragmc.lowdraglib.client.scene.WorldSceneRenderer;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -26,14 +27,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexSorting;
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongArrays;
 import org.jetbrains.annotations.Nullable;
 import org.joml.FrustumIntersection;
 import org.joml.Vector3f;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,7 +48,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class StructureRenderer {
 
     private static final List<RenderType> LAYERS = RenderType.chunkBufferLayers();
+    private static final RenderType[] LAYER_ARRAY = LAYERS.toArray(RenderType[]::new);
     private static final int TRANSLUCENT_LAYER = LAYERS.indexOf(RenderType.translucent());
+    private static final float SORT_THRESHOLD_SQR = 1e-3f;
+    private static final float CUTOUT_GHOST_MIN_ALPHA = 0.2f;
     private static final int THREADS = Math.max(1, Math.min(3, Runtime.getRuntime().availableProcessors() / 4));
     private static final long UPLOAD_NANOS = 3_000_000L;
     private static final int UPLOAD_BYTES = 8 << 20;
@@ -56,7 +64,7 @@ final class StructureRenderer {
         return thread;
     });
     private static final ThreadLocal<BufferBuilder[]> BUILDERS = ThreadLocal.withInitial(() -> {
-        var builders = new BufferBuilder[LAYERS.size()];
+        var builders = new BufferBuilder[LAYER_ARRAY.length];
         for (int i = 0; i < builders.length; i++) builders[i] = new BufferBuilder(BUILDER_SIZE);
         return builders;
     });
@@ -70,6 +78,7 @@ final class StructureRenderer {
     private final ConcurrentLinkedQueue<Mesh> done = new ConcurrentLinkedQueue<>();
     private final List<BlockEntity> rendered = new ArrayList<>();
     private final List<Section> visible = new ArrayList<>();
+    private final Map<RenderType, RenderType> ghostTypes = new IdentityHashMap<>();
     @Nullable
     private PreviewLevel.View view;
     @Nullable
@@ -79,6 +88,7 @@ final class StructureRenderer {
     private int outstanding;
     private int total;
     private final Vector3f focus = new Vector3f();
+    private final Vector3f lastEye = new Vector3f(Float.NaN, Float.NaN, Float.NaN);
     private final float blockScale;
     private double originX, originY, originZ;
     private float tintR = 1, tintG = 1, tintB = 1, tintA = 1;
@@ -102,10 +112,18 @@ final class StructureRenderer {
         this.blockScale = blockScale;
     }
 
+    private static int layerIndex(RenderType type) {
+        for (int i = 0; i < LAYER_ARRAY.length; i++) {
+            if (LAYER_ARRAY[i] == type) return i;
+        }
+        return LAYERS.indexOf(type);
+    }
+
     void show(PreviewLevel.View view, boolean blocksChanged, Vector3f focus) {
+        this.focus.set(focus);
+        if (!blocksChanged && this.view == view && !stale && index != null) return;
         if (blocksChanged || index == null) index = buildIndex(view);
         this.view = view;
-        this.focus.set(focus);
         rebuild();
     }
 
@@ -131,25 +149,29 @@ final class StructureRenderer {
         done.clear();
         stale = false;
         rendered.clear();
-        var dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-        for (var it = view.entities.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
-            var entry = it.next();
-            if (!view.visible(entry.getLongKey())) continue;
-            var entity = entry.getValue();
-            if (dispatcher.getRenderer(entity) != null) rendered.add(entity);
+        if (!view.entities.isEmpty()) {
+            var dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+            for (var it = view.entities.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+                var entry = it.next();
+                if (!view.visible(entry.getLongKey())) continue;
+                var entity = entry.getValue();
+                if (dispatcher.getRenderer(entity) != null) rendered.add(entity);
+            }
         }
-        int sectionY = view.onlyY == PreviewLevel.ALL_LAYERS ? 0 : SectionPos.blockToSectionCoord(view.onlyY);
-        var keys = new LongOpenHashSet();
-        for (var it = index.keySet().iterator(); it.hasNext();) {
-            long key = it.nextLong();
-            if (view.onlyY == PreviewLevel.ALL_LAYERS || SectionPos.y(key) == sectionY) keys.add(key);
-        }
-        for (var it = sections.long2ObjectEntrySet().iterator(); it.hasNext();) {
+        boolean allLayers = view.onlyY == PreviewLevel.ALL_LAYERS;
+        int sectionY = allLayers ? 0 : SectionPos.blockToSectionCoord(view.onlyY);
+        for (var it = sections.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
-            if (!keys.contains(entry.getLongKey())) {
+            long key = entry.getLongKey();
+            if (!index.containsKey(key) || (!allLayers && SectionPos.y(key) != sectionY)) {
                 entry.getValue().close();
                 it.remove();
             }
+        }
+        var keys = new LongArrayList(index.size());
+        for (var it = index.keySet().iterator(); it.hasNext();) {
+            long key = it.nextLong();
+            if (allLayers || SectionPos.y(key) == sectionY) keys.add(key);
         }
         float fx = focus.x(), fy = focus.y(), fz = focus.z();
         var sorted = keys.toLongArray();
@@ -188,7 +210,9 @@ final class StructureRenderer {
         view = null;
         index = null;
         rendered.clear();
+        ghostTypes.clear();
         outstanding = total = 0;
+        lastEye.set(Float.NaN, Float.NaN, Float.NaN);
     }
 
     boolean hasData() {
@@ -212,7 +236,7 @@ final class StructureRenderer {
             logError(t);
         }
         if (gen != generation) return;
-        done.add(new Mesh(gen, key, layers == null ? new byte[LAYERS.size()][] : layers));
+        done.add(new Mesh(gen, key, layers == null ? new byte[LAYER_ARRAY.length][] : layers));
     }
 
     @Nullable
@@ -221,44 +245,43 @@ final class StructureRenderer {
         var started = new boolean[builders.length];
         int ox = SectionPos.x(key) << 4, oy = SectionPos.y(key) << 4, oz = SectionPos.z(key) << 4;
         var dispatcher = Minecraft.getInstance().getBlockRenderer();
+        var modelRenderer = dispatcher.getModelRenderer();
         var random = RandomSource.create();
         var pose = new PoseStack();
+        var pos = new BlockPos.MutableBlockPos();
+        boolean checkSides = blockScale == 1;
+        float scaleOffset = (1 - blockScale) * 0.5f;
         boolean aborted = true;
         var layers = new byte[builders.length][];
         ModelBlockRenderer.enableCaching();
         try {
-            for (int i = 0; i < positions.size(); i++) {
+            for (int i = 0, size = positions.size(); i < size; i++) {
                 if ((i & 127) == 0 && gen != generation) return null;
                 long packed = positions.getLong(i);
                 var state = view.get(packed);
                 if (state.isAir()) continue;
-                var pos = BlockPos.of(packed);
+                pos.set(packed);
                 try {
                     if (state.getRenderShape() == RenderShape.MODEL) {
                         var model = dispatcher.getBlockModel(state);
-                        var entity = view.getBlockEntity(pos);
+                        var entity = view.getEntity(packed);
                         var data = model.getModelData(view, pos, state, entity != null ? entity.getModelData() : ModelData.EMPTY);
                         long seed = state.getSeed(pos);
                         random.setSeed(seed);
+                        pose.pushPose();
+                        pose.translate(pos.getX() - ox + scaleOffset, pos.getY() - oy + scaleOffset, pos.getZ() - oz + scaleOffset);
+                        if (!checkSides) pose.scale(blockScale, blockScale, blockScale);
                         for (var type : model.getRenderTypes(state, random, data)) {
-                            int layer = LAYERS.indexOf(type);
+                            int layer = layerIndex(type);
                             if (layer < 0) continue;
-                            var builder = begin(builders, started, layer);
-                            pose.pushPose();
-                            pose.translate(pos.getX() - ox, pos.getY() - oy, pos.getZ() - oz);
-                            if (blockScale != 1) {
-                                pose.translate(0.5f, 0.5f, 0.5f);
-                                pose.scale(blockScale, blockScale, blockScale);
-                                pose.translate(-0.5f, -0.5f, -0.5f);
-                            }
-                            dispatcher.getModelRenderer().tesselateBlock(view, model, state, pos, pose, builder, blockScale == 1, random, seed,
+                            modelRenderer.tesselateBlock(view, model, state, pos, pose, begin(builders, started, layer), checkSides, random, seed,
                                     OverlayTexture.NO_OVERLAY, data, type);
-                            pose.popPose();
                         }
+                        pose.popPose();
                     }
                     var fluid = state.getFluidState();
                     if (!fluid.isEmpty()) {
-                        int layer = LAYERS.indexOf(ItemBlockRenderTypes.getRenderLayer(fluid));
+                        int layer = layerIndex(ItemBlockRenderTypes.getRenderLayer(fluid));
                         if (layer >= 0) dispatcher.renderLiquid(pos, view, begin(builders, started, layer), state, fluid);
                     }
                 } catch (Throwable t) {
@@ -318,38 +341,46 @@ final class StructureRenderer {
         long deadline = System.nanoTime() + UPLOAD_NANOS;
         int bytes = 0;
         boolean bound = false;
+        boolean hasEye = !Float.isNaN(lastEye.x());
         Mesh mesh;
-        while (bytes < UPLOAD_BYTES && System.nanoTime() < deadline && (mesh = done.poll()) != null) {
+        while (bytes < UPLOAD_BYTES && (bytes == 0 || System.nanoTime() < deadline) && (mesh = done.poll()) != null) {
             if (mesh.generation != generation) continue;
             outstanding--;
             var section = sections.get(mesh.key);
-            if (section == null) sections.put(mesh.key, section = new Section(mesh.key));
             for (int i = 0; i < mesh.layers.length; i++) {
                 var data = mesh.layers[i];
                 if (data == null) {
-                    if (i == TRANSLUCENT_LAYER) section.translucentSortState = null;
-                    if (section.buffers[i] != null) {
-                        section.buffers[i].close();
-                        section.buffers[i] = null;
+                    if (section != null) {
+                        if (i == TRANSLUCENT_LAYER) section.translucentSortState = null;
+                        if (section.buffers[i] != null) {
+                            section.buffers[i].close();
+                            section.buffers[i] = null;
+                        }
                     }
                     continue;
                 }
+                if (section == null) sections.put(mesh.key, section = new Section(mesh.key));
                 var buffer = section.buffers[i];
                 if (buffer == null) section.buffers[i] = buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
                 var builder = uploader();
                 builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
                 builder.putBulkData(ByteBuffer.wrap(data));
                 if (i == TRANSLUCENT_LAYER) {
-                    builder.setQuadSorting(VertexSorting.DISTANCE_TO_ORIGIN);
+                    if (hasEye) {
+                        builder.setQuadSorting(VertexSorting.byDistance(lastEye.x() - section.x, lastEye.y() - section.y, lastEye.z() - section.z));
+                        section.translucentEye.set(lastEye);
+                    } else {
+                        builder.setQuadSorting(VertexSorting.DISTANCE_TO_ORIGIN);
+                        section.translucentEye.set(Float.NaN, Float.NaN, Float.NaN);
+                    }
                     section.translucentSortState = builder.getSortState();
-                    section.translucentEye.set(Float.NaN, Float.NaN, Float.NaN);
                 }
                 buffer.bind();
                 buffer.upload(builder.end());
                 bound = true;
                 bytes += data.length;
             }
-            if (section.isEmpty()) sections.remove(mesh.key);
+            if (section != null && section.isEmpty()) sections.remove(mesh.key);
         }
         if (bound) VertexBuffer.unbind();
     }
@@ -372,17 +403,21 @@ final class StructureRenderer {
         this.originX = originX;
         this.originY = originY;
         this.originZ = originZ;
+        lastEye.set(eye);
         visible.clear();
+        float ex = eye.x(), ey = eye.y(), ez = eye.z();
         for (var section : sections.values()) {
             float x = (float) (section.x - originX), y = (float) (section.y - originY), z = (float) (section.z - originZ);
-            if (frustum.testAab(x, y, z, x + 16, y + 16, z + 16)) visible.add(section);
+            if (frustum.testAab(x, y, z, x + 16, y + 16, z + 16)) {
+                float dx = section.x + 8 - ex, dy = section.y + 8 - ey, dz = section.z + 8 - ez;
+                section.distance = dx * dx + dy * dy + dz * dz;
+                visible.add(section);
+            }
         }
-        float ex = eye.x(), ey = eye.y(), ez = eye.z();
-        visible.sort((a, b) -> Float.compare(distance(a.key, ex, ey, ez), distance(b.key, ex, ey, ez)));
-        for (var section : visible) section.sortTranslucent(eye);
-        for (int i = 0; i < LAYERS.size(); i++) {
-            var layer = LAYERS.get(i);
-            if (layer == RenderType.translucent() && !ghost()) renderBlockEntities(frustum, partialTicks);
+        visible.sort((a, b) -> Float.compare(a.distance, b.distance));
+        for (int i = 0; i < LAYER_ARRAY.length; i++) {
+            boolean translucent = i == TRANSLUCENT_LAYER;
+            if (translucent) renderBlockEntities(frustum, partialTicks);
             boolean any = false;
             for (var section : visible) {
                 if (section.buffers[i] != null) {
@@ -391,21 +426,40 @@ final class StructureRenderer {
                 }
             }
             if (!any) continue;
-            drawLayer(layer, i, layer == RenderType.translucent());
+            if (translucent) {
+                boolean bound = false;
+                for (var section : visible) bound |= section.sortTranslucent(eye);
+                if (bound) VertexBuffer.unbind();
+            }
+            drawLayer(LAYER_ARRAY[i], i, translucent);
+        }
+    }
+
+    private void applyGhostShader(RenderType layer) {
+        // rendertype_cutout_mipped.fsh discards fragments with (texture.a * vertexColor.a * ColorModulator.a < 0.5),
+        // which discards every pixel when tintA < 0.5 (e.g. GHOST_ALPHA = 0.3). Switch to rendertype_cutout (< 0.1)
+        // or rendertype_translucent (no discard) so cutout_mipped blocks render properly when ghosted.
+        if (tintA < CUTOUT_GHOST_MIN_ALPHA && layer != RenderType.solid() && layer != RenderType.translucent()) {
+            RenderSystem.setShader(GameRenderer::getRendertypeTranslucentShader);
+        } else if (layer == RenderType.cutoutMipped()) {
+            RenderSystem.setShader(GameRenderer::getRendertypeCutoutShader);
         }
     }
 
     private void drawLayer(RenderType layer, int index, boolean backToFront) {
         layer.setupRenderState();
+        if (ghost()) applyGhostShader(layer);
         var shader = RenderSystem.getShader();
         if (shader == null) {
             layer.clearRenderState();
             return;
         }
+        WorldSceneRenderer.setDefaultRenderLayerState(layer);
+        RenderSystem.setShaderColor(1, 1, 1, 1);
         for (int j = 0; j < 12; ++j) shader.setSampler("Sampler" + j, RenderSystem.getShaderTexture(j));
         if (shader.MODEL_VIEW_MATRIX != null) shader.MODEL_VIEW_MATRIX.set(RenderSystem.getModelViewMatrix());
         if (shader.PROJECTION_MATRIX != null) shader.PROJECTION_MATRIX.set(RenderSystem.getProjectionMatrix());
-        if (shader.COLOR_MODULATOR != null) shader.COLOR_MODULATOR.set(RenderSystem.getShaderColor());
+        if (shader.COLOR_MODULATOR != null) shader.COLOR_MODULATOR.set(tintR, tintG, tintB, tintA);
         if (shader.FOG_START != null) shader.FOG_START.set(RenderSystem.getShaderFogStart());
         if (shader.FOG_END != null) shader.FOG_END.set(RenderSystem.getShaderFogEnd());
         if (shader.FOG_COLOR != null) shader.FOG_COLOR.set(RenderSystem.getShaderFogColor());
@@ -414,12 +468,6 @@ final class StructureRenderer {
         if (shader.GAME_TIME != null) shader.GAME_TIME.set(RenderSystem.getShaderGameTime());
         RenderSystem.setupShaderLights(shader);
         shader.apply();
-        WorldSceneRenderer.setDefaultRenderLayerState(layer);
-        RenderSystem.setShaderColor(1, 1, 1, 1);
-        if (shader.COLOR_MODULATOR != null) {
-            shader.COLOR_MODULATOR.set(tintR, tintG, tintB, tintA);
-            shader.COLOR_MODULATOR.upload();
-        }
         if (ghost()) {
             RenderSystem.enableBlend();
             RenderSystem.defaultBlendFunc();
@@ -445,11 +493,32 @@ final class StructureRenderer {
         layer.clearRenderState();
     }
 
+    private RenderType ghostType(RenderType delegate) {
+        return ghostTypes.computeIfAbsent(delegate, d -> new RenderType(
+                d.toString() + "_ghost", d.format(), d.mode(), d.bufferSize(), d.affectsCrumbling(), true,
+                () -> {
+                    d.setupRenderState();
+                    applyGhostShader(d);
+                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.depthMask(false);
+                    RenderSystem.setShaderColor(tintR, tintG, tintB, tintA);
+                },
+                () -> {
+                    RenderSystem.setShaderColor(1, 1, 1, 1);
+                    RenderSystem.depthMask(true);
+                    RenderSystem.disableBlend();
+                    d.clearRenderState();
+                }) {});
+    }
+
     private void renderBlockEntities(FrustumIntersection frustum, float partialTicks) {
         if (rendered.isEmpty()) return;
         var dispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
         var buffers = blockEntityBuffers();
+        MultiBufferSource sink = ghost() ? type -> buffers.getBuffer(ghostType(type)) : buffers;
         var pose = new PoseStack();
+        float scaleOffset = (1 - blockScale) * 0.5f;
         WorldSceneRenderer.setDefaultRenderLayerState(null);
         for (var it = rendered.iterator(); it.hasNext();) {
             var entity = it.next();
@@ -459,14 +528,10 @@ final class StructureRenderer {
             var renderer = dispatcher.getRenderer(entity);
             if (renderer == null || !entity.hasLevel() || !entity.getType().isValid(entity.getBlockState())) continue;
             pose.pushPose();
-            pose.translate(x, y, z);
-            if (blockScale != 1) {
-                pose.translate(0.5f, 0.5f, 0.5f);
-                pose.scale(blockScale, blockScale, blockScale);
-                pose.translate(-0.5f, -0.5f, -0.5f);
-            }
+            pose.translate(x + scaleOffset, y + scaleOffset, z + scaleOffset);
+            if (blockScale != 1) pose.scale(blockScale, blockScale, blockScale);
             try {
-                renderer.render(entity, partialTicks, pose, buffers, 0xF000F0, OverlayTexture.NO_OVERLAY);
+                renderer.render(entity, partialTicks, pose, sink, 0xF000F0, OverlayTexture.NO_OVERLAY);
             } catch (Throwable t) {
                 logError(t);
                 it.remove();
@@ -482,7 +547,8 @@ final class StructureRenderer {
 
         final long key;
         final int x, y, z;
-        final VertexBuffer[] buffers = new VertexBuffer[LAYERS.size()];
+        final VertexBuffer[] buffers = new VertexBuffer[LAYER_ARRAY.length];
+        float distance;
         @Nullable
         BufferBuilder.SortState translucentSortState;
         final Vector3f translucentEye = new Vector3f(Float.NaN, Float.NaN, Float.NaN);
@@ -494,10 +560,10 @@ final class StructureRenderer {
             this.z = SectionPos.z(key) << 4;
         }
 
-        void sortTranslucent(Vector3f eye) {
+        boolean sortTranslucent(Vector3f eye) {
             var state = translucentSortState;
             var buffer = buffers[TRANSLUCENT_LAYER];
-            if (state == null || buffer == null || translucentEye.equals(eye)) return;
+            if (state == null || buffer == null || translucentEye.distanceSquared(eye) <= SORT_THRESHOLD_SQR) return false;
             var builder = uploader();
             builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
             builder.restoreSortState(state);
@@ -505,8 +571,8 @@ final class StructureRenderer {
             builder.setQuadSorting(VertexSorting.byDistance(eye.x() - x, eye.y() - y, eye.z() - z));
             buffer.bind();
             buffer.upload(builder.end());
-            VertexBuffer.unbind();
             translucentEye.set(eye);
+            return true;
         }
 
         boolean isEmpty() {

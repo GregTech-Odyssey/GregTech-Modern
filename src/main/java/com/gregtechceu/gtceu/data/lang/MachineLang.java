@@ -997,6 +997,9 @@ public class MachineLang {
         provider.add("gtceu.creative.tank.fluid", "Fluid");
         provider.add("gtceu.creative.tank.mbpc", "mB per Cycle");
         provider.add("gtceu.creative.tank.tpc", "Ticks per Cycle");
+        provider.add("gtceu.creative.energy.tier", "Tier");
+        provider.add("gtceu.creative.energy.mode", "Mode");
+        provider.add("gtceu.creative.energy.average", "Average EU/t");
         provider.add("gtceu.creative.energy.amperage", "Amperage");
         provider.add("gtceu.creative.energy.voltage", "Voltage");
         provider.add("gtceu.creative.energy.sink", "Sink");

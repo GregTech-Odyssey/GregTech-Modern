@@ -649,6 +649,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         version++;
         onChanged.run();
         availableStacksCache.markAsDirty();
+        emptyChanged = true;
     }
 
     @Override
@@ -682,6 +683,8 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         rebuildIndex();
         markAll();
         version++;
+        availableStacksCache.markAsDirty();
+        emptyChanged = true;
     }
 
     private static boolean isCompactKeyMap(@NotNull ValueOps ops, @NotNull Object data) {
