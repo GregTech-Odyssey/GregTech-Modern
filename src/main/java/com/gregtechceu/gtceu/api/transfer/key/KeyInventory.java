@@ -17,6 +17,7 @@ import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.datastream.codec.JavaValueOps;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ValueCodecs;
+import lombok.Getter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +37,9 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     private static final int INDEX_THRESHOLD = 16;
 
     private final AEKeyType type;
+    @Getter
     private final boolean stackLimited;
+    @Getter
     private final boolean growable;
     private AEKey[] keys;
     private long[] amounts;
@@ -46,13 +49,17 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     @Nullable
     private Object viewOwner;
     private final long slotLimit;
+    @Getter
     private boolean uniqueKeys;
+    // Preserve an explicitly disabled limit even when the loading machine enables it by default.
+    private boolean uniqueKeysConfigured;
     @Nullable
     private AEKeyIntMap<AEKey> index;
     @Nullable
     private AEKeyFilter filter;
     @Nullable
     private AEKey[] locked;
+    @Getter
     private Runnable onChanged = GTUtil.NOOP;
     private boolean isEmpty;
     private boolean emptyChanged = true;
@@ -141,21 +148,12 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         return slotLimit;
     }
 
-    public boolean isStackLimited() {
-        return stackLimited;
-    }
-
-    public boolean isGrowable() {
-        return growable;
-    }
-
-    public boolean isUniqueKeys() {
-        return uniqueKeys;
-    }
-
     public KeyInventory<K> setUniqueKeys(boolean uniqueKeys) {
+        if (this.uniqueKeys == uniqueKeys) return this;
         this.uniqueKeys = uniqueKeys;
+        uniqueKeysConfigured = true;
         rebuildIndex();
+        notifyChanged();
         return this;
     }
 
@@ -178,10 +176,6 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
             locked = new AEKey[keys.length];
         }
         locked[slot] = key;
-    }
-
-    public Runnable getOnChanged() {
-        return onChanged;
     }
 
     public KeyInventory<K> setOnChanged(Runnable onChanged) {
@@ -612,6 +606,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         for (int i = n; i < keys.length; i++) amounts[i] = 0;
         high = h;
         uniqueKeys = other.uniqueKeys;
+        uniqueKeysConfigured = true;
         rebuildIndex();
         markAll();
         notifyChanged();
@@ -644,6 +639,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
             put(s - 1, key, amount);
         }
         uniqueKeys = buf.readBoolean();
+        uniqueKeysConfigured = true;
         rebuildIndex();
         markAll();
         version++;
@@ -658,6 +654,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         for (long a : amounts) {
             if (a > 0) count++;
         }
+        if (count == 0 && !uniqueKeys && !uniqueKeysConfigured) return ops.createNull();
         return ops.createByteArray(KeyInventoryCodec.encode(this, MAGIC | FLAG_COMPACT | (uniqueKeys ? FLAG_UNIQUE : 0), count));
     }
 
@@ -670,6 +667,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
             int header = bytes.length >= 4 ? (bytes[0] & 0xFF) << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | bytes[3] & 0xFF : 0;
             if ((header & ~0xFF) == MAGIC && (header & FLAG_COMPACT) != 0) {
                 uniqueKeys = (header & FLAG_UNIQUE) != 0;
+                uniqueKeysConfigured = true;
                 try {
                     KeyInventoryCodec.decode(this, bytes);
                 } catch (RuntimeException e) {

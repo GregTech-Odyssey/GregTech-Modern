@@ -44,6 +44,7 @@ import com.gregtechceu.gtceu.data.pack.GTDynamicDataPack;
 import com.gregtechceu.gtceu.data.pack.GTDynamicResourcePack;
 import com.gregtechceu.gtceu.data.pack.GTPackSource;
 import com.gregtechceu.gtceu.data.recipe.GTCraftingComponents;
+import com.gregtechceu.gtceu.datasynclib.DataStickData;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.datasynclib.TagSerializableAccess;
 import com.gregtechceu.gtceu.datasynclib.TagSerializableArrayAccess;
@@ -207,6 +208,7 @@ public class CommonProxy {
     }
 
     private static void initDataSync() {
+        DataStickData.init();
         GTDataFixer.registerCodecs();
         KeyCodecs.register();
         // TipContents 是 GTM 自己的内容类型，原版与库都不认识它；注册之后二进制组件编码才能把带角色的

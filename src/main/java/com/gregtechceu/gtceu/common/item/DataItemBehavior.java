@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
+import com.gregtechceu.gtceu.datasynclib.DataStickData;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
 import net.minecraft.ChatFormatting;
@@ -85,16 +86,17 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
             if (!MachineOwner.canOpenOwnerMachine(context.getPlayer(), machine)) {
                 return InteractionResult.FAIL;
             }
-            if (machine instanceof IDataStickInteractable interactable) {
-                if (context.isSecondaryUseActive()) {
-                    if (ResearchManager.readResearchId(itemStack) == null) {
-                        return interactable.onDataStickShiftUse(context.getPlayer(), itemStack);
-                    }
-                    return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
-                } else {
-                    return interactable.onDataStickUse(context.getPlayer(), itemStack);
-                }
+            boolean copy = context.isSecondaryUseActive();
+            if (copy && ResearchManager.readResearchId(itemStack) != null) {
+                return machine instanceof IDataStickInteractable ?
+                        InteractionResult.sidedSuccess(context.getLevel().isClientSide) : InteractionResult.PASS;
             }
+            if (machine instanceof IDataStickInteractable interactable) {
+                var result = copy ? interactable.onDataStickShiftUse(context.getPlayer(), itemStack) :
+                        interactable.onDataStickUse(context.getPlayer(), itemStack);
+                if (result != InteractionResult.PASS) return result;
+            }
+            return DataStickData.interact(machine, itemStack, copy, context.getPlayer());
         }
         return InteractionResult.PASS;
     }
