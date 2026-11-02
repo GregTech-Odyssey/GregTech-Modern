@@ -21,6 +21,10 @@ sourceSets {
     main.resources {
         srcDir 'src/generated/resources'
     }
+    test {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.compileClasspath
+    }
 }
 
 apply from: "$rootDir/gradle/scripts/jars.gradle"
@@ -35,6 +39,11 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.compilerArgs << "-Xlint:-removal"
     options.compilerArgs << "-Aquiet=true" // Suppress mixin notes
+}
+
+tasks.named('test') {
+    // Test sources currently contain standalone checks run by dedicated JavaExec tasks.
+    failOnNoDiscoveredTests = false
 }
 
 jar {
