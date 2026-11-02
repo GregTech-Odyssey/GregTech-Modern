@@ -2169,7 +2169,8 @@ public class GTItems {
                         NanoSaberBehavior.TIERS[grade]).transferAmps(ArmorLogicSuite.TRANSFER_AMPS),
                         new NanoSaberBehavior(grade)))
                 .model((ctx, prov) -> {
-                    var rootModel = prov.generated(ctx::getEntry, prov.modLoc("item/nano_saber/normal_" + grade));
+                    // 手持武器用 handheld，第三人称才是握剑姿势；generated 会平贴成一张卡片
+                    var rootModel = prov.handheld(ctx::getEntry, prov.modLoc("item/nano_saber/normal_" + grade));
                     prov.getBuilder("item/" + id + "/active")
                             .parent(new ModelFile.UncheckedModelFile("item/handheld"))
                             .texture("layer0", prov.modLoc("item/nano_saber/active_" + grade));
