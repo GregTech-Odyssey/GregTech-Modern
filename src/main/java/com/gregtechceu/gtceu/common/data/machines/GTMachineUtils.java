@@ -372,9 +372,7 @@ public class GTMachineUtils {
                     .renderer(() -> new QuantumTankRenderer(tier))
                     .hasTESR(true)
                     .tooltipBuilder(TANK_TOOLTIPS)
-                    .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_tank.tooltip")),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.fluid_storage_capacity",
-                                    FormattingUtil.formatNumbers(maxAmount))))
+                    .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_tank.tooltip")))
                     .register();
             TANK_CAPACITY.put(register, maxAmount);
             definitions[tier] = register;
@@ -401,10 +399,7 @@ public class GTMachineUtils {
                     .renderer(() -> new QuantumChestRenderer(tier))
                     .hasTESR(true)
                     .tooltipBuilder(CHEST_TOOLTIPS)
-                    .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")),
-                            Tips.stat(Component.translatable("gtceu.universal.tooltip.item_storage_total",
-                                    FormattingUtil.formatNumbers(tier == MAX ? Long.MAX_VALUE :
-                                            500_000 * (long) Math.pow(2, tier)))))
+                    .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")))
                     .register();
         }
         return definitions;
