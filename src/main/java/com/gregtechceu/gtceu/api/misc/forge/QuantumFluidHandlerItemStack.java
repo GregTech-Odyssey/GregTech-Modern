@@ -1,11 +1,10 @@
 package com.gregtechceu.gtceu.api.misc.forge;
 
-import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
+import com.gregtechceu.gtceu.api.machine.trait.StorageCapacity;
 import com.gregtechceu.gtceu.utils.GTMath;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -24,18 +23,10 @@ public class QuantumFluidHandlerItemStack implements IFluidHandlerItem, ICapabil
     @NotNull
     protected ItemStack container;
     protected long capacity;
-    private Tag lastUpgrades;
-    private int upgradeMultiplier = 1;
 
     protected long getCapacity() {
         var tag = container.getTag();
-        var upgrades = tag == null ? null : tag.get(StorageUpgrades.ITEMS_KEY);
-        if (upgrades != lastUpgrades) {
-            upgradeMultiplier = StorageUpgrades.multiplier(tag);
-            lastUpgrades = upgrades;
-        }
-        long maximum = StorageUpgrades.multiply(capacity, upgradeMultiplier);
-        return tag != null && tag.contains(StorageUpgrades.LIMIT_KEY) ? Math.clamp(tag.getLong(StorageUpgrades.LIMIT_KEY), 1, maximum) : maximum;
+        return StorageCapacity.limit(tag, capacity);
     }
 
     public QuantumFluidHandlerItemStack(@NotNull ItemStack container, long capacity) {

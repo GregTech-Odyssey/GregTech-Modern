@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.api.item;
 
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
-import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
+import com.gregtechceu.gtceu.api.machine.trait.StorageCapacity;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 
@@ -109,7 +109,7 @@ public class SuperStorageItem extends MetaMachineItem {
     }
 
     protected IKeyHandler<AEItemKey> getItemStorage(ItemStack stack) {
-        return new ItemContents(stack, StorageUpgrades.capacity(stack.getTag(), capacity));
+        return new ItemContents(stack, StorageCapacity.limit(stack.getTag(), capacity));
     }
 
     private static final class ItemContents implements IKeyHandler<AEItemKey> {

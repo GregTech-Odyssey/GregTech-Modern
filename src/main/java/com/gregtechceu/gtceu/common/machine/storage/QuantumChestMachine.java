@@ -14,7 +14,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IStorageAppearance;
 import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.StorageAppearance;
-import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
+import com.gregtechceu.gtceu.api.machine.trait.StorageCapacity;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
@@ -113,9 +113,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     private final StorageAppearance storageAppearance = new StorageAppearance(this);
 
     private final long max;
-    @Getter
-    @AdditionalHolder
-    private final StorageUpgrades storageUpgrades;
 
     @SaveToDisk(defaultValue = "-1")
     @SyncToClient
@@ -142,7 +139,6 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         this.cache = createCacheItemHandler(args);
         this.lockedItem = KeyInventory.items(1);
         this.lockedItem.setOnChanged(this::applyLock);
-        this.storageUpgrades = new StorageUpgrades(this, this::onItemChanged, !(this instanceof CreativeChestMachine));
     }
 
     //////////////////////////////////////
@@ -202,13 +198,13 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
 
     @Override
     public boolean saveBreak() {
-        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR || !storageUpgrades.isEmpty();
+        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR;
     }
 
     @Override
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
-        if (forDrop && maxAmount >= 0) tag.putLong(StorageUpgrades.LIMIT_KEY, maxAmount);
+        if (forDrop && maxAmount >= 0) tag.putLong(StorageCapacity.LIMIT_KEY, maxAmount);
         if (!forDrop) {
             var locked = new StackInventory(1);
             var lockedKey = lockedItem.keyAt(0);
@@ -223,7 +219,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
-        if (tag.contains(StorageUpgrades.LIMIT_KEY)) maxAmount = tag.getLong(StorageUpgrades.LIMIT_KEY);
+        if (tag.contains(StorageCapacity.LIMIT_KEY)) maxAmount = tag.getLong(StorageCapacity.LIMIT_KEY);
         if (tag.contains("lockedItem")) {
             var locked = new StackInventory(1);
             locked.deserializeNBT(tag.get("lockedItem"));
@@ -489,7 +485,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
                 HatchViews.operations(importSlot, HatchViews.group(storedSlot, extract), HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)),
                 limit);
-        return HatchViews.page(operations, UIElement.column(LayoutStyle.AUTO).addChildren(status, storageUpgrades.createSlots()));
+        return HatchViews.page(operations, status);
     }
 
     public void setVoiding(boolean voiding) {
@@ -499,7 +495,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     }
 
     public long getMax() {
-        return storageUpgrades.capacity(max);
+        return max;
     }
 
     public long getMaxAmount() {

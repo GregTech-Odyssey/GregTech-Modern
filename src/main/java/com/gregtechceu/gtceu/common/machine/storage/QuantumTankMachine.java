@@ -15,7 +15,7 @@ import com.gregtechceu.gtceu.api.machine.feature.IStorageAppearance;
 import com.gregtechceu.gtceu.api.machine.trait.ICapabilityTrait;
 import com.gregtechceu.gtceu.api.machine.trait.MachineTrait;
 import com.gregtechceu.gtceu.api.machine.trait.StorageAppearance;
-import com.gregtechceu.gtceu.api.machine.trait.StorageUpgrades;
+import com.gregtechceu.gtceu.api.machine.trait.StorageCapacity;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
@@ -110,9 +110,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     private final StorageAppearance storageAppearance = new StorageAppearance(this);
 
     private final long max;
-    @Getter
-    @AdditionalHolder
-    private final StorageUpgrades storageUpgrades;
 
     @SaveToDisk(defaultValue = "-1")
     @SyncToClient
@@ -139,7 +136,6 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         this.interactionTank = new ForgeFluidAdapter(cache);
         this.lockedFluid = KeyInventory.fluids(1, Long.MAX_VALUE);
         this.lockedFluid.setOnChanged(this::applyLock);
-        this.storageUpgrades = new StorageUpgrades(this, this::onFluidChanged, !(this instanceof CreativeTankMachine));
     }
 
     protected FluidCache createCacheFluidHandler(Object... args) {
@@ -188,13 +184,13 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
 
     @Override
     public boolean saveBreak() {
-        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR || !storageUpgrades.isEmpty();
+        return cache.storage.amountAt(0) > 0 || storageAppearance.getBlock() != Blocks.AIR;
     }
 
     @Override
     public void saveCustomPersistedData(CompoundTag tag, boolean forDrop) {
         super.saveCustomPersistedData(tag, forDrop);
-        if (forDrop && maxAmount >= 0) tag.putLong(StorageUpgrades.LIMIT_KEY, maxAmount);
+        if (forDrop && maxAmount >= 0) tag.putLong(StorageCapacity.LIMIT_KEY, maxAmount);
         if (!forDrop) {
             var lockedKey = lockedFluid.keyAt(0);
             var locked = lockedKey == null ? FluidStack.EMPTY : Keys.toFluidStack(lockedKey, lockedFluid.amountAt(0));
@@ -209,7 +205,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     @Override
     public void loadCustomPersistedData(CompoundTag tag) {
         super.loadCustomPersistedData(tag);
-        if (tag.contains(StorageUpgrades.LIMIT_KEY)) maxAmount = tag.getLong(StorageUpgrades.LIMIT_KEY);
+        if (tag.contains(StorageCapacity.LIMIT_KEY)) maxAmount = tag.getLong(StorageCapacity.LIMIT_KEY);
         var from = tag.contains("cache") ? tag.getCompound("cache") : tag;
         var locked = FluidStack.loadFluidStackFromNBT(from.getCompound("lockedFluid"));
         lockedFluid.set(0, Keys.fluid(locked), locked.getAmount());
@@ -444,7 +440,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         limit.layout(l -> l.alignSelf(AlignItems.STRETCH));
         var operations = UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.SECTION_GAP).alignCenter().alignSelf(AlignItems.STRETCH)).addChildren(
                 HatchViews.operations(tank, HatchViews.group(lock, lockSlot), HatchViews.group(output, voiding)), limit);
-        return HatchViews.page(operations, storageUpgrades.createSlots());
+        return HatchViews.page(operations);
     }
 
     public void setVoiding(boolean voiding) {
@@ -454,7 +450,7 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
     }
 
     public long getMax() {
-        return storageUpgrades.capacity(max);
+        return max;
     }
 
     public long getMaxAmount() {
