@@ -87,24 +87,28 @@ public class UnknownCompositionMaterials {
                 .liquid(new FluidBuilder().customStill()).flags(FLAMMABLE).buildAndRegister();
 
         LightlyHydroCrackedHeavyFuel = GTMaterials.builder("lightly_hydro_cracked_heavy_fuel")
+                .lang("Lightly Hydro-Cracked Heavy Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xFFFF00).flags(FLAMMABLE).buildAndRegister();
 
         SeverelyHydroCrackedHeavyFuel = GTMaterials.builder("severely_hydro_cracked_heavy_fuel")
+                .lang("Severely Hydro-Cracked Heavy Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xFFFF00).flags(FLAMMABLE).buildAndRegister();
 
         LightlySteamCrackedHeavyFuel = GTMaterials.builder("lightly_steam_cracked_heavy_fuel")
+                .lang("Lightly Steam-Cracked Heavy Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .flags(FLAMMABLE).buildAndRegister();
 
         SeverelySteamCrackedHeavyFuel = GTMaterials.builder("severely_steam_cracked_heavy_fuel")
+                .lang("Severely Steam-Cracked Heavy Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
@@ -119,24 +123,28 @@ public class UnknownCompositionMaterials {
                 .liquid(new FluidBuilder().customStill()).flags(FLAMMABLE).buildAndRegister();
 
         LightlyHydroCrackedLightFuel = GTMaterials.builder("lightly_hydro_cracked_light_fuel")
+                .lang("Lightly Hydro-Cracked Light Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xB7AF08).flags(FLAMMABLE).buildAndRegister();
 
         SeverelyHydroCrackedLightFuel = GTMaterials.builder("severely_hydro_cracked_light_fuel")
+                .lang("Severely Hydro-Cracked Light Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xB7AF08).flags(FLAMMABLE).buildAndRegister();
 
         LightlySteamCrackedLightFuel = GTMaterials.builder("lightly_steam_cracked_light_fuel")
+                .lang("Lightly Steam-Cracked Light Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .flags(FLAMMABLE).buildAndRegister();
 
         SeverelySteamCrackedLightFuel = GTMaterials.builder("severely_steam_cracked_light_fuel")
+                .lang("Severely Steam-Cracked Light Fuel")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
@@ -149,24 +157,28 @@ public class UnknownCompositionMaterials {
                 .liquid(new FluidBuilder().customStill()).flags(FLAMMABLE).buildAndRegister();
 
         LightlyHydroCrackedNaphtha = GTMaterials.builder("lightly_hydro_cracked_naphtha")
+                .lang("Lightly Hydro-Cracked Naphtha")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xBFB608).flags(FLAMMABLE).buildAndRegister();
 
         SeverelyHydroCrackedNaphtha = GTMaterials.builder("severely_hydro_cracked_naphtha")
+                .lang("Severely Hydro-Cracked Naphtha")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xBFB608).flags(FLAMMABLE).buildAndRegister();
 
         LightlySteamCrackedNaphtha = GTMaterials.builder("lightly_steam_cracked_naphtha")
+                .lang("Lightly Steam-Cracked Naphtha")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
                 .color(0xBFB608).flags(FLAMMABLE).buildAndRegister();
 
         SeverelySteamCrackedNaphtha = GTMaterials.builder("severely_steam_cracked_naphtha")
+                .lang("Severely Steam-Cracked Naphtha")
                 .liquid(new FluidBuilder()
                         .temperature(775)
                         .customStill())
@@ -183,84 +195,103 @@ public class UnknownCompositionMaterials {
                 .buildAndRegister();
 
         LightlyHydroCrackedGas = GTMaterials.builder("lightly_hydro_cracked_gas")
+                .lang("Lightly Hydro-Cracked Gas")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xA0A0A0)
                 .flags(FLAMMABLE)
                 .buildAndRegister();
 
         SeverelyHydroCrackedGas = GTMaterials.builder("severely_hydro_cracked_gas")
+                .lang("Severely Hydro-Cracked Gas")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xC8C8C8)
                 .flags(FLAMMABLE)
                 .buildAndRegister();
 
         LightlySteamCrackedGas = GTMaterials.builder("lightly_steam_cracked_gas")
+                .lang("Lightly Steam-Cracked Gas")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xE0E0E0)
                 .flags(FLAMMABLE)
                 .buildAndRegister();
 
         SeverelySteamCrackedGas = GTMaterials.builder("severely_steam_cracked_gas")
+                .lang("Severely Steam-Cracked Gas")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xE0E0E0).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedEthane = GTMaterials.builder("hydro_cracked_ethane")
+                .lang("Hydro-Cracked Ethane")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0x9696BC).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedEthylene = GTMaterials.builder("hydro_cracked_ethylene")
+                .lang("Hydro-Cracked Ethylene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xA3A3A0).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedPropene = GTMaterials.builder("hydro_cracked_propene")
+                .lang("Hydro-Cracked Propene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xBEA540).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedPropane = GTMaterials.builder("hydro_cracked_propane")
+                .lang("Hydro-Cracked Propane")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xBEA540).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedButane = GTMaterials.builder("hydro_cracked_butane")
+                .lang("Hydro-Cracked Butane")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0x852C18).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedButene = GTMaterials.builder("hydro_cracked_butene")
+                .lang("Hydro-Cracked Butene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0x993E05).flags(FLAMMABLE).buildAndRegister();
 
         HydroCrackedButadiene = GTMaterials.builder("hydro_cracked_butadiene")
+                .lang("Hydro-Cracked Butadiene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xAD5203).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedEthane = GTMaterials.builder("steam_cracked_ethane")
+                .lang("Steam-Cracked Ethane")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0x9696BC).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedEthylene = GTMaterials.builder("steam_cracked_ethylene")
+                .lang("Steam-Cracked Ethylene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xA3A3A0).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedPropene = GTMaterials.builder("steam_cracked_propene")
+                .lang("Steam-Cracked Propene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xBEA540).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedPropane = GTMaterials.builder("steam_cracked_propane")
+                .lang("Steam-Cracked Propane")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xBEA540).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedButane = GTMaterials.builder("steam_cracked_butane")
+                .lang("Steam-Cracked Butane")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0x852C18).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedButene = GTMaterials.builder("steam_cracked_butene")
+                .lang("Steam-Cracked Butene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0x993E05).flags(FLAMMABLE).buildAndRegister();
 
         SteamCrackedButadiene = GTMaterials.builder("steam_cracked_butadiene")
+                .lang("Steam-Cracked Butadiene")
                 .gas(new FluidBuilder().temperature(775))
                 .color(0xAD5203).flags(FLAMMABLE).buildAndRegister();
 
         LPG = GTMaterials.builder("lpg")
+                .lang("LPG")
                 .liquid(new FluidBuilder().customStill())
                 .color(0xFCFCAC).flags(FLAMMABLE, EXPLOSIVE).buildAndRegister();
 
@@ -277,18 +308,21 @@ public class UnknownCompositionMaterials {
                 .buildAndRegister();
 
         OilHeavy = GTMaterials.builder("oil_heavy")
+                .lang("Heavy Oil")
                 .liquid(new FluidBuilder().block().customStill())
                 .color(0x0A0A0A)
                 .flags(STICKY, FLAMMABLE)
                 .buildAndRegister();
 
         RawOil = GTMaterials.builder("oil_medium")
+                .lang("Raw Oil")
                 .liquid(new FluidBuilder().block().customStill())
                 .color(0x0A0A0A)
                 .flags(STICKY, FLAMMABLE)
                 .buildAndRegister();
 
         OilLight = GTMaterials.builder("oil_light")
+                .lang("Light Oil")
                 .liquid(new FluidBuilder().block().customStill())
                 .color(0x0A0A0A)
                 .flags(STICKY, FLAMMABLE)
@@ -540,7 +574,7 @@ public class UnknownCompositionMaterials {
         Lapotron = GTMaterials.builder("lapotron")
                 .gem()
                 .color(0x7497ea).secondaryColor(0x1c0b39).iconSet(DIAMOND)
-                .flags(NO_UNIFICATION)
+                .flags(DISABLE_MATERIAL_RECIPES)
                 .ignoredTagPrefixes(dustTiny, dustSmall)
                 .buildAndRegister();
 
@@ -552,12 +586,14 @@ public class UnknownCompositionMaterials {
                 .buildAndRegister();
 
         UUMatter = GTMaterials.builder("uu_matter")
+                .lang("UU-Matter")
                 .liquid(new FluidBuilder()
                         .temperature(300)
                         .customStill())
                 .buildAndRegister();
 
         PCBCoolant = GTMaterials.builder("pcb_coolant")
+                .lang("PCB Coolant")
                 .fluid().color(0xD5D69C)
                 .hazard(HazardProperty.HazardTrigger.INHALATION, GTMedicalConditions.CARCINOGEN)
                 .buildAndRegister();

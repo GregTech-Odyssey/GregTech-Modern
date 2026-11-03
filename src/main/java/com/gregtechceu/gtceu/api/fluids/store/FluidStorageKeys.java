@@ -15,13 +15,14 @@ public final class FluidStorageKeys {
     public static final FluidStorageKey LIQUID = new FluidStorageKey(GTCEu.id("liquid"),
             MaterialIconType.liquid,
             m -> prefixedRegisteredName("liquid_", FluidStorageKeys.LIQUID, m),
-            m -> m.hasProperty(PropertyKey.DUST) ? "gtceu.fluid.liquid_generic" : "gtceu.fluid.generic",
+            m -> m != null && m.hasProperty(PropertyKey.DUST) ? "gtceu.fluid.liquid_generic" : "gtceu.fluid.generic",
             FluidState.LIQUID, 0);
 
     public static final FluidStorageKey GAS = new FluidStorageKey(GTCEu.id("gas"),
             MaterialIconType.gas,
             m -> postfixedRegisteredName("_gas", FluidStorageKeys.GAS, m),
             m -> {
+                if (m == null) return "gtceu.fluid.generic";
                 if (m.hasProperty(PropertyKey.DUST)) {
                     return "gtceu.fluid.gas_vapor";
                 }

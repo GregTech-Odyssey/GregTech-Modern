@@ -6,8 +6,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.cover.filter.*;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData;
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterial;
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
@@ -74,7 +72,6 @@ import com.gto.registrate.util.entry.ItemEntry;
 import com.gto.registrate.util.nullness.NonNullBiConsumer;
 import com.gto.registrate.util.nullness.NonNullConsumer;
 import com.gto.registrate.util.nullness.NonNullFunction;
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,6 +79,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -1441,15 +1439,13 @@ public class GTItems {
             .lang("Data Module").onRegister(attach(new DataItemBehavior(true)))
             .register();
 
-    public static final Map<MarkerMaterial, ItemEntry<Item>> GLASS_LENSES = new Reference2ReferenceOpenHashMap<>();
+    public static final Map<DyeColor, ItemEntry<Item>> GLASS_LENSES = new EnumMap<>(DyeColor.class);
 
     static {
-        for (int i = 0; i < MarkerMaterials.Color.VALUES.length; i++) {
-            MarkerMaterial color = MarkerMaterials.Color.VALUES[i];
-            if (color != MarkerMaterials.Color.White) {
+        for (DyeColor color : DyeColor.values()) {
+            if (color != DyeColor.WHITE) {
                 GLASS_LENSES.put(color, REGISTRATE.item(String.format("%s_glass_lens", color.getName()), Item::new)
                         .lang("Glass Lens (%s)".formatted(toEnglishName(color.getName())))
-                        .transform(unificationItem(TagPrefix.lens, color))
                         .register());
             }
         }

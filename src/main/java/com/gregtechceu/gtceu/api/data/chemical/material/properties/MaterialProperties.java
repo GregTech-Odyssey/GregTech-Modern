@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 import lombok.Getter;
@@ -37,7 +38,8 @@ public class MaterialProperties {
         return propertyMap.containsKey(key);
     }
 
-    public <T extends IMaterialProperty> void setProperty(PropertyKey<T> key, IMaterialProperty value) {
+    public <T extends IMaterialProperty> void setProperty(PropertyKey<T> key, T value) {
+        requireModifiable();
         if (value == null) throw new IllegalArgumentException("Material Property must not be null!");
         if (!key.getType().isInstance(value)) throw new IllegalArgumentException("Material Property must be of the same type as the property key!");
         if (hasProperty(key)) throw new IllegalArgumentException("Material Property " + key + " already registered!");
@@ -46,6 +48,7 @@ public class MaterialProperties {
     }
 
     public <T extends IMaterialProperty> void removeProperty(PropertyKey<T> property) {
+        requireModifiable();
         if (!hasProperty(property)) throw new IllegalArgumentException("Material Property " + property.toString() + " not present!");
         propertyMap.remove(property);
         if (propertyMap.isEmpty()) propertyMap.put(PropertyKey.EMPTY, PropertyKey.EMPTY.constructDefault());
@@ -53,6 +56,7 @@ public class MaterialProperties {
 
     public <T extends IMaterialProperty> void ensureSet(PropertyKey<T> key, boolean verify) {
         if (!hasProperty(key)) {
+            requireModifiable();
             propertyMap.put(key, key.constructDefault());
             propertyMap.remove(PropertyKey.EMPTY);
             if (verify) verify();
@@ -61,6 +65,10 @@ public class MaterialProperties {
 
     public <T extends IMaterialProperty> void ensureSet(PropertyKey<T> key) {
         ensureSet(key, false);
+    }
+
+    private void requireModifiable() {
+        if (material != null) GTRegistries.MATERIALS.requireModifiable(material);
     }
 
     public void verify() {

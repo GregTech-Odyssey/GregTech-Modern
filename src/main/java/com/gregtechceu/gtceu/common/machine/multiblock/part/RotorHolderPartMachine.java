@@ -21,7 +21,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.transfer.key.IKeyHandler;
 import com.gregtechceu.gtceu.api.transfer.key.StackInventory;
 import com.gregtechceu.gtceu.common.data.GTDamageTypes;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.item.TurbineRotorBehaviour;
 import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
@@ -69,8 +68,8 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     @Setter
     @SaveToDisk
     @SyncToClient(scheduleUpdate = true)
-    @NotNull
-    public Material rotorMaterial = GTMaterials.NULL; // 0 - no rotor
+    @Nullable
+    public Material rotorMaterial = null;
     @Nullable
     protected TickableSubscription rotorSpeedSubs;
     @Nullable
@@ -95,7 +94,8 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     @Override
     public int tintColor(int index) {
         if (index == 2) {
-            return getRotorMaterial().getMaterialARGB();
+            var material = getRotorMaterial();
+            return material == null ? -1 : material.getMaterialARGB();
         }
         return super.tintColor(index);
     }
@@ -126,12 +126,8 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     // ****** Rotor Holder ******//
     //////////////////////////////////////
     @Override
+    @Nullable
     public Material getRotorMaterial() {
-        // handles clients trying to get the material before server data sync
-        // noinspection ConstantValue
-        if (rotorMaterial == null) {
-            return GTMaterials.NULL;
-        }
         return rotorMaterial;
     }
 
@@ -141,7 +137,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
         if (rotorBehaviour != null) {
             this.rotorMaterial = rotorBehaviour.getPartMaterial(stack);
         } else {
-            this.rotorMaterial = GTMaterials.NULL;
+            this.rotorMaterial = null;
         }
         for (var controller : getControllers()) {
             if (controller instanceof IRecipeLogicMachine recipeLogicMachine) {

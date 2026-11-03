@@ -23,6 +23,10 @@ public interface RecipeInfoBuilder {
      */
     RecipeInfoBuilder line(Component label, Supplier<Component> value);
 
+    default RecipeInfoBuilder requirement(Component label, Supplier<Component> value) {
+        return line(label, value);
+    }
+
     /** 一行整句（没有名称），用于不好拆成名称和数值的说明。 */
     RecipeInfoBuilder sentence(Supplier<Component> text);
 

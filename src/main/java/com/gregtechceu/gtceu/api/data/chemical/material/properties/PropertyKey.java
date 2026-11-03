@@ -25,16 +25,18 @@ public class PropertyKey<T extends IMaterialProperty> {
     private final String key;
     private final Class<T> type;
 
-    protected PropertyKey(String key, Class<T> type) {
+    public PropertyKey(String key, Class<T> type) {
         this.key = key;
         this.type = type;
     }
 
     T constructDefault() {
         try {
-            return type.newInstance();
-        } catch (Exception e) {
-            return null;
+            return type.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException("Material property " + key + " needs a no-args constructor", e);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Cannot construct material property " + key, e);
         }
     }
 

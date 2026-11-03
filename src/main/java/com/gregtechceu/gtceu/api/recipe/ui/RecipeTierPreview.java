@@ -29,6 +29,10 @@ public interface RecipeTierPreview {
 
     Component rowValue(int row, int tier, boolean perfect);
 
+    default int rateRow() {
+        return 0;
+    }
+
     default boolean replaces(RecipeExtension<?> extension) {
         return false;
     }

@@ -437,7 +437,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder inputItems(TagPrefix tagPrefix, Material material, int count) {
-        if (tagPrefix.isEmpty() || material.isNull()) {
+        if (material == null) {
             GTCEu.LOGGER.error("Tried to set input item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, tagPrefix, material, count);
             return this;
         } else {
@@ -555,7 +555,7 @@ public class GTRecipeBuilder {
     }
 
     public GTRecipeBuilder outputItems(TagPrefix orePrefix, Material material, int count) {
-        if (orePrefix.isEmpty() || material.isNull()) {
+        if (material == null) {
             GTCEu.LOGGER.error("Tried to set output item stack that doesn't exist, id: {}, TagPrefix: {}, Material: {}, Count: {}", id, orePrefix, material, count);
             return this;
         }
@@ -641,6 +641,14 @@ public class GTRecipeBuilder {
         int lastChance = this.chance;
         this.chance = 0;
         inputItems(item);
+        this.chance = lastChance;
+        return this;
+    }
+
+    public GTRecipeBuilder notConsumable(TagKey<Item> tag) {
+        int lastChance = this.chance;
+        this.chance = 0;
+        inputItems(tag);
         this.chance = lastChance;
         return this;
     }
@@ -751,7 +759,7 @@ public class GTRecipeBuilder {
             return this;
         }
         var matStack = ChemicalHelper.getMaterial(input.getFluid());
-        if (!matStack.isNull() && chance != 0 && chance == ContentList.MAX_CHANCE) {
+        if (matStack != null && chance != 0 && chance == ContentList.MAX_CHANCE) {
             if (tempFluidStacks == null) tempFluidStacks = new ArrayList<>();
             tempFluidStacks.add(new MaterialStack(matStack, input.getAmount() * GTValues.M / GTValues.L));
         }

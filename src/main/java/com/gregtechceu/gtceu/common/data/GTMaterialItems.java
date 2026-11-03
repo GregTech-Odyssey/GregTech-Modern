@@ -1,14 +1,13 @@
 package com.gregtechceu.gtceu.common.data;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
-import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.ITagPrefixItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 
 import net.minecraft.world.item.Item;
@@ -52,7 +51,7 @@ public class GTMaterialItems {
     // Reference Tables
     public static Table<TagPrefix, Material, ItemEntry<? extends Item>> MATERIAL_ITEMS;
     public static final Table<Material, GTToolType, ItemProviderEntry<IGTTool>> TOOL_ITEMS = ArrayTable.create(
-            GTCEuAPI.materialManager.getRegisteredMaterials().stream()
+            GTRegistries.MATERIALS.values().stream()
                     .filter(mat -> mat.hasProperty(PropertyKey.TOOL))
                     .toList(),
             GTToolType.all());
@@ -62,12 +61,9 @@ public class GTMaterialItems {
         REGISTRATE.defaultCreativeTab(MATERIAL_ITEM);
         for (var tagPrefix : TagPrefix.values()) {
             if (tagPrefix.doGenerateItem()) {
-                for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
-                    GTRegistrate registrate = registry.getRegistrate();
-                    for (Material material : registry.getAllMaterials()) {
-                        if (tagPrefix.doGenerateItem(material)) {
-                            generateMaterialItem(tagPrefix, material, registrate);
-                        }
+                for (Material material : GTRegistries.MATERIALS) {
+                    if (tagPrefix.doGenerateItem(material)) {
+                        generateMaterialItem(tagPrefix, material, tagPrefix.registrate(material));
                     }
                 }
             }
@@ -92,14 +88,11 @@ public class GTMaterialItems {
     public static void generateTools() {
         REGISTRATE.defaultCreativeTab(TOOL);
         for (GTToolType toolType : GTToolType.all()) {
-            for (MaterialRegistry registry : GTCEuAPI.materialManager.getRegistries()) {
-                GTRegistrate registrate = registry.getRegistrate();
-                for (Material material : registry.getAllMaterials()) {
-                    if (material.hasProperty(PropertyKey.TOOL)) {
-                        var property = material.getProperty(PropertyKey.TOOL);
-                        if (property.hasType(toolType)) {
-                            generateTool(material, toolType, registrate);
-                        }
+            for (Material material : GTRegistries.MATERIALS) {
+                if (material.hasProperty(PropertyKey.TOOL)) {
+                    var property = material.getProperty(PropertyKey.TOOL);
+                    if (property.hasType(toolType)) {
+                        generateTool(material, toolType, GTRegistries.MATERIALS.registrateOf(material));
                     }
                 }
             }

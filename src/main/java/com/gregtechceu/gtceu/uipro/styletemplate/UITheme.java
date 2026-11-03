@@ -545,6 +545,10 @@ public final class UITheme {
     public static int CARD_OUTLINE = 0xFF000000;
     public static int CARD_HIGHLIGHT = 0xFFFFFFFF;
     public static int CARD_SHADOW = 0xFF555555;
+    public static int XEI_BUTTON_FILL = 0xFF2B2B2B;
+    public static int XEI_BUTTON_OUTLINE = 0xFF000000;
+    public static int XEI_BUTTON_ICON = 0xFF9E9E9E;
+    public static int XEI_BUTTON_ICON_HOVER = 0xFFFFFFFF;
 
     public static int FLOW_NODE_FILL = WINDOW_FILL;
     public static int FLOW_NODE_OUTLINE = 0xFF373737;

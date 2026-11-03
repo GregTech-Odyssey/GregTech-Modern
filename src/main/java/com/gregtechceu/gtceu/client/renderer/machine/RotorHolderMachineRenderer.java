@@ -54,7 +54,7 @@ public class RotorHolderMachineRenderer extends TieredHullMachineRenderer {
             quads.add(StaticFaceBakery.bakeFace(ROTOR_TEXTURE_SHAPE, modelFacing, ModelFactory.getBlockSprite(BASE_BG),
                     modelState, -101, 0, true, false));
             var material = rotorHolderMachine.getRotorMaterial();
-            if (material.isNull()) {
+            if (material == null) {
                 return;
             }
             quads.add(StaticFaceBakery.bakeFace(ROTOR_TEXTURE_SHAPE, modelFacing,

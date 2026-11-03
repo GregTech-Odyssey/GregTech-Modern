@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.data.tags;
 
-import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials.Color;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
@@ -9,6 +7,7 @@ import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagEntry;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.Tags;
 
@@ -64,18 +63,18 @@ public class ItemTagLoader {
                 .addTag(CustomTags.DEAD_CORAL_ITEMS);
         // spotless:on
 
-        provider.addTag(ChemicalHelper.getTag(lens, Color.White))
+        provider.addTag(CustomTags.lens(DyeColor.WHITE))
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, Glass).get())
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, NetherStar).get());
-        provider.addTag(ChemicalHelper.getTag(lens, Color.LightBlue))
+        provider.addTag(CustomTags.lens(DyeColor.LIGHT_BLUE))
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, Diamond).get());
-        provider.addTag(ChemicalHelper.getTag(lens, Color.Red))
+        provider.addTag(CustomTags.lens(DyeColor.RED))
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, Ruby).get());
-        provider.addTag(ChemicalHelper.getTag(lens, Color.Green))
+        provider.addTag(CustomTags.lens(DyeColor.GREEN))
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, Emerald).get());
-        provider.addTag(ChemicalHelper.getTag(lens, Color.Blue))
+        provider.addTag(CustomTags.lens(DyeColor.BLUE))
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, Sapphire).get());
-        provider.addTag(ChemicalHelper.getTag(lens, Color.Purple))
+        provider.addTag(CustomTags.lens(DyeColor.PURPLE))
                 .add(GTMaterialItems.MATERIAL_ITEMS.get(lens, Amethyst).get());
 
         provider.addTag(CustomTags.PISTONS).add(Items.PISTON, Items.STICKY_PISTON);

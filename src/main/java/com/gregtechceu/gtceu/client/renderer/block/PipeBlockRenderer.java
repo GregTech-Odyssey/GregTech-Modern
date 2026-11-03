@@ -75,7 +75,7 @@ public class PipeBlockRenderer implements ICoverableRenderer {
             var modelState = ModelFactory.getRotation(pipeNode.getCoverContainer().getFrontFacing());
             var modelFacing = side == null ? null : ModelFactory.modelFacing(side, pipeNode.getCoverContainer().getFrontFacing());
             ICoverableRenderer.super.renderCovers(quads, side, rand, pipeNode.getCoverContainer(), modelFacing, pos, level, modelState);
-            if (!pipeNode.getFrameMaterial().isNull()) {
+            if (pipeNode.getFrameMaterial() != null) {
                 ResourceLocation rl = MaterialIconType.frameGt.getBlockTexturePath(pipeNode.getFrameMaterial().getMaterialIconSet(), true);
                 BlockState blockState = GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, pipeNode.getFrameMaterial()).getDefaultState();
                 var frameModel = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState);

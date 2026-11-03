@@ -20,6 +20,7 @@ public class ItemMaterialInfo {
     public ItemMaterialInfo(MaterialStack... materialStacks) {
         var materials = new Reference2LongOpenHashMap<Material>();
         for (var mat : materialStacks) {
+            if (mat.isEmpty()) continue;
             materials.addTo(mat.material(), mat.amount());
         }
         setSortedMaterials(materials);
@@ -28,6 +29,7 @@ public class ItemMaterialInfo {
     public ItemMaterialInfo(List<MaterialStack> materialStacks) {
         var materials = new Reference2LongOpenHashMap<Material>();
         for (var stack : materialStacks) {
+            if (stack.isEmpty()) continue;
             materials.addTo(stack.material(), stack.amount());
         }
         setSortedMaterials(materials);
@@ -55,7 +57,9 @@ public class ItemMaterialInfo {
     public void addMaterialStacks(List<MaterialStack> stacks) {
         var materials = new Reference2LongOpenHashMap<Material>();
         sortedMaterials.forEach(stack -> materials.addTo(stack.material(), stack.amount()));
-        stacks.forEach(stack -> materials.addTo(stack.material(), stack.amount()));
+        for (var stack : stacks) {
+            if (!stack.isEmpty()) materials.addTo(stack.material(), stack.amount());
+        }
         setSortedMaterials(materials);
     }
 

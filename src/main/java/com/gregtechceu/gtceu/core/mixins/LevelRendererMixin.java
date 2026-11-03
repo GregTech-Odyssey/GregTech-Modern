@@ -44,7 +44,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
@@ -209,7 +208,7 @@ public abstract class LevelRendererMixin {
         // spotless:off
         // if it's translucent and a material block, always do the colored outline
         MaterialEntry materialEntry = gtceu$getTranslucentBlockMaterial(state, pos);
-        if (!materialEntry.isEmpty()) {
+        if (materialEntry != null) {
             doRenderColoredOutline = true;
             rgb = materialEntry.material().getMaterialRGB();
         } else if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity mbe) {
@@ -236,7 +235,7 @@ public abstract class LevelRendererMixin {
         BlockPos.MutableBlockPos mutable = pos.mutable();
         for (BlockPos o : GTUtil.NON_CORNER_NEIGHBOURS) {
             BlockPos offset = mutable.setWithOffset(pos, o);
-            if (!gtceu$getTranslucentBlockMaterial(level.getBlockState(offset), offset).isEmpty()) {
+            if (gtceu$getTranslucentBlockMaterial(level.getBlockState(offset), offset) != null) {
                 renderShape(poseStack, consumer, blockShape,
                         pos.getX() - camX, pos.getY() - camY, pos.getZ() - camZ,
                         0, 0, 0, 1f);
@@ -247,7 +246,7 @@ public abstract class LevelRendererMixin {
     }
 
     @Unique
-    private @NotNull MaterialEntry gtceu$getTranslucentBlockMaterial(BlockState state, BlockPos pos) {
+    private @Nullable MaterialEntry gtceu$getTranslucentBlockMaterial(BlockState state, BlockPos pos) {
         BakedModel blockModel = minecraft.getBlockRenderer().getBlockModel(state);
         ModelData modelData = level.getModelDataManager().getAt(pos);
         if (modelData == null) modelData = ModelData.EMPTY;
@@ -256,6 +255,6 @@ public abstract class LevelRendererMixin {
         if (blockModel.getRenderTypes(state, gtceu$modelRandom, modelData).contains(RenderType.translucent())) {
             return ChemicalHelper.getMaterialEntry(state.getBlock());
         }
-        return MaterialEntry.NULL_ENTRY;
+        return null;
     }
 }

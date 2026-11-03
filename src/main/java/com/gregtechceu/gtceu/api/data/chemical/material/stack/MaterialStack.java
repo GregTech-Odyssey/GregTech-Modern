@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.stack;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.network.chat.Component;
@@ -10,9 +9,17 @@ import net.minecraft.network.chat.MutableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MaterialStack(@NotNull Material material, long amount) {
+import java.util.NoSuchElementException;
 
-    public static final MaterialStack EMPTY = new MaterialStack(GTMaterials.NULL, 0);
+public record MaterialStack(@Nullable Material material, long amount) {
+
+    public static final MaterialStack EMPTY = new MaterialStack(null, 0);
+
+    @NotNull
+    public Material material() {
+        if (material == null) throw new NoSuchElementException("Cannot get the material of an empty material stack");
+        return material;
+    }
 
     public MaterialStack copy() {
         if (isEmpty()) return EMPTY;
@@ -28,7 +35,7 @@ public record MaterialStack(@NotNull Material material, long amount) {
     }
 
     public boolean isEmpty() {
-        return this.material == GTMaterials.NULL || this.amount < 1;
+        return this.material == null || this.amount < 1;
     }
 
     @Nullable

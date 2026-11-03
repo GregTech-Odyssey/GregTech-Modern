@@ -193,7 +193,7 @@ public final class WoodTypeEntry {
         this.buttonRecipeName = buttonRecipeName;
         this.pressurePlate = pressurePlate;
         this.pressurePlateRecipeName = pressurePlateRecipeName;
-        this.material = !material.isNull() ? material : GTMaterials.Wood;
+        this.material = material != null ? material : GTMaterials.Wood;
 
         this.addLogOreDict = addLogOreDict;
         this.addPlanksOreDict = addPlanksOreDict;
@@ -273,8 +273,8 @@ public final class WoodTypeEntry {
         private String buttonRecipeName;
         private Item pressurePlate = null;
         private String pressurePlateRecipeName;
-        @NotNull
-        private Material material = GTMaterials.NULL;
+        @Nullable
+        private Material material = null;
 
         private boolean addLogOreDict;
         private boolean addPlanksOreDict;

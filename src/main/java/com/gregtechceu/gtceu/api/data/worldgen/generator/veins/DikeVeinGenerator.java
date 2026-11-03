@@ -1,11 +1,11 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
 
@@ -172,7 +172,7 @@ public class DikeVeinGenerator extends VeinGenerator {
 
     public record DikeBlockDefinition(Either<List<TargetBlockState>, Material> block, int weight, int minY, int maxY) implements WeightedEntry {
 
-        public static final Codec<DikeBlockDefinition> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(TargetBlockState.CODEC.listOf(), GTCEuAPI.materialManager.codec()).fieldOf("block").forGetter(x -> x.block), Codec.INT.fieldOf("weight").forGetter(x -> x.weight), Codec.INT.fieldOf("min_y").orElse(320).forGetter(x -> x.minY), Codec.INT.fieldOf("max_y").orElse(-64).forGetter(x -> x.maxY)).apply(instance, DikeBlockDefinition::new));
+        public static final Codec<DikeBlockDefinition> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(TargetBlockState.CODEC.listOf(), GTRegistries.MATERIALS.codec()).fieldOf("block").forGetter(x -> x.block), Codec.INT.fieldOf("weight").forGetter(x -> x.weight), Codec.INT.fieldOf("min_y").orElse(320).forGetter(x -> x.minY), Codec.INT.fieldOf("max_y").orElse(-64).forGetter(x -> x.maxY)).apply(instance, DikeBlockDefinition::new));
 
         public DikeBlockDefinition(Material block, int weight, int minY, int maxY) {
             this(Either.right(block), weight, minY, maxY);

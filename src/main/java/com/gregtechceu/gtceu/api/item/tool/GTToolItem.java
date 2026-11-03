@@ -331,7 +331,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
             return material == tool.getMaterial();
         }
         MaterialEntry entry = ChemicalHelper.getMaterialEntry(repair.getItem());
-        if (entry.isEmpty() || entry.material() != material) return false;
+        if (entry == null || entry.material() != material) return false;
         if (VanillaRecipeHelper.isMaterialWood(entry.material())) {
             return entry.tagPrefix() == TagPrefix.planks;
         }

@@ -6,10 +6,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
+
+import java.util.EnumMap;
 
 public class CustomTags {
 
@@ -211,4 +214,14 @@ public class CustomTags {
     public static final TagKey<Fluid> MOLTEN_FLUIDS = TagUtil.createFluidTag("molten");
     public static final TagKey<Fluid> LIQUID_FLUIDS = TagUtil.createFluidTag("liquid");
     public static final TagKey<Fluid> PLASMA_FLUIDS = TagUtil.createFluidTag("plasmatic");
+
+    private static final EnumMap<DyeColor, TagKey<Item>> LENSES = new EnumMap<>(DyeColor.class);
+
+    static {
+        for (DyeColor color : DyeColor.values()) LENSES.put(color, TagUtil.createItemTag("lenses/" + color.getName()));
+    }
+
+    public static TagKey<Item> lens(DyeColor color) {
+        return LENSES.get(color);
+    }
 }

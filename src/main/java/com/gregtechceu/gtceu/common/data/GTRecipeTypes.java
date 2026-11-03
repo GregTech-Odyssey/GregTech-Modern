@@ -24,12 +24,12 @@ import com.gregtechceu.gtceu.common.recipe.*;
 import com.gregtechceu.gtceu.data.recipe.RecipeUtil;
 import com.gregtechceu.gtceu.uiwidgets.recipe.GTRecipeLayouts;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeDisplaySlots;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.ResearchManager;
 
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -488,19 +488,12 @@ public class GTRecipeTypes {
     public final static GTRecipeType BLAST_RECIPES = register("electric_blast_furnace", MULTIBLOCK)
             .setMaxIOSize(3, 3, 1, 1)
             .setEUIO(IO.IN)
-            .addDataInfo(recipe -> {
-                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
-                return LocalizationUtils.format("gtceu.recipe.temperature", temp);
-            })
-            .addDataInfo(recipe -> {
-                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
-                ICoilType requiredCoil = ICoilType.getMinRequiredType(temp);
-
-                if (requiredCoil != null && !requiredCoil.getMaterial().isNull()) {
-                    return LocalizationUtils.format("gtceu.recipe.coil.tier",
-                            I18n.get(requiredCoil.getMaterial().getUnlocalizedName()));
-                }
-                return "";
+            .addDataRequirement(Component.translatable("gtceu.recipe.info.temperature"),
+                    recipe -> Component.translatable("gtceu.recipe.info.kelvin", FormattingUtil.formatNumbers(recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP))))
+            .addDataRequirement(Component.translatable("gtceu.recipe.info.coil"), recipe -> {
+                ICoilType requiredCoil = ICoilType.getMinRequiredType(recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP));
+                if (requiredCoil == null || requiredCoil.getMaterial() == null) return null;
+                return requiredCoil.getMaterial().getLocalizedName();
             })
             .setUiBuilder(RecipeDisplaySlots::coilInfo)
             .setSound(GTSoundEntries.FURNACE);
@@ -628,12 +621,12 @@ public class GTRecipeTypes {
             .setProgressBar(GuiTextures.PROGRESS_BAR_FUSION, LEFT_TO_RIGHT)
             .setSound(GTSoundEntries.ARC)
             .setOffsetVoltageText(true)
-            .addDataInfo(recipe -> {
+            .addDataRequirement(Component.translatable("gtceu.recipe.info.eu_to_start"), recipe -> {
                 long euToStart = recipe.data.getLong(GTRecipeDataKeys.EU_TO_START);
-                if (euToStart <= 0) return "";
+                if (euToStart <= 0) return null;
                 int fusionTier = FusionReactorMachine.findCeilingTier(euToStart);
                 int tier = Math.max(FusionReactorMachine.MINIMUM_TIER, Math.max(recipe.tier, fusionTier));
-                return LocalizationUtils.format("gtceu.recipe.eu_to_start", ElectricText.energyExact(euToStart).getString(), FusionReactorMachine.FUSION_NAMES.get(tier));
+                return ElectricText.energyExact(euToStart).append(FusionReactorMachine.FUSION_NAMES.get(tier));
             });
 
     public static final GTRecipeType DUMMY_RECIPES = register("dummy", DUMMY)

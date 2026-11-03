@@ -86,7 +86,7 @@ public class GTTurbineItem extends ComponentItem implements ITagPrefixItem {
     }
 
     public static int getRotorMaxDamage(Material m) {
-        if (m.isNull() || m.getProperty(PropertyKey.ROTOR) == null)
+        if (m == null || m.getProperty(PropertyKey.ROTOR) == null)
             return -1;
         return 800 * (int) Math.pow(m.getProperty(PropertyKey.ROTOR).getDurability(), 0.65);
     }

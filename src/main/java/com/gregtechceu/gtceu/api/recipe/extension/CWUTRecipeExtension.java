@@ -99,7 +99,7 @@ public final class CWUTRecipeExtension extends RecipeExtension<Long> {
      */
     @Override
     public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
-        info.line(CWUT_LABEL, () -> Component.literal(FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)) + " CWU/t"));
+        info.requirement(CWUT_LABEL, () -> Component.literal(FormattingUtil.formatNumbers(recipe.data.getLong(GTRecipeDataKeys.CWUT)) + " CWU/t"));
         if (recipe.data.getBoolean(GTRecipeDataKeys.DURATION_IS_TOTAL_CWU)) {
             info.line(TOTAL_CWU_LABEL, () -> Component.literal(FormattingUtil.formatNumbers(recipe.duration) + " CWU"));
         }

@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 public class CleanroomCondition extends RecipeCondition {
 
     private static final Int2ReferenceOpenHashMap<CleanroomCondition> CACHE = new Int2ReferenceOpenHashMap<>();
+    private static final Component REQUIRES = Component.translatable("gtceu.recipe.info.requires");
     public final int minTier;
 
     public CleanroomCondition(boolean isReverse, int cleanroom) {
@@ -31,6 +33,11 @@ public class CleanroomCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable("gtceu.recipe.cleanroom", ICleanroomProvider.getCleanroomTooltip(minTier));
+    }
+
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.requirement(REQUIRES, () -> ICleanroomProvider.getCleanroomTooltip(minTier));
     }
 
     @Override

@@ -35,11 +35,7 @@ public class MaterialFlags {
     // GENERIC //
     /////////////////
 
-    /**
-     * Add to material to disable it's unification fully
-     */
-    // TODO(Onion) rename to DISABLE_MATERIAL_RECIPES
-    public static final MaterialFlag NO_UNIFICATION = new MaterialFlag.Builder("no_unification").build();
+    public static final MaterialFlag DISABLE_MATERIAL_RECIPES = new MaterialFlag.Builder("disable_material_recipes").build();
 
     /**
      * Enables electrolyzer decomposition recipe generation

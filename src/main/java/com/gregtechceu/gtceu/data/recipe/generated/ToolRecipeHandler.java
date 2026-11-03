@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.ToolProperty;
@@ -21,6 +20,7 @@ import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -315,12 +315,12 @@ public final class ToolRecipeHandler {
     public static void addDyeableToolRecipe(@NotNull Material material, @NotNull GTToolType tool, Object... recipe) {
         ItemStack toolStack = ToolHelper.get(tool, material);
         if (toolStack.isEmpty()) return;
-        for (var color : MarkerMaterials.Color.COLORS.entrySet()) {
+        for (DyeColor color : DyeColor.values()) {
             ItemStack dyed = toolStack.copy();
-            IDataComponentItem.set(dyed, ToolData.TINT_COLOR, color.getKey().getTextColor());
-            Object[] recipeWithDye = ArrayUtils.addAll(recipe, 'D', new MaterialEntry(TagPrefix.dye, color.getValue()));
+            IDataComponentItem.set(dyed, ToolData.TINT_COLOR, color.getTextColor());
+            Object[] recipeWithDye = ArrayUtils.addAll(recipe, 'D', color.getTag());
             VanillaRecipeHelper.addShapedRecipe(
-                    String.format("%s_%s_%s", tool.name, material.getName(), color.getKey().getSerializedName()),
+                    String.format("%s_%s_%s", tool.name, material.getName(), color.getSerializedName()),
                     dyed, recipeWithDye);
         }
     }

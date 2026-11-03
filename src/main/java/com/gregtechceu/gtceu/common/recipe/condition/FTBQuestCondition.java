@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.machine.owner.FTBOwner;
 import com.gregtechceu.gtceu.common.machine.owner.MachineOwner;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 
 import net.minecraft.network.chat.Component;
 
@@ -16,6 +17,9 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public class FTBQuestCondition extends RecipeCondition {
+
+    private static final Component COMPLETED = Component.translatable("gtceu.recipe.info.quest");
+    private static final Component NOT_COMPLETED = Component.translatable("gtceu.recipe.info.quest_not_completed");
 
     private static final Long2ObjectMap<QuestObject> QUEST_CACHE = new Long2ObjectOpenHashMap<>();
     private final long parsedQuestId;
@@ -37,6 +41,11 @@ public class FTBQuestCondition extends RecipeCondition {
         } else {
             return Component.translatable("recipe.condition.quest.completed.tooltip", questTitle);
         }
+    }
+
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.requirement(isReverse ? NOT_COMPLETED : COMPLETED, () -> getQuest().getTitle());
     }
 
     @Override

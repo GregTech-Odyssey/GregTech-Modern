@@ -236,12 +236,12 @@ public class FluidBuilder {
 
     private void determineName(@NotNull Material material, @Nullable FluidStorageKey key) {
         if (name != null) return;
-        if (material.isNull() || key == null) throw new IllegalArgumentException("Fluid must have a name");
+        if (material == null || key == null) throw new IllegalArgumentException("Fluid must have a name");
         name = key.getRegistryNameFor(material);
     }
 
     private void determineTextures(@NotNull Material material, @Nullable FluidStorageKey key, @NotNull String modid) {
-        if (!material.isNull() && key != null) {
+        if (material != null && key != null) {
             if (hasCustomStill) {
                 still = GTUtil.getResourceLocation(modid, "block/fluids/fluid." + name);
             } else {
@@ -259,7 +259,7 @@ public class FluidBuilder {
 
     private void determineTemperature(@NotNull Material material) {
         if (temperature != INFER_TEMPERATURE) return;
-        if (material.isNull()) {
+        if (material == null) {
             temperature = ROOM_TEMPERATURE;
         } else {
             BlastProperty property = material.getProperty(PropertyKey.BLAST);
@@ -291,7 +291,7 @@ public class FluidBuilder {
 
     private void determineColor(@NotNull Material material) {
         if (color != INFER_COLOR) return;
-        if (isColorEnabled && !material.isNull()) {
+        if (isColorEnabled && material != null) {
             color = GTUtil.convertRGBtoARGB(material.getMaterialRGB());
         }
     }
@@ -309,7 +309,7 @@ public class FluidBuilder {
         if (luminosity != INFER_LUMINOSITY) return;
         if (state == FluidState.PLASMA) {
             luminosity = 15;
-        } else if (!material.isNull()) {
+        } else if (material != null) {
             if (material.hasFlag(MaterialFlags.PHOSPHORESCENT)) {
                 luminosity = 15;
             } else if (state == FluidState.LIQUID && material.hasProperty(PropertyKey.DUST)) {
@@ -327,7 +327,7 @@ public class FluidBuilder {
         if (viscosity != INFER_VISCOSITY) return;
         viscosity = switch (state) {
             case LIQUID -> {
-                if (!material.isNull() && material.hasFlag(MaterialFlags.STICKY)) {
+                if (material != null && material.hasFlag(MaterialFlags.STICKY)) {
                     yield STICKY_LIQUID_VISCOSITY;
                 }
                 yield DEFAULT_LIQUID_VISCOSITY;

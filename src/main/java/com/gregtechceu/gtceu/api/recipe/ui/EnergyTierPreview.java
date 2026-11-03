@@ -91,6 +91,11 @@ public final class EnergyTierPreview implements RecipeTierPreview {
     }
 
     @Override
+    public int rateRow() {
+        return 1;
+    }
+
+    @Override
     public Component rowValue(int row, int tier, boolean perfect) {
         long eut = input ? (long) (recipe.getInputEUt() * Math.pow(4, tier - recipe.tier)) : recipe.getOutputEUt();
         if (row == 0) {

@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.api.data.chemical.material;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTMaterialItems;
-import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.data.recipe.misc.StoneMachineRecipes;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
 import com.gregtechceu.gtceu.data.tags.TagsHandler;
@@ -135,7 +135,7 @@ public class ItemMaterialData {
 
     public static void reinitializeMaterialData() {
         // Clear old data
-        MaterialRegistryManager.getInstance().getAll().forEach(Material::clearData);
+        GTRegistries.MATERIALS.values().forEach(Material::clearData);
         ITEM_MATERIAL_ENTRY.clear();
         FLUID_MATERIAL.clear();
 

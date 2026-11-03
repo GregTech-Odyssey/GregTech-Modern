@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -12,6 +13,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 
 public class BiomeCondition extends RecipeCondition {
+
+    private static final Component LABEL = Component.translatable("gtceu.recipe.info.biome");
 
     public final ResourceKey<Biome> biome;
 
@@ -30,6 +33,11 @@ public class BiomeCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable(BIOME_TOOLTIP_KEY, Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString()));
+    }
+
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.requirement(LABEL, () -> Component.translatableWithFallback(biome.location().toLanguageKey("biome"), biome.location().toString()));
     }
 
     @Override

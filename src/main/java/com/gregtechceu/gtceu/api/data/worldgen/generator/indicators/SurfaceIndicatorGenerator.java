@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.indicators;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreIndicatorPlacer;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -48,7 +48,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public class SurfaceIndicatorGenerator extends IndicatorGenerator {
 
-    public static final Codec<SurfaceIndicatorGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(BlockState.CODEC, GTCEuAPI.materialManager.codec()).fieldOf("block").forGetter(ext -> ext.block), IntProvider.codec(1, 32).fieldOf("radius").forGetter(ext -> ext.radius), FloatProvider.codec(0.0F, 2.0F).fieldOf("density").forGetter(ext -> ext.density), IndicatorPlacement.CODEC.fieldOf("placement").forGetter(ext -> ext.placement)).apply(instance, SurfaceIndicatorGenerator::new));
+    public static final Codec<SurfaceIndicatorGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(BlockState.CODEC, GTRegistries.MATERIALS.codec()).fieldOf("block").forGetter(ext -> ext.block), IntProvider.codec(1, 32).fieldOf("radius").forGetter(ext -> ext.radius), FloatProvider.codec(0.0F, 2.0F).fieldOf("density").forGetter(ext -> ext.density), IndicatorPlacement.CODEC.fieldOf("placement").forGetter(ext -> ext.placement)).apply(instance, SurfaceIndicatorGenerator::new));
     private Either<BlockState, Material> block = Either.left(Blocks.AIR.defaultBlockState());
     private IntProvider radius = ConstantInt.of(5);
     private FloatProvider density = ConstantFloat.of(0.2F);

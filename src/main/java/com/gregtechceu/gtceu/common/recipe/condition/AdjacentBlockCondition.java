@@ -5,12 +5,15 @@ import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.utils.GTUtil;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 
 public class AdjacentBlockCondition extends RecipeCondition {
+
+    private static final Component LABEL = Component.translatable("gtceu.recipe.info.adjacent_block");
 
     public final Block A;
     public final Block B;
@@ -24,6 +27,11 @@ public class AdjacentBlockCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable("recipe.condition.adjacent_block.tooltip");
+    }
+
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.requirement(LABEL, () -> A == B ? A.getName() : A.getName().append(" / ").append(B.getName()));
     }
 
     @Override

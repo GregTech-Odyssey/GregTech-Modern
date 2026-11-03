@@ -14,15 +14,20 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * 配方页信息区的内容：状态面板的行、面板内的展示槽和面板下方的额外展示槽。记下各方追加的内容，由配方页据此建控件。
- * 只需要尺寸时用 {@link Counter}（只数数，不调用任何 Supplier）。
- * <p>
- * 经 {@link RecipeInfoBuilder} 追加的数值只取一次（第一次显示时），之后复用；随电压档变化的核心参数行用 {@link #dynamicLine}。
+ * 配方页信息区的内容：面板内的展示槽和面板下方的额外展示槽。记下各方追加的内容，由配方页据此建控件。
+ * 只需要尺寸时用 {@link Counter}。
  */
 public final class RecipeInfoLines implements RecipeInfoBuilder {
 
+    public enum Kind {
+        PROPERTY,
+        REQUIREMENT,
+        SENTENCE,
+        LINK
+    }
+
     /** 一行：{@code label} 为 null 时是整句。 */
-    public record Line(@Nullable Component label, Supplier<Component> value, @Nullable Runnable onClick) {}
+    public record Line(Kind kind, @Nullable Component label, Supplier<Component> value, @Nullable Runnable onClick) {}
 
     private final List<Line> lines = new ArrayList<>();
     private final List<Supplier<Widget>> slots = new ArrayList<>(2);
@@ -30,25 +35,25 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
 
     @Override
     public RecipeInfoLines line(Component label, Supplier<Component> value) {
-        lines.add(new Line(label, Suppliers.memoize(() -> nonNull(value.get())), null));
+        lines.add(new Line(Kind.PROPERTY, label, memoize(value), null));
+        return this;
+    }
+
+    @Override
+    public RecipeInfoLines requirement(Component label, Supplier<Component> value) {
+        lines.add(new Line(Kind.REQUIREMENT, label, memoize(value), null));
         return this;
     }
 
     @Override
     public RecipeInfoLines sentence(Supplier<Component> text) {
-        lines.add(new Line(null, Suppliers.memoize(() -> nonNull(text.get())), null));
+        lines.add(new Line(Kind.SENTENCE, null, memoize(text), null));
         return this;
     }
 
     @Override
     public RecipeInfoLines link(Supplier<Component> text, Runnable onClick) {
-        lines.add(new Line(null, Suppliers.memoize(() -> nonNull(text.get())), onClick));
-        return this;
-    }
-
-    /** 数值随页面状态变化（如超频预览的电压档）的一行，每次取值都调用 {@code value}，调用方负责让它廉价。 */
-    public RecipeInfoLines dynamicLine(Component label, Supplier<Component> value) {
-        lines.add(new Line(label, value, null));
+        lines.add(new Line(Kind.LINK, null, memoize(text), onClick));
         return this;
     }
 
@@ -64,7 +69,11 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
         return this;
     }
 
-    private static Component nonNull(@Nullable Component value) {
+    private static Supplier<Component> memoize(Supplier<Component> value) {
+        return Suppliers.memoize(() -> nonNull(value.get()));
+    }
+
+    static Component nonNull(@Nullable Component value) {
         return value == null ? Component.empty() : value;
     }
 
@@ -83,29 +92,31 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
     /** 只数行数和槽数，算配方页尺寸用。 */
     public static final class Counter implements RecipeInfoBuilder {
 
-        private int labeled;
-        private int sentences;
+        private final List<Line> lines = new ArrayList<>();
         private int slots;
         private int panelSlots;
-        private final List<@Nullable Supplier<Component>> sentenceTexts = new ArrayList<>();
 
         @Override
         public Counter line(Component label, Supplier<Component> value) {
-            labeled++;
+            lines.add(new Line(Kind.PROPERTY, label, value, null));
+            return this;
+        }
+
+        @Override
+        public Counter requirement(Component label, Supplier<Component> value) {
+            lines.add(new Line(Kind.REQUIREMENT, label, value, null));
             return this;
         }
 
         @Override
         public Counter sentence(Supplier<Component> text) {
-            sentences++;
-            sentenceTexts.add(text);
+            lines.add(new Line(Kind.SENTENCE, null, text, null));
             return this;
         }
 
         @Override
         public Counter link(Supplier<Component> text, Runnable onClick) {
-            sentences++;
-            sentenceTexts.add(null);
+            lines.add(new Line(Kind.LINK, null, text, onClick));
             return this;
         }
 
@@ -121,14 +132,8 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
             return this;
         }
 
-        /** "名称 …… 数值"行数。 */
-        public int labeled() {
-            return labeled;
-        }
-
-        /** 整句行数。 */
-        public int sentences() {
-            return sentences;
+        public List<Line> lines() {
+            return lines;
         }
 
         public int slots() {
@@ -137,16 +142,6 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
 
         public int panelSlots() {
             return panelSlots;
-        }
-
-        public int sentenceRows(int panelWidth) {
-            int rows = 0;
-            for (int i = 0; i < sentenceTexts.size(); i++, rows++) {
-                var first = sentenceTexts.get(i);
-                var second = i + 1 < sentenceTexts.size() ? sentenceTexts.get(i + 1) : null;
-                if (first != null && second != null && RecipeSpecPanel.fitsPair(nonNull(first.get()), nonNull(second.get()), panelWidth)) i++;
-            }
-            return rows;
         }
     }
 }

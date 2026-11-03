@@ -1,7 +1,5 @@
 package com.gregtechceu.gtceu.data.recipe.configurable;
 
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterial;
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.misc.WoodMachineRecipes;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -283,7 +281,7 @@ public class RecipeRemoval {
     }
 
     private static void hardDyeRecipes(Consumer<ResourceLocation> registry) {
-        for (MarkerMaterial colorMaterial : MarkerMaterials.Color.VALUES) {
+        for (DyeColor colorMaterial : DyeColor.values()) {
             registry.accept(
                     GTUtil.getResourceLocation(String.format("minecraft:%s_concrete_powder", colorMaterial.getName())));
             registry.accept(GTUtil.getResourceLocation(String.format("minecraft:%s_terracotta", colorMaterial.getName())));

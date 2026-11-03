@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ResearchCondition extends RecipeCondition {
 
+
     public final String researchId;
     public final ItemStack dataStack;
 
@@ -33,7 +34,6 @@ public class ResearchCondition extends RecipeCondition {
     /** 配方页：一句"需要研究"，并把所需的研究数据作为催化剂展示槽（开启研究系统时）。 */
     @Override
     public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
-        info.sentence(this::getTooltips);
         if (ConfigHolder.INSTANCE.machines.enableResearch) {
             info.slot(() -> RecipeDisplaySlots.item(dataStack, IngredientIO.CATALYST));
         }

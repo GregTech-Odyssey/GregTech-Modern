@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -235,7 +235,7 @@ public class GeodeVeinGenerator extends VeinGenerator {
 
     public record GeodeBlockSettings(Either<BlockStateProvider, Material> fillingProvider, Either<BlockStateProvider, Material> innerLayerProvider, Either<BlockStateProvider, Material> alternateInnerLayerProvider, Either<BlockStateProvider, Material> middleLayerProvider, Either<BlockStateProvider, Material> outerLayerProvider, List<BlockState> innerPlacements, TagKey<Block> cannotReplace, TagKey<Block> invalidBlocks, @NotNull TagPrefix providerMaterialPrefix) {
 
-        public static final Codec<GeodeBlockSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(BlockStateProvider.CODEC, GTCEuAPI.materialManager.codec()).fieldOf("filling_provider").forGetter(config -> config.fillingProvider), Codec.either(BlockStateProvider.CODEC, GTCEuAPI.materialManager.codec()).fieldOf("inner_layer_provider").forGetter(config -> config.innerLayerProvider), Codec.either(BlockStateProvider.CODEC, GTCEuAPI.materialManager.codec()).fieldOf("alternate_inner_layer_provider").forGetter(config -> config.alternateInnerLayerProvider), Codec.either(BlockStateProvider.CODEC, GTCEuAPI.materialManager.codec()).fieldOf("middle_layer_provider").forGetter(config -> config.middleLayerProvider), Codec.either(BlockStateProvider.CODEC, GTCEuAPI.materialManager.codec()).fieldOf("outer_layer_provider").forGetter(config -> config.outerLayerProvider), ExtraCodecs.nonEmptyList(BlockState.CODEC.listOf()).fieldOf("inner_placements").forGetter(config -> config.innerPlacements), TagKey.hashedCodec(Registries.BLOCK).fieldOf("cannot_replace").forGetter(config -> config.cannotReplace), TagKey.hashedCodec(Registries.BLOCK).fieldOf("invalid_blocks").forGetter(config -> config.invalidBlocks), TagPrefix.CODEC.optionalFieldOf("provider_material_prefix", TagPrefix.block).forGetter(config -> config.providerMaterialPrefix)).apply(instance, GeodeBlockSettings::new));
+        public static final Codec<GeodeBlockSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(Codec.either(BlockStateProvider.CODEC, GTRegistries.MATERIALS.codec()).fieldOf("filling_provider").forGetter(config -> config.fillingProvider), Codec.either(BlockStateProvider.CODEC, GTRegistries.MATERIALS.codec()).fieldOf("inner_layer_provider").forGetter(config -> config.innerLayerProvider), Codec.either(BlockStateProvider.CODEC, GTRegistries.MATERIALS.codec()).fieldOf("alternate_inner_layer_provider").forGetter(config -> config.alternateInnerLayerProvider), Codec.either(BlockStateProvider.CODEC, GTRegistries.MATERIALS.codec()).fieldOf("middle_layer_provider").forGetter(config -> config.middleLayerProvider), Codec.either(BlockStateProvider.CODEC, GTRegistries.MATERIALS.codec()).fieldOf("outer_layer_provider").forGetter(config -> config.outerLayerProvider), ExtraCodecs.nonEmptyList(BlockState.CODEC.listOf()).fieldOf("inner_placements").forGetter(config -> config.innerPlacements), TagKey.hashedCodec(Registries.BLOCK).fieldOf("cannot_replace").forGetter(config -> config.cannotReplace), TagKey.hashedCodec(Registries.BLOCK).fieldOf("invalid_blocks").forGetter(config -> config.invalidBlocks), TagPrefix.CODEC.optionalFieldOf("provider_material_prefix", TagPrefix.block).forGetter(config -> config.providerMaterialPrefix)).apply(instance, GeodeBlockSettings::new));
     }
 
     public GeodeVeinGenerator(final GeodeBlockSettings geodeBlockSettings, final GeodeLayerSettings geodeLayerSettings, final GeodeCrackSettings geodeCrackSettings, final double usePotentialPlacementsChance, final double useAlternateLayer0Chance, final boolean placementsRequireLayer0Alternate, final IntProvider outerWallDistance, final IntProvider distributionPoints, final IntProvider pointOffset, final int minGenOffset, final int maxGenOffset, final double noiseMultiplier, final int invalidBlocksThreshold) {

@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.bedrock.BedrockVeinKind;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockfluid.BedrockFluidDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.bedrockore.BedrockOreDefinition;
 import com.gregtechceu.gtceu.api.gui.texture.ProspectingTexture;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -66,7 +66,7 @@ public abstract class ProspectorMode<T> {
                             var itemName = BLOCK_CACHE.computeIfAbsent(state, blockState -> {
                                 var name = RegistryEntry.get(blockState.getBlock()).toString();
                                 var entry = ChemicalHelper.getMaterialEntry(blockState.getBlock());
-                                if (!entry.isEmpty()) {
+                                if (entry != null) {
                                     name = "material_" + entry.material();
                                 }
                                 return name;
@@ -81,8 +81,8 @@ public abstract class ProspectorMode<T> {
         @Override
         public int getItemColor(String item) {
             if (item.startsWith("material_")) {
-                var mat = GTMaterials.get(item.substring(9));
-                if (!mat.isNull()) {
+                var mat = GTRegistries.MATERIALS.parse(item.substring(9));
+                if (mat != null) {
                     return mat.getMaterialRGB();
                 }
             }
@@ -93,8 +93,8 @@ public abstract class ProspectorMode<T> {
         public IGuiTexture getItemIcon(String item) {
             return ICON_CACHE.computeIfAbsent(item, name -> {
                 if (name.startsWith("material_")) {
-                    var mat = GTMaterials.get(name.substring(9));
-                    if (!mat.isNull()) {
+                    var mat = GTRegistries.MATERIALS.parse(name.substring(9));
+                    if (mat != null) {
                         var list = new ArrayList<ItemStack>();
                         for (TagPrefix oreTag : TagPrefix.ORES.keySet()) {
                             for (var block : ChemicalHelper.getBlocks(oreTag, mat)) {
@@ -111,8 +111,8 @@ public abstract class ProspectorMode<T> {
         @Override
         public String getDescriptionId(String item) {
             if (item.startsWith("material_")) {
-                var mat = GTMaterials.get(item.substring(9));
-                if (!mat.isNull()) {
+                var mat = GTRegistries.MATERIALS.parse(item.substring(9));
+                if (mat != null) {
                     return mat.getUnlocalizedName();
                 }
             }

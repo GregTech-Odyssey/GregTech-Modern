@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.data.chemical.material.properties;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 
 import net.minecraft.util.Mth;
 
@@ -9,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,16 +89,16 @@ public class OreProperty implements IMaterialProperty {
      * Material will have a Dust Property.
      * Default: none.
      */
-    @NotNull
-    private Material directSmeltResult = GTMaterials.NULL;
+    @Nullable
+    private Material directSmeltResult = null;
     /**
      * Material in which this Ore should be washed to give additional output.
      * <p>
      * Material will have a Fluid Property.
      * Default: none.
      */
-    @NotNull
-    private Material washedIn = GTMaterials.NULL;
+    @Nullable
+    private Material washedIn = null;
     /**
      * The amount of Material that the ore should be washed in
      * in the Chemical Bath.
@@ -188,21 +188,21 @@ public class OreProperty implements IMaterialProperty {
 
     @NotNull
     public final Material getOreByProduct(int index) {
-        if (this.oreByProducts.isEmpty()) return GTMaterials.NULL;
+        if (this.oreByProducts.isEmpty()) return null;
         return this.oreByProducts.get(Mth.clamp(index, 0, this.oreByProducts.size() - 1));
     }
 
     @NotNull
     public final Material getOreByProduct(int index, @NotNull Material fallback) {
         Material material = getOreByProduct(index);
-        return !material.isNull() ? material : fallback;
+        return material != null ? material : fallback;
     }
 
     @Override
     public void verifyProperty(MaterialProperties properties) {
         properties.ensureSet(PropertyKey.DUST, true);
-        if (!directSmeltResult.isNull()) directSmeltResult.getProperties().ensureSet(PropertyKey.DUST, true);
-        if (!washedIn.isNull()) washedIn.getProperties().ensureSet(PropertyKey.FLUID, true);
+        if (directSmeltResult != null) directSmeltResult.getProperties().ensureSet(PropertyKey.DUST, true);
+        if (washedIn != null) washedIn.getProperties().ensureSet(PropertyKey.FLUID, true);
         separatedInto.forEach(m -> m.getProperties().ensureSet(PropertyKey.DUST, true));
         oreByProducts.forEach(m -> m.getProperties().ensureSet(PropertyKey.DUST, true));
     }

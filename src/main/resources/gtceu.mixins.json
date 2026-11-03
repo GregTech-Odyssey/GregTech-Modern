@@ -16,6 +16,7 @@
     "MultiPlayerGameModeMixin",
     "TextureAtlasMixin",
     "emi.RecipeDisplayMixin",
+    "emi.RecipeTabMixin",
     "ldlib.ClickDataMixin",
     "xaerominimap.HighlighterRegistryMixin",
     "xaerominimap.MinimapFBORendererMixin",

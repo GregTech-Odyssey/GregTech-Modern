@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.data.recipe.generated;
 
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
-import com.gregtechceu.gtceu.api.data.chemical.material.MarkerMaterials;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.*;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
@@ -11,10 +10,12 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.common.data.*;
 import com.gregtechceu.gtceu.config.ConfigHolder;
+import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.data.recipe.VanillaRecipeHelper;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.fluids.FluidStack;
@@ -115,7 +116,7 @@ public final class MaterialRecipeHandler {
 
             if (oreProperty != null) {
                 Material smeltingResult = oreProperty.getDirectSmeltResult();
-                if (!smeltingResult.isNull()) {
+                if (smeltingResult != null) {
                     VanillaRecipeHelper.addSmeltingRecipe(id + "_ingot",
                             ChemicalHelper.getTag(dust, material), ChemicalHelper.get(ingot, smeltingResult));
                 }
@@ -128,7 +129,7 @@ public final class MaterialRecipeHandler {
                 ItemStack ingotStack = ChemicalHelper.get(hasHotIngot ? ingotHot : ingot, material);
                 if (ingotStack.isEmpty() && oreProperty != null) {
                     Material smeltingResult = oreProperty.getDirectSmeltResult();
-                    if (!smeltingResult.isNull()) {
+                    if (smeltingResult != null) {
                         ingotStack = ChemicalHelper.get(ingot, smeltingResult);
                     }
                 }
@@ -147,7 +148,7 @@ public final class MaterialRecipeHandler {
 
                     processEBFRecipe(material, blastProperty, ingotStack);
 
-                    if (!ingotProperty.getMagneticMaterial().isNull()) {
+                    if (ingotProperty.getMagneticMaterial() != null) {
                         processEBFRecipe(ingotProperty.getMagneticMaterial(), blastProperty, ingotStack);
                     }
                 }
@@ -163,7 +164,7 @@ public final class MaterialRecipeHandler {
             // Some Ores with Direct Smelting Results have neither ingot nor gem properties
             if (oreProperty != null) {
                 Material smeltingResult = oreProperty.getDirectSmeltResult();
-                if (!smeltingResult.isNull()) {
+                if (smeltingResult != null) {
                     ItemStack ingotStack = ChemicalHelper.get(ingot, smeltingResult);
                     if (!ingotStack.isEmpty()) {
                         VanillaRecipeHelper.addSmeltingRecipe("smelt_" + id + "_to_ingot",
@@ -464,7 +465,7 @@ public final class MaterialRecipeHandler {
                         "engrave_" + material.getName() + "_" + FormattingUtil.toLowerCaseUnderscore(prefix.name) +
                                 "_to_" + FormattingUtil.toLowerCaseUnderscore(lowerPrefix.name))
                 .inputItems(prevStack)
-                .notConsumable(lens, MarkerMaterials.Color.White)
+                .notConsumable(CustomTags.lens(DyeColor.WHITE))
                 .outputItems(prefix, material)
                 .duration(300)
                 .EUt(240)

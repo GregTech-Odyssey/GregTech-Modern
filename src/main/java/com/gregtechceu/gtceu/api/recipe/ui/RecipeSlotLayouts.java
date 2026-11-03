@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.recipe.ui;
 
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
+import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
+import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -9,9 +11,11 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.widget.ImageWidget;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
+import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.TaffyPosition;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +35,9 @@ public final class RecipeSlotLayouts {
     public static final int PROGRESS_MARGIN = 14;
     private static final int COMPACT_PADDING_VERTICAL = 2;
     private static final int COMPACT_PROGRESS_MARGIN = 8;
-    private static final int COMPACT_COLUMNS = (UISizes.CONTENT_WIDTH - 2 * UISizes.PANEL_PADDING - 2 * PADDING -
-            RecipeSlots.PROGRESS_SIZE - 2 * COMPACT_PROGRESS_MARGIN) / UISizes.SLOT_SIZE;
+    private static final int TEMPLATE_COLUMNS = 3;
+    private static final int TEMPLATE_ROWS = 3;
+    public static final int DISPLAY_SLOT_GAP = 6;
 
     /**
      * 默认排布：{@code [输入] → [输出]}。
@@ -45,7 +50,7 @@ public final class RecipeSlotLayouts {
      * </ul>
      */
     public static final RecipeSlotLayout DEFAULT = RecipeSlotLayout.fitting(slots -> {
-        if (slots.isRecipeView()) return compact(slots);
+        if (slots.isRecipeView()) return fixed(slots);
         var inputs = side(slots, IO.IN);
         var outputs = side(slots, IO.OUT);
         int sideWidth = Math.max(sideWidth(slots, IO.IN), sideWidth(slots, IO.OUT));
@@ -57,72 +62,110 @@ public final class RecipeSlotLayouts {
                 .addChildren(inputs, progress, outputs);
     });
 
-    private static UIElement compact(RecipeSlots slots) {
-        var inputs = shape(slots, IO.IN);
-        var outputs = shape(slots, IO.OUT);
-        int rows = 1, inColumns, outColumns;
-        while (true) {
-            inColumns = minColumns(inputs, rows, false);
-            outColumns = minColumns(outputs, rows, false);
-            if (inColumns + outColumns <= COMPACT_COLUMNS || rows >= Math.max(total(inputs), total(outputs))) break;
-            rows++;
-        }
-        boolean inBreak = false, outBreak = false;
-        int inBreakColumns = minColumns(inputs, rows, true), outBreakColumns = minColumns(outputs, rows, true);
-        if (inBreakColumns >= 0 && outBreakColumns >= 0 && inBreakColumns + outBreakColumns <= COMPACT_COLUMNS) {
-            inBreak = outBreak = true;
-        } else if (inBreakColumns >= 0 && inBreakColumns + outColumns <= COMPACT_COLUMNS) {
-            inBreak = true;
-        } else if (outBreakColumns >= 0 && inColumns + outBreakColumns <= COMPACT_COLUMNS) {
-            outBreak = true;
-        }
+    private static UIElement fixed(RecipeSlots slots) {
+        var shapes = sideShapes(slots.templateCount(IO.IN, ItemRecipeInfo.INSTANCE), slots.templateCount(IO.IN, FluidRecipeInfo.INSTANCE),
+                slots.templateCount(IO.OUT, ItemRecipeInfo.INSTANCE), slots.templateCount(IO.OUT, FluidRecipeInfo.INSTANCE), slots.reservedWidth());
         var row = new UIElement().layout(l -> l.row().paddingHorizontal(PADDING).paddingVertical(COMPACT_PADDING_VERTICAL)
                 .gapAll(COMPACT_PROGRESS_MARGIN).alignCenter());
-        if (!inputs.isEmpty()) row.addChild(compactSide(slots, IO.IN, inBreak ? inBreakColumns : inColumns, inBreak));
+        var inputs = fixedSide(slots, IO.IN, shapes[0], AlignItems.END);
+        if (inputs != null) row.addChild(inputs);
         row.addChild(slots.progress());
-        if (!outputs.isEmpty()) row.addChild(compactSide(slots, IO.OUT, outBreak ? outBreakColumns : outColumns, outBreak));
+        var outputs = fixedSide(slots, IO.OUT, shapes[1], AlignItems.START);
+        if (outputs != null) row.addChild(outputs);
         return row;
     }
 
-    private static IntList shape(RecipeSlots slots, IO io) {
-        var counts = new IntArrayList();
-        for (var cap : slots.shapeCapabilities(io)) counts.add(slots.shapeCount(io, cap));
-        return counts;
-    }
-
-    private static int total(IntList groups) {
-        int total = 0;
-        for (int i = 0; i < groups.size(); i++) total += groups.getInt(i);
-        return total;
-    }
-
-    private static int rows(IntList groups, int columns, boolean breakGroups) {
-        if (!breakGroups) return (total(groups) + columns - 1) / columns;
-        int rows = 0;
-        for (int i = 0; i < groups.size(); i++) rows += (groups.getInt(i) + columns - 1) / columns;
-        return rows;
-    }
-
-    private static int minColumns(IntList groups, int rows, boolean breakGroups) {
-        int widest = 0;
-        for (int i = 0; i < groups.size(); i++) widest = Math.max(widest, breakGroups ? groups.getInt(i) : total(groups));
-        if (widest == 0) return 0;
-        for (int columns = 1; columns <= widest; columns++) {
-            if (rows(groups, columns, breakGroups) <= rows) return columns;
-        }
-        return -1;
-    }
-
-    private static UIElement compactSide(RecipeSlots slots, IO io, int columns, boolean breakGroups) {
-        var side = new UIElement().layout(l -> l.column().alignStart().width(columns * UISizes.SLOT_SIZE));
-        var all = new ArrayList<Widget>();
-        for (var cap : slots.capabilities(io)) {
+    @Nullable
+    private static UIElement fixedSide(RecipeSlots slots, IO io, SideShape shape, AlignItems align) {
+        var caps = slots.capabilities(io);
+        if (caps.isEmpty()) return null;
+        var side = new UIElement().layout(l -> l.column().alignItems(align).minWidth(shape.width() * UISizes.SLOT_SIZE));
+        UIElement besideRow = null;
+        for (var cap : caps) {
             var capSlots = slots.slots(io, cap);
-            if (breakGroups) side.addChild(SlotGrid.of(columns, capSlots));
-            else all.addAll(capSlots);
+            if (slots.templateCount(io, cap) == 0) {
+                side.addChild(SlotGrid.of(Math.max(1, Math.min(capSlots.size(), Math.max(shape.width(), 1))), capSlots));
+            } else if (cap == ItemRecipeInfo.INSTANCE && shape.beside()) {
+                besideRow = new UIElement().layout(l -> l.row().alignStart());
+                besideRow.addChild(SlotGrid.of(shape.itemColumns(), capSlots));
+                side.addChild(besideRow);
+            } else if (cap == FluidRecipeInfo.INSTANCE && besideRow != null) {
+                besideRow.addChild(SlotGrid.of(1, capSlots));
+            } else {
+                int columns = cap == ItemRecipeInfo.INSTANCE ? shape.itemColumns() : cap == FluidRecipeInfo.INSTANCE ? shape.fluidColumns() : Math.max(1, shape.width());
+                side.addChild(SlotGrid.of(Math.max(1, columns), capSlots));
+            }
         }
-        if (!all.isEmpty()) side.addChild(SlotGrid.of(columns, all));
         return side;
+    }
+
+    private record SideShape(int itemColumns, int fluidColumns, boolean beside, int width, int rows) {}
+
+    private static final SideShape NO_SIDE = new SideShape(0, 0, false, 0, 0);
+    private static final int TEMPLATE_WIDTH = UISizes.CONTENT_WIDTH - 2 * UISizes.PANEL_PADDING - 2 * PADDING -
+            RecipeSlots.PROGRESS_SIZE - 2 * COMPACT_PROGRESS_MARGIN;
+
+    private static SideShape sideShape(int items, int fluids, boolean allowBeside) {
+        if (items + fluids == 0) return NO_SIDE;
+        if (items == 0) {
+            int columns = Math.min(TEMPLATE_COLUMNS, fluids);
+            return new SideShape(0, columns, false, columns, rows(fluids, columns));
+        }
+        int itemColumns = Math.min(TEMPLATE_COLUMNS, columns(items));
+        int itemRows = rows(items, itemColumns);
+        if (fluids == 0) return new SideShape(itemColumns, 0, false, itemColumns, itemRows);
+        if (allowBeside && fluids <= itemRows) return new SideShape(itemColumns, 1, true, itemColumns + 1, itemRows);
+        int columns = Math.max(itemColumns, Math.min(TEMPLATE_COLUMNS, fluids));
+        return new SideShape(columns, columns, false, columns, rows(items, columns) + rows(fluids, columns));
+    }
+
+    private static SideShape[] sideShapes(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs, int reserved) {
+        int budget = TEMPLATE_WIDTH - reserved;
+        var inputs = sideShape(itemInputs, fluidInputs, true);
+        var outputs = sideShape(itemOutputs, fluidOutputs, true);
+        if ((inputs.width() + outputs.width()) * UISizes.SLOT_SIZE > budget) {
+            if (inputs.width() >= outputs.width()) inputs = sideShape(itemInputs, fluidInputs, false);
+            else outputs = sideShape(itemOutputs, fluidOutputs, false);
+        }
+        if ((inputs.width() + outputs.width()) * UISizes.SLOT_SIZE > budget) {
+            inputs = sideShape(itemInputs, fluidInputs, false);
+            outputs = sideShape(itemOutputs, fluidOutputs, false);
+        }
+        return new SideShape[] { inputs, outputs };
+    }
+
+    private static int rows(int count, int columns) {
+        return columns == 0 ? 0 : (count + columns - 1) / columns;
+    }
+
+    public static long trimTemplate(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs, int reserved) {
+        while (true) {
+            var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs, reserved);
+            if (shapes[0].rows() > TEMPLATE_ROWS) {
+                var trimmed = trimmed(itemInputs, fluidInputs, shapes[0]);
+                if (trimmed == null) break;
+                itemInputs = trimmed[0];
+                fluidInputs = trimmed[1];
+            } else if (shapes[1].rows() > TEMPLATE_ROWS) {
+                var trimmed = trimmed(itemOutputs, fluidOutputs, shapes[1]);
+                if (trimmed == null) break;
+                itemOutputs = trimmed[0];
+                fluidOutputs = trimmed[1];
+            } else break;
+        }
+        var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs, reserved);
+        if (fluidInputs > 0) itemInputs = shapes[0].itemColumns() * rows(itemInputs, shapes[0].itemColumns());
+        if (fluidOutputs > 0) itemOutputs = shapes[1].itemColumns() * rows(itemOutputs, shapes[1].itemColumns());
+        return GTRecipeTypeUI.pack(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
+    }
+
+    @Nullable
+    private static int[] trimmed(int items, int fluids, SideShape shape) {
+        int itemRows = rows(items, shape.itemColumns());
+        int fluidRows = shape.beside() ? 0 : rows(fluids, shape.fluidColumns());
+        if (itemRows > 1) return new int[] { (itemRows - 1) * shape.itemColumns(), Math.min(fluids, shape.beside() ? itemRows - 1 : fluids) };
+        if (fluidRows > 1) return new int[] { items, (fluidRows - 1) * shape.fluidColumns() };
+        return null;
     }
 
     /**

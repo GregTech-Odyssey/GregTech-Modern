@@ -15,6 +15,8 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.item.MaterialBlockItem;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
+import com.gregtechceu.gtceu.api.registry.registrate.GTRegistrate;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
@@ -78,11 +80,6 @@ public class TagPrefix {
         return PREFIXES.get(name);
     }
 
-    public boolean isEmpty() {
-        return this == NULL_PREFIX;
-    }
-
-    public static final TagPrefix NULL_PREFIX = new TagPrefix("null");
     public static final TagPrefix ore = oreTagPrefix("stone", BlockTags.MINEABLE_WITH_PICKAXE).langValue("%s Ore").registerOre(Blocks.STONE::defaultBlockState, () -> GTMaterials.Stone, BlockBehaviour.Properties.of().mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(3.0F, 3.0F), GTUtil.getResourceLocation("block/stone"), false, false, true);
     public static final TagPrefix oreGranite = oreTagPrefix("granite", BlockTags.MINEABLE_WITH_PICKAXE).langValue("Granite %s Ore").registerOre(Blocks.GRANITE::defaultBlockState, () -> GTMaterials.Granite, BlockBehaviour.Properties.of().mapColor(MapColor.DIRT).requiresCorrectToolForDrops().strength(3.0F, 3.0F), GTUtil.getResourceLocation("block/granite"));
     public static final TagPrefix oreDiorite = oreTagPrefix("diorite", BlockTags.MINEABLE_WITH_PICKAXE).langValue("Diorite %s Ore").registerOre(Blocks.DIORITE::defaultBlockState, () -> GTMaterials.Diorite, BlockBehaviour.Properties.of().mapColor(MapColor.QUARTZ).requiresCorrectToolForDrops().strength(3.0F, 3.0F), GTUtil.getResourceLocation("block/diorite"));
@@ -396,13 +393,17 @@ public class TagPrefix {
         return this.blockProperties(new BlockProperties(renderType, properties));
     }
 
+    public GTRegistrate registrate(@NotNull Material material) {
+        return GTRegistries.MATERIALS.registrateOf(material);
+    }
+
     public TagPrefix enableRecycling() {
         this.generateRecycling = true;
         return this;
     }
 
-    public long getMaterialAmount(@NotNull Material material) {
-        if (material.isNull() || !isAmountModified(material)) {
+    public long getMaterialAmount(@Nullable Material material) {
+        if (material == null || !isAmountModified(material)) {
             return this.materialAmount;
         }
         return (long) (GTValues.M * materialAmounts.getFloat(material));
@@ -418,7 +419,7 @@ public class TagPrefix {
 
     @SuppressWarnings("unchecked")
     public TagKey<Item>[] getItemParentTags() {
-        return tags.stream().filter(TagType::isParentTag).map(type -> type.getTag(this, GTMaterials.NULL)).toArray(TagKey[]::new);
+        return tags.stream().filter(TagType::isParentTag).map(type -> type.getTag(this, null)).toArray(TagKey[]::new);
     }
 
     @SuppressWarnings("unchecked")

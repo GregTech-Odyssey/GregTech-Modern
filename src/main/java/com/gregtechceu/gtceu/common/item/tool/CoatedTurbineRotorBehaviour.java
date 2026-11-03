@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.item.IDataComponentItem;
 import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.api.tooltip.TipRole;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -57,7 +58,7 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
 
     public static final ItemDataComponentKey<Material, CompoundTag> COATING = ItemDataComponentKey.createCompound("GT.PartStats",
             (tag, material) -> tag.putString("Coating", material.getResourceLocation().toString()),
-            tag -> tag.contains("Coating", Tag.TAG_STRING) ? GTMaterials.get(tag.getString("Coating")) : null,
+            tag -> tag.contains("Coating", Tag.TAG_STRING) ? GTRegistries.MATERIALS.parse(tag.getString("Coating")) : null,
             tag -> tag.remove("Coating"));
     public static final ItemDataComponentKey<Integer, CompoundTag> PROTECTION_DAMAGE = ItemDataComponentKey.createCompound("GT.PartStats",
             (tag, damage) -> tag.putInt("ProtectionDamage", damage),
@@ -108,7 +109,7 @@ public class CoatedTurbineRotorBehaviour extends TurbineRotorBehaviour {
     public static Material getCoatMaterial(ItemStack itemStack) {
         var defaultMaterial = GTMaterials.Neutronium;
         var material = IDataComponentItem.getOrDefault(itemStack, COATING, defaultMaterial);
-        if (material.isNull() || !material.hasProperty(PropertyKey.INGOT)) {
+        if (material == null || !material.hasProperty(PropertyKey.INGOT)) {
             return defaultMaterial;
         }
         return material;

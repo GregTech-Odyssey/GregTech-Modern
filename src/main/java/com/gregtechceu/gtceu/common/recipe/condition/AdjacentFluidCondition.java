@@ -19,6 +19,8 @@ import net.minecraftforge.fluids.FluidStack;
 
 public class AdjacentFluidCondition extends RecipeCondition {
 
+    private static final Component LABEL = Component.translatable("gtceu.recipe.info.adjacent_fluid");
+
     public final Fluid A;
     public final Fluid B;
 
@@ -36,7 +38,7 @@ public class AdjacentFluidCondition extends RecipeCondition {
     /** 配方页：一句说明，并把两侧需要的流体作为展示槽。 */
     @Override
     public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
-        info.sentence(this::getTooltips);
+        info.requirement(LABEL, () -> Component.translatable("gtceu.recipe.info.fluid_source"));
         if (A != Fluids.EMPTY) info.slot(() -> RecipeDisplaySlots.fluid(new FluidStack(A, 1000), IngredientIO.CATALYST));
         if (B != Fluids.EMPTY) info.slot(() -> RecipeDisplaySlots.fluid(new FluidStack(B, 1000), IngredientIO.CATALYST));
     }

@@ -72,7 +72,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
                 toolHead = ChemicalHelper.getMaterialEntry(stack1.getItem());
             } else return false;
 
-            if (toolHead.isEmpty()) return false;
+            if (toolHead == null) return false;
             GTToolType output = replacement(tool.getToolType(), toolHead.tagPrefix());
             return output != null && GTMaterialItems.TOOL_ITEMS.get(toolHead.material(), output) != null;
         }
@@ -107,7 +107,7 @@ public class ToolHeadReplaceRecipe extends CustomRecipe {
                 realTool = second;
             } else return ItemStack.EMPTY;
             IElectricItem powerUnit = GTCapabilityHelper.getElectricItem(realTool);
-            if (toolHead.isEmpty() || powerUnit == null) return ItemStack.EMPTY;
+            if (toolHead == null || powerUnit == null) return ItemStack.EMPTY;
             GTToolType output = replacement(tool.getToolType(), toolHead.tagPrefix());
             if (output == null) return ItemStack.EMPTY;
             var entry = GTMaterialItems.TOOL_ITEMS.get(toolHead.material(), output);

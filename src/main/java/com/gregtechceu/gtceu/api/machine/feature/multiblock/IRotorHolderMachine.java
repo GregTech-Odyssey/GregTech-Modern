@@ -16,7 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public interface IRotorHolderMachine extends IWorkableMultiPart {
         return 100;
     }
 
-    @NotNull
+    @Nullable
     Material getRotorMaterial();
 
     ItemStack getRotorStack();

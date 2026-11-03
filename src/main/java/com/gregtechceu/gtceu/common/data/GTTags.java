@@ -1,6 +1,5 @@
 package com.gregtechceu.gtceu.common.data;
 
-import com.gregtechceu.gtceu.api.GTCEuAPI;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
@@ -12,7 +11,6 @@ import com.gregtechceu.gtceu.api.fluids.FluidState;
 import com.gregtechceu.gtceu.api.fluids.GTFluid;
 import com.gregtechceu.gtceu.api.fluids.store.FluidStorageKey;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -62,8 +60,8 @@ public class GTTags {
 
     public void registryGTDynamicTags() {
         var itemTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.ITEM, path -> new O2OOpenCacheHashMap<>());
-        MaterialRegistryManager.getInstance().getAll().forEach(material -> {
-            if (material.isNull()) return;
+        GTRegistries.MATERIALS.values().forEach(material -> {
+            if (material == null) return;
             material.MATERIAL_ENTRY_ITEM_MAP.forEach((tagPrefix, itemLikes) -> {
                 if (itemLikes.isEmpty()) return;
                 var entries = itemLikes.stream().map(GTTags::makeItemEntry).collect(toArrayList());
@@ -76,7 +74,7 @@ public class GTTags {
                 if (tagPrefix == TagPrefix.crushed && material.hasProperty(PropertyKey.ORE)) {
                     OreProperty ore = material.getProperty(PropertyKey.ORE);
                     Material washedIn = ore.getWashedIn().first();
-                    if (washedIn.isNull()) return;
+                    if (washedIn == null) return;
                     ResourceLocation generalTag = CustomTags.CHEM_BATH_WASHABLE.location();
                     ResourceLocation specificTag = generalTag.withSuffix("/" + washedIn.getName());
 
@@ -84,6 +82,14 @@ public class GTTags {
                     itemTags.computeIfAbsent(specificTag, path -> new ArrayList<>()).addAll(entries);
                 }
             });
+        });
+
+        GTItems.GLASS_LENSES.forEach((color, lens) -> {
+            var entry = makeItemEntry(lens.get());
+            itemTags.computeIfAbsent(CustomTags.lens(color).location(), path -> new ArrayList<>()).add(entry);
+            for (TagKey<Item> tag : TagPrefix.lens.getItemParentTags()) {
+                itemTags.computeIfAbsent(tag.location(), path -> new ArrayList<>()).add(entry);
+            }
         });
 
         GTMaterialItems.TOOL_ITEMS.rowMap().forEach((material, map) -> map.values().forEach(item -> {
@@ -96,7 +102,7 @@ public class GTTags {
 
         // If AE2 is loaded, add the Fluid P2P attunement tag to all the buckets
         var p2pFluidAttunements = GTUtil.getResourceLocation(GTValues.MODID_APPENG, "p2p_attunements/fluid_p2p_tunnel");
-        for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
+        for (Material material : GTRegistries.MATERIALS.values()) {
             FluidProperty property = material.getProperty(PropertyKey.FLUID);
             if (property == null) {
                 continue;
@@ -111,8 +117,8 @@ public class GTTags {
             }
         }
         var blockTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.BLOCK, path -> new O2OOpenCacheHashMap<>());
-        MaterialRegistryManager.getInstance().getAll().forEach(material -> {
-            if (material.isNull()) return;
+        GTRegistries.MATERIALS.values().forEach(material -> {
+            if (material == null) return;
             material.MATERIAL_ENTRY_BLOCK_MAP.forEach((tagPrefix, blocks) -> {
                 if (blocks.isEmpty()) return;
                 var entries = blocks.stream().map(GTTags::makeBlockEntry).collect(toArrayList());
@@ -148,7 +154,7 @@ public class GTTags {
             tagList.add(makeTagEntry(CustomTags.MINEABLE_WITH_CONFIG_VALID_PICKAXE_WIRE_CUTTER));
         }
         var fluidTags = DYNAMIC_TAG_CACHE.computeIfAbsent(BuiltInRegistries.FLUID, path -> new O2OOpenCacheHashMap<>());
-        for (Material material : GTCEuAPI.materialManager.getRegisteredMaterials()) {
+        for (Material material : GTRegistries.MATERIALS.values()) {
             FluidProperty property = material.getProperty(PropertyKey.FLUID);
             if (property == null) continue;
             for (FluidStorageKey key : FluidStorageKey.allKeys()) {

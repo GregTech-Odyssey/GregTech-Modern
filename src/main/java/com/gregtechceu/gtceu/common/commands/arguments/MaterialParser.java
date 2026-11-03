@@ -1,7 +1,7 @@
 package com.gregtechceu.gtceu.common.commands.arguments;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
-import com.gregtechceu.gtceu.common.unification.material.MaterialRegistryManager;
+import com.gregtechceu.gtceu.api.data.chemical.material.registry.MaterialRegistry;
 
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
@@ -29,7 +29,7 @@ public class MaterialParser {
     private static final char SYNTAX_START_NBT = '{';
     private static final char SYNTAX_TAG = '#';
     private static final Function<SuggestionsBuilder, CompletableFuture<Suggestions>> SUGGEST_NOTHING = SuggestionsBuilder::buildFuture;
-    private final MaterialRegistryManager materials;
+    private final MaterialRegistry materials;
     private final StringReader reader;
     private Material result;
     /**
@@ -37,12 +37,12 @@ public class MaterialParser {
      */
     private Function<SuggestionsBuilder, CompletableFuture<Suggestions>> suggestions = SUGGEST_NOTHING;
 
-    private MaterialParser(MaterialRegistryManager materials, StringReader reader) {
+    private MaterialParser(MaterialRegistry materials, StringReader reader) {
         this.materials = materials;
         this.reader = reader;
     }
 
-    public static Material parseForMaterial(MaterialRegistryManager registry,
+    public static Material parseForMaterial(MaterialRegistry registry,
                                             StringReader reader) throws CommandSyntaxException {
         int i = reader.getCursor();
 
@@ -56,7 +56,7 @@ public class MaterialParser {
         }
     }
 
-    public static CompletableFuture<Suggestions> fillSuggestions(MaterialRegistryManager lookup,
+    public static CompletableFuture<Suggestions> fillSuggestions(MaterialRegistry lookup,
                                                                  SuggestionsBuilder builder) {
         StringReader stringReader = new StringReader(builder.getInput());
         stringReader.setCursor(builder.getStart());
@@ -86,6 +86,6 @@ public class MaterialParser {
 
     private CompletableFuture<Suggestions> suggestMaterial(SuggestionsBuilder builder) {
         return SharedSuggestionProvider.suggestResource(
-                this.materials.getRegisteredMaterials().stream().map(Material::getResourceLocation), builder);
+                this.materials.values().stream().map(Material::getResourceLocation), builder);
     }
 }

@@ -48,7 +48,7 @@ public class TooltipsHandler {
     public static void appendTooltips(ItemStack stack, TooltipFlag flag, List<Component> tooltips) {
         // Formula
         var materialEntry = ChemicalHelper.getMaterialEntry(stack.getItem());
-        if (!materialEntry.isEmpty()) {
+        if (materialEntry != null) {
             var formula = materialEntry.material().getChemicalFormula();
             if (formula != null) {
                 tooltips.add(1, Tips.formula(formula));
@@ -78,7 +78,7 @@ public class TooltipsHandler {
         }
 
         Material material = HazardProperty.getValidHazardMaterial(stack);
-        if (material.isNull()) {
+        if (material == null) {
             return;
         }
         GTUtil.appendHazardTooltips(material, tooltips);
@@ -98,7 +98,7 @@ public class TooltipsHandler {
         }
 
         var material = ChemicalHelper.getMaterial(fluid);
-        if (!material.isNull()) {
+        if (material != null) {
             var formula = material.getChemicalFormula();
             if (formula != null) {
                 tooltips.accept(Tips.formula(formula));

@@ -73,20 +73,10 @@ public final class RecipeSlots {
 
     /** 该方向要显示槽位的内容种类，按 {@link RecipeInfo#COMPARATOR} 排序；机器界面可以按需滤掉某些种类（如发电机不显示输出）。 */
     public List<ContentRecipeInfo> capabilities(IO io) {
-        return capabilities(io, false);
-    }
-
-    public List<ContentRecipeInfo> shapeCapabilities(IO io) {
-        return capabilities(io, true);
-    }
-
-    private List<ContentRecipeInfo> capabilities(IO io, boolean shape) {
         var max = io == IO.IN ? recipeType().maxInputs : recipeType().maxOutputs;
         var result = new ArrayList<ContentRecipeInfo>(max.size());
         for (var entry : max.object2IntEntrySet()) {
-            if (entry.getIntValue() > 0 && entry.getKey() instanceof ContentRecipeInfo cap && (shape ? shapeCount(io, cap) : count(io, cap)) > 0) {
-                result.add(cap);
-            }
+            if (entry.getIntValue() > 0 && entry.getKey() instanceof ContentRecipeInfo cap && count(io, cap) > 0) result.add(cap);
         }
         return result;
     }
@@ -97,13 +87,17 @@ public final class RecipeSlots {
         int max = io == IO.IN ? recipeType().getMaxInputs(cap) : recipeType().getMaxOutputs(cap);
         if (recipeCounts == null || !ui.getSlotLayout().fitsRecipe()) return max;
         int count = recipeCounts.applyAsInt(io, cap);
-        return ui.getSlotLayout() == RecipeSlotLayouts.DEFAULT ? count : Math.min(count, max);
+        if (ui.getSlotLayout() != RecipeSlotLayouts.DEFAULT) return Math.min(count, max);
+        return Math.max(count, templateCount(io, cap));
     }
 
-    public int shapeCount(IO io, ContentRecipeInfo cap) {
-        if (!renders(io, cap)) return 0;
-        int count = count(io, cap);
-        return shapeCounts == null ? count : Math.max(count, shapeCounts.applyAsInt(io, cap));
+    public int reservedWidth() {
+        return ui.getDisplayWidth();
+    }
+
+    public int templateCount(IO io, ContentRecipeInfo cap) {
+        if (!renders(io, cap) || shapeCounts == null) return 0;
+        return shapeCounts.applyAsInt(io, cap);
     }
 
     private boolean renders(IO io, ContentRecipeInfo cap) {

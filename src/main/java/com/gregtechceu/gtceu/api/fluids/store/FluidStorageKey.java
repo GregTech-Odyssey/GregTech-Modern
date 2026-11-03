@@ -73,7 +73,7 @@ public final class FluidStorageKey {
      * @return the translation key for fluids with this key
      */
     @NotNull
-    public String getTranslationKeyFor(@NotNull Material material) {
+    public String getTranslationKeyFor(@Nullable Material material) {
         return this.translationKeyFunction.apply(material);
     }
 

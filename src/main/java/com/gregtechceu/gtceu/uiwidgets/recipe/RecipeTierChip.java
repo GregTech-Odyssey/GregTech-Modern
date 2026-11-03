@@ -34,11 +34,15 @@ public class RecipeTierChip extends UIElement {
         this.max = max;
         this.name = name;
         this.tooltip = tooltip;
+        int width = width(min, max, name);
+        layout(l -> l.size(width, RecipeSpecPanel.ROW_HEIGHT));
+    }
+
+    public static int width(int min, int max, IntFunction<Component> name) {
         int widest = 0;
         var font = Minecraft.getInstance().font;
         for (int t = min; t <= max; t++) widest = Math.max(widest, font.width(name.apply(t)) + font.width("*"));
-        int width = widest + ARROW_WIDTH + ARROW_GAP + 1;
-        layout(l -> l.size(width, RecipeSpecPanel.ROW_HEIGHT));
+        return widest + ARROW_WIDTH + ARROW_GAP + 1;
     }
 
     private int hoveredSide(int mouseX, int mouseY) {

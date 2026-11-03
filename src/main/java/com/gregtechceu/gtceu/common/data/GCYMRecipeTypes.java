@@ -7,9 +7,8 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeDisplaySlots;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
-import com.lowdragmc.lowdraglib.utils.LocalizationUtils;
 
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
 
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.MULTIBLOCK;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.register;
@@ -30,19 +29,12 @@ public class GCYMRecipeTypes {
             .setSlotOverlay(false, true, true, GuiTextures.FURNACE_OVERLAY_2)
             .setSlotOverlay(true, true, false, GuiTextures.FURNACE_OVERLAY_2)
             .setSlotOverlay(true, true, true, GuiTextures.FURNACE_OVERLAY_2)
-            .addDataInfo(recipe -> {
-                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
-                return LocalizationUtils.format("gtceu.recipe.temperature", FormattingUtil.formatNumbers(temp));
-            })
-            .addDataInfo(recipe -> {
-                int temp = recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP);
-                ICoilType requiredCoil = ICoilType.getMinRequiredType(temp);
-
-                if (requiredCoil != null && !requiredCoil.getMaterial().isNull()) {
-                    return LocalizationUtils.format("gtceu.recipe.coil.tier",
-                            I18n.get(requiredCoil.getMaterial().getUnlocalizedName()));
-                }
-                return "";
+            .addDataRequirement(Component.translatable("gtceu.recipe.info.temperature"),
+                    recipe -> Component.translatable("gtceu.recipe.info.kelvin", FormattingUtil.formatNumbers(recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP))))
+            .addDataRequirement(Component.translatable("gtceu.recipe.info.coil"), recipe -> {
+                ICoilType requiredCoil = ICoilType.getMinRequiredType(recipe.data.getInt(GTRecipeDataKeys.EBF_TEMP));
+                if (requiredCoil == null || requiredCoil.getMaterial() == null) return null;
+                return requiredCoil.getMaterial().getLocalizedName();
             })
             .setUiBuilder(RecipeDisplaySlots::coilInfo)
             .setSound(GTSoundEntries.ARC);

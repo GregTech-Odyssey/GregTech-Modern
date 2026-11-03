@@ -5,10 +5,13 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 
 import net.minecraft.network.chat.Component;
 
 public class VentCondition extends RecipeCondition {
+
+    private static final Component LABEL = Component.translatable("gtceu.recipe.info.vent");
 
     public static final VentCondition INSTANCE = new VentCondition();
 
@@ -17,6 +20,11 @@ public class VentCondition extends RecipeCondition {
     @Override
     public Component getTooltips() {
         return Component.translatable("recipe.condition.steam_vent.tooltip");
+    }
+
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.requirement(LABEL, () -> Component.translatable("gtceu.recipe.info.vent_clear"));
     }
 
     @Override

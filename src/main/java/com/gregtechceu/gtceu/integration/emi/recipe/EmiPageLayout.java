@@ -12,9 +12,12 @@ import dev.emi.emi.api.widget.WidgetHolder;
 import dev.emi.emi.config.EmiConfig;
 import dev.emi.emi.config.SidebarSide;
 import dev.emi.emi.registry.EmiRecipeFiller;
+import dev.emi.emi.screen.RecipeDisplay;
 import dev.emi.emi.screen.RecipeScreen;
 import dev.emi.emi.screen.WidgetGroup;
 import dev.emi.emi.widget.RecipeBackground;
+
+import java.util.List;
 
 public final class EmiPageLayout {
 
@@ -27,7 +30,12 @@ public final class EmiPageLayout {
     private static final boolean HAS_OVERLAY_BUTTON = classExists("dev.emi.emi.widget.RecipeOverlayButtonWidget");
     private static final boolean HAS_PLANNER_BUTTON = classExists("dev.emi.emi.widget.RecipePlannerButtonWidget");
 
+    private static final int RECIPE_PADDING = 10;
+    private static final int[] NO_EXTRA = new int[0];
+
     private static boolean pagedBuild;
+    private static int[] pageExtras = NO_EXTRA;
+    private static int pageIndex;
 
     private EmiPageLayout() {}
 
@@ -39,6 +47,13 @@ public final class EmiPageLayout {
     }
 
     public interface NoSideButtons {}
+
+    public interface InlineButtons {
+
+        int getButtonX();
+
+        int getButtonY();
+    }
 
     private static boolean classExists(String name) {
         try {
@@ -89,6 +104,40 @@ public final class EmiPageLayout {
 
     public static boolean isPagedBuild() {
         return pagedBuild;
+    }
+
+    public static void beginPage(List<RecipeDisplay> displays, int space) {
+        pageIndex = 0;
+        int count = displays.size();
+        pageExtras = count < 2 ? NO_EXTRA : new int[count];
+        if (count < 2) return;
+        int used = RECIPE_PADDING * (count - 1);
+        for (var display : displays) {
+            if (!(display.recipe instanceof InlineButtons)) {
+                pageExtras = NO_EXTRA;
+                return;
+            }
+            used += display.getHeight();
+        }
+        int free = space - used;
+        if (free <= 0) return;
+        int target = (space - RECIPE_PADDING * (count - 1)) / count;
+        boolean equal = true;
+        for (var display : displays) equal &= display.getHeight() <= target;
+        for (int i = 0; i < count; i++) pageExtras[i] = equal ? target - displays.get(i).getHeight() : free / count;
+    }
+
+    public static void endPage() {
+        pageExtras = NO_EXTRA;
+        pageIndex = 0;
+    }
+
+    public static int currentExtra() {
+        return pageIndex < pageExtras.length ? pageExtras[pageIndex] : 0;
+    }
+
+    public static int takeExtra() {
+        return pageIndex < pageExtras.length ? pageExtras[pageIndex++] : 0;
     }
 
     public static boolean claimPagedGroup(WidgetHolder widgets, int displayWidth) {

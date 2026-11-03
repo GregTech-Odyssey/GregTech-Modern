@@ -15,7 +15,6 @@ import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -124,7 +123,6 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     public void clearRemoved() {
         super.clearRemoved();
         coverContainer.onLoad();
-        if (frameMaterial == GTMaterials.NULL) frameMaterial = null;
     }
 
     public int getNumConnections() {
@@ -137,10 +135,9 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         return count;
     }
 
+    @Nullable
     public Material getFrameMaterial() {
-        var material = this.frameMaterial;
-        if (material == null) return GTMaterials.NULL;
-        return material;
+        return frameMaterial;
     }
 
     public int getBlockedConnections() {
@@ -384,7 +381,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
                 }
             } else {
                 var material = getFrameMaterial();
-                if (!material.isNull()) {
+                if (material != null) {
                     Block.popResource(getLevel(), worldPosition, GTMaterialBlocks.MATERIAL_BLOCKS.get(TagPrefix.frameGt, material).asStack());
                     setFrameMaterial(null);
                     return Pair.of(GTToolType.CROWBAR, InteractionResult.sidedSuccess(playerIn.level().isClientSide));

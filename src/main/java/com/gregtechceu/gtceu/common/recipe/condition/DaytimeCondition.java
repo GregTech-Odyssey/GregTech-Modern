@@ -4,11 +4,14 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.RecipeCondition;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
+import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
 
 public class DaytimeCondition extends RecipeCondition {
+
+    private static final Component LABEL = Component.translatable("gtceu.recipe.info.daytime");
 
     public static final DaytimeCondition DAY = new DaytimeCondition(false);
     public static final DaytimeCondition NIGHT = new DaytimeCondition(true);
@@ -24,6 +27,11 @@ public class DaytimeCondition extends RecipeCondition {
         } else {
             return Component.translatable("recipe.condition.daytime.day.tooltip");
         }
+    }
+
+    @Override
+    public void appendInfo(GTRecipeDefinition recipe, RecipeInfoBuilder info) {
+        info.requirement(LABEL, () -> Component.translatable(isReverse ? "gtceu.recipe.info.night" : "gtceu.recipe.info.day"));
     }
 
     @Override

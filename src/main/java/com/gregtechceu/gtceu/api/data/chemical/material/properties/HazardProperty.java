@@ -10,7 +10,6 @@ import com.gregtechceu.gtceu.api.item.GTBucketItem;
 import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.TagPrefixItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
-import com.gregtechceu.gtceu.common.data.GTMaterials;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
@@ -24,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -160,10 +160,11 @@ public class HazardProperty implements IMaterialProperty {
         }
     }
 
+    @Nullable
     public static Material getValidHazardMaterial(ItemStack item) {
         if (ConfigHolder.INSTANCE.gameplay.hazardsEnabled || item.getItem() instanceof IGTTool) {
-            Material material = GTMaterials.NULL;
-            TagPrefix prefix = TagPrefix.NULL_PREFIX;
+            Material material = null;
+            TagPrefix prefix = null;
             boolean isFluid = false;
             if (item.getItem() instanceof TagPrefixItem prefixItem) {
                 material = prefixItem.material;
@@ -175,20 +176,17 @@ public class HazardProperty implements IMaterialProperty {
                 }
             } else {
                 MaterialEntry entry = ChemicalHelper.getMaterialEntry(item.getItem());
-                if (!entry.isEmpty()) {
+                if (entry != null) {
                     material = entry.material();
                     prefix = entry.tagPrefix();
                 }
             }
+            if (material == null) return null;
             HazardProperty property = material.getProperty(PropertyKey.HAZARD);
-            if (property == null) {
-                return GTMaterials.NULL;
-            }
-            if (!isFluid && !property.hazardTrigger.isAffected(prefix)) {
-                return GTMaterials.NULL;
-            }
+            if (property == null) return null;
+            if (!isFluid && (prefix == null || !property.hazardTrigger.isAffected(prefix))) return null;
             return material;
         }
-        return GTMaterials.NULL;
+        return null;
     }
 }

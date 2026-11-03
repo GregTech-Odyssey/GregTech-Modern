@@ -26,6 +26,7 @@ import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
@@ -49,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
+import java.util.function.BiConsumer;
 
 public class GTRecipeType implements RecipeType<Recipe<?>> {
 
@@ -78,7 +80,7 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     @Nullable
     protected SoundEntry sound;
     @Getter
-    protected List<Function<GTRecipeDefinition, String>> dataInfos = new ArrayList<>();
+    protected List<BiConsumer<GTRecipeDefinition, RecipeInfoBuilder>> dataInfos = new ArrayList<>();
     @Getter
     protected boolean isScanner;
     // Does this recipe type have a research item slot? If this is true you MUST create a custom UI.
@@ -190,9 +192,23 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
         return this;
     }
 
-    public GTRecipeType addDataInfo(Function<GTRecipeDefinition, String> dataInfo) {
+    public GTRecipeType addDataInfo(BiConsumer<GTRecipeDefinition, RecipeInfoBuilder> dataInfo) {
         this.dataInfos.add(dataInfo);
         return this;
+    }
+
+    public GTRecipeType addDataRequirement(Component label, Function<GTRecipeDefinition, @Nullable Component> value) {
+        return addDataInfo((recipe, info) -> {
+            var text = value.apply(recipe);
+            if (text != null) info.requirement(label, () -> text);
+        });
+    }
+
+    public GTRecipeType addDataProperty(Component label, Function<GTRecipeDefinition, @Nullable Component> value) {
+        return addDataInfo((recipe, info) -> {
+            var text = value.apply(recipe);
+            if (text != null) info.line(label, () -> text);
+        });
     }
 
     /**
@@ -339,8 +355,9 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     }
 
     public void addToCategoryMap(GTRecipeCategory category, GTRecipeDefinition recipe) {
-        categoryMap.computeIfAbsent(category, k -> new ReferenceOpenHashSet<>()).add(recipe);
-        recipeUI.addToCategoryShape(category, recipe);
+        if (categoryMap.computeIfAbsent(category, k -> new ReferenceOpenHashSet<>()).add(recipe)) {
+            recipeUI.addToCategoryShape(category, recipe);
+        }
     }
 
     public Set<GTRecipeCategory> getCategories() {

@@ -180,6 +180,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         Cooperite = GTMaterials.builder("cooperite")
+                .lang("Sheldonite")
                 .dust(1).ore()
                 .color(0xe9ffa7).secondaryColor(0x665f2f).iconSet(METALLIC)
                 .components(Platinum, 3, Nickel, 1, Sulfur, 1, Palladium, 1)
@@ -496,6 +497,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         RTMAlloy = GTMaterials.builder("rtm_alloy")
+                .lang("RTM Alloy")
                 .ingot().fluid()
                 .color(0x30306B).iconSet(SHINY)
                 .components(Ruthenium, 4, Tungsten, 2, Molybdenum, 1)
@@ -1213,6 +1215,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         Iron3Chloride = GTMaterials.builder("iron_iii_chloride")
+                .lang("Iron III Chloride")
                 .liquid()
                 .color(0x060B0B)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
@@ -1220,6 +1223,7 @@ public class FirstDegreeMaterials {
                 .buildAndRegister();
 
         Iron2Chloride = GTMaterials.builder("iron_ii_chloride")
+                .lang("Iron II Chloride")
                 .liquid()
                 .color(0xe8e0be)
                 .flags(DECOMPOSITION_BY_ELECTROLYZING)
