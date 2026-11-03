@@ -3,7 +3,6 @@
 // Can be locally toggled via spotless:off/spotless:on comments
 spotless {
     encoding 'UTF-8'
-    ratchetFrom 'gto/gto'
 
     format 'misc', {
         target '.gitignore'

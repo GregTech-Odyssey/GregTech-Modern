@@ -188,7 +188,7 @@ public class CrateMachine extends MetaMachine
     private void readInventory(@Nullable Tag tag) {
         var storage = inventory.storage;
         if (tag instanceof ByteArrayTag bytes) {
-            storage.readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
+            storage.readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), GTDataFixer.OPS);
             storage.notifyChanged();
         } else if (tag instanceof CompoundTag nbt) {
             ListTag list = nbt.getList("Items", Tag.TAG_COMPOUND);

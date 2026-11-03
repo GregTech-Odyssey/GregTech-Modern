@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.machine.steam;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
+import com.gregtechceu.gtceu.api.capability.annotation.WailaDisplaySync;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.TankWidget;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
@@ -94,6 +95,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     @SaveToDisk(defaultValue = "0")
     private int timeBeforeCoolingDown;
     @Getter
+    @WailaDisplaySync
     private boolean hasNoWater;
     @Nullable
     private final TickTimeMonitor steamMonitor = holder.monitorTick(GTTickTimeMonitors.STEAM, this::updateCurrentTemperature);
@@ -105,6 +107,7 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
     protected ISubscription steamTankSubs;
     public static final int BOILER_CONTENT_HEIGHT = 62;
 
+    @WailaDisplaySync
     public int fillAmount;
 
     public SteamBoilerMachine(MetaMachineBlockEntity holder, boolean isHighPressure, Object... args) {
@@ -365,25 +368,17 @@ public abstract class SteamBoilerMachine extends SteamWorkableMachine implements
 
     @Override
     public void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig) {
-        var producing = data.getBoolean("producingSteam");
-        if (data.getBoolean("heatingUp")) {
+        var producing = !hasNoWater && currentTemperature >= 100;
+        if (getRecipeLogic().isWorking()) {
             iTooltip.add(Component.translatable("gtceu.machine.boiler.info.heating.up",
                     producing ? Component.translatable("gtceu.machine.boiler.info.producing.steam") : ""));
-            var fillAmount = data.getInt("fillAmount");
+            var fillAmount = this.fillAmount / 10;
             if (fillAmount > 0) {
                 iTooltip.add(Component.translatable("gtceu.multiblock.large_boiler.steam_output", fillAmount).withStyle(ChatFormatting.GREEN));
             }
-        } else if (data.getBoolean("coolingDown")) {
+        } else if (currentTemperature > 0) {
             iTooltip.add(Component.translatable("gtceu.machine.boiler.info.cooling.down",
                     producing ? Component.translatable("gtceu.machine.boiler.info.producing.steam") : ""));
         }
-    }
-
-    @Override
-    public void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {
-        data.putInt("fillAmount", fillAmount / 10);
-        data.putBoolean("heatingUp", getRecipeLogic().isWorking());
-        data.putBoolean("coolingDown", currentTemperature > 0);
-        data.putBoolean("producingSteam", !hasNoWater && currentTemperature >= 100);
     }
 }

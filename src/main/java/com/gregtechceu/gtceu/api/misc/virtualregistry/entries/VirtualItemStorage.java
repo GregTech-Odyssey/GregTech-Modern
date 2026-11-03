@@ -79,7 +79,7 @@ public class VirtualItemStorage extends VirtualEntry {
         super.deserializeNBT(nbt);
         var items = nbt.get(ITEM_KEY);
         if (items instanceof ByteArrayTag bytes) {
-            handler.readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
+            handler.readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), GTDataFixer.OPS);
         } else if (items instanceof CompoundTag legacy) {
             handler.clear();
             var list = legacy.getList("Items", Tag.TAG_COMPOUND);

@@ -357,7 +357,7 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
 
     public final void deserializeNBT(Tag tag) {
         if (tag instanceof ByteArrayTag byteTags) {
-            readValue(JavaValueOps.INSTANCE.fromBytes(byteTags.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
+            readValue(JavaValueOps.INSTANCE.fromBytes(byteTags.getAsByteArray()), GTDataFixer.OPS);
         } else if (tag instanceof CompoundTag nbt) {
             Arrays.fill(stacks, ItemStack.EMPTY);
             ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);

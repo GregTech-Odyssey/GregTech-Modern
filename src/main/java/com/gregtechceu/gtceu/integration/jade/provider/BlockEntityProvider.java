@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.integration.jade.provider;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.blockentity.GTBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
+import com.gregtechceu.gtceu.datasynclib.WailaDisplaySyncData;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -24,6 +25,8 @@ public enum BlockEntityProvider implements IBlockComponentProvider, IServerDataP
         if (blockAccessor.getBlockEntity() instanceof IWailaDisplayProvider provider) {
             var data = blockAccessor.getServerData().get(UID.toString());
             if (data instanceof CompoundTag tag) {
+                // @WailaDisplaySync fields, back on the client's own copy of the block entity/machine
+                WailaDisplaySyncData.read(provider, tag);
                 provider.appendWailaTooltip(tag, iTooltip, blockAccessor, iPluginConfig);
             }
         }
@@ -38,6 +41,8 @@ public enum BlockEntityProvider implements IBlockComponentProvider, IServerDataP
         if (be instanceof IWailaDisplayProvider display) {
             var data = new CompoundTag();
             display.appendWailaData(data, blockAccessor);
+            // rides along with the provider's own payload: the fields marked @WailaDisplaySync
+            WailaDisplaySyncData.write(display, data);
             if (data.isEmpty()) return;
             compoundTag.put(UID.toString(), data);
         }

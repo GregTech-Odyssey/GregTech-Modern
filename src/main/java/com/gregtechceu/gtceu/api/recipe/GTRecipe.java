@@ -298,7 +298,7 @@ public final class GTRecipe {
     @Nullable
     public static GTRecipe fromNbt(@Nullable Tag t) {
         if (t instanceof ByteArrayTag tag) {
-            var ops = JavaValueOps.create(GTDataFixer.VERSION);
+            var ops = GTDataFixer.OPS;
             return DATA_CODEC.decode(ops, ops.fromBytes(tag.getAsByteArray()));
         } else if (t instanceof CompoundTag compoundTag) {
             return fromLegacyNbt(compoundTag);

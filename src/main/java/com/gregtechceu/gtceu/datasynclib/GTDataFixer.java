@@ -8,6 +8,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import com.gto.datasynclib.DataSyncCodec;
 import com.gto.datasynclib.blockentity.FieldDataHolderBlockEntity;
+import com.gto.datasynclib.datastream.codec.JavaValueOps;
 import com.gto.datasynclib.datastream.codec.ValueCodec;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.util.ByteBufCodecExtends;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 public class GTDataFixer {
 
     public int VERSION = 4;
+    public final JavaValueOps OPS = JavaValueOps.create(VERSION);
 
     static {
         FieldDataHolderBlockEntity.VERSION = VERSION;

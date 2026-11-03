@@ -106,6 +106,6 @@ public class TankValvePartMachine extends MultiblockPartMachine implements IAuto
 
     @Override
     public boolean isAutoOutputtingFluids(Direction side) {
-        return isFormed() && getFrontFacing() == side;
+        return isFormed() && Direction.DOWN == side;
     }
 }

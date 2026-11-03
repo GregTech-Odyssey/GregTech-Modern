@@ -696,7 +696,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
 
     public void deserializeNBT(Tag tag) {
         if (tag instanceof ByteArrayTag bytes) {
-            readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), JavaValueOps.create(GTDataFixer.VERSION));
+            readValue(JavaValueOps.INSTANCE.fromBytes(bytes.getAsByteArray()), GTDataFixer.OPS);
         } else if (tag instanceof CompoundTag compound) {
             readValue(ValueCodecs.COMPOUND_TAG.encode(JavaValueOps.INSTANCE, compound), JavaValueOps.INSTANCE);
         }

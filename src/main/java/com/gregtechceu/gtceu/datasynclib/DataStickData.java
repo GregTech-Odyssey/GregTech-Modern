@@ -33,7 +33,7 @@ import java.util.Map;
 /** Data-stick configuration storage; field discovery and codec resolution belong to DataSyncLib. */
 public final class DataStickData {
 
-    private static final JavaValueOps OPS = JavaValueOps.create(GTDataFixer.VERSION);
+    private static final JavaValueOps OPS = GTDataFixer.OPS;
     private static final ClassValue<AnnotatedField<SaveToDataStick>[]> FIELDS = new ClassValue<>() {
 
         @Override

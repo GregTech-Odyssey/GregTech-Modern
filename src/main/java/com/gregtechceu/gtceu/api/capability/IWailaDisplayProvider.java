@@ -10,5 +10,5 @@ public interface IWailaDisplayProvider {
 
     void appendWailaTooltip(CompoundTag data, ITooltip iTooltip, BlockAccessor blockAccessor, IPluginConfig iPluginConfig);
 
-    void appendWailaData(CompoundTag data, BlockAccessor blockAccessor);
+    default void appendWailaData(CompoundTag data, BlockAccessor blockAccessor) {}
 }

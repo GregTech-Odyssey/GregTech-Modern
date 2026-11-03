@@ -48,6 +48,7 @@ import com.gregtechceu.gtceu.datasynclib.DataStickData;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 import com.gregtechceu.gtceu.datasynclib.TagSerializableAccess;
 import com.gregtechceu.gtceu.datasynclib.TagSerializableArrayAccess;
+import com.gregtechceu.gtceu.datasynclib.WailaDisplaySyncData;
 import com.gregtechceu.gtceu.forge.AlloyBlastPropertyAddition;
 import com.gregtechceu.gtceu.forge.ForgeCommonEventListener;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
@@ -209,6 +210,7 @@ public class CommonProxy {
 
     private static void initDataSync() {
         DataStickData.init();
+        WailaDisplaySyncData.init();
         GTDataFixer.registerCodecs();
         KeyCodecs.register();
         // TipContents 是 GTM 自己的内容类型，原版与库都不认识它；注册之后二进制组件编码才能把带角色的
