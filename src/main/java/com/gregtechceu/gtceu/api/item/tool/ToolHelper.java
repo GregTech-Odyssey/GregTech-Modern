@@ -25,7 +25,12 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
@@ -144,6 +149,20 @@ public final class ToolHelper {
 
     public static boolean canUse(ItemStack stack) {
         return stack.getDamageValue() <= stack.getMaxDamage();
+    }
+
+    public static double getMainHandAttackDamage(ItemStack stack) {
+        double addition = DefaultAttributes.getSupplier(EntityType.PLAYER).getBaseValue(Attributes.ATTACK_DAMAGE);
+        double multiplyBase = 1;
+        double multiplyTotal = 1;
+        for (var modifier : stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE)) {
+            switch (modifier.getOperation()) {
+                case ADDITION -> addition += modifier.getAmount();
+                case MULTIPLY_BASE -> multiplyBase += modifier.getAmount();
+                case MULTIPLY_TOTAL -> multiplyTotal *= 1 + modifier.getAmount();
+            }
+        }
+        return Attributes.ATTACK_DAMAGE.sanitizeValue(addition * multiplyBase * multiplyTotal) + EnchantmentHelper.getDamageBonus(stack, MobType.UNDEFINED);
     }
 
     public static void damageItem(@NotNull ItemStack stack, @Nullable LivingEntity user) {
