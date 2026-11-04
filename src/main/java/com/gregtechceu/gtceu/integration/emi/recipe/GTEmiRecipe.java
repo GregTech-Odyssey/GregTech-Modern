@@ -57,7 +57,7 @@ import java.util.function.IntSupplier;
  * <p>
  * 右侧按钮数取决于当前打开的界面（能否"填充配方"）和 EMI 设置（可在游戏里改），每次排版重新数，尺寸按按钮数分别缓存。
  */
-public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayout.Paged, EmiPageLayout.InlineButtons {
+public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayout.Paged {
 
     /// 交给父类构造器的占位控件：父类构造时只读它的尺寸，真正的尺寸见 getDisplayWidth / getDisplayHeight
     private static final Widget PLACEHOLDER = new Widget(0, 0, 0, 0);
@@ -70,7 +70,6 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
     protected GTRecipeWidget.PageFrame frame = GTRecipeWidget.PageFrame.COMPACT;
     private List<EmiIngredient> encodingCatalysts;
     private volatile boolean ingredientsReady;
-    private int buttonX = -1, buttonY = -1;
 
     public GTEmiRecipe(GTRecipeDefinition recipe, EmiRecipeCategory category) {
         super(() -> PLACEHOLDER);
@@ -79,7 +78,7 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
         this.displayPriority = () -> recipe.priority;
         this.inputs = null;
         this.widget = () -> new GTRecipeWidget(recipe, frame);
-        this.sizes = new EmiPageSizes(this::measure, () -> EmiPageLayout.recipeAreaHeight(category), true);
+        this.sizes = new EmiPageSizes(this::measure, () -> EmiPageLayout.recipeAreaHeight(category));
     }
 
     /** 按外框量页面尺寸（不建控件）。一个 EMI 配方显示多个配方方案时取最大的。 */
@@ -139,9 +138,6 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
     public void addWidgets(WidgetHolder widgets) {
         frame = frameFor(widgets);
         var widget = this.widget.get();
-        var page = findPage(widget);
-        buttonX = page == null ? -1 : page.getButtonX();
-        buttonY = page == null ? -1 : page.getButtonY();
         var modular = new ModularWrapper<>(widget);
         modular.setRecipeWidget(0, 0);
 
@@ -210,26 +206,6 @@ public class GTEmiRecipe extends ModularEmiRecipe<Widget> implements EmiPageLayo
         widgets.add(new ModularWrapperWidget(modular, slots));
         slots.forEach(widgets::add);
         widgets.add(new ModularForegroundRenderWidget(modular));
-    }
-
-    @Nullable
-    private static GTRecipeWidget findPage(Widget widget) {
-        if (widget instanceof GTRecipeWidget page) return page;
-        if (!(widget instanceof WidgetGroup group)) return null;
-        for (var child : group.getContainedWidgets(true)) {
-            if (child instanceof GTRecipeWidget page) return page;
-        }
-        return null;
-    }
-
-    @Override
-    public int getButtonX() {
-        return buttonX;
-    }
-
-    @Override
-    public int getButtonY() {
-        return buttonY;
     }
 
     @Override

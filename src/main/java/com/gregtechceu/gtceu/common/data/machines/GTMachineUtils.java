@@ -87,6 +87,7 @@ import static com.gregtechceu.gtceu.api.pattern.util.RelativeDirection.*;
 import static com.gregtechceu.gtceu.api.recipe.handler.IO.IN;
 import static com.gregtechceu.gtceu.common.data.GTBlocks.ALL_FIREBOXES;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
+import static com.gregtechceu.gtceu.common.machine.storage.QuantumChestMachine.CHEST_CAPACITY;
 import static com.gregtechceu.gtceu.common.machine.storage.QuantumTankMachine.TANK_CAPACITY;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
 import static com.gregtechceu.gtceu.utils.FormattingUtil.toEnglishName;
@@ -357,7 +358,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperTanks(String tank_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = tier == 0 ? 500 * FluidType.BUCKET_VOLUME : 2000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
+            long maxAmount = (tier == ULV ? 512L : 2048L << tier) * FluidType.BUCKET_VOLUME;
             var register = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + tank_type,
                     MachineDefinition::createDefinition,
@@ -383,7 +384,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperChests(String chest_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = tier == 0 ? 500_000 : tier == MAX ? Long.MAX_VALUE : 2_000_000 * (long) Math.pow(2, tier);
+            long maxAmount = tier == ULV ? 1L << 19 : tier == MAX ? Long.MAX_VALUE : 1L << (21 + tier);
             definitions[tier] = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + chest_type,
                     MachineDefinition::createDefinition,
@@ -401,6 +402,7 @@ public class GTMachineUtils {
                     .tooltipBuilder(CHEST_TOOLTIPS)
                     .tips(Tips.lore(Component.translatable("gtceu.machine.quantum_chest.tooltip")))
                     .register();
+            CHEST_CAPACITY.put(definitions[tier], maxAmount);
         }
         return definitions;
     }

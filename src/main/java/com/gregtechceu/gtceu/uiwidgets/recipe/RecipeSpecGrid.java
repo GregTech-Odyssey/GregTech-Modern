@@ -24,13 +24,13 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
- * 配方页参数网格：固定版位两列（耗能|耗时 / 总计|档位 / 条件 / 属性 / 说明，每组另起一行），每张配方卡同一列位，数值在格内右对齐。
+ * 配方页参数网格：首行固定「耗能 | 档位」，其余按标准两列连续排（耗时、总计、条件、属性依次补空位，单出一格的占满整行，说明各占一行），百万以上的数值缩写；半格按棋盘格明暗交替，整行格单用一种底色。
  * 版位由 {@link #plan} 一次算出，配方页量尺寸与建控件共用；超出行数上限时说明、属性、总计依次让位，计入悬停的"+N 项"。
  */
 public final class RecipeSpecGrid extends UIElement {
 
     public static final int ROW_HEIGHT = UISizes.TEXT_HEIGHT + 1;
-    public static final int COLUMN_GAP = 8;
+    private static final int CELL_PADDING = 2;
     public static final int TOP = 3;
     private static final int BOTTOM = 1;
     private static final String[] UNITS = { "k", "M", "G", "T", "P", "E" };
@@ -74,12 +74,16 @@ public final class RecipeSpecGrid extends UIElement {
         }
     }
 
+    public static int heightOf(int rows) {
+        return rows == 0 ? 0 : TOP + rows * ROW_HEIGHT + BOTTOM;
+    }
+
     public static int rowsWithin(int height) {
         return Math.max(0, (height - TOP - BOTTOM) / ROW_HEIGHT);
     }
 
     public static int columnWidth(int width) {
-        return (width - COLUMN_GAP) / 2;
+        return width / 2 - 2 * CELL_PADDING;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -124,47 +128,45 @@ public final class RecipeSpecGrid extends UIElement {
                                List<Cell> hidden) {
         int column = columnWidth(width);
         var cells = new ArrayList<Placed>();
+        var stats = new ArrayList<Cell>(3);
+        if (rate != null) stats.add(rate);
+        if (duration != null) stats.add(duration);
+        if (total != null) stats.add(total);
         int row = 0;
-        var first = rate != null ? rate : duration;
-        if (first != null) {
-            cells.add(new Placed(first, row, 0));
-            if (rate != null && duration != null) cells.add(new Placed(duration, row, 1));
-            row++;
-        }
-        var pending = new ArrayList<>(requirements);
         int tierRow = -1;
-        var secondLeft = total;
-        if (secondLeft == null) {
-            for (int i = 0; i < pending.size(); i++) {
-                if (!fitsHalf(pending.get(i), column)) continue;
-                secondLeft = pending.remove(i);
-                break;
-            }
+        if (tier) {
+            if (!stats.isEmpty()) cells.add(new Placed(stats.remove(0), row, 0));
+            tierRow = row++;
         }
-        if (tier || secondLeft != null) {
-            if (secondLeft != null) cells.add(new Placed(secondLeft, row, 0));
-            if (tier) tierRow = row;
-            row++;
-        }
-        row = flow(pending, cells, row, column);
-        row = flow(properties, cells, row, column);
+        var flowing = new ArrayList<Cell>(stats.size() + requirements.size() + properties.size());
+        flowing.addAll(stats);
+        flowing.addAll(requirements);
+        flowing.addAll(properties);
+        row = flow(flowing, cells, row, column, hidden.isEmpty());
         for (var cell : sentences) cells.add(new Placed(cell, row++, -1));
         return new Plan(cells, row, tierRow, List.copyOf(hidden));
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static int flow(List<Cell> group, List<Placed> cells, int row, int column) {
-        int column0Row = -1;
+    private static int flow(List<Cell> group, List<Placed> cells, int row, int column, boolean spanLone) {
+        int open = -1;
         for (var cell : group) {
             if (!fitsHalf(cell, column)) {
-                column0Row = -1;
                 cells.add(new Placed(cell, row++, -1));
-            } else if (column0Row >= 0) {
-                cells.add(new Placed(cell, column0Row, 1));
-                column0Row = -1;
+            } else if (open >= 0) {
+                cells.add(new Placed(cell, open, 1));
+                open = -1;
             } else {
-                column0Row = row;
+                open = row;
                 cells.add(new Placed(cell, row++, 0));
+            }
+        }
+        if (open >= 0 && spanLone) {
+            for (int i = cells.size() - 1; i >= 0; i--) {
+                var placed = cells.get(i);
+                if (placed.row() != open) continue;
+                cells.set(i, new Placed(placed.cell(), open, -1));
+                break;
             }
         }
         return row;
@@ -175,12 +177,14 @@ public final class RecipeSpecGrid extends UIElement {
         if (cell.wide()) return false;
         var font = Minecraft.getInstance().font;
         int label = cell.label() == null ? 0 : font.width(cell.label()) + UISizes.TEXT_PADDING;
-        return label + font.width(RecipeInfoLines.nonNull(cell.value().get())) <= column;
+        String value = abbreviated(RecipeInfoLines.nonNull(cell.value().get()).getString(), column - label);
+        return label + font.width(value) <= column;
     }
 
     private final Plan plan;
     private final int width;
     private final Entry[] entries;
+    private final boolean[] splitRows;
     private final String more;
     private int moreWidth = -1;
     @Nullable
@@ -193,9 +197,13 @@ public final class RecipeSpecGrid extends UIElement {
         this.tier = plan.tierRow() >= 0 ? tier : null;
         entries = new Entry[plan.cells().size()];
         for (int i = 0; i < entries.length; i++) entries[i] = new Entry(plan.cells().get(i));
+        splitRows = new boolean[plan.rows()];
+        for (var placed : plan.cells()) {
+            if (placed.column() == 1) splitRows[placed.row()] = true;
+        }
         layout(l -> l.size(width, plan.height()));
         if (tier != null && plan.tierRow() >= 0) {
-            var holder = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(0).top(TOP + plan.tierRow() * ROW_HEIGHT));
+            var holder = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(CELL_PADDING).top(TOP + plan.tierRow() * ROW_HEIGHT));
             holder.addChild(tier);
             addChild(holder);
         }
@@ -206,25 +214,46 @@ public final class RecipeSpecGrid extends UIElement {
     }
 
     private int moreX(int x0) {
-        int right = tier == null ? x0 + width : tier.getPositionX() - UISizes.TEXT_PADDING;
-        return Math.max(x0 + columnWidth(width) + COLUMN_GAP, right - moreWidth);
+        int right = tier == null ? x0 + width - CELL_PADDING : tier.getPositionX() - UISizes.TEXT_PADDING;
+        return Math.max(x0 + width / 2 + CELL_PADDING, right - moreWidth);
     }
 
     private int cellX(Placed placed) {
-        return placed.column() == 1 ? columnWidth(width) + COLUMN_GAP : 0;
+        return (placed.column() == 1 ? width / 2 : 0) + CELL_PADDING;
     }
 
     private int cellWidth(Placed placed) {
-        return placed.column() < 0 ? width : columnWidth(width);
+        return placed.column() < 0 ? width - 2 * CELL_PADDING : columnWidth(width);
+    }
+
+    private int moreWidth() {
+        if (moreWidth < 0) moreWidth = UIText.width(more);
+        return moreWidth;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void drawStripes(GuiGraphics graphics, int x0, int y0) {
+        for (int row = 0; row < plan.rows(); row++) {
+            int y = y0 + TOP + row * ROW_HEIGHT;
+            if (!splitRows[row]) {
+                graphics.fill(x0, y, x0 + width, y + ROW_HEIGHT, UITheme.SPEC_CELL_WIDE);
+                continue;
+            }
+            int even = row % 2 == 0 ? UITheme.SPEC_CELL_LIGHT : UITheme.SPEC_CELL_DARK;
+            int odd = row % 2 == 0 ? UITheme.SPEC_CELL_DARK : UITheme.SPEC_CELL_LIGHT;
+            graphics.fill(x0, y, x0 + width / 2, y + ROW_HEIGHT, even);
+            graphics.fill(x0 + width / 2, y, x0 + width, y + ROW_HEIGHT, odd);
+        }
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         int x0 = getPositionX(), y0 = getPositionY();
+        drawStripes(graphics, x0, y0);
         for (var entry : entries) entry.draw(graphics, x0, y0, mouseX, mouseY);
         if (!plan.hidden().isEmpty() && plan.rows() > 0) {
-            if (moreWidth < 0) moreWidth = UIText.width(more);
+            moreWidth();
             int y = UIText.centerY(y0 + TOP + markerRow() * ROW_HEIGHT, ROW_HEIGHT);
             UIText.drawLeft(graphics, more, moreX(x0), y, UITheme.PLACEHOLDER_TEXT);
         }
@@ -296,7 +325,7 @@ public final class RecipeSpecGrid extends UIElement {
             labelWidth = label.isEmpty() ? 0 : UIText.width(label) + UISizes.TEXT_PADDING;
             int available = cellWidth(placed) - labelWidth;
             String text = value.getString();
-            shown = cell.kind() == Kind.STAT ? compact(text, available) : UIText.fit(text, available);
+            shown = cell.wide() ? UIText.fit(text, available) : compact(text, available);
             truncated = !shown.equals(text);
         }
 
@@ -338,6 +367,12 @@ public final class RecipeSpecGrid extends UIElement {
 
     @OnlyIn(Dist.CLIENT)
     private static String compact(String text, int maxWidth) {
+        String result = abbreviated(text, maxWidth);
+        return UIText.width(result) <= maxWidth ? result : UIText.fit(result, maxWidth);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static String abbreviated(String text, int maxWidth) {
         int end = 0;
         boolean decimal = false;
         while (end < text.length()) {
@@ -348,16 +383,15 @@ public final class RecipeSpecGrid extends UIElement {
                 end++;
             } else break;
         }
-        if (end == 0) return UIText.fit(text, maxWidth);
+        if (end == 0 || end < text.length() && (text.charAt(end) == '.' || text.charAt(end) == ',')) return text;
         double value;
         try {
             value = Double.parseDouble(text.substring(0, end).replace(",", ""));
         } catch (NumberFormatException e) {
-            return UIText.fit(text, maxWidth);
+            return text;
         }
         if (value < ABBREVIATE_FROM && UIText.width(text) <= maxWidth) return text;
-        String result = abbreviate(value) + text.substring(end);
-        return UIText.width(result) <= maxWidth ? result : UIText.fit(result, maxWidth);
+        return abbreviate(value) + text.substring(end);
     }
 
     private static String abbreviate(double value) {

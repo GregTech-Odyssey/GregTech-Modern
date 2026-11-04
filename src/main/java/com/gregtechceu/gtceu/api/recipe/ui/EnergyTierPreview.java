@@ -35,6 +35,7 @@ public final class EnergyTierPreview implements RecipeTierPreview {
 
     @Nullable
     public static EnergyTierPreview of(GTRecipeDefinition recipe) {
+        if (recipe.recipeType.isPlaceholderEnergy()) return null;
         if (recipe.getInputEUt() > 0) return new EnergyTierPreview(recipe, true);
         if (recipe.getOutputEUt() > 0) return new EnergyTierPreview(recipe, false);
         return null;

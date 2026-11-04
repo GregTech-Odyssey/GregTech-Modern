@@ -48,12 +48,6 @@ public final class EmiPageLayout {
 
     public interface NoSideButtons {}
 
-    public interface InlineButtons {
-
-        int getButtonX();
-
-        int getButtonY();
-    }
 
     private static boolean classExists(String name) {
         try {
@@ -113,7 +107,7 @@ public final class EmiPageLayout {
         if (count < 2) return;
         int used = RECIPE_PADDING * (count - 1);
         for (var display : displays) {
-            if (!(display.recipe instanceof InlineButtons)) {
+            if (!(display.recipe instanceof Paged)) {
                 pageExtras = NO_EXTRA;
                 return;
             }

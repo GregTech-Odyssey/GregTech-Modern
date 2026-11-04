@@ -88,8 +88,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     public static final int SIDE_BUTTON_PITCH = 14;
     /** 侧边按钮左缘在页面右缘内侧多远：按钮右缘与卡片外缘齐。 */
     public static final int SIDE_BUTTON_INSET = SIDE_BUTTON_SIZE - CARD_MARGIN;
-    private static final int RAIL_PADDING = 2;
-    private static final int RAIL_WIDTH = SIDE_BUTTON_SIZE + 2 * RAIL_PADDING;
 
     /**
      * 配方页外框。
@@ -99,20 +97,15 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
      * @param sideButtons 右下角缺口里竖排的按钮数，0 为不挖缺口；按钮由配方查看器自己画在
      *                    {@code x = 页宽 - SIDE_BUTTON_INSET}、自页面底边向上排，页面只留出位置
      * @param card        是否在页面四周画卡片（外扩 {@link #CARD_MARGIN}），代替配方查看器的默认底框
-     * @param inlineButtons 按钮竖排在卡片右侧贯通上下的按钮栏里，不挖缺口
      */
-    public record PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card, int maxHeight, boolean inlineButtons) {
+    public record PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card, int maxHeight) {
 
         public PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card) {
-            this(minWidth, fillHeight, sideButtons, card, 0, false);
-        }
-
-        public PageFrame(int minWidth, int fillHeight, int sideButtons, boolean card, int maxHeight) {
-            this(minWidth, fillHeight, sideButtons, card, maxHeight, false);
+            this(minWidth, fillHeight, sideButtons, card, 0);
         }
 
         public boolean notch() {
-            return sideButtons > 0 && !inlineButtons;
+            return sideButtons > 0;
         }
 
         /** 按内容大小、不挖缺口、不画卡片。 */
@@ -135,8 +128,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     private final PageFrame frame;
     @Nullable
     private final RecipeTierPreview preview;
-    private boolean sideBar;
-    private int buttonX = -1, buttonY = -1;
     private final int minTier;
     private int tier;
     private boolean perfectOverclock;
@@ -157,19 +148,16 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         this.minTier = preview == null ? recipe.tier : preview.minTier();
         this.tier = minTier;
         var metrics = metrics(recipe, frame);
-        this.sideBar = metrics.sideBar();
         var content = metrics.size();
         int growth = stageGrowth(recipe, frame, content.height);
         var size = new Size(content.width, Math.max(content.height + growth, frame.fillHeight()));
-        int rail = railSpan(frame);
-        layout(l -> (metrics.sideBar() || rail > 0 ? l.row() : l.column()).size(size.width, size.height).gapAll(UISizes.SECTION_GAP));
+        layout(l -> l.column().size(size.width, size.height).gapAll(UISizes.SECTION_GAP));
         setClientSideWidget();
         refreshPreview();
 
         var info = new RecipeInfoLines();
         appendInfo(recipe, info, preview);
-        int contentWidth = size.width - rail;
-        boolean inline = inlineSlots(recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe).width, info.slots().size(), contentWidth);
+        boolean inline = inlineSlots(recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe).width, info.slots().size(), size.width);
 
         var stage = new UIElement().layout(l -> l.column().flexGrow(1).alignCenter().justifyContent(AlignContent.CENTER)
                 .paddingHorizontal(UISizes.PANEL_PADDING));
@@ -182,49 +170,31 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         } else {
             stage.addChild(createSlotArea(growth));
         }
-        UIElement main = this;
-        if (metrics.sideBar() || rail > 0) {
-            main = new UIElement().layout(l -> l.column().flexGrow(1).flexShrink(1).minWidth(0).gapAll(UISizes.SECTION_GAP));
-            addChild(main);
-        }
-        if (metrics.sideBar()) addChild(UIElement.spacer(PageFrame.NOTCH_WIDTH, 0));
-        if (rail > 0) {
-            addChild(UIElement.spacer(RAIL_WIDTH, 0));
-            buttonX = size.width - RAIL_WIDTH + RAIL_PADDING;
-            buttonY = (size.height - buttonColumn(frame)) / 2;
-            if (hasIdButton()) {
-                int idY = buttonY;
-                var id = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(buttonX).top(idY));
-                id.addChild(new IdLink());
-                addChild(id);
-                buttonY += SIDE_BUTTON_PITCH;
-            }
-        } else if (hasIdButton()) {
-            var id = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).left(1).top(1));
-            id.addChild(new IdLink());
-            stage.addChild(id);
-        }
-        main.addChild(stage);
+        addIdButton(stage);
+        addChild(stage);
 
         var left = new UIElement().layout(l -> l.column().flexGrow(1).flexShrink(1).minWidth(0).gapAll(UISizes.SECTION_GAP));
-        int panelWidth = frame.besideNotch(contentWidth);
+        int panelWidth = frame.besideNotch(size.width);
         var plan = gridPlan(stats(recipe, preview, this), preview != null, info.lines(), panelWidth, metrics.gridRows());
         if (plan.rows() > 0) left.addChild(new RecipeSpecGrid(plan, panelWidth, createTierChip()));
         if (!info.panelSlots().isEmpty()) {
             left.addChild(SlotGrid.of(panelSlotsPerRow(panelWidth), info.panelSlots().size(), i -> info.panelSlots().get(i).get()));
         }
         boolean panel = plan.rows() > 0 || !info.panelSlots().isEmpty();
-        var footer = createFooter(inline ? new RecipeInfoLines() : info, contentWidth);
+        var footer = createFooter(inline ? new RecipeInfoLines() : info, size.width);
         if (footer != null) left.addChild(footer);
-        if (metrics.sideBar()) {
-            if (panel || footer != null) main.addChild(left);
-            return;
-        }
         if (!panel && footer == null && !frame.notch()) return;
         var lower = new UIElement().layout(l -> l.row().gapAll(UISizes.SECTION_GAP).minHeight(frame.notchHeight()));
         lower.addChild(left);
         if (frame.notch()) lower.addChild(UIElement.spacer(PageFrame.NOTCH_WIDTH, 0));
-        main.addChild(lower);
+        addChild(lower);
+    }
+
+    private void addIdButton(UIElement stage) {
+        if (!hasIdButton()) return;
+        var id = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(2).top(2));
+        id.addChild(new IdLink());
+        stage.addChild(id);
     }
 
     // ==================== 尺寸 ====================
@@ -241,31 +211,21 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         return Math.min(frame.maxHeight() - contentHeight, recipe.recipeType.getRecipeUI().getSlotAreaOverflow(recipe));
     }
 
-    private record Metrics(Size size, int gridRows, boolean sideBar, int lower) {}
+    private record Metrics(Size size, int gridRows) {}
 
-    private static int railSpan(PageFrame frame) {
-        return frame.inlineButtons() && frame.sideButtons() > 0 ? RAIL_WIDTH + UISizes.SECTION_GAP : 0;
-    }
 
-    private static int buttonColumn(PageFrame frame) {
-        int buttons = frame.sideButtons() + (hasIdButton() ? 1 : 0);
-        return buttons * SIDE_BUTTON_PITCH - (SIDE_BUTTON_PITCH - SIDE_BUTTON_SIZE);
-    }
 
     private static Metrics metrics(GTRecipeDefinition recipe, PageFrame frame) {
         var slotArea = recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe);
         // 宽度取偶数：配方查看器会把页面宽度补成偶数，奇数宽的卡片会偏 1 像素
-        int rail = railSpan(frame);
-        int width = Math.max(slotArea.width + 2 * UISizes.PANEL_PADDING, frame.minWidth()) + rail;
+        int width = Math.max(slotArea.width + 2 * UISizes.PANEL_PADDING, frame.minWidth());
         width += width & 1;
         var counter = new RecipeInfoLines.Counter();
         var preview = RecipeTierPreview.create(recipe);
         appendInfo(recipe, counter, preview);
-        boolean inline = inlineSlots(slotArea.width, counter.slots(), width - rail);
+        boolean inline = inlineSlots(slotArea.width, counter.slots(), width);
         int stage = inline ? Math.max(slotArea.height, UISizes.SLOT_SIZE) : slotArea.height;
-        int panelWidth = frame.besideNotch(width - rail);
-        int stageContent = slotArea.width + (inline ? INLINE_SLOT_GAP + counter.slots() * UISizes.SLOT_SIZE : 0);
-        boolean sideBar = frame.notch() && stageContent + 2 * UISizes.PANEL_PADDING <= panelWidth;
+        int panelWidth = frame.besideNotch(width);
         int perRow = panelSlotsPerRow(panelWidth);
         int slots = (counter.panelSlots() + perRow - 1) / perRow * UISizes.SLOT_SIZE;
         int footer = footerHeight(inline ? 0 : counter.slots(), panelWidth);
@@ -274,19 +234,20 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         int grid = gridPlan(stats(recipe, preview, null), preview != null, counter.lines(), panelWidth, gridRows).height();
         int left = grid + (grid > 0 && slots > 0 ? UISizes.SECTION_GAP : 0) + slots;
         if (footer > 0) left += (left > 0 ? UISizes.SECTION_GAP : 0) + footer;
-        int lower = sideBar ? left : Math.max(left, frame.notchHeight());
+        int lower = Math.max(left, frame.notchHeight());
         int height = stage + (lower > 0 ? UISizes.SECTION_GAP + lower : 0);
-        if (sideBar) height = Math.max(height, frame.notchHeight());
-        if (rail > 0) height = Math.max(height, buttonColumn(frame) + 2 * RAIL_PADDING);
-        return new Metrics(new Size(width, height), gridRows, sideBar, lower);
+        return new Metrics(new Size(width, height), gridRows);
     }
 
     private static int maxGridRows(PageFrame frame, int stage, int others) {
         if (frame.maxHeight() <= 0) return Integer.MAX_VALUE;
         int fixed = stage + 2 * UISizes.SECTION_GAP + others;
-        int rows = RecipeSpecGrid.rowsWithin((frame.maxHeight() - PAGE_SPACING) / 2 - fixed);
-        if (rows >= MIN_GRID_ROWS) return rows;
-        return Math.max(MIN_GRID_ROWS, RecipeSpecGrid.rowsWithin(frame.maxHeight() - fixed));
+        int half = (frame.maxHeight() - PAGE_SPACING) / 2 - fixed;
+        int beside = frame.notchHeight() - others;
+        if (half < Math.max(beside, RecipeSpecGrid.heightOf(MIN_GRID_ROWS))) {
+            return Math.max(MIN_GRID_ROWS, RecipeSpecGrid.rowsWithin(frame.maxHeight() - fixed));
+        }
+        return Math.max(RecipeSpecGrid.rowsWithin(half), RecipeSpecGrid.rowsWithin(beside));
     }
 
     private record Stats(@Nullable RecipeSpecGrid.Cell rate, @Nullable RecipeSpecGrid.Cell duration,
@@ -331,9 +292,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        if (sideBar) drawCard(graphics, getPositionX() - CARD_MARGIN, getPositionY() - CARD_MARGIN, getPositionX() + getSizeWidth() - PageFrame.NOTCH_WIDTH,
-                getPositionY() + getSizeHeight() + CARD_MARGIN, Integer.MAX_VALUE, Integer.MAX_VALUE);
-        else drawPageCard(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), frame);
+        drawPageCard(graphics, getPositionX(), getPositionY(), getSizeWidth(), getSizeHeight(), frame);
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }
 
@@ -528,13 +487,7 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         return chip;
     }
 
-    public int getButtonX() {
-        return buttonX;
-    }
 
-    public int getButtonY() {
-        return buttonY;
-    }
 
     // ==================== 底栏：额外展示槽 ====================
 

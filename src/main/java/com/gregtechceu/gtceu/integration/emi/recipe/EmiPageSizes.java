@@ -26,24 +26,18 @@ public final class EmiPageSizes {
     @Nullable
     private Size compact;
     private int pagedButtons = -1;
-    private final boolean inlineButtons;
 
     public EmiPageSizes(Function<PageFrame, Size> measure) {
         this(measure, () -> 0);
     }
 
     public EmiPageSizes(Function<PageFrame, Size> measure, IntSupplier maxHeight) {
-        this(measure, maxHeight, false);
-    }
-
-    public EmiPageSizes(Function<PageFrame, Size> measure, IntSupplier maxHeight, boolean inlineButtons) {
         this.measure = measure;
         this.maxHeight = maxHeight;
-        this.inlineButtons = inlineButtons;
     }
 
     public PageFrame pagedFrame(int fillHeight, int buttons) {
-        return new PageFrame(EmiPageLayout.minPageWidth(), fillHeight, buttons, true, maxHeight.getAsInt(), inlineButtons);
+        return new PageFrame(EmiPageLayout.minPageWidth(), fillHeight, buttons, true, maxHeight.getAsInt());
     }
 
     public Size getPagedSize(int buttons) {
@@ -81,6 +75,6 @@ public final class EmiPageSizes {
     }
 
     private int pagedDisplayWidth(int buttons) {
-        return EmiPageLayout.displayWidth(getPagedSize(buttons).width, inlineButtons ? 0 : buttons);
+        return EmiPageLayout.displayWidth(getPagedSize(buttons).width, buttons);
     }
 }

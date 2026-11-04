@@ -102,6 +102,8 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
 
     @Getter
     protected boolean noSearch;
+    @Getter
+    protected boolean placeholderEnergy;
 
     protected RecipeDB db;
 
@@ -482,6 +484,11 @@ public class GTRecipeType implements RecipeType<Recipe<?>> {
     /**
      * @return {@code this}.
      */
+    public GTRecipeType setPlaceholderEnergy(boolean placeholderEnergy) {
+        this.placeholderEnergy = placeholderEnergy;
+        return this;
+    }
+
     public GTRecipeType setOffsetVoltageText(final boolean offsetVoltageText) {
         this.offsetVoltageText = offsetVoltageText;
         return this;

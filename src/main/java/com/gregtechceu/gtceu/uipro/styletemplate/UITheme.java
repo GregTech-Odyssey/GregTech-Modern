@@ -545,6 +545,9 @@ public final class UITheme {
     public static int CARD_OUTLINE = 0xFF000000;
     public static int CARD_HIGHLIGHT = 0xFFFFFFFF;
     public static int CARD_SHADOW = 0xFF555555;
+    public static int SPEC_CELL_LIGHT = 0xFFD0D0D0;
+    public static int SPEC_CELL_DARK = 0xFFBABABA;
+    public static int SPEC_CELL_WIDE = 0xFFDEDEDE;
     public static int XEI_BUTTON_FILL = 0xFF2B2B2B;
     public static int XEI_BUTTON_OUTLINE = 0xFF000000;
     public static int XEI_BUTTON_ICON = 0xFF9E9E9E;

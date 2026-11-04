@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
+import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredMachine;
@@ -69,6 +70,7 @@ import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import dev.vfyjxf.taffy.style.AlignItems;
+import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +82,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class QuantumChestMachine extends TieredMachine implements IAutoOutputItem, IInteractedMachine, IControllable, IDropSaveMachine, IStorageAppearance, MEStorageProvider {
+
+    public static final Reference2LongOpenHashMap<MachineDefinition> CHEST_CAPACITY = new Reference2LongOpenHashMap<>();
 
     private static final Component ITEM_LOCK_ENABLED = Component.translatable("gtceu.gui.item_lock.tooltip.enabled");
     private static final Component ITEM_LOCK_DISABLED = Component.translatable("gtceu.gui.item_lock.tooltip.disabled");
