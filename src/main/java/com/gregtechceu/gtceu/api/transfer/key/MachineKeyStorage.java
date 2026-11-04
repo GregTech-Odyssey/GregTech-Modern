@@ -4,12 +4,7 @@ import net.minecraft.network.chat.Component;
 
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.AEKeyTypes;
-import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.*;
 import appeng.api.storage.KeyTypedStorage;
 import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +71,18 @@ public final class MachineKeyStorage implements KeyTypedStorage {
     public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
         items.getAvailableStacks(out, extractableOnly);
         fluids.getAvailableStacks(out, extractableOnly);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        if (items.forEachKey(visitor)) return true;
+        return fluids.forEachKey(visitor);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        if (items.forEachKey(visitor, extractableOnly)) return true;
+        return fluids.forEachKey(visitor, extractableOnly);
     }
 
     @Override

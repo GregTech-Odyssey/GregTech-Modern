@@ -17,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 
 public class ResearchCondition extends RecipeCondition {
 
-
     public final String researchId;
     public final ItemStack dataStack;
 

@@ -5,6 +5,7 @@ import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.KeyVisitor;
 import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
 
@@ -191,6 +192,16 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public long insertKey(AEKey what, long amount, Actionable mode) {
+        return amount > 0 && what.getType() == type ? insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    public long extractKey(AEKey what, long amount, Actionable mode) {
+        return amount > 0 && what.getType() == type ? extract((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
         return amount > 0 && what.getType() == type ? insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
@@ -205,6 +216,26 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
     @Override
     public void getAvailableStacks(KeyCounter out) {
         for (var h : handlers) h.getAvailableStacks(out);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        for (var h : handlers) {
+            if (h.forEachKey(visitor)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        for (var h : handlers) {
+            if (h.forEachKey(visitor, extractableOnly)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

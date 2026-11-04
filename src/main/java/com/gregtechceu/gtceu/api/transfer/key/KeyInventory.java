@@ -545,6 +545,27 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        var a = amounts;
+        int h = high;
+        var k = keys;
+        for (int i = 0; i < h; i++) {
+            long amount = a[i];
+            if (amount > 0) {
+                if (visitor.visit(k[i], amount)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        return forEachKey(visitor);
+    }
+
+    @Override
     public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
         getAvailableStacks(out);
     }

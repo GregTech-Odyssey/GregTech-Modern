@@ -8,6 +8,7 @@ import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyVisitor;
 import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,11 +101,5 @@ public interface IRecipeHandler extends IFilteredHandler {
 
     default boolean isSearchable() {
         return handlesItems() || handlesFluids();
-    }
-
-    @FunctionalInterface
-    interface KeyVisitor {
-
-        boolean visit(AEKey key, long amount);
     }
 }

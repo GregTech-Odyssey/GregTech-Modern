@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.KeyVisitor;
 import appeng.api.storage.StorageAccess;
 import lombok.Getter;
 import lombok.Setter;
@@ -116,6 +117,20 @@ public class InventoryProxyTrait<K extends AEKey> extends MachineTrait implement
     public void getAvailableStacks(KeyCounter out) {
         var p = proxy;
         if (p != null) p.getAvailableStacks(out);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        var p = proxy;
+        if (p != null) return p.forEachKey(visitor);
+        return false;
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        var p = proxy;
+        if (p != null) return p.forEachKey(visitor, extractableOnly);
+        return false;
     }
 
     @Override

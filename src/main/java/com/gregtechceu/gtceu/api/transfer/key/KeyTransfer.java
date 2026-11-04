@@ -5,6 +5,7 @@ import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.AEKeyFilter;
 import appeng.api.storage.MEStorage;
+import com.gto.datasynclib.util.holder.LongHolder;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyTransfer {
@@ -19,12 +20,12 @@ public final class KeyTransfer {
         long left = maxAmount;
         if (from instanceof MEStorageKeyView<?> meStorageKeyView) {
             var meStorage = meStorageKeyView.getStorage();
-            for (var stack : meStorage.getAvailableStacks()) {
-                var key = stack.getKey();
-                if (filter != null && !filter.matches(key)) continue;
-                left -= transferKey(meStorage, to, key, Math.min(left, stack.getLongValue()));
-                if (left < 1) break;
-            }
+            var l = new LongHolder(left);
+            meStorage.forEachKey((k, v) -> {
+                if (filter != null && !filter.matches(k)) return false;
+                l.value -= transferKey(meStorage, to, k, Math.min(l.value, v));
+                return l.value < 1;
+            });
         } else {
             int size = from.size();
             for (int i = 0; i < size && left > 0; i++) {

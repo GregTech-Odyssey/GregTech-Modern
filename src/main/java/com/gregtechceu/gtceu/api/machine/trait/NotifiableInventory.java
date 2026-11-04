@@ -12,12 +12,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.AEKeyTypes;
-import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.*;
 import appeng.api.storage.AEKeyFilter;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -326,6 +321,19 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
         var plain = readStorage();
         if (plain != null) plain.getAvailableStacks(out);
         else IKeyHandler.super.getAvailableStacks(out);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        var plain = readStorage();
+        if (plain != null) return plain.forEachKey(visitor);
+        else return IKeyHandler.super.forEachKey(visitor);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        if (!extractableOnly || canCapOutput()) return forEachKey(visitor);
+        return false;
     }
 
     @Override

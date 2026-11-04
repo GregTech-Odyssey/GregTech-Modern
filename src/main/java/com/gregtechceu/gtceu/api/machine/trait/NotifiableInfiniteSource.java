@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyVisitor;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;

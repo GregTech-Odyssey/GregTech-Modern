@@ -26,11 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.*;
 import com.gto.recipesearch.IntLongMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1149,7 +1145,7 @@ public class RecipeHandlerUnit {
         }
     }
 
-    public boolean forEachKey(AEKeyType type, boolean consumable, IRecipeHandler.KeyVisitor visitor) {
+    public boolean forEachKey(AEKeyType type, boolean consumable, KeyVisitor visitor) {
         var members = type == AEKeyTypes.FLUIDS ? fluidHandlers : itemHandlers;
         for (var m : members) {
             if (consumable && m.isNotConsumable()) continue;

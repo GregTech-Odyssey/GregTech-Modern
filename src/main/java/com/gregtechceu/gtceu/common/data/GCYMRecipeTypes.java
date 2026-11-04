@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeDisplaySlots;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
-
 import net.minecraft.network.chat.Component;
 
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.MULTIBLOCK;

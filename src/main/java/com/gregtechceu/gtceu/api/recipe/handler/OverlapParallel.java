@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.transfer.key.KeyInventory;
 
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.KeyVisitor;
 
 import java.util.Arrays;
 
@@ -13,7 +14,7 @@ import java.util.Arrays;
  * 输入并行中可能重叠的消耗型条目：数组成员按槽、自定义成员经 forEachKey 求命中掩码后交给 {@link OverlapBound}；
  * 自定义成员的遍历结果与其 available 逐条目对不上时，按各条目互不重叠计入（与单条目计数一致）。
  */
-final class OverlapParallel extends OverlapBound implements IRecipeHandler.KeyVisitor {
+final class OverlapParallel extends OverlapBound implements KeyVisitor {
 
     private final KeyIngredient[] ingredients = new KeyIngredient[64];
     private final long[] avail = new long[64];

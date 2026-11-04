@@ -14,7 +14,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.TaffyPosition;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

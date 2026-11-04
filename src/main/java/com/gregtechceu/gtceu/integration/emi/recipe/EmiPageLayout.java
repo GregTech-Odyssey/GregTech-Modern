@@ -48,7 +48,6 @@ public final class EmiPageLayout {
 
     public interface NoSideButtons {}
 
-
     private static boolean classExists(String name) {
         try {
             Class.forName(name, false, EmiPageLayout.class.getClassLoader());

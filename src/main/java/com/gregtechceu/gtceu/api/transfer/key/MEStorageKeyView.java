@@ -4,10 +4,7 @@ import net.minecraft.network.chat.Component;
 
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyLongMap;
-import appeng.api.stacks.AEKeyType;
-import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.*;
 import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,6 +126,20 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public long insertKey(AEKey what, long amount, Actionable mode) {
+        if (amount <= 0 || what.getType() != type) return 0;
+        var m = mark;
+        return m != null && m != what ? 0 : storage.insert(what, amount, mode, IActionSource.empty());
+    }
+
+    @Override
+    public long extractKey(AEKey what, long amount, Actionable mode) {
+        if (amount <= 0 || what.getType() != type) return 0;
+        var m = mark;
+        return m != null && m != what ? 0 : storage.extract(what, amount, mode, IActionSource.empty());
+    }
+
+    @Override
     public long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
         if (amount <= 0 || what.getType() != type) return 0;
         var m = mark;
@@ -181,6 +192,49 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        var map = contents;
+        var m = mark;
+        if (map == null) {
+            if (m != null) {
+                long amount = count(m);
+                if (amount > 0) {
+                    return visitor.visit(m, amount);
+                }
+                return false;
+            }
+            return storage.forEachKey((k, v) -> {
+                if (v > 0 && k.getType() == type) {
+                    return visitor.visit(k, v);
+                }
+                return false;
+            });
+        }
+        if (m != null) {
+            long amount = map.getAmount(m);
+            if (amount > 0) {
+                return visitor.visit(m, amount);
+            }
+            return false;
+        }
+        for (var e : map) {
+            var key = e.getKey();
+            long amount = e.getLongValue();
+            if (amount > 0 && key.getType() == type) {
+                if (visitor.visit(key, amount)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        return forEachKey(visitor);
+    }
+
+    @Override
     public void getAvailableStacks(KeyCounter out, boolean extractableOnly) {
         getAvailableStacks(out);
     }
@@ -191,11 +245,7 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
         var m = mark;
         if (map == null) {
             if (m != null) return count(m) > 0 && primaryKeys.contains(m.dropSecondary());
-            for (var e : storage.getAvailableStacks()) {
-                var key = e.getKey();
-                if (e.getLongValue() > 0 && key.getType() == type && primaryKeys.contains(key.dropSecondary())) return true;
-            }
-            return false;
+            return storage.forEachKey((k, v) -> (v > 0 && k.getType() == type && primaryKeys.contains(k.dropSecondary())));
         }
         if (m != null) return map.getAmount(m) > 0 && primaryKeys.contains(m.dropSecondary());
         for (var e : map) {
@@ -210,10 +260,7 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
         if (contents != null) return first() == null;
         var m = mark;
         if (m != null) return count(m) <= 0;
-        for (var e : storage.getAvailableStacks()) {
-            if (e.getLongValue() > 0 && e.getKey().getType() == type) return false;
-        }
-        return true;
+        return storage.forEachKey((k, v) -> v > 0 && k.getType() == type);
     }
 
     @Override

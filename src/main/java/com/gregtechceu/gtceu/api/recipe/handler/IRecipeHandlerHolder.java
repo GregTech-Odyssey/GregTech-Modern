@@ -15,10 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 
-import appeng.api.stacks.AEFluidKey;
-import appeng.api.stacks.AEItemKey;
-import appeng.api.stacks.AEKey;
-import appeng.api.stacks.AEKeyType;
+import appeng.api.stacks.*;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import org.jetbrains.annotations.NotNull;
@@ -450,7 +447,7 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         }
     }
 
-    default boolean forEachKey(AEKeyType type, boolean consumable, IRecipeHandler.KeyVisitor visitor) {
+    default boolean forEachKey(AEKeyType type, boolean consumable, KeyVisitor visitor) {
         for (var handler : getInputUnits()) {
             if (handler.forEachKey(type, consumable, visitor)) return true;
         }

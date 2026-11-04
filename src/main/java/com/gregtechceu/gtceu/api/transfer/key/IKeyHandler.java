@@ -3,10 +3,12 @@ package com.gregtechceu.gtceu.api.transfer.key;
 import net.minecraft.network.chat.Component;
 
 import appeng.api.config.Actionable;
+import appeng.api.inventories.IKeyInventory;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.KeyVisitor;
 import appeng.api.storage.KeyTypedStorage;
 import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +19,7 @@ import java.util.Set;
  * GT 内部 key 存储：调用方保证 amount > 0 且 key 类型等于 {@link #keyType()}；keyAt(i) 为 null 当且仅当 amountAt(i) 为 0。
  * 作为 MEStorage 暴露时只在 MEStorage 方法入口校验一次，内部实现不再重复校验。
  */
-public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage {
+public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage, IKeyInventory {
 
     @FunctionalInterface
     interface SlotReader<K extends AEKey, R> {
@@ -95,6 +97,31 @@ public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage {
     }
 
     @Override
+    default int getKeySlots() {
+        return size();
+    }
+
+    @Override
+    default AEKey getKeyInSlot(int var1) {
+        return keyAt(var1);
+    }
+
+    @Override
+    default long getAmountInSlot(int var1) {
+        return amountAt(var1);
+    }
+
+    @Override
+    default long insertKey(AEKey what, long amount, Actionable mode) {
+        return amount > 0 && what.getType() == keyType() ? this.insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    default long extractKey(AEKey what, long amount, Actionable mode) {
+        return amount > 0 && what.getType() == keyType() ? this.extract((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
     default boolean supportsKeyType(AEKeyType type) {
         return type == keyType();
     }
@@ -117,12 +144,47 @@ public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage {
     }
 
     @Override
+    default boolean forEachKey(KeyVisitor visitor) {
+        int size = size();
+        for (int i = 0; i < size; i++) {
+            long a = amountAt(i);
+            if (a > 0) {
+                if (visitor.visit(keyAt(i), a)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     default void getAvailableStacks(KeyCounter out) {
         int size = size();
         for (int i = 0; i < size; i++) {
             long a = amountAt(i);
             if (a > 0) out.add(keyAt(i), a);
         }
+    }
+
+    @Override
+    default boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        if (!extractableOnly) {
+            return forEachKey(visitor);
+        }
+        int size = size();
+        for (int i = 0; i < size; i++) {
+            long a = amountAt(i);
+            if (a > 0) {
+                K key = keyAt(i);
+                long n = extract(i, key, a, true);
+                if (n > 0) {
+                    if (visitor.visit(keyAt(i), n)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Override

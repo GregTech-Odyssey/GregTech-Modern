@@ -58,7 +58,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static com.gregtechceu.gtceu.api.GTValues.*;
 
@@ -212,8 +211,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
     }
 
     private record Metrics(Size size, int gridRows) {}
-
-
 
     private static Metrics metrics(GTRecipeDefinition recipe, PageFrame frame) {
         var slotArea = recipe.recipeType.getRecipeUI().getSlotAreaSize(recipe);
@@ -486,8 +483,6 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
         chip.layout(l -> l.height(RecipeSpecGrid.ROW_HEIGHT));
         return chip;
     }
-
-
 
     // ==================== 底栏：额外展示槽 ====================
 

@@ -5,6 +5,7 @@ import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.KeyCounter;
+import appeng.api.stacks.KeyVisitor;
 import appeng.api.storage.MEStorage;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,6 +141,16 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public long insertKey(AEKey what, long amount, Actionable mode) {
+        return amount > 0 && what.getType() == type ? insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
+    public long extractKey(AEKey what, long amount, Actionable mode) {
+        return amount > 0 && what.getType() == type ? extract((K) what, amount, mode == Actionable.SIMULATE) : 0;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public final long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
         return amount > 0 && what.getType() == type ? insert((K) what, amount, mode == Actionable.SIMULATE) : 0;
@@ -154,6 +165,16 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
     @Override
     public void getAvailableStacks(KeyCounter out) {
         delegate.getAvailableStacks(out);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor) {
+        return delegate.forEachKey(visitor);
+    }
+
+    @Override
+    public boolean forEachKey(KeyVisitor visitor, boolean extractableOnly) {
+        return delegate.forEachKey(visitor, extractableOnly);
     }
 
     @Override

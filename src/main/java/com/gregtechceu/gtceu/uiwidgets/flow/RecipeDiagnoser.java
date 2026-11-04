@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.feature.IVoidable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
-import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandlerHolder;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
@@ -19,6 +18,7 @@ import net.minecraftforge.fluids.FluidStack;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyVisitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ public final class RecipeDiagnoser {
     private final Component[] outputAmounts;
     private final RecipeIssue[] outputIssues;
     private final List<List<Component>> outputDetails;
-    private final IRecipeHandler.KeyVisitor collector;
+    private final KeyVisitor collector;
     private RecipeIssue energyIssue = RecipeIssue.IDLE;
     private List<Component> energyDetail = Collections.emptyList();
     private long stored, capacity, power;

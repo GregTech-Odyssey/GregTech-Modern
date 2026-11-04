@@ -19,6 +19,7 @@ import net.minecraftforge.items.IItemHandler;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
+import appeng.api.stacks.KeyVisitor;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.recipesearch.IntLongMap;
 import lombok.Getter;
