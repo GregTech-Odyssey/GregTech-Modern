@@ -357,7 +357,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperTanks(String tank_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = 2000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
+            long maxAmount = tier == 0 ? 500 * FluidType.BUCKET_VOLUME : 2000 * FluidType.BUCKET_VOLUME * (long) Math.pow(2, tier);
             var register = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + tank_type,
                     MachineDefinition::createDefinition,
@@ -383,7 +383,7 @@ public class GTMachineUtils {
     public static MachineDefinition[] registerSuperChests(String chest_type, int... tiers) {
         MachineDefinition[] definitions = new MachineDefinition[GTValues.TIER_COUNT];
         for (int tier : tiers) {
-            long maxAmount = tier == MAX ? Long.MAX_VALUE : 2_000_000 * (long) Math.pow(2, tier);
+            long maxAmount = tier == 0 ? 500_000 : tier == MAX ? Long.MAX_VALUE : 2_000_000 * (long) Math.pow(2, tier);
             definitions[tier] = REGISTRATE.machine(
                     GTValues.VN[tier].toLowerCase(Locale.ROOT) + "_" + chest_type,
                     MachineDefinition::createDefinition,
