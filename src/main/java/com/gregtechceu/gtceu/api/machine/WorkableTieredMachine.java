@@ -16,6 +16,7 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.gto.datasynclib.blockentity.SaveToItem;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import lombok.Getter;
@@ -49,12 +50,16 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     protected final Int2IntFunction tankScalingFunction;
     @Nullable
     protected ICleanroomProvider cleanroom;
+    @SaveToItem
     @SaveToDisk
     public final NotifiableInventory<AEItemKey> importItems;
+    @SaveToItem
     @SaveToDisk
     public final NotifiableInventory<AEItemKey> exportItems;
+    @SaveToItem
     @SaveToDisk
     public final NotifiableInventory<AEFluidKey> importFluids;
+    @SaveToItem
     @SaveToDisk
     public final NotifiableInventory<AEFluidKey> exportFluids;
 
@@ -150,12 +155,6 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Override
     protected long getMaxInputOutputAmperage() {
         return 2L;
-    }
-
-    @Override
-    public void onMachineRemoved() {
-        clearInventory(importItems.storage);
-        clearInventory(exportItems.storage);
     }
 
     //////////////////////////////////////

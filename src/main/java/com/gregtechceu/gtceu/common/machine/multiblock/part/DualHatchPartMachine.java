@@ -44,7 +44,11 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         super(holder, tier, io);
         this.tank = createTank(INITIAL_TANK_CAPACITY, (int) Math.sqrt(getInventorySize()), args);
         setDistinct(true);
-        if (io != IO.OUT) setInputLimit(true);
+    }
+
+    @Override
+    protected boolean defaultDistinct() {
+        return true;
     }
 
     ////////////////////////////////

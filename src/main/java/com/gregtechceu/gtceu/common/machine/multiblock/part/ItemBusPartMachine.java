@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.TickableSubscription;
+import com.gregtechceu.gtceu.api.machine.annotation.SaveToDataStick;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
@@ -62,11 +63,13 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
     @SaveToDisk
     protected final NotifiableInventory<AEItemKey> circuitInventory;
     @Getter
-    @SaveToDisk
+    @SaveToDataStick
+    @SaveToDisk(defaultValueGetter = "defaultDistinct")
     @SyncToClient
     protected boolean isDistinct = false;
 
     @Getter
+    @SaveToDataStick
     @SaveToDisk(defaultValue = "0")
     protected int priority;
 
@@ -75,6 +78,10 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
         this.inventory = createInventory(args);
         this.circuitInventory = createCircuitItemHandler(io);
         if (io == IO.IN) this.workingEnabled = false;
+    }
+
+    protected boolean defaultDistinct() {
+        return false;
     }
 
     //////////////////////////////////////
