@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.client.renderer.machine;
 
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IStorageAppearance;
@@ -13,6 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -30,6 +33,21 @@ public class StorageMachineRenderer extends TieredHullMachineRenderer {
 
     public StorageMachineRenderer(int tier, ResourceLocation modelLocation) {
         super(tier, modelLocation);
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public boolean shouldRender(BlockEntity blockEntity, Vec3 cameraPos) {
+        if (blockEntity instanceof MetaMachineBlockEntity machineBlockEntity) {
+            var front = machineBlockEntity.getMetaMachine().getFrontFacing();
+            var pos = blockEntity.getBlockPos();
+            // The camera must be outside the front face, including for vertical facings.
+            double frontDistance = (cameraPos.x - pos.getX() - 0.5) * front.getStepX() +
+                    (cameraPos.y - pos.getY() - 0.5) * front.getStepY() +
+                    (cameraPos.z - pos.getZ() - 0.5) * front.getStepZ();
+            if (frontDistance <= 0.5) return false;
+        }
+        return super.shouldRender(blockEntity, cameraPos);
     }
 
     @Override
