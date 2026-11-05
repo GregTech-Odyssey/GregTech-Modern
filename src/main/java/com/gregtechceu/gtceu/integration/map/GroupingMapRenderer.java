@@ -96,6 +96,13 @@ public class GroupingMapRenderer extends GenericMapRenderer {
     }
 
     @Override
+    public void refreshMarkers() {
+        for (GenericMapRenderer renderer : rendererList) {
+            renderer.refreshMarkers();
+        }
+    }
+
+    @Override
     public void clear() {
         for (GenericMapRenderer renderer : rendererList) {
             renderer.clear();

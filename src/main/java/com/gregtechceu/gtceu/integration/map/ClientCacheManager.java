@@ -52,6 +52,8 @@ public class ClientCacheManager {
             // to ensure any cache data that might somehow be lying around gets dealt with
             clearCaches();
             loadCaches();
+            // the map mod may still hold highlights computed from the previous contents of these caches
+            GroupingMapRenderer.getInstance().refreshMarkers();
             shouldInit = false;
         }
     }

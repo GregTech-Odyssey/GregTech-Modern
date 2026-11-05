@@ -20,13 +20,23 @@ public class FluidCache {
 
     private final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.FluidInfo> fluidCache = NestedMap.createIdentity(O2OOpenCacheHashMap::new);
 
+    /**
+     * Records the fluid vein found in a chunk. A later prospection of the same chunk replaces the cached entry: only
+     * the first result used to be kept, which left the map showing a fluid that an update had since changed.
+     */
     public void addFluid(ResourceKey<Level> dim, int chunkX, int chunkZ, ProspectorMode.FluidInfo fluid) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
-        fluidCache.computeIfAbsent(dim, pos, k -> {
-            GroupingMapRenderer.getInstance().addMarker(FluidRenderLayer.getName(fluid).getString(),
-                    FluidRenderLayer.getId(fluid, pos), dim, pos, fluid);
-            return fluid;
-        });
+        ProspectorMode.FluidInfo previous = fluidCache.put(dim, pos, fluid);
+        addMarker(pos, fluid, dim);
+        // The map caches the colour of every highlighted region; a different fluid needs those hashes dropped.
+        if (previous != null && previous.fluid() != fluid.fluid()) {
+            GroupingMapRenderer.getInstance().refreshMarkers();
+        }
+    }
+
+    private static void addMarker(ChunkPos pos, ProspectorMode.FluidInfo fluid, ResourceKey<Level> dim) {
+        GroupingMapRenderer.getInstance().addMarker(FluidRenderLayer.getName(fluid).getString(),
+                FluidRenderLayer.getId(fluid, pos), dim, pos, fluid);
     }
 
     public void fromNbt(CompoundTag nbt) {
@@ -37,10 +47,9 @@ public class FluidCache {
                         GTUtil.getResourceLocation(fluidTag.getString("dim")));
                 ChunkPos pos = new ChunkPos(fluidTag.getLong("pos"));
                 var fluid = ProspectorMode.FluidInfo.fromNbt(fluidTag);
+                if (fluid == null) continue;
                 fluidCache.put(dim, pos, fluid);
-
-                GroupingMapRenderer.getInstance().addMarker(FluidRenderLayer.getName(fluid).getString(),
-                        FluidRenderLayer.getId(fluid, pos), dim, pos, fluid);
+                addMarker(pos, fluid, dim);
             }
         }
     }
