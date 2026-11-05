@@ -30,7 +30,7 @@ public class FluidCache {
         addMarker(pos, fluid, dim);
         // The map caches the colour of every highlighted region; a different fluid needs those hashes dropped.
         if (previous != null && previous.fluid() != fluid.fluid()) {
-            GroupingMapRenderer.getInstance().refreshMarkers();
+            GroupingMapRenderer.markRefreshPending();
         }
     }
 

@@ -32,7 +32,7 @@ public class BedrockOreCache {
         addMarker(pos, ores, dim);
         // The map caches the colour of every highlighted region; different materials need those hashes dropped.
         if (previous != null && !sameMaterials(previous, ores)) {
-            GroupingMapRenderer.getInstance().refreshMarkers();
+            GroupingMapRenderer.markRefreshPending();
         }
     }
 
