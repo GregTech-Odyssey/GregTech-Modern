@@ -4852,7 +4852,7 @@
   "gtceu.tool_action.soft_mallet.toggle_mode": "§8Використовуйте м'який молоток для перемикання режимів",
   "gtceu.tool_action.soft_mallet.reset": "§8Використовуйте м'який молоток для перемикання робочого стану",
   "gtceu.tool_action.tape": "§8Використовуйте стрічку для усунення проблем з технічним обслуговуванням",
-  "gtceu.tool_action.wrench.connect": "§8Використовуйте гайковий ключ для встановлення з'єднань, крадькома, щоб заблокувати з'єднання",
+  "gtceu.tool_action.wrench.connect": "§8Гайковий ключ налаштовує з'єднання, «SHIFT» блокує передачу (не для всіх труб)",
   "gtceu.tool_action.wrench.set_facing": "§8Використовуйте ключ, щоб встановити напрямок",
   "gtceu.recipe.environmental_hazard.reverse": "§cОбласть повинна бути захищена від %s",
   "gtceu.recipe.environmental_hazard": "§cВ області повинно бути %s",

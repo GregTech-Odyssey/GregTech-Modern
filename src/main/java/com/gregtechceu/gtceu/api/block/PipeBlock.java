@@ -152,7 +152,7 @@ public abstract class PipeBlock<PipeType extends Enum<PipeType> & IPipeType<Node
     }
 
     /**
-     * The tool used to tune this pipe's connections and blocked faces.
+     * The tool used to tune this pipe's connections (and, on pipes that support them, its blocked faces).
      */
     public GTToolType getTuneTool() {
         return GTToolType.WRENCH;

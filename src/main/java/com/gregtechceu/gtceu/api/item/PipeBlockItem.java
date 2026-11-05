@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.item;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -51,9 +50,9 @@ public class PipeBlockItem extends BlockItem {
         }
     }
 
+    /** 工具名即翻译键中段，管道新增调校工具时不必再改这里。 */
     private String tuneTooltipKey() {
-        return getBlock().getTuneTool() == GTToolType.WIRE_CUTTER ? "gtceu.tool_action.wire_cutter.connect" :
-                "gtceu.tool_action.wrench.connect";
+        return "gtceu.tool_action." + getBlock().getTuneTool().name + ".connect";
     }
 
     @Override
