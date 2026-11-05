@@ -9,6 +9,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.client.model.PipeModel;
@@ -94,6 +95,11 @@ public class CableBlock extends MaterialPipeBlock<Insulation, WireProperties, Le
     @Override
     protected PipeModel createPipeModel() {
         return pipeType.createPipeModel(material);
+    }
+
+    @Override
+    public GTToolType getTuneTool() {
+        return GTToolType.WIRE_CUTTER;
     }
 
     @Override

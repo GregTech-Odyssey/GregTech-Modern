@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.blockentity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IDataAccessHatch;
-import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.pipelike.optical.*;
@@ -136,11 +135,6 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         this.handlers.clear();
-    }
-
-    @Override
-    public GTToolType getPipeTuneTool() {
-        return GTToolType.WIRE_CUTTER;
     }
 
     private static class DefaultDataHandler implements IDataAccessHatch {

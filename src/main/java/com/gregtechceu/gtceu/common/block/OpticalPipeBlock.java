@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.client.model.PipeModel;
 import com.gregtechceu.gtceu.client.renderer.block.PipeBlockRenderer;
 import com.gregtechceu.gtceu.common.blockentity.OpticalPipeBlockEntity;
@@ -95,6 +96,11 @@ public class OpticalPipeBlock extends PipeBlock<OpticalPipeType, OpticalPipeProp
             }
             return -1;
         };
+    }
+
+    @Override
+    public GTToolType getTuneTool() {
+        return GTToolType.WIRE_CUTTER;
     }
 
     @Override
