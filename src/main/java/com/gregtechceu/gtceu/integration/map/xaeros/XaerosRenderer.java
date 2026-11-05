@@ -59,6 +59,11 @@ public class XaerosRenderer extends GenericMapRenderer {
     }
 
     @Override
+    public void refreshMarkers() {
+        XaerosMapPlugin.requestHighlightRefresh();
+    }
+
+    @Override
     public void clear() {
         oreElements.clear();
         fluidElements.clear();

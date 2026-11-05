@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.integration.map.cache.bedrockore;
 
 import com.gregtechceu.gtceu.api.gui.misc.ProspectorMode;
+import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.integration.map.layer.builtin.BedrockOreRenderLayer;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -20,36 +21,53 @@ public class BedrockOreCache {
 
     private final NestedMap<ResourceKey<Level>, ChunkPos, ProspectorMode.OreInfo[]> bedrockOreCache = NestedMap.createIdentity(O2OOpenCacheHashMap::new);
 
+    /**
+     * Records the bedrock ore vein found in a chunk. A later prospection of the same chunk replaces the cached
+     * entry: only the first result used to be kept, which left the map showing the materials an update had since
+     * changed.
+     */
     public void addBedrockOre(ResourceKey<Level> dim, int chunkX, int chunkZ, ProspectorMode.OreInfo[] ores) {
         ChunkPos pos = new ChunkPos(chunkX, chunkZ);
-        bedrockOreCache.computeIfAbsent(dim, pos, k -> {
-            GroupingMapRenderer.getInstance().addMarker(BedrockOreRenderLayer.getName(ores).getString(),
-                    BedrockOreRenderLayer.getId(ores, pos), dim, pos, ores);
-            return ores;
-        });
+        ProspectorMode.OreInfo[] previous = bedrockOreCache.put(dim, pos, ores);
+        addMarker(pos, ores, dim);
+        // The map caches the colour of every highlighted region; different materials need those hashes dropped.
+        if (previous != null && !sameMaterials(previous, ores)) {
+            GroupingMapRenderer.markRefreshPending();
+        }
     }
 
+    private static boolean sameMaterials(ProspectorMode.OreInfo[] a, ProspectorMode.OreInfo[] b) {
+        if (a.length != b.length) return false;
+        for (int i = 0; i < a.length; i++) {
+            if (a[i].material() != b[i].material() || a[i].weight() != b[i].weight()) return false;
+        }
+        return true;
+    }
+
+    private static void addMarker(ChunkPos pos, ProspectorMode.OreInfo[] ores, ResourceKey<Level> dim) {
+        GroupingMapRenderer.getInstance().addMarker(BedrockOreRenderLayer.getName(ores).getString(),
+                BedrockOreRenderLayer.getId(ores, pos), dim, pos, ores);
+    }
+
+    /**
+     * Restores the cached veins, resolving each one's materials from its current definition. Entries that cannot be
+     * tied to a currently registered vein are dropped: their materials were derived by an older version and may no
+     * longer describe the chunk.
+     */
     public void fromNbt(CompoundTag nbt) {
         var bedrockOreList = nbt.getList("bedrock_ore_veins", Tag.TAG_COMPOUND);
         for (var bedrockOreTagRaw : bedrockOreList) {
-            if (bedrockOreTagRaw instanceof CompoundTag bedrockOreTag) {
-                ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION,
-                        GTUtil.getResourceLocation(bedrockOreTag.getString("dim")));
-                ChunkPos pos = new ChunkPos(bedrockOreTag.getLong("pos"));
-
-                var oresListTag = bedrockOreTag.getList("ores", Tag.TAG_COMPOUND);
-                ProspectorMode.OreInfo[] ores = new ProspectorMode.OreInfo[oresListTag.size()];
-                for (int i = 0; i < oresListTag.size(); i++) {
-                    ores[i] = ProspectorMode.BEDROCK_ORE.deserialize(
-                            new net.minecraft.network.FriendlyByteBuf(
-                                    io.netty.buffer.Unpooled.wrappedBuffer(
-                                            oresListTag.getCompound(i).getByteArray("data"))));
-                }
-                bedrockOreCache.put(dim, pos, ores);
-
-                GroupingMapRenderer.getInstance().addMarker(BedrockOreRenderLayer.getName(ores).getString(),
-                        BedrockOreRenderLayer.getId(ores, pos), dim, pos, ores);
-            }
+            if (!(bedrockOreTagRaw instanceof CompoundTag tag)) continue;
+            if (!tag.contains("vein")) continue;
+            var vein = GTUtil.getResourceLocation(tag.getString("vein"));
+            var definition = GTRegistries.BEDROCK_ORE_DEFINITIONS.get(vein);
+            if (definition == null) continue;
+            ResourceKey<Level> dim = ResourceKey.create(Registries.DIMENSION,
+                    GTUtil.getResourceLocation(tag.getString("dim")));
+            ChunkPos pos = new ChunkPos(tag.getLong("pos"));
+            var ores = ProspectorMode.OreInfo.entriesOf(definition, vein, tag.getInt("yield"), tag.getInt("left"));
+            bedrockOreCache.put(dim, pos, ores);
+            addMarker(pos, ores, dim);
         }
     }
 
@@ -58,23 +76,14 @@ public class BedrockOreCache {
         var bedrockOreList = new ListTag();
         for (var dimensions : bedrockOreCache.getMap().entrySet()) {
             for (var entry : dimensions.getValue().entrySet()) {
+                var ores = entry.getValue();
+                if (ores.length == 0) continue;
                 CompoundTag tag = new CompoundTag();
                 tag.putLong("pos", entry.getKey().toLong());
                 tag.putString("dim", dimensions.getKey().location().toString());
-
-                var oresListTag = new ListTag();
-                for (var ore : entry.getValue()) {
-                    var buf = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
-                    ProspectorMode.BEDROCK_ORE.serialize(ore, buf);
-                    byte[] data = new byte[buf.readableBytes()];
-                    buf.readBytes(data);
-                    buf.release();
-
-                    CompoundTag oreTag = new CompoundTag();
-                    oreTag.putByteArray("data", data);
-                    oresListTag.add(oreTag);
-                }
-                tag.put("ores", oresListTag);
+                tag.putString("vein", ores[0].vein().toString());
+                tag.putInt("yield", ores[0].yield());
+                tag.putInt("left", ores[0].left());
                 bedrockOreList.add(tag);
             }
         }

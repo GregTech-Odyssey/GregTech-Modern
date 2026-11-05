@@ -43,6 +43,12 @@ public abstract class GenericMapRenderer {
 
     public abstract boolean removeMarker(ResourceKey<Level> dim, String id);
 
+    /**
+     * Asks the map mod to repaint the markers it already cached, for the case where the data behind an existing
+     * marker changed (a different fluid, colour or name) without the marker being added or removed.
+     */
+    public void refreshMarkers() {}
+
     public abstract boolean doShowLayer(String name);
 
     public abstract void setLayerActive(String name, boolean active);

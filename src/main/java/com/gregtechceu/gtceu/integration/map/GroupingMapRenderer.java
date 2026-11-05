@@ -23,6 +23,9 @@ public class GroupingMapRenderer extends GenericMapRenderer {
 
     private static final GroupingMapRenderer instance;
 
+    /** 勘探结果变化后置脏，由客户端 tick 末尾统一刷新一次，见 {@link #markRefreshPending()}。 */
+    private static boolean refreshPending;
+
     static {
         Map<String, GenericMapRenderer> renderers = new O2OOpenCacheHashMap<>();
         var toggle = ConfigHolder.INSTANCE.compat.minimap.toggle;
@@ -96,10 +99,34 @@ public class GroupingMapRenderer extends GenericMapRenderer {
     }
 
     @Override
+    public void refreshMarkers() {
+        for (GenericMapRenderer renderer : rendererList) {
+            renderer.refreshMarkers();
+        }
+    }
+
+    @Override
     public void clear() {
         for (GenericMapRenderer renderer : rendererList) {
             renderer.clear();
         }
+        // 元素表清空后，地图 mod 里按旧内容算出的高亮哈希仍在，一起丢掉
+        refreshMarkers();
+    }
+
+    /**
+     * 勘探逐区块写入缓存，这里只置脏，由客户端 tick 末尾统一刷新一次；否则一次勘探里每个变动的区块
+     * 都会触发一遍全维度 {@code clearCachedHashes()}。
+     */
+    public static void markRefreshPending() {
+        refreshPending = true;
+    }
+
+    /** 客户端 tick 末尾调用；没有置脏时只是一次字段读。 */
+    public static void flushPendingRefresh() {
+        if (!refreshPending) return;
+        refreshPending = false;
+        instance.refreshMarkers();
     }
 
     public static GroupingMapRenderer getInstance() {

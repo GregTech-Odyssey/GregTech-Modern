@@ -17,6 +17,7 @@ import com.gregtechceu.gtceu.common.network.packets.CPacketSprayCanAction;
 import com.gregtechceu.gtceu.common.network.packets.CPacketToolSetting;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.ClientCacheManager;
+import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
 import com.gregtechceu.gtceu.uiwidgets.structure.PartCellsOverlay;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
@@ -79,6 +80,8 @@ public class ForgeClientEventListener {
             TooltipHelper.onClientTick();
             StructureProjection.tick();
             PartCellsOverlay.tick();
+            // 勘探写缓存只置脏，本帧结束前统一刷新一次地图高亮
+            GroupingMapRenderer.flushPendingRefresh();
             GTValues.CLIENT_TIME++;
         }
     }
