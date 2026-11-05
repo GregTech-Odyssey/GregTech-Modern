@@ -44,10 +44,15 @@ public class PipeBlockItem extends BlockItem {
                                 TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
         if (GTUtil.isShiftDown()) {
-            tooltip.add(Tips.control(Component.translatable("gtceu.tool_action.wire_cutter.connect")));
+            tooltip.add(Tips.control(Component.translatable(tuneTooltipKey())));
         } else {
             tooltip.add(Tips.control(Component.translatable("gtceu.tool_action.show_tooltips")));
         }
+    }
+
+    /** 工具名即翻译键中段，管道新增调校工具时不必再改这里。 */
+    private String tuneTooltipKey() {
+        return "gtceu.tool_action." + getBlock().getTuneTool().name + ".connect";
     }
 
     @Override

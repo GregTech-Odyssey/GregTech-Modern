@@ -3412,7 +3412,7 @@
   "gtceu.tool_action.soft_mallet.toggle_mode": "§8ソフトマレットでモードを切替できます。",
   "gtceu.tool_action.tape": "§8テープでメンテナンスの問題を解決できます。",
   "gtceu.tool_action.wire_cutter.connect": "§8ワイヤーカッターで接続を設定できます。",
-  "gtceu.tool_action.wrench.connect": "§8レンチを使用して接続を設定し、スニークを使用して接続をブロックする。",
+  "gtceu.tool_action.wrench.connect": "§8レンチで接続を設定、スニークで接続をブロック（対応していないパイプもあります）",
   "gtceu.tool_action.wrench.set_facing": "§8レンチを使うと向きを変更できます。",
   "gtceu.tooltip.fluid_pipe_hold_shift": "§7SHIFTで耐液体性能を表示",
   "gtceu.tooltip.hold_ctrl": "§7CTRLを押して詳細を表示",

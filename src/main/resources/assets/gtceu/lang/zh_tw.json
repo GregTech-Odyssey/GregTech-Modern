@@ -3939,7 +3939,7 @@
     "gtceu.tool_action.soft_mallet.toggle_mode": "§8使用軟錘切換模式",
     "gtceu.tool_action.tape": "§8使用膠帶維護機器",
     "gtceu.tool_action.wire_cutter.connect": "§8使用剪線鉗連線/斷開電線",
-    "gtceu.tool_action.wrench.connect": "§8使用扳手連線/斷開管道，潛行可以阻止輸入",
+    "gtceu.tool_action.wrench.connect": "§8使用扳手連線/斷開管道，潛行可以阻止輸入（部分管道不支援）",
     "gtceu.tool_action.wrench.set_facing": "§8使用扳手設定朝向",
     "gtceu.tooltip.fluid_pipe_hold_shift": "§7按住§6SHIFT§7以檢視流體容器詳情",
     "gtceu.tooltip.hold_ctrl": "§7按住CTRL獲得更多資訊",

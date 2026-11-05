@@ -1004,7 +1004,7 @@ public class LangHandler {
         provider.add("gtceu.tool_action.screwdriver.toggle_mode", "§8Use Screwdriver to toggle Modes");
         provider.add("gtceu.tool_action.wrench.set_facing", "§8Use Wrench to set Facing");
         provider.add("gtceu.tool_action.wrench.connect",
-                "§8Use Wrench to set Connections, sneak to block Connections");
+                "§8Use Wrench to set Connections, sneak to block Connections (pipes that support it)");
         provider.add("gtceu.tool_action.wire_cutter.connect", "§8Use Wire Cutters to set Connections");
         provider.add("gtceu.tool_action.soft_mallet.reset", "§8Use Soft Mallet to toggle Working");
         provider.add("gtceu.tool_action.soft_mallet.toggle_mode", "§8Use Soft Mallet to toggle Modes");

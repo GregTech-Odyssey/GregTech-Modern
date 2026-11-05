@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.blockentity;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
-import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.common.pipelike.laser.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.TaskHandler;
@@ -145,10 +144,5 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
             }
         }
         super.setConnection(side, connected, fromNeighbor);
-    }
-
-    @Override
-    public GTToolType getPipeTuneTool() {
-        return GTToolType.WIRE_CUTTER;
     }
 }

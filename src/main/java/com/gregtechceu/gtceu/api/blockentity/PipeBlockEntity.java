@@ -392,7 +392,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     }
 
     public GTToolType getPipeTuneTool() {
-        return GTToolType.WRENCH;
+        return getPipeBlock().getTuneTool();
     }
 
     @Override

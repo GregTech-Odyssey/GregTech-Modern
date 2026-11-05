@@ -4066,7 +4066,7 @@
   "gtceu.tool_action.soft_mallet.toggle_mode": "§8Use Soft Mallet to toggle Modes",
   "gtceu.tool_action.tape": "§8Use Tape to fix Maintenance Problems",
   "gtceu.tool_action.wire_cutter.connect": "§8Use Wire Cutters to set Connections",
-  "gtceu.tool_action.wrench.connect": "§8Use Wrench to set Connections, sneak to block Connections",
+  "gtceu.tool_action.wrench.connect": "§8Use Wrench to set Connections, sneak to block Connections (pipes that support it)",
   "gtceu.tool_action.wrench.set_facing": "§8Use Wrench to set Facing",
   "gtceu.tooltip.fluid_pipe_hold_shift": "§7Hold SHIFT to show Fluid Containment Info",
   "gtceu.tooltip.hold_ctrl": "§7Hold CTRL for more info",
