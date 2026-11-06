@@ -49,7 +49,7 @@ public final class MedicalConditionProgressionCheck {
         stage("零上限疾病", 10f, 0f, 1f, 10, 0);
         stage("进度为 0", 0f, 200f, 0f, 10, 0);
         stage("负进度", -5f, 200f, .5f, 10, 0);
-        // 命令参数可以传 NaN（FloatArgumentType.floatArg(0) 拦不住），NaN 不能算出可用档位
+        // 命令层会被 Brigadier 拒绝，但 API/旧存档仍可能传入非有限进度
         stage("NaN 进度", Float.NaN, 200f, 0f, 10, 0);
         stage("Infinity 进度按满进度封顶", Float.POSITIVE_INFINITY, 200f, 0f, 10, 10);
         stage("零档", 200f, 200f, 1f, 0, 0);

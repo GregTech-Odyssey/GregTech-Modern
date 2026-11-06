@@ -68,7 +68,8 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
 
     public void progressCondition(@NotNull MedicalCondition condition, float strength) {
         if (player.isCreative()) return;
-        // NaN 穿透 Math.min（与 NaN 取小仍是 NaN）后会写进存档；命令参数拦不住 NaN，这里兜住
+        // 非有限值会穿透 Math.min（与 NaN 取小仍是 NaN）并写进存档；命令层由 Brigadier 拒绝，
+        // 这里兜住 API 与旧存档传进来的 NaN/Infinity
         if (!Float.isFinite(strength) || strength == 0f) return;
         float cap = MedicalConditionProgression.capProgression(condition.maxProgression, condition.canBePermanent);
         medicalConditions.put(condition, Math.min(medicalConditions.getOrDefault(condition, 0) + strength, cap));
