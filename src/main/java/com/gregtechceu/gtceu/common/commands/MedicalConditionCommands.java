@@ -34,10 +34,12 @@ public class MedicalConditionCommands {
         dispatcher.register(
                 literal("medical_condition")
                         .then(literal("query")
-                                .executes(ctx -> queryMedicalConditions(ctx.getSource().getPlayerOrException()))
+                                .executes(ctx -> queryMedicalConditions(ctx.getSource(),
+                                        ctx.getSource().getPlayerOrException()))
                                 .then(argument("target", EntityArgument.player())
                                         .requires(source -> source.hasPermission(LEVEL_GAMEMASTERS))
-                                        .executes(context -> queryMedicalConditions(EntityArgument.getPlayer(context, "target")))))
+                                        .executes(context -> queryMedicalConditions(context.getSource(),
+                                                EntityArgument.getPlayer(context, "target")))))
                         .then(literal("clear")
                                 .requires(ctx -> ctx.hasPermission(LEVEL_ADMINS))
                                 .executes(ctx -> clearMedicalConditions(
@@ -75,20 +77,20 @@ public class MedicalConditionCommands {
                                                             return applyMedicalConditions(players, condition, strength);
                                                         }))))));
     }
-    // spotless:off
+    // spotless:on
 
-    private static int queryMedicalConditions(ServerPlayer target) throws CommandSyntaxException {
+    private static int queryMedicalConditions(CommandSourceStack source, ServerPlayer target) throws CommandSyntaxException {
         IMedicalConditionTracker tracker = GTCapabilityHelper.getMedicalConditionTracker(target);
         if (tracker == null) {
             throw EntityArgument.NO_PLAYERS_FOUND.create();
         }
         int count = tracker.getMedicalConditions().size();
         if (count == 0) {
-            target.sendSystemMessage(
-                    Component.translatable("command.gtceu.medical_condition.get.empty", target.getName()));
+            Component message = Component.translatable("command.gtceu.medical_condition.get.empty", target.getName());
+            source.sendSuccess(() -> message, false);
         } else {
-            target.sendSystemMessage(
-                    Component.translatable("command.gtceu.medical_condition.get", target.getName()));
+            Component message = Component.translatable("command.gtceu.medical_condition.get", target.getName());
+            source.sendSuccess(() -> message, false);
         }
         for (var it = tracker.getMedicalConditions().reference2FloatEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
@@ -98,10 +100,11 @@ public class MedicalConditionCommands {
                 langKey = "command.gtceu.medical_condition.get.element.permanent";
             }
             float time = entry.getFloatValue();
-            target.sendSystemMessage(
-                    Component.translatable(langKey,
-                            Component.translatable("gtceu.medical_condition." + entry.getKey().name),
-                            (int) (time / 60), (int) (time % 60)));
+            // fastIterator 复用 entry，先取值再组 Component，别把 entry 捕获进 supplier
+            Component message = Component.translatable(langKey,
+                    Component.translatable("gtceu.medical_condition." + entry.getKey().name),
+                    (int) (time / 60), (int) (time % 60));
+            source.sendSuccess(() -> message, false);
         }
         return count;
     }
@@ -115,11 +118,18 @@ public class MedicalConditionCommands {
                 continue;
             }
             if (condition == null) {
-                count += tracker.getMedicalConditions().size();
+                int size = tracker.getMedicalConditions().size();
+                if (size == 0) {
+                    continue;
+                }
+                count += size;
                 for (MedicalCondition medicalCondition : tracker.getMedicalConditions().keySet()) {
                     tracker.removeMedicalCondition(medicalCondition);
                 }
             } else {
+                if (!tracker.getMedicalConditions().containsKey(condition)) {
+                    continue;
+                }
                 count++;
                 tracker.removeMedicalCondition(condition);
             }

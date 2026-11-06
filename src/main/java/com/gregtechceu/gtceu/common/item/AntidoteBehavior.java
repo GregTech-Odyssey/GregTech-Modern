@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
+import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalConditionProgression;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
@@ -25,8 +26,9 @@ import java.util.Set;
  * Defines an antidote for a hazard (e.g. poisoning)
  *
  * @param types         the type of the hazard to remove
- * @param removePercent the time to remove from the chosen hazard, as a percentage of the current time [0, 100].
- *                      -1 for all.
+ * @param removePercent the progression removed per use, as a percentage of the condition's maximum progression
+ *                      ({@code maxProgression}); a dose that exceeds what is left clears the condition. -1 removes it
+ *                      outright.
  */
 public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
         implements IInteractionItem, IAddInformation {
@@ -54,14 +56,17 @@ public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
             }
             if (removePercent == -1) {
                 tracker.removeMedicalCondition(condition);
+                continue;
+            }
+            // 按满进度折算而不是按当前值：按当前值做几何衰减会让小病永远清不掉，进度低时还会取整为 0
+            int amount = MedicalConditionProgression.antidoteAmount(condition.maxProgression, removePercent);
+            if (amount <= 0) {
+                continue;
+            }
+            if (amount >= entry.getFloatValue()) {
+                tracker.removeMedicalCondition(condition);
             } else {
-                float time = entry.getFloatValue();
-                float timeToRemove = time * (removePercent / 100.0f);
-                if (timeToRemove > 0.05f * time) {
-                    tracker.removeMedicalCondition(condition);
-                    continue;
-                }
-                tracker.heal(condition, (int) timeToRemove);
+                tracker.heal(condition, amount);
             }
         }
         return itemstack;

@@ -96,3 +96,9 @@ tasks.register('overlapBoundCheck', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.gregtechceu.gtceu.api.recipe.handler.OverlapBoundCheck'
 }
+
+tasks.register('medicalConditionCheck', JavaExec) {
+    group = 'verification'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.gregtechceu.gtceu.api.data.medicalcondition.MedicalConditionProgressionCheck'
+}
