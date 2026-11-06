@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.common.item;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
+import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalConditionProgression;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
@@ -54,14 +55,17 @@ public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
             }
             if (removePercent == -1) {
                 tracker.removeMedicalCondition(condition);
+                continue;
+            }
+            // 按满进度折算而不是按当前值：按当前值做几何衰减会让小病永远清不掉，进度低时还会取整为 0
+            int amount = MedicalConditionProgression.antidoteAmount(condition.maxProgression, removePercent);
+            if (amount <= 0) {
+                continue;
+            }
+            if (amount >= entry.getFloatValue()) {
+                tracker.removeMedicalCondition(condition);
             } else {
-                float time = entry.getFloatValue();
-                float timeToRemove = time * (removePercent / 100.0f);
-                if (timeToRemove > 0.05f * time) {
-                    tracker.removeMedicalCondition(condition);
-                    continue;
-                }
-                tracker.heal(condition, (int) timeToRemove);
+                tracker.heal(condition, amount);
             }
         }
         return itemstack;

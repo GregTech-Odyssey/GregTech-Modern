@@ -24,13 +24,16 @@ public class Symptom {
     public static final UUID SYMPTOM_SLOWNESS_UUID = UUID.fromString("b3ac6b40-2d30-419f-9cac-5b2cf998ad72");
 
     public static final Symptom DEATH = new Symptom(defaultKey("death"), 1, 1,
-            ((medicalConditionTracker, condition, configuredSymptom, baseSymptom, modifier) -> {
-                if (modifier > 0) {
-                    Player player = medicalConditionTracker.getPlayer();
-                    player.hurt(condition.getDamageSource(medicalConditionTracker), Math.max(20f, player.getHealth() * 20));
+            (tracker, condition, configuredSymptom, baseSymptom, modifier) -> kill(tracker, condition, modifier),
+            (tracker, condition, configuredSymptom, baseSymptom, modifier) -> {
+                // 已到最高档就每秒继续致死：图腾等一次性免死不该让满进度疾病永久失效
+                if (tracker.getPlayer().level().getGameTime() % 20 == 0) {
+                    kill(tracker, condition, modifier);
                 }
-            }));
-    public static final Symptom RANDOM_DAMAGE = new Symptom(defaultKey("random_damage"), 10, 1,
+            });
+    // 默认阈值 0 表示档位随进度从 0 连续升到满进度的 defaultStages 档；只有 1 档症状（致死、凋零）
+    // 默认阈值为 1，即只有满进度才生效。各疾病可用 ConfiguredSymptom 的阈值把起始点后移。
+    public static final Symptom RANDOM_DAMAGE = new Symptom(defaultKey("random_damage"), 10, 0,
             (medicalConditionTracker, condition, configuredSymptom, baseSymptom, modifier) -> {},
             (medicalConditionTracker, condition, configuredSymptom, baseSymptom, modifier) -> {
                 int stages = configuredSymptom != null ? configuredSymptom.stages : baseSymptom.defaultStages;
@@ -38,28 +41,28 @@ public class Symptom {
                     medicalConditionTracker.getPlayer().hurt(condition.getDamageSource(medicalConditionTracker), 0.5f);
                 }
             });
-    public static final Symptom HEALTH_DEBUFF = new Symptom(defaultKey("health_debuff"), 10, 1, 1,
+    public static final Symptom HEALTH_DEBUFF = new Symptom(defaultKey("health_debuff"), 10, 0, 1,
             Attributes.MAX_HEALTH, SYMPTOM_HEALTH_DEBUFF_UUID);
-    public static final Symptom ATTACK_SPEED_DEBUFF = new Symptom(defaultKey("attack_speed_debuff"), 10, 1, .2f,
+    public static final Symptom ATTACK_SPEED_DEBUFF = new Symptom(defaultKey("attack_speed_debuff"), 10, 0, .2f,
             Attributes.ATTACK_SPEED, SYMPTOM_ATTACK_SPEED_DEBUFF_UUID);
-    public static final Symptom WEAKNESS = new Symptom(defaultKey("weakness"), 10, 1, .1f, Attributes.ATTACK_DAMAGE,
+    public static final Symptom WEAKNESS = new Symptom(defaultKey("weakness"), 10, 0, .1f, Attributes.ATTACK_DAMAGE,
             SYMPTOM_WEAKNESS_UUID);
-    public static final Symptom SLOWNESS = new Symptom(defaultKey("slowness"), 7, 1, .005f, Attributes.MOVEMENT_SPEED,
+    public static final Symptom SLOWNESS = new Symptom(defaultKey("slowness"), 7, 0, .005f, Attributes.MOVEMENT_SPEED,
             SYMPTOM_SLOWNESS_UUID);
-    public static final Symptom AIR_SUPPLY_DEBUFF = new Symptom(defaultKey("air_supply_debuff"), 10, 1,
+    public static final Symptom AIR_SUPPLY_DEBUFF = new Symptom(defaultKey("air_supply_debuff"), 10, 0,
             (hazardEffectTracker, damageSource, configuredSymptom, baseSymptom, modifier) -> hazardEffectTracker
                     .setMaxAirSupply(300 - 10 * modifier));
     public static final Symptom BLINDNESS = new Symptom(defaultKey("blindness"), 10, 0, MobEffects.BLINDNESS);
     public static final Symptom NAUSEA = new Symptom(defaultKey("nausea"), 10, 0, MobEffects.CONFUSION);
-    public static final Symptom MINING_FATIGUE = new Symptom(defaultKey("mining_fatigue"), 10, 1,
+    public static final Symptom MINING_FATIGUE = new Symptom(defaultKey("mining_fatigue"), 10, 0,
             MobEffects.DIG_SLOWDOWN);
     public static final Symptom WITHER = new Symptom(defaultKey("wither"), 1, 1,
             MobEffects.WITHER);
     public static final Symptom WEAK_POISONING = new Symptom(defaultKey("weak_poisoning"), 10,
-            1, GTMobEffects.WEAK_POISON::get);
+            0, GTMobEffects.WEAK_POISON::get);
     public static final Symptom POISONING = new Symptom(defaultKey("poisoning"), 10,
-            1, MobEffects.POISON);
-    public static final Symptom HUNGER = new Symptom(defaultKey("hunger"), 5, 1, MobEffects.HUNGER);
+            0, MobEffects.POISON);
+    public static final Symptom HUNGER = new Symptom(defaultKey("hunger"), 5, 0, MobEffects.HUNGER);
 
     public final String name;
     public final int defaultStages;
@@ -189,6 +192,21 @@ public class Symptom {
 
         void apply(MedicalConditionTracker tracker, MedicalCondition condition,
                    @Nullable ConfiguredSymptom configuredSymptom, Symptom baseSymptom, int amplifier);
+    }
+
+    /**
+     * 满进度的致死伤害：一次打掉当前生命的 20 倍，保证任何加成下都溢出致死
+     * （此伤害类型带 {@code BYPASSES_ARMOR}，护甲与抗性不参与减免）。
+     */
+    private static void kill(MedicalConditionTracker tracker, MedicalCondition condition, int modifier) {
+        if (modifier <= 0) {
+            return;
+        }
+        Player player = tracker.getPlayer();
+        if (player.isDeadOrDying()) {
+            return;
+        }
+        player.hurt(condition.getDamageSource(tracker), Math.max(20f, player.getHealth() * 20));
     }
 
     private static String defaultKey(String name) {

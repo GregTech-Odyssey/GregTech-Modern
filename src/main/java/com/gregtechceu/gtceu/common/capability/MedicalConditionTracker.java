@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.capability;
 
 import com.gregtechceu.gtceu.api.capability.IMedicalConditionTracker;
 import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalCondition;
+import com.gregtechceu.gtceu.api.data.medicalcondition.MedicalConditionProgression;
 import com.gregtechceu.gtceu.api.data.medicalcondition.Symptom;
 
 import net.minecraft.nbt.CompoundTag;
@@ -19,14 +20,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-
 public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSerializable<CompoundTag> {
 
     @Getter
     private final Reference2FloatOpenHashMap<MedicalCondition> medicalConditions = new Reference2FloatOpenHashMap<>();
     private final ReferenceOpenHashSet<MedicalCondition> permanentConditions = new ReferenceOpenHashSet<>();
-    private final Reference2IntMap<Symptom.ConfiguredSymptom> activeSymptoms = new Reference2IntOpenHashMap<>();
+    private final Reference2IntOpenHashMap<Symptom.ConfiguredSymptom> activeSymptoms = new Reference2IntOpenHashMap<>();
     private final O2IOpenCacheHashMap<MobEffect> activeMobEffects = new O2IOpenCacheHashMap<>();
     private final ReferenceOpenHashSet<MedicalCondition> flaggedForRemoval = new ReferenceOpenHashSet<>();
     @Setter
@@ -56,7 +55,9 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
                     continue;
                 }
                 int multiplier = (condition.idleProgressionType == MedicalCondition.IdleProgressionType.HEAL) ? -1 : 1;
-                medicalConditions.replace(condition, medicalConditions.getFloat(condition) + condition.idleProgressionRate * multiplier);
+                float next = medicalConditions.getFloat(condition) + condition.idleProgressionRate * multiplier;
+                medicalConditions.replace(condition, Math.min(next,
+                        MedicalConditionProgression.capProgression(condition.maxProgression, condition.canBePermanent)));
                 evaluateMedicalCondition(condition);
             }
             if (!medicalConditions.isEmpty()) {
@@ -67,37 +68,52 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
 
     public void progressCondition(@NotNull MedicalCondition condition, float strength) {
         if (player.isCreative()) return;
-        medicalConditions.put(condition, medicalConditions.getOrDefault(condition, 0) + strength);
+        float cap = MedicalConditionProgression.capProgression(condition.maxProgression, condition.canBePermanent);
+        medicalConditions.put(condition, Math.min(medicalConditions.getOrDefault(condition, 0) + strength, cap));
         updateActiveSymptoms();
     }
 
     private void updateActiveSymptoms() {
-        for (MedicalCondition condition : medicalConditions.keySet()) {
-            if (medicalConditions.getFloat(condition) >= condition.maxProgression * 2) {
+        for (var it = medicalConditions.reference2FloatEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
+            MedicalCondition condition = entry.getKey();
+            if (condition.canBePermanent && entry.getFloatValue() >= condition.maxProgression * 2) {
                 // If condition has been applied for 2x the maximum time, make it permanent.
                 permanentConditions.add(condition);
             }
             for (Symptom.ConfiguredSymptom symptom : condition.symptoms) {
                 int stage = calculateStage(condition, symptom);
+                Symptom.ConfiguredSymptom currentSymptom = findActiveSymptom(symptom.symptom);
+                if (stage > 0) {
+                    // 每秒重试类效果（如致死）在档位不变时也要执行
+                    symptom.symptom.tick(this, condition, symptom, stage);
+                }
+                if (currentSymptom == symptom) {
+                    int currentStage = activeSymptoms.getOrDefault(symptom, 0);
+                    if (stage == currentStage) {
+                        continue;
+                    }
+                    // 档位升降都要重算：先归零再按新档施加，进度回落后不能残留更高档的减益
+                    symptom.symptom.applyProgression(this, condition, symptom, 0);
+                    if (stage <= 0) {
+                        activeSymptoms.removeInt(symptom);
+                    } else {
+                        activeSymptoms.replace(symptom, stage);
+                        symptom.symptom.applyProgression(this, condition, symptom, stage);
+                    }
+                    continue;
+                }
                 if (stage <= 0) {
                     continue;
                 }
-                symptom.symptom.tick(this, condition, symptom, stage);
-                Optional<Symptom.ConfiguredSymptom> currentSymptomOptional = activeSymptoms.keySet().stream().filter(symptom1 -> symptom1.symptom == symptom.symptom).findFirst();
-                if (currentSymptomOptional.isEmpty()) {
+                if (currentSymptom == null) {
                     activeSymptoms.put(symptom, stage);
                     symptom.symptom.applyProgression(this, condition, null, stage);
                     continue;
                 }
-                Symptom.ConfiguredSymptom currentSymptom = currentSymptomOptional.get();
-                if (currentSymptom == symptom && stage > activeSymptoms.getOrDefault(symptom, 0)) {
-                    symptom.symptom.applyProgression(this, condition, symptom, activeSymptoms.getOrDefault(symptom, 0));
-                    activeSymptoms.replace(symptom, stage);
-                    symptom.symptom.applyProgression(this, condition, symptom, stage);
-                    continue;
-                }
-                if (symptom.relativeHarshness * stage > currentSymptom.relativeHarshness * activeSymptoms.getOrDefault(currentSymptom, 0)) {
-                    currentSymptom.symptom.applyProgression(this, condition, symptom, activeSymptoms.getOrDefault(currentSymptom, 0));
+                int currentStage = activeSymptoms.getOrDefault(currentSymptom, 0);
+                if (symptom.relativeHarshness * stage > currentSymptom.relativeHarshness * currentStage) {
+                    currentSymptom.symptom.applyProgression(this, condition, symptom, currentStage);
                     activeSymptoms.removeInt(currentSymptom);
                     activeSymptoms.put(symptom, stage);
                     symptom.symptom.applyProgression(this, condition, symptom, stage);
@@ -108,13 +124,39 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
             return;
         }
         for (MedicalCondition condition : flaggedForRemoval) {
-            for (Symptom.ConfiguredSymptom configuredSymptom : activeSymptoms.keySet().stream().filter(condition.symptoms::contains).toList()) {
-                // reset all symptom effects for this condition
-                configuredSymptom.symptom.applyProgression(this, condition, configuredSymptom, 0);
-            }
-            medicalConditions.removeFloat(condition);
+            clearCondition(condition);
         }
         flaggedForRemoval.clear();
+    }
+
+    private Symptom.ConfiguredSymptom findActiveSymptom(Symptom symptom) {
+        for (Symptom.ConfiguredSymptom active : activeSymptoms.keySet()) {
+            if (active.symptom == symptom) {
+                return active;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 移除疾病并清理它的全部症状状态。
+     *
+     * <p>
+     * 档位记录必须一起清掉：{@link #activeSymptoms} 按基础症状全局记账，只清进度会让下一次感染
+     * 卡在"阶段没有上升"，症状（含致死）从此不再施加。
+     */
+    private void clearCondition(MedicalCondition condition) {
+        for (var it = activeSymptoms.keySet().iterator(); it.hasNext();) {
+            Symptom.ConfiguredSymptom configuredSymptom = it.next();
+            if (!condition.symptoms.contains(configuredSymptom)) {
+                continue;
+            }
+            // reset all symptom effects for this condition
+            configuredSymptom.symptom.applyProgression(this, condition, configuredSymptom, 0);
+            it.remove();
+        }
+        medicalConditions.removeFloat(condition);
+        permanentConditions.remove(condition);
     }
 
     @Override
@@ -124,7 +166,8 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
     }
 
     private int calculateStage(MedicalCondition condition, Symptom.ConfiguredSymptom symptom) {
-        return (int) Math.floor(Math.min(medicalConditions.getFloat(condition), condition.maxProgression) / (symptom.progressionThreshold * condition.maxProgression * symptom.stages));
+        return MedicalConditionProgression.symptomStage(medicalConditions.getFloat(condition),
+                condition.maxProgression, symptom.progressionThreshold, symptom.stages);
     }
 
     // removes MedicalConditions without progression
@@ -146,8 +189,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
     @Override
     public void heal(MedicalCondition condition, int progression) {
         if (progression >= medicalConditions.getOrDefault(condition, 0)) {
-            medicalConditions.removeFloat(condition);
-            permanentConditions.remove(condition);
+            clearCondition(condition);
             return;
         }
         medicalConditions.replace(condition, medicalConditions.getOrDefault(condition, 0) - progression);
@@ -193,12 +235,21 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
         for (int i = 0; i < medicalConditionsTag.size(); ++i) {
             CompoundTag compoundTag = medicalConditionsTag.getCompound(i);
             MedicalCondition condition = MedicalCondition.CONDITIONS.get(compoundTag.getString("condition"));
-            float progression = compoundTag.getFloat("progression");
+            if (condition == null) {
+                continue;
+            }
+            // 旧存档可能留着超过上限的进度（曾在没有上限时累积），读档时按当前规则收回
+            float progression = Math.min(compoundTag.getFloat("progression"),
+                    MedicalConditionProgression.capProgression(condition.maxProgression, condition.canBePermanent));
             medicalConditions.put(condition, progression);
         }
         ListTag permanentConditionsTag = arg.getList("permanent_conditions", Tag.TAG_STRING);
         for (int i = 0; i < permanentConditionsTag.size(); ++i) {
-            permanentConditions.add(MedicalCondition.CONDITIONS.get(permanentConditionsTag.getString(i)));
+            MedicalCondition condition = MedicalCondition.CONDITIONS.get(permanentConditionsTag.getString(i));
+            // 旧版本会把任何疾病在 2 倍满进度后标记为永久，读档时按当前规则丢掉不该永久的那些
+            if (condition != null && condition.canBePermanent) {
+                permanentConditions.add(condition);
+            }
         }
     }
 }
