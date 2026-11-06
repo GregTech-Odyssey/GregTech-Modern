@@ -179,9 +179,9 @@ public class LangHandler {
         provider.add("gtceu.medical_condition.antidote.description", "§aAntidote §7Hold Shift to show details");
         provider.add("gtceu.medical_condition.antidote.description_shift", "§aCures these conditions:");
         provider.add("gtceu.medical_condition.antidote.description.effect_removed",
-                "Removes %s%% of current conditions' effects");
+                "Removes %s%% of the condition's maximum progression");
         provider.add("gtceu.medical_condition.antidote.description.effect_removed.all",
-                "Removes all of current conditions' effects");
+                "Removes the condition entirely");
 
         provider.add("gtceu.multiblock.dimension", "§eDimensions: §r%sx%sx%s");
 

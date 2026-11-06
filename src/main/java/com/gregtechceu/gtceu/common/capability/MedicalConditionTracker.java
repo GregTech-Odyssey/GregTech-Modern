@@ -68,12 +68,16 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
 
     public void progressCondition(@NotNull MedicalCondition condition, float strength) {
         if (player.isCreative()) return;
+        // NaN 穿透 Math.min（与 NaN 取小仍是 NaN）后会写进存档；命令参数拦不住 NaN，这里兜住
+        if (!Float.isFinite(strength) || strength == 0f) return;
         float cap = MedicalConditionProgression.capProgression(condition.maxProgression, condition.canBePermanent);
         medicalConditions.put(condition, Math.min(medicalConditions.getOrDefault(condition, 0) + strength, cap));
         updateActiveSymptoms();
     }
 
     private void updateActiveSymptoms() {
+        // 先落地已标记的治愈/移除：否则本轮仍按旧档位施加症状，满进度的致死会抢在清理前击杀玩家
+        flushFlaggedForRemoval();
         for (var it = medicalConditions.reference2FloatEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             MedicalCondition condition = entry.getKey();
@@ -82,7 +86,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
                 permanentConditions.add(condition);
             }
             for (Symptom.ConfiguredSymptom symptom : condition.symptoms) {
-                int stage = calculateStage(condition, symptom);
+                int stage = calculateStage(condition, symptom, entry.getFloatValue());
                 Symptom.ConfiguredSymptom currentSymptom = findActiveSymptom(symptom.symptom);
                 if (stage > 0) {
                     // 每秒重试类效果（如致死）在档位不变时也要执行
@@ -108,7 +112,7 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
                 }
                 if (currentSymptom == null) {
                     activeSymptoms.put(symptom, stage);
-                    symptom.symptom.applyProgression(this, condition, null, stage);
+                    symptom.symptom.applyProgression(this, condition, symptom, stage);
                     continue;
                 }
                 int currentStage = activeSymptoms.getOrDefault(currentSymptom, 0);
@@ -120,6 +124,9 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
                 }
             }
         }
+    }
+
+    private void flushFlaggedForRemoval() {
         if (flaggedForRemoval.isEmpty()) {
             return;
         }
@@ -165,8 +172,8 @@ public class MedicalConditionTracker implements IMedicalConditionTracker, INBTSe
         permanentConditions.remove(condition);
     }
 
-    private int calculateStage(MedicalCondition condition, Symptom.ConfiguredSymptom symptom) {
-        return MedicalConditionProgression.symptomStage(medicalConditions.getFloat(condition),
+    private int calculateStage(MedicalCondition condition, Symptom.ConfiguredSymptom symptom, float progression) {
+        return MedicalConditionProgression.symptomStage(progression,
                 condition.maxProgression, symptom.progressionThreshold, symptom.stages);
     }
 

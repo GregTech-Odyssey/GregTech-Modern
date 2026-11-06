@@ -23,7 +23,8 @@ public final class MedicalConditionProgression {
      * @return 症状档位；0 表示未达到 {@code progressionThreshold}，已生效的效果应按 0 档移除。
      */
     public static int symptomStage(float progression, float maxProgression, float progressionThreshold, int stages) {
-        if (maxProgression <= 0 || progression <= 0 || stages <= 0) {
+        // 用 !(x > 0) 而不是 x <= 0：NaN 走两个比较都为 false，会被当成合法进度算出 1 档
+        if (!(maxProgression > 0) || !(progression > 0) || stages <= 0) {
             return 0;
         }
         float threshold = progressionThreshold * maxProgression;
@@ -44,7 +45,7 @@ public final class MedicalConditionProgression {
      * @return 解毒剂每口按<b>满进度</b>折算的扣除量；{@code removePercent <= 0}（-1 表示直接治愈）时返回 0。
      */
     public static int antidoteAmount(float maxProgression, int removePercent) {
-        if (maxProgression <= 0 || removePercent <= 0) {
+        if (!(maxProgression > 0) || removePercent <= 0) {
             return 0;
         }
         // 至少扣 1 点：按当前值折算加截断会让小病永远清不掉尾巴

@@ -26,8 +26,9 @@ import java.util.Set;
  * Defines an antidote for a hazard (e.g. poisoning)
  *
  * @param types         the type of the hazard to remove
- * @param removePercent the time to remove from the chosen hazard, as a percentage of the current time [0, 100].
- *                      -1 for all.
+ * @param removePercent the progression removed per use, as a percentage of the condition's maximum progression
+ *                      ({@code maxProgression}); a dose that exceeds what is left clears the condition. -1 removes it
+ *                      outright.
  */
 public record AntidoteBehavior(Set<MedicalCondition> types, int removePercent)
         implements IInteractionItem, IAddInformation {

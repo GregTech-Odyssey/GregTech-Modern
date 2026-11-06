@@ -49,6 +49,9 @@ public final class MedicalConditionProgressionCheck {
         stage("零上限疾病", 10f, 0f, 1f, 10, 0);
         stage("进度为 0", 0f, 200f, 0f, 10, 0);
         stage("负进度", -5f, 200f, .5f, 10, 0);
+        // 命令参数可以传 NaN（FloatArgumentType.floatArg(0) 拦不住），NaN 不能算出可用档位
+        stage("NaN 进度", Float.NaN, 200f, 0f, 10, 0);
+        stage("Infinity 进度按满进度封顶", Float.POSITIVE_INFINITY, 200f, 0f, 10, 10);
         stage("零档", 200f, 200f, 1f, 0, 0);
         stage("阈值 0 从第一点起步", 20f, 200f, 0f, 10, 1);
         stage("阈值 0 满进度到顶", 200f, 200f, 0f, 10, 10);
@@ -63,6 +66,7 @@ public final class MedicalConditionProgressionCheck {
         amount("小病种至少 1 点", 5f, 10, 1);
         amount("-1 走直接治愈不参与折算", 200f, -1, 0);
         amount("零上限疾病不折算", 0f, 10, 0);
+        amount("NaN 上限不折算", Float.NaN, 10, 0);
 
         System.out.println("医学进度校验：" + checks + " 项，失败 " + failures);
         if (failures > 0) {
