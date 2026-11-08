@@ -38,6 +38,13 @@ public class ClientCacheManager {
     private static final Pattern PATTERN = Pattern.compile("(?U)[^\\w-]+");
     private static File worldFolder;
     private static final Reference2ObjectMap<IClientCache, ClientCacheInfo> caches = new Reference2ObjectArrayMap<>();
+
+    /**
+     * 缓存文件的格式版本。条目按矿脉定义重建，版本不符时不做整体迁移：缺字段的旧条目在各自的
+     * {@code fromNbt} 里自行丢弃，这个版本号只用于区分「旧格式」与「文件损坏」，以及后续升级的切入点。
+     */
+    public static final int NBT_VERSION = 1;
+    private static final String NBT_VERSION_KEY = "version";
     private static boolean shouldInit = true;
 
     private static String sanitizeFilename(String input) {
@@ -52,6 +59,8 @@ public class ClientCacheManager {
             // to ensure any cache data that might somehow be lying around gets dealt with
             clearCaches();
             loadCaches();
+            // the map mod may still hold highlights computed from the previous contents of these caches
+            GroupingMapRenderer.getInstance().refreshMarkers();
             shouldInit = false;
         }
     }
@@ -76,7 +85,9 @@ public class ClientCacheManager {
                 File singleFile = new File(cacheInfo.cacheFolder, singleFileName + fileEnding);
                 if (!singleFile.exists()) continue;
                 try {
-                    cache.readSingleFile(singleFileName, NbtIo.readCompressed(new FileInputStream(singleFile)));
+                    CompoundTag data = NbtIo.readCompressed(new FileInputStream(singleFile));
+                    checkVersion(singleFile.getName(), data);
+                    cache.readSingleFile(singleFileName, data);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -109,6 +120,7 @@ public class ClientCacheManager {
             for (String singleFileName : cacheInfo.singleFiles) {
                 CompoundTag data = cache.saveSingleFile(singleFileName);
                 if (data == null) continue;
+                stampVersion(data);
                 File singleFile = new File(cacheInfo.cacheFolder, singleFileName + fileEnding);
                 try {
                     NbtIo.writeCompressed(data, new FileOutputStream(singleFile));
@@ -117,6 +129,17 @@ public class ClientCacheManager {
                 }
             }
         }
+    }
+
+    private static void stampVersion(CompoundTag data) {
+        data.putInt(NBT_VERSION_KEY, NBT_VERSION);
+    }
+
+    private static void checkVersion(String fileName, CompoundTag data) {
+        int version = data.getInt(NBT_VERSION_KEY);
+        if (version == NBT_VERSION) return;
+        // 旧缓存没有版本号（0），条目在各自的 fromNbt 里按缺失字段逐条丢弃；这里只留一条可诊断的记录
+        GTCEu.LOGGER.debug("Map cache {} uses format version {}, current is {}", fileName, version, NBT_VERSION);
     }
 
     public static void resetCaches() {

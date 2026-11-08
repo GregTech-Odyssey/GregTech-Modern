@@ -25,6 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,6 +44,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import me.kall.duplicationless.ext.RegistryEntry;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -155,28 +157,43 @@ public abstract class ProspectorMode<T> {
 
     public static final class FluidInfo {
 
+        private static final String VEIN = "vein";
+
         public static final StreamCodec<FriendlyByteBuf, FluidInfo> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecExtends.of(BuiltInRegistries.FLUID), FluidInfo::fluid,
                 ByteBufCodecs.VAR_INT, FluidInfo::yield,
                 ByteBufCodecs.VAR_INT, FluidInfo::left,
+                ByteBufCodecExtends.RESOURCE_LOCATION_CODEC, FluidInfo::vein,
                 FluidInfo::new);
 
         private final Fluid fluid;
         private final int yield;
         private int left;
+        /**
+         * The bedrock fluid vein this chunk was prospected as. Keeping the definition instead of only the fluid it
+         * produced lets the map follow the server when an update changes a vein's fluid: the server stores the
+         * definition and resolves the fluid from it on every drilling operation.
+         */
+        private final ResourceLocation vein;
 
+        /**
+         * Restores one cached map entry. Entries that cannot be tied to a currently registered vein are dropped:
+         * their fluid was derived by an older version and may no longer describe the chunk.
+         */
+        @Nullable
         public static FluidInfo fromNbt(CompoundTag tag) {
-            Fluid fluid = BuiltInRegistries.FLUID.get(GTUtil.getResourceLocation(tag.getString("fluid")));
-            int left = tag.getInt("left");
-            int yield = tag.getInt("yield");
-            return new FluidInfo(fluid, yield, left);
+            if (!tag.contains(VEIN)) return null;
+            var vein = GTUtil.getResourceLocation(tag.getString(VEIN));
+            var definition = GTRegistries.BEDROCK_FLUID_DEFINITIONS.get(vein);
+            if (definition == null) return null;
+            return new FluidInfo(definition.fluid(), tag.getInt("yield"), tag.getInt("left"), vein);
         }
 
         public CompoundTag toNbt() {
             CompoundTag tag = new CompoundTag();
-            tag.putString("fluid", GTUtil.FLUID_ID.apply(fluid).toString());
             tag.putInt("left", left);
             tag.putInt("yield", yield);
+            tag.putString(VEIN, vein.toString());
             return tag;
         }
 
@@ -185,17 +202,23 @@ public abstract class ProspectorMode<T> {
             if (definition == null) {
                 return null;
             }
-            return new FluidInfo(definition.fluid(), entry.yield(), entry.remainingPercent());
+            return new FluidInfo(definition.fluid(), entry.yield(), entry.remainingPercent(),
+                    GTRegistries.BEDROCK_FLUID_DEFINITIONS.getKey(definition));
         }
 
-        public FluidInfo(final Fluid fluid, final int yield, final int left) {
+        public FluidInfo(final Fluid fluid, final int yield, final int left, final ResourceLocation vein) {
             this.fluid = fluid;
             this.yield = yield;
             this.left = left;
+            this.vein = vein;
         }
 
         public Fluid fluid() {
             return this.fluid;
+        }
+
+        public ResourceLocation vein() {
+            return this.vein;
         }
 
         public int yield() {
@@ -290,14 +313,29 @@ public abstract class ProspectorMode<T> {
         }
     };
 
-    public record OreInfo(Material material, int weight, int left, int yield) {
+    public record OreInfo(Material material, int weight, int left, int yield, ResourceLocation vein) {
 
         public static final StreamCodec<FriendlyByteBuf, OreInfo> STREAM_CODEC = StreamCodec.composite(
                 Material.STREAM_CODEC, OreInfo::material,
                 ByteBufCodecs.VAR_INT, OreInfo::weight,
                 ByteBufCodecs.VAR_INT, OreInfo::left,
                 ByteBufCodecs.VAR_INT, OreInfo::yield,
+                ByteBufCodecExtends.RESOURCE_LOCATION_CODEC, OreInfo::vein,
                 OreInfo::new);
+
+        /**
+         * One entry per material of the vein, all sharing the vein's yield and remaining percentage. Carrying the vein
+         * definition lets the map resolve the materials again after an update, like the drill does on every operation.
+         */
+        public static OreInfo[] entriesOf(BedrockOreDefinition definition, ResourceLocation vein, int yield, int left) {
+            var materials = definition.materials();
+            var ores = new OreInfo[materials.size()];
+            for (int i = 0; i < ores.length; i++) {
+                var material = materials.get(i);
+                ores[i] = new OreInfo(material.material(), material.weight(), left, yield, vein);
+            }
+            return ores;
+        }
     }
 
     public static ProspectorMode<OreInfo> BEDROCK_ORE = new ProspectorMode<>("metaitem.prospector.mode.bedrock_ore", 1) {
@@ -308,10 +346,9 @@ public abstract class ProspectorMode<T> {
                 var oreVein = BedrockVeinKind.ORE.data(serverLevel).entry(chunk.getPos().x, chunk.getPos().z);
                 var definition = oreVein.definition();
                 if (definition != null) {
-                    var left = oreVein.remainingPercent();
-                    for (var entry : definition.materials()) {
-                        storage[0][0] = ArrayUtils.add(storage[0][0], new OreInfo(entry.material(), entry.weight(), left, oreVein.yield()));
-                    }
+                    storage[0][0] = OreInfo.entriesOf(definition,
+                            GTRegistries.BEDROCK_ORE_DEFINITIONS.getKey(definition),
+                            oreVein.yield(), oreVein.remainingPercent());
                 }
             }
         }
