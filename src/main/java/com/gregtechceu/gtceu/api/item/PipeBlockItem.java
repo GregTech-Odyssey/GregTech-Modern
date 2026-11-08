@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.api.item;
 import com.gregtechceu.gtceu.api.block.PipeBlock;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
+import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -44,10 +45,15 @@ public class PipeBlockItem extends BlockItem {
                                 TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
         if (GTUtil.isShiftDown()) {
-            tooltip.add(Tips.control(Component.translatable("gtceu.tool_action.wire_cutter.connect")));
+            tooltip.add(Tips.control(Component.translatable(tuneTooltipKey())));
         } else {
             tooltip.add(Tips.control(Component.translatable("gtceu.tool_action.show_tooltips")));
         }
+    }
+
+    private String tuneTooltipKey() {
+        return getBlock().getTuneTool() == GTToolType.WIRE_CUTTER ? "gtceu.tool_action.wire_cutter.connect" :
+                "gtceu.tool_action.wrench.connect";
     }
 
     @Override

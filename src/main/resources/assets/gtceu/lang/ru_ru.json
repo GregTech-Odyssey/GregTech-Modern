@@ -2135,7 +2135,7 @@
     "gtceu.tool_action.soft_mallet.toggle_mode": "§8Используйте Киянку, чтобы переключить режим",
     "gtceu.tool_action.tape": "§8Используйте Клейкую Ленту для решения проблем с обслуживанием",
     "gtceu.tool_action.wire_cutter.connect": "§8Используйте Кусачки, чтобы соединить",
-    "gtceu.tool_action.wrench.connect": "§8Используйте гаечный ключ, чтобы настроить соединения, \"SHIFT\" чтобы заблокировать передачу",
+    "gtceu.tool_action.wrench.connect": "§8Гаечный ключ настраивает соединения, «SHIFT» блокирует передачу (не для всех труб)",
     "gtceu.tool_action.wrench.set_facing": "§8Используйте гаечный ключ, чтобы установить ориентацию",
     "gtceu.tooltip.fluid_pipe_hold_shift": "§7Зажмите SHIFT, чтобы увидеть Информацию о Жидкости",
     "gtceu.tooltip.hold_ctrl": "§7Нажмите CTRL, чтобы увидеть больше информации",
