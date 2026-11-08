@@ -2137,7 +2137,7 @@ public class GTItems {
     public static ItemEntry<ComponentItem> PARACETAMOL_PILL = REGISTRATE.item("paracetamol_pill", ComponentItem::create)
             .lang("Paracetamol Pill")
             .properties(p -> p.food(GTFoods.ANTIDOTE))
-            .onRegister(attach(new AntidoteBehavior(10,
+            .onRegister(attach(new AntidoteBehavior(-1,
                     GTMedicalConditions.CHEMICAL_BURNS,
                     GTMedicalConditions.WEAK_POISON,
                     GTMedicalConditions.NAUSEA,
@@ -2148,7 +2148,7 @@ public class GTItems {
     public static ItemEntry<ComponentItem> RAD_AWAY_PILL = REGISTRATE.item("rad_away_pill", ComponentItem::create)
             .lang("RadAway™ Pill")
             .properties(p -> p.food(GTFoods.ANTIDOTE))
-            .onRegister(attach(new AntidoteBehavior(50, GTMedicalConditions.CARCINOGEN)))
+            .onRegister(attach(new AntidoteBehavior(-1, GTMedicalConditions.CARCINOGEN)))
             .register();
 
     // GTO: 能量剑 I～IV，贴图按对应套装配色：I 纳米红、II 纳米青、III 夸克绿、IV 夸克绿＋青
