@@ -75,9 +75,7 @@ public class ClientCacheManager {
                 for (File dimFile : getDimFiles(cacheInfo.cacheFolder, dimFilePrefix)) {
                     ResourceKey<Level> dimId = ResourceKey.create(Registries.DIMENSION, ResourceLocation.of(dimFile.getName().substring(dimFilePrefix.length() + filePrefix.length(), dimFile.getName().length() - fileEnding.length()), resourceLocationSeparator));
                     try {
-                        CompoundTag data = NbtIo.readCompressed(new FileInputStream(dimFile));
-                        checkVersion(dimFile.getName(), data);
-                        cache.readDimFile(dimFilePrefix, dimId, data);
+                        cache.readDimFile(dimFilePrefix, dimId, NbtIo.readCompressed(new FileInputStream(dimFile)));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -111,7 +109,6 @@ public class ClientCacheManager {
                 for (ResourceKey<Level> dim : cache.getExistingDimensions(dimFilePrefix)) {
                     CompoundTag data = cache.saveDimFile(dimFilePrefix, dim);
                     if (data == null) continue;
-                    stampVersion(data);
                     File dimFile = new File(cacheInfo.cacheFolder, dimFilePrefix + filePrefix + dim.location().getNamespace() + "=" + dim.location().getPath() + fileEnding);
                     try {
                         NbtIo.writeCompressed(data, new FileOutputStream(dimFile));
