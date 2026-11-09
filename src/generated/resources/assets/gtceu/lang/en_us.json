@@ -2410,6 +2410,7 @@
   "gtceu.gui.input_priority": "Multiblock Input Priority",
   "gtceu.gui.input_priority.desc": "Higher values are checked for recipes first, and required ingredients are drawn from here first",
   "gtceu.gui.input_priority.single": "Has no effect when the multiblock has only one input part",
+  "gtceu.gui.internal_energy": "Internal Energy",
   "gtceu.gui.inventory.sort": "Sort: merge identical items and order them by item ID",
   "gtceu.gui.item_auto_input.tooltip.disabled": "Item Auto-Input Disabled",
   "gtceu.gui.item_auto_input.tooltip.enabled": "Item Auto-Input Enabled",

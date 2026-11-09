@@ -226,6 +226,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
             }
         }
         this.inputEnergyContainers = new EnergyContainerList(energyContainers);
+        this.energyContainer = this.inputEnergyContainers;
         getRecipeLogic().setEnergyContainer(this.inputEnergyContainers);
         this.tier = Math.min(GTValues.MAX, GTUtil.getFloorTierByVoltage(getMaxVoltage()));
     }

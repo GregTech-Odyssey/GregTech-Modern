@@ -136,16 +136,11 @@ public class LargeMinerMachine extends WorkableElectricMultiblockMachine impleme
     @Override
     public boolean drainInput(boolean simulate) {
         // drain energy
-        long stored = energyContainer.getEnergyStored();
+        long stored = getEnergyAvailable();
         if (stored > 0) {
             // 附魔会抬高耗电；电力不够时按比例削弱效果，而不是直接停机
             long energyToDrain = getRecipeLogic().resolveEnchantmentCost(GTValues.VA[getEnergyTier()], stored);
-            long resultEnergy = stored - energyToDrain;
-            if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
-                if (!simulate) {
-                    energyContainer.changeEnergy(-energyToDrain);
-                }
-            } else {
+            if (!useEnergy(energyToDrain, simulate)) {
                 if (!isRemote()) setIdleReason(Component.translatable("gtceu.issue.eu_short", ElectricText.power(GTValues.VA[getEnergyTier()])));
                 return false;
             }
