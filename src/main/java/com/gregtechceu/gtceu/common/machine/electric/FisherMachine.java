@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -25,7 +24,6 @@ import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib.gui.texture.ItemStackTexture;
@@ -63,6 +61,8 @@ import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import dev.vfyjxf.taffy.style.AlignContent;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -95,14 +95,14 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     @SaveToDisk
     protected final StackInventory chargerInventory;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
     @Nullable
     private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
-    protected TickableSubscription batterySubs;
+    protected Task batterySubs;
     @Nullable
     private final TickTimeMonitor fishingMonitor = holder.monitorTick(GTTickTimeMonitors.FISHING, this::fishingUpdate);
-    protected TickableSubscription fishingSubs;
+    protected Task fishingSubs;
     @Nullable
     protected ISubscription exportItemSubs;
     @Nullable
@@ -167,7 +167,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     public void onLoad() {
         super.onLoad();
         if (isRemote()) return;
-        if (getLevel() instanceof ServerLevel serverLevel) TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+        if (getLevel() instanceof ServerLevel serverLevel) Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
         exportItemSubs = cache.addChangedListener(this::updateAutoOutputSubscription);
         energySubs = energyContainer.addChangedListener(() -> {
             this.updateBatterySubscription();
@@ -221,7 +221,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
             active = true;
             return;
         } else if (fishingSubs != null) {
-            fishingSubs.unsubscribe();
+            fishingSubs.cancel();
             fishingSubs = null;
             active = false;
         }
@@ -307,7 +307,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
     protected void updateBatterySubscription() {
         if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         else if (batterySubs != null) {
-            batterySubs.unsubscribe();
+            batterySubs.cancel();
             batterySubs = null;
         }
     }
@@ -316,7 +316,7 @@ public class FisherMachine extends TieredEnergyMachine implements IAutoOutputIte
         var outputFacing = getOutputFacingItems();
         if ((isAutoOutputItems() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }

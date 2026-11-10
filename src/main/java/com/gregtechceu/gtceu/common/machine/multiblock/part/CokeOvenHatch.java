@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.MultiblockPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.InventoryProxyTrait;
@@ -24,6 +23,7 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
+import com.suried.gtoutils.schedule.Task;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,7 +35,7 @@ public class CokeOvenHatch extends MultiblockPartMachine {
     public final InventoryProxyTrait<AEItemKey> inputInventory, outputInventory;
     public final InventoryProxyTrait<AEFluidKey> tank;
     @Nullable
-    protected TickableSubscription autoIOSubs;
+    protected Task autoIOSubs;
     protected final TickTimeMonitor autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoIO);
     @Nullable
     protected ISubscription outputInventorySubs, outputTankSubs;
@@ -129,7 +129,7 @@ public class CokeOvenHatch extends MultiblockPartMachine {
                 (!tank.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), getFrontFacing(), AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
-            autoIOSubs.unsubscribe();
+            autoIOSubs.cancel();
             autoIOSubs = null;
         }
     }

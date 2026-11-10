@@ -39,6 +39,13 @@ public class PatternMatchContext {
         this.data.clear();
     }
 
+    public DataComponentMap snapshot() {
+        var copy = new DataComponentMap(data);
+        copy.remove(PREDICATES);
+        copy.remove(PARTS);
+        return copy;
+    }
+
     public <T> void set(DataComponentKey<T> key, T value) {
         this.data.put(key, value);
     }

@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.machine.trait;
 import com.gregtechceu.gtceu.api.capability.IWorkable;
 import com.gregtechceu.gtceu.api.cover.IMachineShutdownListener;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyTooltip;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
@@ -13,7 +12,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.api.sound.AutoReleasedSound;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonIcons;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
@@ -24,6 +22,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Cadence;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +94,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
     @SaveToDisk(skipWhen = "skipSaveLockRecipe")
     protected GTRecipeDefinition lockedRecipe;
 
-    public TickableSubscription subscription;
+    public Task subscription;
     public int interval = 5;
 
     protected Object workingSound;
@@ -160,16 +161,15 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
 
     public void unsubscribe() {
         if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
             subscription = null;
         }
     }
 
     public void updateTickSubscription() {
         if (status != SUSPEND && machine.isRecipeLogicAvailable()) {
-            if ((subscription == null || !subscription.stillSubscribed) && super.machine.getLevel() instanceof ServerLevel serverLevel) {
-                subscription = TaskHandler.enqueueTick(serverLevel, super.machine.holder.isRemove, this.monitor, interval, 0);
-                if (isActive) subscription.cycle = 0;
+            if ((subscription == null || !subscription.isActive()) && super.machine.getLevel() instanceof ServerLevel serverLevel) {
+                subscription = Schedulers.of(serverLevel).repeat(Cadence.every(isActive ? 1 : interval), super.machine.holder, this.monitor);
             }
         } else {
             unsubscribe();
@@ -199,7 +199,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             }
             if (interval < SEARCH_MAX_INTERVAL) {
                 interval <<= 1;
-                if (subscription != null) subscription.cycle = interval;
+                if (subscription != null) subscription.setPeriod(interval);
             }
             if (!machine.keepSubscribing()) unsubscribe();
         }
@@ -238,7 +238,7 @@ public class RecipeLogic extends MachineTrait implements IWorkable, IFancyToolti
             lastRecipe = recipe;
             setStatus(WORKING);
             duration = recipe.duration;
-            if (subscription != null) subscription.cycle = 0;
+            if (subscription != null) subscription.setPeriod(1);
             isActive = true;
             return true;
         } else {

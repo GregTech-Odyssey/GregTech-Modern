@@ -1,11 +1,7 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
-import appeng.api.config.Actionable;
-import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
 import appeng.api.storage.AEKeyFilter;
-import appeng.api.storage.MEStorage;
-import com.gto.datasynclib.util.holder.LongHolder;
 import org.jetbrains.annotations.Nullable;
 
 public final class KeyTransfer {
@@ -18,14 +14,19 @@ public final class KeyTransfer {
 
     public static <K extends AEKey> long transfer(IKeyHandler<K> from, IKeyHandler<K> to, long maxAmount, @Nullable AEKeyFilter filter) {
         long left = maxAmount;
-        if (from instanceof MEStorageKeyView<?> meStorageKeyView) {
-            var meStorage = meStorageKeyView.getStorage();
-            var l = new LongHolder(left);
-            meStorage.forEachKey((k, v) -> {
-                if (filter != null && !filter.matches(k)) return false;
-                l.value -= transferKey(meStorage, to, k, Math.min(l.value, v));
-                return l.value < 1;
-            });
+        if (from.enumerateByKey()) {
+            var type = from.keyType();
+            for (var stack : from.getAvailableStacks()) {
+                var key = stack.getKey();
+                long amount = stack.getLongValue();
+                if (amount <= 0 || key.getType() != type || (filter != null && !filter.matches(key))) continue;
+                @SuppressWarnings("unchecked")
+                K k = (K) key;
+                long accept = to.insert(k, Math.min(left, amount), true);
+                if (accept <= 0) continue;
+                left -= transferKey(from, to, k, accept);
+                if (left < 1) break;
+            }
         } else {
             int size = from.size();
             for (int i = 0; i < size && left > 0; i++) {
@@ -65,13 +66,5 @@ public final class KeyTransfer {
         long inserted = to.insert(key, extracted, false);
         if (inserted < extracted) from.unrestricted().insert(key, extracted - inserted, false);
         return inserted;
-    }
-
-    private static long transferKey(MEStorage from, MEStorage to, AEKey key, long amount) {
-        long accept = to.insert(key, amount, Actionable.SIMULATE, IActionSource.empty());
-        if (accept <= 0) return 0;
-        long extracted = from.extract(key, accept, Actionable.MODULATE, IActionSource.empty());
-        if (extracted <= 0) return 0;
-        return to.insert(key, extracted, Actionable.MODULATE, IActionSource.empty());
     }
 }

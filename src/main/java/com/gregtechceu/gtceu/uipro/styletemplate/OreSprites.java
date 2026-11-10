@@ -173,12 +173,16 @@ public final class OreSprites {
         }
     }
 
-    public record Plate(int outline, int light, int dark, int fill) implements IGuiTexture {
+    public record Plate(int outline, int light, int dark, int fill, boolean rivets) implements IGuiTexture {
+
+        public Plate(int outline, int light, int dark, int fill) {
+            this(outline, light, dark, fill, true);
+        }
 
         @Override
         @OnlyIn(Dist.CLIENT)
         public void draw(GuiGraphics graphics, int mouseX, int mouseY, float x, float y, int width, int height) {
-            UIDraw.deckPlate(graphics, (int) x, (int) y, width, height, outline, light, dark, fill);
+            UIDraw.plate(graphics, (int) x, (int) y, width, height, outline, light, dark, fill, rivets);
         }
     }
 

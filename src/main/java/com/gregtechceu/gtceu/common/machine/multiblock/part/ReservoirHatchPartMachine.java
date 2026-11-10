@@ -52,7 +52,7 @@ public class ReservoirHatchPartMachine extends FluidHatchPartMachine {
         if (isWorkingEnabled() && !isWaterFull()) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
-            autoIOSubs.unsubscribe();
+            autoIOSubs.cancel();
             autoIOSubs = null;
         }
     }

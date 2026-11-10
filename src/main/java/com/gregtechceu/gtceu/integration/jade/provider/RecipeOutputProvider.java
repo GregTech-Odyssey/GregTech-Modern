@@ -3,8 +3,9 @@ package com.gregtechceu.gtceu.integration.jade.provider;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
-import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
+import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.integration.jade.GTElementHelper;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
@@ -58,9 +59,6 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
             data.putBoolean("Working", recipeLogic.isWorking());
             var recipe = recipeLogic.getLastRecipe();
             if (recipe != null) {
-                int recipeTier = recipe.tier;
-                int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.definition.chanceFunction;
                 var itemContents = recipe.itemOutputs;
                 var fluidContents = recipe.fluidOutputs;
 
@@ -69,7 +67,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
                     if (!(itemContents.ingredient(i).displayKey() instanceof AEItemKey key)) continue;
                     var itemTag = new CompoundTag();
                     GTUtil.saveItemStack(Keys.displayStack(key), itemTag);
-                    itemTag.putLong(AMOUNT, outputAmount(itemContents, i, recipe.scale, function, recipeTier, chanceTier));
+                    itemTag.putLong(AMOUNT, outputAmount(recipe, itemContents, i));
                     itemTags.add(itemTag);
                 }
 
@@ -82,7 +80,7 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
                     if (!(fluidContents.ingredient(i).displayKey() instanceof AEFluidKey key)) continue;
                     var fluidTag = new CompoundTag();
                     key.toStack(1).writeToNBT(fluidTag);
-                    fluidTag.putLong(AMOUNT, outputAmount(fluidContents, i, recipe.scale, function, recipeTier, chanceTier));
+                    fluidTag.putLong(AMOUNT, outputAmount(recipe, fluidContents, i));
                     fluidTags.add(fluidTag);
                 }
 
@@ -93,11 +91,11 @@ public class RecipeOutputProvider extends CapabilityBlockProvider<RecipeLogic> {
         }
     }
 
-    private static long outputAmount(ContentList contents, int i, long scale, ChanceBoostFunction function, int recipeTier, int chanceTier) {
-        long amount = contents.effective(i, scale);
+    private static long outputAmount(GTRecipe recipe, ContentList contents, int i) {
+        long amount = contents.effective(i, recipe.scale);
         int chance = contents.chance(i);
         if (chance >= ContentList.MAX_CHANCE) return amount;
-        double expected = (double) amount * function.getBoostedChance(chance, contents.boost(i), recipeTier, chanceTier) / ContentList.MAX_CHANCE;
+        double expected = (double) amount * ContentRoll.boostedChance(recipe, contents, i) / ContentList.MAX_CHANCE;
         return expected < 1 ? 1 : Math.round(expected);
     }
 

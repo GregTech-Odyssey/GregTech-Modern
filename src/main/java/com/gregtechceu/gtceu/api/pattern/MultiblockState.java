@@ -2,12 +2,10 @@ package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.api.pattern.error.PatternError;
-import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.Assembly;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureIssue;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
-import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.core.IServerChunkCache;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -17,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 
+import com.suried.gtoutils.level.LoadedChunks;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongConsumer;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -26,15 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MultiblockState {
-
-    public static final PatternStringError BANNED_ERROR = new PatternStringError("multiblocked.pattern.error.banned");
-    public static final PatternStringError SHARE_ERROR = new PatternStringError("multiblocked.pattern.error.share");
-    public static final PatternStringError UNLOAD_ERROR = new PatternStringError("multiblocked.pattern.error.chunk");
-    public static final PatternStringError UNINIT_ERROR = new PatternStringError("multiblocked.pattern.error.init");
 
     @Getter
     public BlockPos pos;
@@ -46,7 +37,12 @@ public class MultiblockState {
     @Getter
     public Reference2IntOpenHashMap<SimplePredicate> layerCount = new Reference2IntOpenHashMap<>();
     public TraceabilityPredicate predicate;
-    public PatternError error;
+    @Nullable
+    private StructureIssue issue;
+    @Nullable
+    private volatile StructureIssue reported;
+    @Nullable
+    private volatile Assembly assembly;
     @Getter
     @Setter
     public boolean neededFlip = false;
@@ -63,8 +59,6 @@ public class MultiblockState {
     public final LongOpenHashSet cache = new LongOpenHashSet();
     public final LongOpenHashSet sharedCache = new LongOpenHashSet();
 
-    public final List<PatternError> errorRecord = new ArrayList<>();
-
     private Long2ObjectOpenHashMap<LevelChunk> chunkCache;
     public final LongOpenHashSet blockEntityCache;
     @Nullable
@@ -74,7 +68,6 @@ public class MultiblockState {
         this.controller = controller;
         this.world = world;
         this.controllerPos = controllerPos;
-        this.error = UNINIT_ERROR;
         this.matchContext = new PatternMatchContext();
         this.chunkCache = new Long2ObjectOpenHashMap<>();
         this.blockEntityCache = new LongOpenHashSet();
@@ -85,7 +78,6 @@ public class MultiblockState {
         this.world = source.world;
         this.controller = source.controller;
         this.controllerPos = source.controllerPos;
-        this.error = UNINIT_ERROR;
         this.matchContext = new PatternMatchContext();
         this.chunkCache = source.chunkCache;
         this.blockEntityCache = new LongOpenHashSet();
@@ -98,6 +90,7 @@ public class MultiblockState {
 
     public void clear() {
         this.formed = null;
+        this.assembly = null;
         this.removeShared();
         this.matchContext.reset();
         this.globalCount.clear();
@@ -131,18 +124,38 @@ public class MultiblockState {
         this.tileEntity = null;
         this.tileEntityInitialized = false;
         this.predicate = predicate;
-        this.error = null;
+        this.issue = null;
     }
 
-    public boolean hasError() {
-        return error != null;
+    public boolean hasIssue() {
+        return issue != null;
     }
 
-    public void setError(PatternError error) {
-        this.error = error;
-        if (error != null) {
-            error.setWorldState(this);
-        }
+    @Nullable
+    public StructureIssue getIssue() {
+        return issue;
+    }
+
+    public void setIssue(@Nullable StructureIssue issue) {
+        this.issue = issue == null ? null : issue.locate(this);
+    }
+
+    @Nullable
+    public StructureIssue getReportedIssue() {
+        return reported;
+    }
+
+    public void report(@Nullable StructureIssue issue) {
+        this.reported = issue;
+    }
+
+    @Nullable
+    public Assembly getAssembly() {
+        return assembly;
+    }
+
+    public void setAssembly(@Nullable Assembly assembly) {
+        this.assembly = assembly;
     }
 
     public BlockState getBlockState() {
@@ -158,9 +171,8 @@ public class MultiblockState {
         long key = ChunkPos.asLong(chunkX, chunkZ);
         var chunk = chunkCache.get(key);
         if (chunk == null) {
-            if (!(serverLevel.getChunkSource() instanceof IServerChunkCache cache)) return ILevel.OUTSIDE_WORLD_BLOCK;
-            chunk = cache.gtceu$getCachedChunk(chunkX, chunkZ);
-            if (chunk == null) return ILevel.OUTSIDE_WORLD_BLOCK;
+            chunk = LoadedChunks.chunk(serverLevel, chunkX, chunkZ);
+            if (chunk == null) return LoadedChunks.UNLOADED;
             chunkCache.put(key, chunk);
         }
         return chunk.getBlockState(pos);
@@ -204,7 +216,7 @@ public class MultiblockState {
     public BlockEntity getTileEntity() {
         if (this.tileEntityInitialized) return tileEntity;
         if (getBlockState().hasBlockEntity()) {
-            this.tileEntity = ILevel.asyncGetBlockEntity(world, pos);
+            this.tileEntity = LoadedChunks.blockEntity(world, pos);
         } else {
             this.tileEntity = null;
         }
@@ -212,7 +224,7 @@ public class MultiblockState {
         return this.tileEntity;
     }
 
-    public void onBlockStateChanged(BlockPos pos, BlockState state) {
+    public void onBlockStateChanged(BlockPos pos, BlockState oldState, BlockState state) {
         if (world instanceof ServerLevel serverLevel) {
             if (pos.equals(controllerPos)) {
                 if (!state.is(controller.self().getBlockState().getBlock())) {
@@ -222,8 +234,9 @@ public class MultiblockState {
                 }
             } else {
                 if (controller.isFormed()) {
-                    if (state.getBlock() instanceof ActiveBlock) {
-                        if (matchContext.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
+                    if (state.getBlock() instanceof ActiveBlock && oldState.getBlock() == state.getBlock()) {
+                        var formedAssembly = assembly;
+                        if (formedAssembly != null && formedAssembly.getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET).contains(pos.asLong())) {
                             return;
                         }
                     }

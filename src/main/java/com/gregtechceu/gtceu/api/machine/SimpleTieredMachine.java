@@ -33,7 +33,6 @@ import com.gregtechceu.gtceu.uipro.elements.ItemSlot;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -57,6 +56,8 @@ import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datastream.DataComponentMap;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.ints.Int2IntFunction;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
 import lombok.Getter;
@@ -104,11 +105,11 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
     @SaveToDisk
     protected final NotifiableInventory<AEItemKey> circuitInventory;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
-    protected TickableSubscription batterySubs;
+    protected Task batterySubs;
     @Nullable
     protected ISubscription exportItemSubs;
     @Nullable
@@ -152,7 +153,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         super.onLoad();
         if (!isRemote()) {
             if (getLevel() instanceof ServerLevel serverLevel) {
-                TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+                Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
             }
             updateBatterySubscription();
             exportItemSubs = exportItems.addChangedListener(this::updateAutoOutputSubscription);
@@ -256,7 +257,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         if ((isAutoOutputItems() && !exportItems.isEmpty() && outputFacingItems != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacingItems, AEKeyTypes.ITEMS, StorageAccess.INSERT)) || (isAutoOutputFluids() && !exportFluids.isEmpty() && outputFacingFluids != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacingFluids, AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }
@@ -265,7 +266,7 @@ public class SimpleTieredMachine extends WorkableTieredMachine implements IAutoO
         if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) {
             batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         } else if (batterySubs != null) {
-            batterySubs.unsubscribe();
+            batterySubs.cancel();
             batterySubs = null;
         }
     }

@@ -1,14 +1,12 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.capability.EnergyIntake;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.compat.FeCompat;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
@@ -22,6 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.energy.IEnergyStorage;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -58,9 +57,9 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     protected Predicate<Direction> sideOutputCondition;
     @Nullable
     private final TickTimeMonitor energyOutputMonitor = machine.holder.monitorTick(GTTickTimeMonitors.ENERGY_TRANSFER, this::serverTick);
-    protected TickableSubscription outputSubs;
+    protected Task outputSubs;
     @Nullable
-    protected TickableSubscription updateSubs;
+    protected Task updateSubs;
     protected boolean checkOutput;
     protected boolean notify;
     protected final EnergyIntake intake = new EnergyIntake();
@@ -109,7 +108,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
     public void onMachineUnLoad() {
         super.onMachineUnLoad();
         if (updateSubs != null) {
-            updateSubs.unsubscribe();
+            updateSubs.cancel();
             updateSubs = null;
         }
     }
@@ -119,7 +118,7 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
         if (machine.getLevel() instanceof ServerLevel && outputVoltage > 0 && outputAmperage > 0 && getEnergyStored() >= 0) {
             outputSubs = machine.subscribeServerTick(outputSubs, energyOutputMonitor);
         } else if (outputSubs != null) {
-            outputSubs.unsubscribe();
+            outputSubs.cancel();
             outputSubs = null;
         }
     }
@@ -158,12 +157,12 @@ public class NotifiableEnergyContainer extends NotifiableRecipeHandlerTrait impl
             }
             if (energyUsed > 0) {
                 setEnergyStored(stored - energyUsed);
-                outputSubs.cycle = 0;
-            } else if (outputSubs.cycle < 10) {
-                outputSubs.cycle++;
+                outputSubs.setPeriod(1);
+            } else if (outputSubs.period() < 10) {
+                outputSubs.setPeriod(outputSubs.period() + 1);
             }
         } else {
-            outputSubs = ITickSubscription.unsubscribe(outputSubs);
+            outputSubs = Task.cancel(outputSubs);
         }
     }
 

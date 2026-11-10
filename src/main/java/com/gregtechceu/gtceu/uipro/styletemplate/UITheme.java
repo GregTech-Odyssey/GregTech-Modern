@@ -101,7 +101,15 @@ public final class UITheme {
     private static IGuiTexture statusPanel = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFB5B5B5);
     private static IGuiTexture deck = new OreSprites.Plate(0xFF373737, 0xFFFFFFFF, 0xFF7A7A7A, 0xFFBDBDBD);
     private static IGuiTexture etch = new OreSprites.Etch(0xFF7A7A7A, 0xFFFFFFFF);
+    private static IGuiTexture card = new OreSprites.Plate(0xFF7A7A7A, 0xFFFFFFFF, 0xFF7A7A7A, 0xFFC6C6C6, false);
+    private static IGuiTexture cardPressed = new OreSprites.Plate(0xFF7A7A7A, 0xFF373737, 0xFFFFFFFF, 0xFFB5B5B5, false);
+    private static IGuiTexture cardStatic = new OreSprites.Plate(0xFF7A7A7A, 0xFFC6C6C6, 0xFFC6C6C6, 0xFFC6C6C6, false);
+    private static IGuiTexture tray = new OreSprites.Bevel(0xFF7A7A7A, 0xFFFFFFFF, 0xFFA4A4A4);
     public static final IGuiTexture DECK = dynamic(() -> deck);
+    public static final IGuiTexture CARD = dynamic(() -> card);
+    public static final IGuiTexture CARD_PRESSED = dynamic(() -> cardPressed);
+    public static final IGuiTexture CARD_STATIC = dynamic(() -> cardStatic);
+    public static final IGuiTexture TRAY = dynamic(() -> tray);
     public static final IGuiTexture ETCH = dynamic(() -> etch);
     public static int SLOT_GHOST_VEIL = 0x808B8B8B;
     public static final IGuiTexture STATUS_PANEL = dynamic(() -> statusPanel);
@@ -310,6 +318,10 @@ public final class UITheme {
         panel = new OreSprites.Bevel(color(colors, "panel_outline"), color(colors, "panel_outline"), color(colors, "panel_fill"));
         statusPanel = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "status_panel_fill"));
         deck = new OreSprites.Plate(slotBevelDark, bevelLight, bevelDark, color(colors, "panel_fill"));
+        card = new OreSprites.Plate(bevelDark, bevelLight, bevelDark, CARD_FILL, false);
+        cardPressed = new OreSprites.Plate(bevelDark, slotBevelDark, bevelLight, color(colors, "card_pressed_fill"), false);
+        cardStatic = new OreSprites.Plate(bevelDark, CARD_FILL, CARD_FILL, CARD_FILL, false);
+        tray = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "tray_fill"));
         etch = new OreSprites.Etch(bevelDark, bevelLight);
         SLOT_GHOST_VEIL = (color(colors, "slot_fill") & 0xFFFFFF) | 0x80000000;
         progressTrack = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "progress_track_fill"));

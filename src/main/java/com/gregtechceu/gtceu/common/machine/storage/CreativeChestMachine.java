@@ -105,7 +105,7 @@ public class CreativeChestMachine extends QuantumChestMachine {
     public void setTicksPerCycle(int value) {
         if (value < 1) return;
         ticksPerCycle = value;
-        if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
+        if (autoOutputSubs != null) autoOutputSubs.setPeriod(ticksPerCycle);
         onItemChanged();
     }
 

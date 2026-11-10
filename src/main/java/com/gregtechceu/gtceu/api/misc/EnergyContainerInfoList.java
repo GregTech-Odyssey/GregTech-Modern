@@ -2,8 +2,8 @@ package com.gregtechceu.gtceu.api.misc;
 
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
+import com.suried.gtoutils.schedule.Task;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -14,7 +14,7 @@ public class EnergyContainerInfoList extends EnergyContainerList {
     public static final EnergyContainerInfoList EMPTY = new EnergyContainerInfoList(null, Collections.emptyList());
 
     @Nullable
-    protected TickableSubscription updateSubs;
+    protected Task updateSubs;
 
     protected long energyInputPerSec = 0;
     protected long energyOutputPerSec = 0;
@@ -35,7 +35,7 @@ public class EnergyContainerInfoList extends EnergyContainerList {
 
     public void onMachineUnLoad() {
         if (updateSubs != null) {
-            updateSubs.unsubscribe();
+            updateSubs.cancel();
             updateSubs = null;
         }
     }

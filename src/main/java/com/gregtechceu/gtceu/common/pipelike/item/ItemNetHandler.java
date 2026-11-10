@@ -115,8 +115,13 @@ public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
             return insertToHandlersEnhanced(routePaths.array, key, amount, simulate);
         }
         var routePathsCopy = new ObjectArrayList<>(routePaths.array);
-        long inserted = insertToHandlers(routePathsCopy, key, amount, simulate);
-        if (inserted < amount && !routePathsCopy.isEmpty()) inserted += insertToHandlers(routePathsCopy, key, amount - inserted, simulate);
+        long inserted = 0;
+        while (inserted < amount && !routePathsCopy.isEmpty()) {
+            int before = routePathsCopy.size();
+            long ins = insertToHandlers(routePathsCopy, key, amount - inserted, simulate);
+            inserted += ins;
+            if (ins == 0 && routePathsCopy.size() == before) break;
+        }
         return inserted;
     }
 

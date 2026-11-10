@@ -2,15 +2,16 @@ package com.gregtechceu.gtceu.api.machine.feature;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.config.ConfigHolder;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+
+import com.suried.gtoutils.level.LoadedChunks;
+import com.suried.gtoutils.schedule.Schedulers;
 
 /**
  * A machine which may cause explosion. e.g. whether, water around
@@ -29,7 +30,7 @@ public interface IExplosionMachine extends IMachineFeature {
             var pos = self().getPos();
             if (GTValues.RNG.nextInt(10) == 0) {
                 for (Direction side : GTUtil.DIRECTIONS) {
-                    var fluidState = ILevel.asyncGetBlockState(level, pos.relative(side)).getFluidState();
+                    var fluidState = LoadedChunks.blockState(level, pos.relative(side)).getFluidState();
                     if (!fluidState.isEmpty()) {
                         executeExplosion(level, explosionPower);
                         return;
@@ -43,14 +44,14 @@ public interface IExplosionMachine extends IMachineFeature {
                         executeExplosion(level, explosionPower);
                     } else if (GTValues.RNG.nextInt(10) == 0) {
                         executeExplosion(level, explosionPower);
-                    } else TaskHandler.enqueueTask(level, () -> setOnFire(additionalFireChance));
+                    } else Schedulers.of(level).schedule(() -> setOnFire(additionalFireChance));
                 }
             }
         } catch (Exception ignored) {}
     }
 
     default void executeExplosion(ServerLevel serverLevel, float explosionPower) {
-        TaskHandler.enqueueTask(serverLevel, () -> doExplosion(explosionPower));
+        Schedulers.of(serverLevel).schedule(() -> doExplosion(explosionPower));
     }
 
     default void doExplosion(float explosionPower) {

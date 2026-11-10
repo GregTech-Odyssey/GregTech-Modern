@@ -1,12 +1,10 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.UITemplate;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IUIMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
@@ -33,6 +31,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import appeng.api.stacks.AEItemKey;
+import com.suried.gtoutils.schedule.Task;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -40,8 +39,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine implements IUIMachine {
 
-    private TickableSubscription hurtSubscription;
-    private TickableSubscription particleSubscription;
+    private Task hurtSubscription;
+    private Task particleSubscription;
 
     public PrimitiveBlastFurnaceMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
@@ -60,7 +59,7 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
     @Override
     public void onUnload() {
         super.onUnload();
-        hurtSubscription = ITickSubscription.unsubscribe(hurtSubscription);
+        hurtSubscription = Task.cancel(hurtSubscription);
     }
 
     @Override
@@ -78,13 +77,13 @@ public class PrimitiveBlastFurnaceMachine extends PrimitiveWorkableMachine imple
     @Override
     public void onStructureInvalidClient() {
         super.onStructureInvalidClient();
-        particleSubscription = ITickSubscription.unsubscribe(particleSubscription);
+        particleSubscription = Task.cancel(particleSubscription);
     }
 
     @Override
     public void onStructureInvalid() {
         super.onStructureInvalid();
-        hurtSubscription = ITickSubscription.unsubscribe(hurtSubscription);
+        hurtSubscription = Task.cancel(hurtSubscription);
     }
 
     @OnlyIn(Dist.CLIENT)

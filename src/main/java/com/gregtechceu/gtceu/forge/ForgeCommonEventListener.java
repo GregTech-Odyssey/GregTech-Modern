@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.forge;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.forge.GTForgeCapability;
@@ -27,12 +26,10 @@ import com.gregtechceu.gtceu.common.item.armor.IJetpack;
 import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SPacketSendWorldID;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.integration.map.WaypointManager;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
 import com.gregtechceu.gtceu.utils.BlockDropCache;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -57,7 +54,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
@@ -74,6 +70,7 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
+import com.suried.gtoutils.schedule.Schedulers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,13 +80,6 @@ public class ForgeCommonEventListener {
 
     public static void init() {
         MinecraftForge.EVENT_BUS.register(ForgeCommonEventListener.class);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, ForgeCommonEventListener::onLevelTickEvent);
-    }
-
-    private static void onLevelTickEvent(TickEvent.LevelTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            TaskHandler.onTickUpdate(event.level, event.level instanceof ServerLevel serverLevel ? serverLevel.getServer().getTickCount() : GTValues.CLIENT_TIME);
-        }
     }
 
     @SubscribeEvent
@@ -174,7 +164,6 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void worldLoad(LevelEvent.Load event) {
-        if (event.getLevel() instanceof ILevel level) level.gtceu$clear();
         if (event.getLevel().isClientSide()) {
             WaypointManager.updateDimension(event.getLevel());
         } else if (event.getLevel() instanceof ServerLevel serverLevel) {
@@ -185,13 +174,7 @@ public class ForgeCommonEventListener {
     @SubscribeEvent
     public static void worldUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            var multiblockWorldData = MultiblockWorldData.get(serverLevel);
-            if (multiblockWorldData != null) multiblockWorldData.clear();
             ServerCache.instance.invalidateWorld(serverLevel);
-        }
-        if (event.getLevel() instanceof ILevel level) {
-            TaskHandler.onWorldUnLoad(level);
-            level.gtceu$clear();
         }
     }
 
@@ -216,10 +199,6 @@ public class ForgeCommonEventListener {
             if (!level.isClientSide()) {
                 var multiblockWorldData = MultiblockWorldData.get(level);
                 if (multiblockWorldData != null) multiblockWorldData.clear();
-                if (level instanceof ILevel iLevel) {
-                    TaskHandler.onWorldUnLoad(iLevel);
-                    iLevel.gtceu$clear();
-                }
             }
         }
     }
@@ -308,11 +287,11 @@ public class ForgeCommonEventListener {
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            TaskHandler.enqueueTask(serverPlayer.serverLevel(), () -> {
+            Schedulers.of(serverPlayer.serverLevel()).schedule(200, () -> {
                 MultiblockControllerMachine.MESSAGE_CACHE.get(serverPlayer.getUUID()).stream()
                         .filter(Objects::nonNull).forEach(serverPlayer::sendSystemMessage);
                 MultiblockControllerMachine.MESSAGE_CACHE.removeAll(serverPlayer.getUUID());
-            }, 200);
+            });
         }
     }
 }

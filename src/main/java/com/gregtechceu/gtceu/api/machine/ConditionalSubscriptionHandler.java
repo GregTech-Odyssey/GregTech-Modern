@@ -1,11 +1,12 @@
 package com.gregtechceu.gtceu.api.machine;
 
 import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 
 import java.util.function.BooleanSupplier;
@@ -21,7 +22,7 @@ public class ConditionalSubscriptionHandler {
     private final ITickSubscription handler;
     private final Runnable runnable;
     private final BooleanSupplier condition;
-    private TickableSubscription subscription;
+    private Task subscription;
 
     @Getter
     private int cycle;
@@ -48,7 +49,7 @@ public class ConditionalSubscriptionHandler {
      * Initializes the subscription and adds it to the event loop.
      */
     protected void initialize(ServerLevel level) {
-        TaskHandler.enqueueTask(level, this::updateSubscription, 0);
+        Schedulers.of(level).schedule(this::updateSubscription);
     }
 
     /**
@@ -58,7 +59,7 @@ public class ConditionalSubscriptionHandler {
         if (condition.getAsBoolean()) {
             subscription = handler.subscribeServerTick(subscription, runnable, cycle);
         } else if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
             subscription = null;
         }
     }
@@ -68,13 +69,13 @@ public class ConditionalSubscriptionHandler {
      */
     public void unsubscribe() {
         if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
             subscription = null;
         }
     }
 
     public void setCycle(int cycle) {
         this.cycle = cycle;
-        if (subscription != null) subscription.cycle = cycle;
+        if (subscription != null) subscription.setPeriod(cycle);
     }
 }

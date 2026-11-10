@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -44,6 +43,7 @@ import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
@@ -75,7 +75,7 @@ public class PumpMachine extends TieredEnergyMachine implements IAutoOutputFluid
     protected final NotifiableInventory<AEFluidKey> cache;
 
     private final TickTimeMonitor pumpMonitor = holder.monitorTick(GTTickTimeMonitors.PUMP, this::update);
-    protected TickableSubscription update;
+    protected Task update;
 
     public PumpMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier);

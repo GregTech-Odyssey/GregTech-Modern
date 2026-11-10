@@ -264,6 +264,10 @@ public final class UIDraw {
     }
 
     public static void deckPlate(GuiGraphics graphics, int x, int y, int width, int height, int outline, int light, int dark, int fill) {
+        plate(graphics, x, y, width, height, outline, light, dark, fill, true);
+    }
+
+    public static void plate(GuiGraphics graphics, int x, int y, int width, int height, int outline, int light, int dark, int fill, boolean rivets) {
         if (width < 8 || height < 8) return;
         int r = x + width, b = y + height;
         int mid = average(fill, dark);
@@ -275,10 +279,12 @@ public final class UIDraw {
         quad(consumer, matrix, x + 1, y + 1, x + 2, b - 2, light);
         quad(consumer, matrix, x + 2, b - 2, r - 1, b - 1, dark);
         quad(consumer, matrix, r - 2, y + 2, r - 1, b - 1, dark);
-        rivet(consumer, matrix, x + 3, y + 3, outline, light, dark, mid);
-        rivet(consumer, matrix, r - 6, y + 3, outline, light, dark, mid);
-        rivet(consumer, matrix, x + 3, b - 6, outline, light, dark, mid);
-        rivet(consumer, matrix, r - 6, b - 6, outline, light, dark, mid);
+        if (rivets) {
+            rivet(consumer, matrix, x + 3, y + 3, outline, light, dark, mid);
+            rivet(consumer, matrix, r - 6, y + 3, outline, light, dark, mid);
+            rivet(consumer, matrix, x + 3, b - 6, outline, light, dark, mid);
+            rivet(consumer, matrix, r - 6, b - 6, outline, light, dark, mid);
+        }
         end(graphics);
     }
 

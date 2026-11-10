@@ -5,8 +5,8 @@ import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
-import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.config.ConfigHolder;
@@ -364,17 +364,14 @@ public class MultiblockDisplayText {
             if (!isStructureFormed || !isActive)
                 return this;
             if (recipe != null) {
-                int recipeTier = recipe.tier;
-                int chanceTier = recipeTier + recipe.ocLevel;
-                var function = recipe.definition.chanceFunction;
                 double maxDurationSec = (double) recipe.duration / 20.0;
-                addOutputLines(recipe, recipe.itemOutputs, recipeTier, chanceTier, function, maxDurationSec);
-                addOutputLines(recipe, recipe.fluidOutputs, recipeTier, chanceTier, function, maxDurationSec);
+                addOutputLines(recipe, recipe.itemOutputs, maxDurationSec);
+                addOutputLines(recipe, recipe.fluidOutputs, maxDurationSec);
             }
             return this;
         }
 
-        private void addOutputLines(GTRecipe recipe, ContentList list, int recipeTier, int chanceTier, ChanceBoostFunction function, double maxDurationSec) {
+        private void addOutputLines(GTRecipe recipe, ContentList list, double maxDurationSec) {
             for (int i = 0; i < list.size(); i++) {
                 int chance = list.chance(i);
                 long effective = list.effective(i, recipe.scale);
@@ -384,7 +381,7 @@ public class MultiblockDisplayText {
                 int count = Keys.saturatedInt(effective);
                 double countD = count;
                 if (chanced) {
-                    countD = countD * function.getBoostedChance(chance, list.boost(i), recipeTier, chanceTier) / ContentList.MAX_CHANCE;
+                    countD = countD * ContentRoll.boostedChance(recipe, list, i) / ContentList.MAX_CHANCE;
                     count = countD < 1 ? 1 : (int) Math.round(countD);
                 }
                 if (count < maxDurationSec) {

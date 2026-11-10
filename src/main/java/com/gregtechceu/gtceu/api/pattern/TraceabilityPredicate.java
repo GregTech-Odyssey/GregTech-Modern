@@ -311,7 +311,7 @@ public class TraceabilityPredicate {
         }
 
         if (flag) {
-            blockWorldState.setError(null);
+            blockWorldState.setIssue(null);
         }
         return flag;
     }

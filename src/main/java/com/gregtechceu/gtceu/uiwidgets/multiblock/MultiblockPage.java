@@ -2,12 +2,14 @@ package com.gregtechceu.gtceu.uiwidgets.multiblock;
 
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureIssue;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.Level;
 import com.gregtechceu.gtceu.uipro.UIElement;
+import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
 import com.gregtechceu.gtceu.uipro.elements.RichText;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
@@ -18,6 +20,7 @@ import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.display.MachineScreen;
 import com.gregtechceu.gtceu.uiwidgets.icon.IdleReasonInfo;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeIOList;
+import com.gregtechceu.gtceu.uiwidgets.structure.StructureIssueOverlay;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.util.ClickData;
@@ -26,6 +29,8 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -62,6 +67,7 @@ public final class MultiblockPage {
     private static final ThreadLocal<Boolean> COLLECTING_SCREEN_TEXT = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private static final Component NONE = Component.empty();
+    private static final Long NO_ISSUE_POS = StructureIssue.NO_POS;
 
     private final WorkableMultiblockMachine machine;
     private RecipeIOList recipeList;
@@ -74,6 +80,8 @@ public final class MultiblockPage {
     private Component alertText = NONE;
     @Nullable
     private ReasonView reasonView;
+    @Nullable
+    private IssueView issueView;
 
     private MultiblockPage(WorkableMultiblockMachine machine) {
         this.machine = machine;
@@ -299,13 +307,35 @@ public final class MultiblockPage {
     }
 
     private void addStateLine() {
-        addLine(STATE, this::stateText).bindLevel(this::stateLevel).bindDetail(() -> reasonView().hover);
+        var state = addLine(STATE, this::stateText).bindLevel(this::stateLevel).bindDetail(() -> reasonView().hover);
+        state.addSyncValue(SyncValue.ofLong(this::issuePos, StructureIssue.NO_POS).onChanged(pos -> {
+            if (machine.isRemote()) showIssue(pos);
+        }));
         var detail = new RichText().darkBackground().collapseEmpty();
         detail.textSupplier(machine.isRemote() ? null : list -> {
+            if (!machine.isFormed()) {
+                list.addAll(issueView().lines);
+                return;
+            }
             var view = reasonView();
             if (view.line != null) list.add(view.line);
         });
         screen.addChild(detail);
+    }
+
+    private IssueView issueView() {
+        var issue = machine.getMultiblockState().getReportedIssue();
+        if (issueView == null || issueView.issue != issue) issueView = IssueView.of(issue);
+        return issueView;
+    }
+
+    private Long issuePos() {
+        return machine.isFormed() ? NO_ISSUE_POS : issueView().pos;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void showIssue(long pos) {
+        StructureIssueOverlay.show(machine.getPos(), pos);
     }
 
     private Component stateText() {
@@ -331,6 +361,13 @@ public final class MultiblockPage {
         var reason = machine.isFormed() && logic.isWorkingEnabled() ? IdleReasonInfo.reasonOf(logic) : null;
         if (reasonView == null || reasonView.status != status || reasonView.reason != reason) reasonView = ReasonView.of(status, reason);
         return reasonView;
+    }
+
+    private record IssueView(@Nullable StructureIssue issue, List<Component> lines, Long pos) {
+
+        private static IssueView of(@Nullable StructureIssue issue) {
+            return new IssueView(issue, StructureIssue.lines(issue), issue == null ? NO_ISSUE_POS : Long.valueOf(issue.getPosLong()));
+        }
     }
 
     private record ReasonView(int status, @Nullable Component reason, boolean shown, Component headline, Level level,

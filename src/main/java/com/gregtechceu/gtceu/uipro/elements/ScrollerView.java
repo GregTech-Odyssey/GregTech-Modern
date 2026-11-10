@@ -62,6 +62,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
     private IGuiTexture watermark;
     private int watermarkWidth, watermarkHeight;
     private boolean fitPage;
+    private int pageReserve;
     public static final int SCROLL_BAR_MARGIN = 2;
     /** 滚动条连同与内容的间距所占宽度。 */
     public static final int SCROLL_BAR_SPACE = SCROLL_BAR_WIDTH + SCROLL_BAR_MARGIN;
@@ -189,6 +190,12 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         return this;
     }
 
+    public ScrollerView reservePageHeight(int height) {
+        this.pageReserve = Math.max(0, height);
+        relayout();
+        return this;
+    }
+
     public ScrollerView setWatermark(IGuiTexture texture, int width, int height) {
         this.watermark = texture;
         this.watermarkWidth = width;
@@ -297,7 +304,7 @@ public class ScrollerView extends DraggableScrollableWidgetGroup implements ILay
         else limit = adaptiveMaxHeight > 0 ? adaptiveMaxHeight + 2 * inset : preferredHeight;
         if (!fitPage) return limit;
         var host = ILayoutHost.of(this);
-        return host == null ? limit : Math.min(limit, host.getPageHeightLimit());
+        return host == null ? limit : Math.min(limit, Math.max(MIN_RESIZE_HEIGHT, host.getPageHeightLimit() - pageReserve));
     }
 
     /** 客户端：读取锁定的高度，超出屏幕上限（界面不超过屏幕 2/3）或过小时不应用，回到默认。 */

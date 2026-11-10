@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputFluid;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
@@ -16,7 +15,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.transfer.forge.ForgeFluidAdapter;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -42,6 +40,8 @@ import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,7 +62,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     @SaveToDisk
     protected final NotifiableInventory<AEFluidKey> cache;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
     @Nullable
     protected ISubscription exportFluidSubs;
@@ -91,7 +91,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
             this.exportFluidSubs = cache.addChangedListener(this::onFluidChanged);
         }
     }
@@ -180,7 +180,7 @@ public class DrumMachine extends MetaMachine implements IAutoOutputFluid, IDropS
         if ((isAutoOutputFluids() && !cache.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.FLUIDS, StorageAccess.INSERT)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }

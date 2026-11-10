@@ -73,6 +73,7 @@ final class StructureRenderer {
     @Nullable
     private static MultiBufferSource.BufferSource blockEntityBuffers;
     private static boolean errorLogged;
+    private static boolean blockFormatPrepared;
 
     private final Long2ObjectOpenHashMap<Section> sections = new Long2ObjectOpenHashMap<>();
     private final ConcurrentLinkedQueue<Mesh> done = new ConcurrentLinkedQueue<>();
@@ -177,6 +178,7 @@ final class StructureRenderer {
         var sorted = keys.toLongArray();
         LongArrays.quickSort(sorted, (a, b) -> Float.compare(distance(a, fx, fy, fz), distance(b, fx, fy, fz)));
         outstanding = total = sorted.length;
+        if (sorted.length > 0) prepareBlockFormat();
         for (long key : sorted) {
             var positions = index.get(key);
             POOL.execute(() -> compile(gen, key, positions, view));
@@ -383,6 +385,14 @@ final class StructureRenderer {
             if (section != null && section.isEmpty()) sections.remove(mesh.key);
         }
         if (bound) VertexBuffer.unbind();
+    }
+
+    private static void prepareBlockFormat() {
+        if (blockFormatPrepared) return;
+        blockFormatPrepared = true;
+        var builder = uploader();
+        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
+        builder.endOrDiscardIfEmpty();
     }
 
     private static BufferBuilder uploader() {

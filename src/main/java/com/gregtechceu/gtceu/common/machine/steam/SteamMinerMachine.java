@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.IMiner;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.widget.PredicatedImageWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IExhaustVentMachine;
@@ -25,7 +24,6 @@ import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.window.MachineWindow;
 import com.gregtechceu.gtceu.uiwidgets.recipe.RecipeMachinePage;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.modular.ModularUI;
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
@@ -51,6 +49,8 @@ import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +80,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     private final int inventorySize;
     private final int energyPerTick;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     protected ISubscription exportItemSubs;
@@ -145,7 +145,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
             exportItemSubs = exportItems.addChangedListener(this::updateAutoOutputSubscription);
         }
     }
@@ -167,7 +167,7 @@ public class SteamMinerMachine extends SteamWorkableMachine implements IMiner, I
         if (!exportItems.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacingItems, AEKeyTypes.ITEMS, StorageAccess.INSERT)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 40);
         } else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }

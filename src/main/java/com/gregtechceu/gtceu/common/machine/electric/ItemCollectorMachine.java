@@ -12,7 +12,6 @@ import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.gui.widget.IntInputWidget;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -26,7 +25,6 @@ import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.WidgetGroup;
@@ -58,6 +56,8 @@ import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,14 +90,14 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     @SaveToDisk
     protected final StackInventory filterInventory;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
-    protected TickableSubscription batterySubs;
+    protected Task batterySubs;
     @Nullable
     private final TickTimeMonitor collectionMonitor = holder.monitorTick(GTTickTimeMonitors.COLLECTION, this::update);
-    protected TickableSubscription collectionSubs;
+    protected Task collectionSubs;
     @Nullable
     protected ISubscription exportItemSubs;
     @Nullable
@@ -156,10 +156,10 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
         super.onLoad();
         if (isRemote()) return;
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, () -> {
+            Schedulers.of(serverLevel).schedule(() -> {
                 this.updateAutoOutputSubscription();
                 this.updateCollectionSubscription();
-            }, 0);
+            });
         }
         exportItemSubs = output.addChangedListener(this::updateAutoOutputSubscription);
         energySubs = energyContainer.addChangedListener(() -> {
@@ -201,7 +201,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
             collectionSubs = subscribeServerTick(collectionSubs, collectionMonitor, 20);
             active = true;
         } else if (collectionSubs != null) {
-            collectionSubs.unsubscribe();
+            collectionSubs.cancel();
             collectionSubs = null;
             active = false;
         }
@@ -277,7 +277,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
     protected void updateBatterySubscription() {
         if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         else if (batterySubs != null) {
-            batterySubs.unsubscribe();
+            batterySubs.cancel();
             batterySubs = null;
         }
     }
@@ -286,7 +286,7 @@ public class ItemCollectorMachine extends TieredEnergyMachine implements IAutoOu
         var outputFacing = getOutputFacingItems();
         if ((isAutoOutputItems() && !output.isEmpty()) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT)) autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }

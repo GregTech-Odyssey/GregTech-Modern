@@ -308,7 +308,7 @@ public final class ItemPipeBlockEntity extends PipeBlockEntity<ItemPipeType, Ite
         }
         autoTransfer = false;
         if (!hasHandler) {
-            transferSubs.unsubscribe();
+            transferSubs.cancel();
             transferSubs = null;
         }
     }

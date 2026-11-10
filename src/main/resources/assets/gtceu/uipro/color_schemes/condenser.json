@@ -20,6 +20,8 @@
     "panel_outline": "#878FA5",
     "status_panel_fill": "#ADB0C4",
     "progress_track_fill": "#696D88",
+    "tray_fill": "#878FA5",
+    "card_pressed_fill": "#ADB0C4",
     "display_screen_fill": "#413F54",
     "bevel_dark": "#696D88",
     "bevel_light": "#F2F2F2",

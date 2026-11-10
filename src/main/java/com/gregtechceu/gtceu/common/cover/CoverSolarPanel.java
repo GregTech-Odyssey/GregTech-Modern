@@ -6,19 +6,19 @@ import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
+import com.suried.gtoutils.schedule.Task;
 import org.jetbrains.annotations.Nullable;
 
 public class CoverSolarPanel extends CoverBehavior {
 
     private final long EUt;
-    protected TickableSubscription subscription;
+    protected Task subscription;
 
     public CoverSolarPanel(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
@@ -40,7 +40,7 @@ public class CoverSolarPanel extends CoverBehavior {
     public void onRemoved() {
         super.onRemoved();
         if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
         }
     }
 

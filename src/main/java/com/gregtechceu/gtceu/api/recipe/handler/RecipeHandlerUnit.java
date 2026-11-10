@@ -986,6 +986,15 @@ public class RecipeHandlerUnit {
                 PlanScratch.release();
             }
         }
+        return outputUpTo(key, amount) >= amount;
+    }
+
+    public long outputUpTo(AEKey key, long amount) {
+        if (amount <= 0) return 0;
+        boolean fluid = key instanceof AEFluidKey;
+        var members = fluid ? fluidHandlers : itemHandlers;
+        var stores = fluid ? fluidStores : itemStores;
+        var type = fluid ? AEKeyTypes.FLUIDS : AEKeyTypes.ITEMS;
         long left = amount;
         for (int h = 0; h < members.length && left > 0; h++) {
             var inv = stores[h];
@@ -997,7 +1006,7 @@ public class RecipeHandlerUnit {
                 left -= members[h].insertOutput(type, key, left);
             }
         }
-        return left <= 0;
+        return amount - left;
     }
 
     private static long reserveOutputSingle(KeyInventory<?> inv, AEKey key, long amount) {

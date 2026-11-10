@@ -11,7 +11,6 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.IToolGridHighlight;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.pipenet.*;
 import com.gregtechceu.gtceu.common.data.GTMaterialBlocks;
@@ -42,6 +41,7 @@ import com.gto.datasynclib.LazyFieldDataManager;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.datafixers.util.Pair;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
@@ -96,7 +96,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
     private boolean workingEnabled = true;
 
     private TickTimeMonitor transferMonitor;
-    protected TickableSubscription transferSubs;
+    protected Task transferSubs;
 
     public boolean autoTransfer;
 
@@ -114,7 +114,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
         super.setRemoved();
         coverContainer.onUnload();
         if (transferSubs != null) {
-            transferSubs.unsubscribe();
+            transferSubs.cancel();
             transferSubs = null;
         }
     }
@@ -199,7 +199,7 @@ public class PipeBlockEntity<PipeType extends Enum<PipeType> & IPipeType<NodeDat
             }
             transferSubs = subscribeServerTick(transferSubs, transferMonitor, 20);
         } else if (transferSubs != null) {
-            transferSubs.unsubscribe();
+            transferSubs.cancel();
             transferSubs = null;
         }
     }

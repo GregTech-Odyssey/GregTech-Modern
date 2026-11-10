@@ -9,12 +9,11 @@ import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiModule;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureIssue;
 import com.gregtechceu.gtceu.api.misc.TickTimeSampler;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.ClassInstanceCache;
 
 import net.minecraft.ChatFormatting;
@@ -28,6 +27,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -37,6 +37,11 @@ import com.google.common.collect.Multimap;
 import com.gto.datasynclib.LogicalSide;
 import com.gto.datasynclib.annotations.RemoteCall;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.level.LevelStore;
+import com.suried.gtoutils.schedule.Schedulers;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 import lombok.Getter;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
@@ -91,7 +96,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
      * rendering is done in GTOCore
      */
     public static final Multimap<UUID, Component> MESSAGE_CACHE = HashMultimap.create();
+    private static final LevelStore<LongSet> HIGHLIGHT_CACHE = LevelStore.create(LongOpenHashSet::new);
     public static boolean sendMessage;
+
+    public static LongSet getHighlightCache(@Nullable Level level) {
+        return level == null ? LongSets.emptySet() : HIGHLIGHT_CACHE.get(level);
+    }
 
     public MultiblockControllerMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -112,7 +122,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         } else if (isFormed) {
             onStructureFormedClient();
         } else {
-            ILevel.getHighlightCache(getLevel()).add(getPos().asLong());
+            getHighlightCache(getLevel()).add(getPos().asLong());
         }
     }
 
@@ -123,9 +133,9 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         if (getLevel() instanceof ServerLevel serverLevel) {
             getMultiblockState().removeShared();
             MultiblockWorldData.getOrCreate(serverLevel).removeAsyncLogic(this);
-            TaskHandler.enqueueTask(serverLevel, () -> MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState()));
+            Schedulers.of(serverLevel).schedule(() -> MultiblockWorldData.getOrCreate(serverLevel).removeMapping(getMultiblockState()));
         } else {
-            ILevel.getHighlightCache(getLevel()).remove(getPos().asLong());
+            getHighlightCache(getLevel()).remove(getPos().asLong());
             onStructureInvalidClient();
         }
     }
@@ -198,7 +208,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 result = structure.match(state, false);
                 if (result && getLevel() instanceof ServerLevel serverLevel) {
                     var c = state.blockEntityCache.longStream().mapToObj(BlockPos::of).toList();
-                    TaskHandler.enqueueTask(serverLevel, () -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
+                    Schedulers.of(serverLevel).schedule(() -> c.forEach(pos -> serverLevel.getChunkAt(pos).removeBlockEntityTicker(pos)));
                 }
                 state.clearCache();
             }
@@ -207,7 +217,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                 state.freeze();
                 waitingTime = 0;
                 return true;
-            } else if (!state.error.equals(MultiblockState.UNLOAD_ERROR) && hasCheckButton()) {
+            } else if (!isIssue(state.getIssue(), StructureIssue.UNLOADED) && hasCheckButton()) {
                 waitingTime = 10;
             } else {
                 waitingTime = 1;
@@ -227,7 +237,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
             try {
                 checking = true;
                 if (checkPatternWithTryLock()) {
-                    TaskHandler.enqueueTask(serverLevel, () -> {
+                    Schedulers.of(serverLevel).schedule(() -> {
                         // 延时到服务端线程上的那次检查（requiresServerCheck 时是第二遍完整扫描）
                         structureCheckSampler.insertStart(holder.getOffsetTimer());
                         try {
@@ -247,8 +257,8 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
                         }
                     });
                 } else {
-                    if (sendMessage && getMultiblockState().error != MultiblockState.UNINIT_ERROR && !toldNotFormed && getOwner() != null) {
-                        TaskHandler.enqueueTask(serverLevel, () -> getOwner().getMembers().forEach(uuid -> {
+                    if (sendMessage && getMultiblockState().getReportedIssue() != null && !toldNotFormed && getOwner() != null) {
+                        Schedulers.of(serverLevel).schedule(() -> getOwner().getMembers().forEach(uuid -> {
                             Player p = serverLevel.getPlayerByUUID(uuid);
                             Component m = Component.translatable("gtocore.multiblock.invalid.message",
                                     getDefinition().get().getName().withStyle(ChatFormatting.YELLOW),
@@ -266,8 +276,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         }
     }
 
+    private static boolean isIssue(@Nullable StructureIssue issue, StructureIssue.Type type) {
+        return issue != null && issue.getType() == type;
+    }
+
     private boolean hasRemovedParts() {
-        for (var part : getMultiblockState().getMatchContext().getParts()) {
+        for (var part : getAssembly().getParts()) {
             if (part.self().isRemoved()) return true;
         }
         return false;
@@ -283,7 +297,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onStructureFormedClient() {
         var level = getLevel();
         if (level == null) return;
-        ILevel.getHighlightCache(level).remove(holder.longPos);
+        getHighlightCache(level).remove(holder.longPos);
     }
 
     @MustBeInvokedByOverriders
@@ -295,12 +309,12 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     @MustBeInvokedByOverriders
     public void onStructureFormed() {
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::onStructureFormedAfter, 0);
+            Schedulers.of(serverLevel).schedule(this::onStructureFormedAfter);
         }
         isFormed = true;
         modules.clear();
         var list = new ArrayList<IMultiPart>();
-        for (IMultiPart part : getMultiblockState().getMatchContext().getParts()) {
+        for (IMultiPart part : getAssembly().getParts()) {
             if (shouldAddPartToController(part)) {
                 if (part instanceof IMultiModule<?> module) {
                     modules.add(module);
@@ -324,7 +338,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
     public void onStructureInvalidClient() {
         var level = GTUtil.getClientLevel();
         if (level == null || isRemoved()) return;
-        ILevel.getHighlightCache(level).add(holder.longPos);
+        getHighlightCache(level).add(holder.longPos);
     }
 
     protected void onStructureInvalidAfter() {
@@ -345,7 +359,7 @@ public class MultiblockControllerMachine extends MetaMachine implements IMultiCo
         partByClass.clear();
         updatePartPositions();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::onStructureInvalidAfter, 0);
+            Schedulers.of(serverLevel).schedule(this::onStructureInvalidAfter);
         }
     }
 

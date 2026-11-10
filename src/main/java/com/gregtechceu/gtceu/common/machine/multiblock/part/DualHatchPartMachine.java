@@ -129,7 +129,7 @@ public class DualHatchPartMachine extends ItemBusPartMachine {
         if (canIO && (hasItemHandler || hasFluidHandler)) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
-            autoIOSubs.unsubscribe();
+            autoIOSubs.cancel();
             autoIOSubs = null;
         }
     }

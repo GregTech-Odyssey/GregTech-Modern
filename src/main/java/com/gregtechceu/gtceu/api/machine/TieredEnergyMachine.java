@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,7 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
     @SaveToDisk
     @Getter
     public final NotifiableEnergyContainer energyContainer;
-    protected TickableSubscription explosionSubs;
+    protected Task explosionSubs;
     protected ISubscription energyListener;
 
     public TieredEnergyMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
@@ -88,7 +89,7 @@ public class TieredEnergyMachine extends TieredMachine implements IExplosionMach
                 energyContainer.getEnergyStored() > 0) {
             explosionSubs = subscribeAsyncTick(explosionSubs, this::checkExplosion, 100);
         } else if (explosionSubs != null) {
-            explosionSubs.unsubscribe();
+            explosionSubs.cancel();
             explosionSubs = null;
         }
     }

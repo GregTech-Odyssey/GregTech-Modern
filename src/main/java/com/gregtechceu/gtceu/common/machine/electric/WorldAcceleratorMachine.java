@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredEnergyMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
@@ -34,6 +33,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +71,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     @SyncToClient(scheduleUpdate = true)
     private boolean active = false;
     private final TickTimeMonitor acceleratorMonitor = holder.monitorTick(GTTickTimeMonitors.ACCELERATOR, this::update);
-    private TickableSubscription tickSubs;
+    private Task tickSubs;
 
     public WorldAcceleratorMachine(MetaMachineBlockEntity holder, int tier, Object... args) {
         super(holder, tier, GTMachineUtils.defaultTankSizeFunction, args);
@@ -92,7 +92,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
             tickSubs = subscribeServerTick(tickSubs, acceleratorMonitor);
             active = true;
         } else if (tickSubs != null) {
-            tickSubs.unsubscribe();
+            tickSubs.cancel();
             tickSubs = null;
             active = false;
         }
@@ -172,7 +172,7 @@ public class WorldAcceleratorMachine extends TieredEnergyMachine implements ICon
     public void onUnload() {
         super.onUnload();
         if (tickSubs != null) {
-            tickSubs.unsubscribe();
+            tickSubs.cancel();
             tickSubs = null;
         }
     }

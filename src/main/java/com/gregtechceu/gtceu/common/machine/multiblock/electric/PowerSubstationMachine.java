@@ -99,7 +99,7 @@ public class PowerSubstationMachine extends WorkableMultiblockMachine implements
         subscribeEnergyHandlers(IO.IN);
         subscribeEnergyHandlers(IO.OUT);
         List<IBatteryData> batteries = new ArrayList<>();
-        var batterys = getMultiblockState().getMatchContext().get(Predicates.DataKey.BATTERY_DATA);
+        var batterys = getAssembly().get(Predicates.DataKey.BATTERY_DATA);
         if (batterys != null) {
             batterys.forEach((k, v) -> {
                 for (int i = 0; i < v; i++) {

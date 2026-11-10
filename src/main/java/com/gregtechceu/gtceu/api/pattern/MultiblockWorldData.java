@@ -1,16 +1,17 @@
 package com.gregtechceu.gtceu.api.pattern;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
-import com.gregtechceu.gtceu.core.ILevel;
-import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.PosUtils;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 
+import com.suried.gtoutils.level.LevelStore;
+import com.suried.gtoutils.schedule.AsyncLane;
+import com.suried.gtoutils.schedule.Cadence;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
@@ -20,40 +21,43 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class MultiblockWorldData {
 
     private static final Comparator<IMultiController> COMPARATOR = Comparator.comparingInt(c -> -c.checkPriority());
 
+    private static final ExecutorService SERVICE = Executors.newSingleThreadExecutor(AsyncLane.threadFactory("Multiblock World Data"));
+    private static final AsyncLane STRUCTURE_LANE = AsyncLane.create("gtceu:structure", SERVICE);
+    private static final int SEARCH_PERIOD = 40;
+    private static final int FIRST_SEARCH_DELAY = 200;
+    private static final LevelStore<MultiblockWorldData> DATA = LevelStore.createWithLevel(MultiblockWorldData::new, MultiblockWorldData::clear);
+
     public static MultiblockWorldData getOrCreate(ServerLevel serverLevel) {
-        var data = ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
-        if (data == null) {
-            data = new MultiblockWorldData();
-            ((ILevel) serverLevel).gtceu$setMultiblockWorldSavedData(data);
-        }
-        return data;
+        return DATA.get(serverLevel);
     }
 
     @Nullable
-    public static MultiblockWorldData get(ServerLevel serverLevel) {
-        return ((ILevel) serverLevel).gtceu$getMultiblockWorldSavedData();
+    public static MultiblockWorldData get(Level level) {
+        return DATA.getIfPresent(level);
     }
 
-    private static final ScheduledExecutorService SERVICE = Executors.newSingleThreadScheduledExecutor(r -> {
-        var thread = new GTUtil.AsyncExecutorThread(r);
-        thread.setName("Multiblock World Data");
-        thread.setPriority(1);
-        thread.setDaemon(true);
-        return thread;
-    });
+    private final Level level;
 
-    private final TaskHandler taskHandler = TaskHandler.createAsync(SERVICE, 2000);
+    public static void execute(Runnable task) {
+        SERVICE.execute(task);
+    }
 
-    private TickableSubscription subscription;
+    private Task subscription;
 
     private boolean firstLoad = true;
+
+    private long searchFrom;
+
+    private MultiblockWorldData(Level level) {
+        this.level = level;
+    }
 
     /**
      * Chunk pos mapping.
@@ -111,7 +115,10 @@ public class MultiblockWorldData {
      */
     public void addAsyncLogic(IMultiController controller) {
         controllers.add(controller);
-        subscription = taskHandler.enqueueTick(subscription, this::searchingTask, 0, firstLoad ? 5 : 0);
+        if (Task.isActive(subscription)) return;
+        var scheduler = Schedulers.async(level, STRUCTURE_LANE);
+        if (firstLoad) searchFrom = scheduler.round() + FIRST_SEARCH_DELAY;
+        subscription = scheduler.repeat(Cadence.every(SEARCH_PERIOD), this::searchingTask);
     }
 
     /**
@@ -121,11 +128,12 @@ public class MultiblockWorldData {
      */
     public void removeAsyncLogic(IMultiController controller) {
         if (controllers.remove(controller) && controllers.isEmpty()) {
-            subscription = ITickSubscription.unsubscribe(subscription);
+            subscription = Task.cancel(subscription);
         }
     }
 
     private void searchingTask() {
+        if (firstLoad && Schedulers.async(level, STRUCTURE_LANE).round() < searchFrom) return;
         firstLoad = false;
         var arr = controllers.toArray(new IMultiController[0]);
         Arrays.parallelSort(arr, COMPARATOR);
@@ -137,10 +145,9 @@ public class MultiblockWorldData {
 
     public void clear() {
         firstLoad = true;
-        subscription = ITickSubscription.unsubscribe(subscription);
+        subscription = Task.cancel(subscription);
         controllers.clear();
         shareds.clear();
         chunkPosMapping.clear();
-        taskHandler.unsubscribe();
     }
 }

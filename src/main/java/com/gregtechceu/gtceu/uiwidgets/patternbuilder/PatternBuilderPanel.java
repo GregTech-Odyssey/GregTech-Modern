@@ -113,6 +113,12 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
     private final PatternBuilderModel model;
     private final int inputLimit;
     private final Footer footer;
+    private final UIElement extraActions = UIElement.centeredRow(UISizes.CONTROL_HEIGHT);
+    private final UIElement content;
+    private final UIElement actions;
+    private final ScrollerView scroller;
+    private final int maxHeight;
+    private int chrome;
     private PopupSlot popups = PopupSlot.NONE;
     private PatternBuilderModel.Sort sort;
     private int stockVersion = CarriedStock.version();
@@ -140,7 +146,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         if (!icon.isEmpty()) titleRow.addChild(ItemView.of(icon));
         titleRow.addChildren(TextLine.constant(LayoutStyle.AUTO, footer.titleFormat().apply(title)).layout(l -> l.flex(1)), close);
 
-        var content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
+        content = new UIElement().layout(l -> l.column().widthAuto().minWidth(UISizes.POPUP_CONTENT_WIDTH).gapAll(UISizes.SECTION_GAP));
         if (!model.getFixed().isEmpty() || !model.getGroups().isEmpty()) content.addChild(blocksSection());
         var roles = model.getRoles();
         var sections = model.getSections();
@@ -151,7 +157,7 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
         }
 
         var back = footer.back();
-        var actions = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
+        actions = UIElement.centeredRow(UISizes.CONTROL_HEIGHT).addChildren(
                 back == null ? Button.text(UISizes.BUTTON_WIDTH, CANCEL).setOnClientClick(onClose) :
                         Button.text(UISizes.BUTTON_WIDTH, BACK).setOnClientClick(back),
                 UIElement.flexSpacer(),
@@ -163,14 +169,31 @@ public class PatternBuilderPanel extends UIElement implements ILocalUI {
                         .setTextAlign(Horizontal.RIGHT).bindLevel(() -> model.getInputs().size() <= inputLimit ? Level.NORMAL : Level.ERROR) :
                 null;
 
-        int chrome = UISizes.POPUP_PADDING + 2 * UISizes.CONTROL_HEIGHT + 2 * UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM +
+        this.maxHeight = maxHeight;
+        chrome = UISizes.POPUP_PADDING + 2 * UISizes.CONTROL_HEIGHT + 2 * UISizes.SECTION_GAP + UISizes.POPUP_PADDING_BOTTOM +
                 (counter == null ? 0 : UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP);
-        var scroller = new ScrollerView("pattern_builder", UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT_SIZE).adaptiveWidth();
+        scroller = new ScrollerView("pattern_builder", UISizes.POPUP_CONTENT_WIDTH, UISizes.SLOT_SIZE).adaptiveWidth();
         scroller.addScrollViewChild(content);
         scroller.setAdaptiveHeight(Math.max(UISizes.SLOT_SIZE, maxHeight - chrome));
         addChildren(titleRow, scroller);
         if (counter != null) addChild(counter);
         addChild(actions);
+    }
+
+    public PatternBuilderPanel addAction(Component text, Runnable onClick) {
+        if (extraActions.getParent() == null) {
+            addWidget(widgets.indexOf(actions), extraActions);
+            chrome += UISizes.CONTROL_HEIGHT + UISizes.SECTION_GAP;
+            scroller.setAdaptiveHeight(Math.max(UISizes.SLOT_SIZE, maxHeight - chrome));
+        }
+        extraActions.addChild(Button.text(LayoutStyle.AUTO, text).layout(l -> l.flex(1))
+                .disabled(() -> !canWrite(), footer.blockedReason()).setOnClientClick(onClick));
+        return this;
+    }
+
+    public PatternBuilderPanel prependSection(UIElement section) {
+        content.addWidget(0, section);
+        return this;
     }
 
     public void setPopupSlot(PopupSlot popups) {

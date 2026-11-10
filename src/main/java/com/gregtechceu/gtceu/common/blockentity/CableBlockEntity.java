@@ -1,14 +1,12 @@
 package com.gregtechceu.gtceu.common.blockentity;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.PipeBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
 import com.gregtechceu.gtceu.api.data.chemical.material.properties.WireProperties;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
@@ -36,6 +34,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 import snownee.jade.api.BlockAccessor;
@@ -66,7 +65,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     @SyncToClient
     private int temperature = defaultTemp;
     private final TickTimeMonitor cableMonitor = this.monitorTick(GTTickTimeMonitors.CABLE, this::update);
-    private TickableSubscription heatSubs;
+    private Task heatSubs;
 
     public CableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -162,7 +161,7 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     }
 
     private void unsubscribeHeat() {
-        this.heatSubs = ITickSubscription.unsubscribe(this.heatSubs);
+        this.heatSubs = Task.cancel(this.heatSubs);
     }
 
     public CableBlock getPipeBlock() {

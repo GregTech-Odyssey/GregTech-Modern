@@ -1,12 +1,12 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
 import com.gregtechceu.gtceu.GTCEu;
-import com.gregtechceu.gtceu.core.ILevel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import com.suried.gtoutils.level.LevelStore;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.lang.ref.ReferenceQueue;
@@ -25,26 +25,27 @@ public final class BlockEntityWatch {
         void onBlockEntityChanged(BlockEntity blockEntity);
     }
 
-    private final ILevel owner;
+    private static final LevelStore<BlockEntityWatch> WATCHES = LevelStore.create(() -> null);
+
+    private final Level owner;
     private final Long2ObjectOpenHashMap<Ref[]> watchers = new Long2ObjectOpenHashMap<>();
     private final ReferenceQueue<Listener> queue = new ReferenceQueue<>();
     private long[] firing = new long[4];
     private int depth;
 
-    private BlockEntityWatch(ILevel owner) {
+    private BlockEntityWatch(Level owner) {
         this.owner = owner;
     }
 
     public static void watch(Level level, BlockPos pos, Listener listener) {
-        var owner = (ILevel) level;
-        var watch = owner.gtceu$getBlockEntityWatch();
-        if (watch == null) owner.gtceu$setBlockEntityWatch(watch = new BlockEntityWatch(owner));
+        var watch = WATCHES.getIfPresent(level);
+        if (watch == null) WATCHES.set(level, watch = new BlockEntityWatch(level));
         watch.add(pos.asLong(), listener);
         watch.purge();
     }
 
     public static void unwatch(Level level, BlockPos pos, Listener listener) {
-        var watch = ((ILevel) level).gtceu$getBlockEntityWatch();
+        var watch = WATCHES.getIfPresent(level);
         if (watch == null) return;
         watch.remove(pos.asLong(), listener);
         watch.purge();
@@ -53,7 +54,7 @@ public final class BlockEntityWatch {
     public static void changed(BlockEntity blockEntity) {
         var level = blockEntity.getLevel();
         if (level == null) return;
-        var watch = ((ILevel) level).gtceu$getBlockEntityWatch();
+        var watch = WATCHES.getIfPresent(level);
         if (watch != null) watch.fire(blockEntity);
     }
 
@@ -123,7 +124,7 @@ public final class BlockEntityWatch {
             var refs = watchers.get(ref.pos);
             if (refs != null) drop(ref.pos, refs, ref);
         }
-        if (watchers.isEmpty() && owner.gtceu$getBlockEntityWatch() == this) owner.gtceu$setBlockEntityWatch(null);
+        if (watchers.isEmpty() && WATCHES.getIfPresent(owner) == this) WATCHES.set(owner, null);
     }
 
     private void drop(long pos, Ref[] refs, Ref ref) {

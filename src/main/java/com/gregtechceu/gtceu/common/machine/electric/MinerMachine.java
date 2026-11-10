@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.gui.WidgetUtils;
 import com.gregtechceu.gtceu.api.gui.editor.EditableMachineUI;
 import com.gregtechceu.gtceu.api.gui.editor.EditableUI;
 import com.gregtechceu.gtceu.api.gui.widget.SlotWidget;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.WorkableTieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataInfoProvider;
@@ -27,7 +26,6 @@ import com.gregtechceu.gtceu.common.item.PortableScannerBehavior;
 import com.gregtechceu.gtceu.common.machine.trait.miner.MinerLogic;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.ComponentPanelWidget;
 import com.lowdragmc.lowdraglib.gui.widget.DraggableScrollableWidgetGroup;
@@ -57,6 +55,8 @@ import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,11 +90,11 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
     protected final EnchantmentSlotHandler enchantmentSlot;
     private final long energyPerTick;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     private final TickTimeMonitor chargeMonitor = holder.monitorTick(GTTickTimeMonitors.CHARGE, this::chargeBattery);
-    protected TickableSubscription batterySubs;
+    protected Task batterySubs;
     @Nullable
     protected ISubscription exportItemSubs;
     @Nullable
@@ -164,7 +164,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         super.onLoad();
         if (!isRemote()) {
             if (getLevel() instanceof ServerLevel serverLevel) {
-                TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+                Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
             }
             updateBatterySubscription();
             exportItemSubs = exportItems.addChangedListener(this::updateAutoOutputSubscription);
@@ -194,7 +194,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         if (isAutoOutputItems() && outputFace != null && !exportItems.isEmpty() && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFace, AEKeyTypes.ITEMS, StorageAccess.INSERT)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }
@@ -203,7 +203,7 @@ public class MinerMachine extends WorkableTieredMachine implements IMiner, IData
         if (energyContainer.dischargeOrRechargeEnergyContainers(chargerInventory, 0, true)) {
             batterySubs = subscribeServerTick(batterySubs, chargeMonitor);
         } else if (batterySubs != null) {
-            batterySubs.unsubscribe();
+            batterySubs.cancel();
             batterySubs = null;
         }
     }

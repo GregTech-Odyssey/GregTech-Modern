@@ -9,7 +9,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.multiblock.IBatteryData;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
-import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureIssue;
 import com.gregtechceu.gtceu.api.pattern.predicates.*;
 import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
@@ -46,6 +46,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class Predicates {
+
+    public static final Component COILS = Component.translatable("gtceu.structure.issue.subject.coils");
+    public static final Component FILTERS = Component.translatable("gtceu.structure.issue.subject.filters");
 
     public static TraceabilityPredicate controller(MachineDefinition definition) {
         return new ControllerPredicate(definition);
@@ -212,7 +215,7 @@ public class Predicates {
                     var stats = entry.getKey();
                     var currentCoil = blockWorldState.getMatchContext().getOrPut(DataKey.COIL_TYPE, stats);
                     if (!currentCoil.equals(stats)) {
-                        blockWorldState.setError(new PatternStringError("gtceu.multiblock.pattern.error.coils"));
+                        blockWorldState.setIssue(StructureIssue.mixed(COILS));
                         return false;
                     }
                     return true;
@@ -235,7 +238,7 @@ public class Predicates {
                     var stats = entry.getKey();
                     var orPut = blockWorldState.getMatchContext().getOrPut(DataKey.FILTER_TYPE, stats);
                     if (!orPut.equals(stats)) {
-                        blockWorldState.setError(new PatternStringError("gtceu.multiblock.pattern.error.filters"));
+                        blockWorldState.setIssue(StructureIssue.mixed(FILTERS));
                         return false;
                     }
                     return true;

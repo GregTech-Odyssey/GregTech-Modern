@@ -1,12 +1,13 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.server.level.ServerLevel;
 
+import com.suried.gtoutils.schedule.CoalescedTask;
+import com.suried.gtoutils.schedule.Schedulers;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +20,7 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
 
     protected boolean isDirty = true;
 
-    private TaskHandler.ReusableTask notifyTask;
+    private CoalescedTask notifyTask;
 
     @Getter
     @Setter
@@ -59,8 +60,8 @@ public abstract class NotifiableRecipeHandlerTrait extends MachineTrait implemen
             if (!machine.holder.isRemoved() && machine.getLevel() instanceof ServerLevel serverLevel) {
                 isDirty = false;
                 var task = notifyTask;
-                if (task == null) notifyTask = task = new TaskHandler.ReusableTask(this::runNotify);
-                TaskHandler.enqueueTask(serverLevel, task);
+                if (task == null) notifyTask = task = new CoalescedTask(this::runNotify);
+                Schedulers.of(serverLevel).submit(task);
             }
         }
     }

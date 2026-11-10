@@ -197,4 +197,9 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
     public boolean isEmpty() {
         return delegate.isEmpty();
     }
+
+    @Override
+    public boolean enumerateByKey() {
+        return delegate.enumerateByKey();
+    }
 }

@@ -1,9 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.trait;
 
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+
+import com.suried.gtoutils.schedule.Task;
 
 public class NotifiableLaserContainer extends NotifiableEnergyContainer implements ILaserContainer {
 
@@ -37,12 +38,12 @@ public class NotifiableLaserContainer extends NotifiableEnergyContainer implemen
             }
             if (energyUsed > 0) {
                 setEnergyStored(stored - energyUsed);
-                outputSubs.cycle = 0;
-            } else if (outputSubs.cycle < 10) {
-                outputSubs.cycle++;
+                outputSubs.setPeriod(1);
+            } else if (outputSubs.period() < 10) {
+                outputSubs.setPeriod(outputSubs.period() + 1);
             }
         } else {
-            outputSubs = ITickSubscription.unsubscribe(outputSubs);
+            outputSubs = Task.cancel(outputSubs);
         }
     }
 }

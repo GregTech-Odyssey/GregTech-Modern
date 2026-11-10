@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.uipro.animation.AnimationEngine;
 import com.gregtechceu.gtceu.uipro.animation.Eases;
 import com.gregtechceu.gtceu.uipro.render.UIPixels;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
+import com.gregtechceu.gtceu.uiwidgets.structure.StructureDiagnosisTab;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
@@ -276,6 +277,7 @@ public class FancyMachineUIWidget extends WidgetGroup implements ILayoutHost {
     protected void setupSideTabs(IFancyUIProvider currentHomePage) {
         this.sideTabsWidget.clearSubTabs();
         currentHomePage.attachSideTabs(sideTabsWidget);
+        StructureDiagnosisTab.attach(sideTabsWidget, currentHomePage);
     }
 
     @Nullable

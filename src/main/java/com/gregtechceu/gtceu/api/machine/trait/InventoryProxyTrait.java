@@ -66,6 +66,12 @@ public class InventoryProxyTrait<K extends AEKey> extends MachineTrait implement
     }
 
     @Override
+    public boolean enumerateByKey() {
+        var p = proxy;
+        return p != null && p.enumerateByKey();
+    }
+
+    @Override
     public @Nullable K keyAt(int slot) {
         var p = proxy;
         return p == null ? null : p.keyAt(slot);

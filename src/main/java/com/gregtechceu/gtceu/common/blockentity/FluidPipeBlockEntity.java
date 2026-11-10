@@ -303,7 +303,7 @@ public final class FluidPipeBlockEntity extends PipeBlockEntity<FluidPipeType, F
         }
         autoTransfer = false;
         if (!hasHandler) {
-            transferSubs.unsubscribe();
+            transferSubs.cancel();
             transferSubs = null;
         }
     }

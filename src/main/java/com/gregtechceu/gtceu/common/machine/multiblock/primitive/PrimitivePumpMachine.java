@@ -1,9 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IWailaDisplayProvider;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IWorkableMultiPart;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableInventory;
@@ -20,6 +18,7 @@ import net.minecraftforge.fluids.FluidType;
 
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKeyTypes;
+import com.suried.gtoutils.schedule.Task;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
@@ -33,7 +32,7 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     private int biomeModifier = 0;
     private int hatchModifier = 0;
     private NotifiableInventory<AEFluidKey> fluidTank;
-    private TickableSubscription produceWaterSubscription;
+    private Task produceWaterSubscription;
 
     public PrimitivePumpMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -81,13 +80,13 @@ public class PrimitivePumpMachine extends MultiblockControllerMachine implements
     }
 
     private void resetState() {
-        produceWaterSubscription = ITickSubscription.unsubscribe(produceWaterSubscription);
+        produceWaterSubscription = Task.cancel(produceWaterSubscription);
         hatchModifier = 0;
         fluidTank = null;
     }
 
     private void produceWater() {
-        if (isFormed() && !getMultiblockState().hasError()) {
+        if (isFormed()) {
             if (biomeModifier == 0) {
                 biomeModifier = GTUtil.getPumpBiomeModifier(getLevel().getBiome(getPos()));
             } else if (biomeModifier > 0) {

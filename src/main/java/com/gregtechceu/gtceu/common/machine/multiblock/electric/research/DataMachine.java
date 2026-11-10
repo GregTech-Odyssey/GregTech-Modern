@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.electric.research;
 
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
@@ -10,13 +9,14 @@ import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -32,7 +32,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     protected int energyUsage = 0;
     @Nullable
     private final TickTimeMonitor researchMonitor = holder.monitorTick(GTTickTimeMonitors.COMPUTATION, this::tick);
-    protected TickableSubscription tickSubs;
+    protected Task tickSubs;
 
     public DataMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -92,7 +92,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     public void onLoad() {
         super.onLoad();
         if (this.isFormed() && getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateTickSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateTickSubscription);
         }
     }
 
@@ -100,7 +100,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     public void onUnload() {
         super.onUnload();
         if (tickSubs != null) {
-            tickSubs.unsubscribe();
+            tickSubs.cancel();
             tickSubs = null;
         }
     }
@@ -109,7 +109,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
         if (isFormed) {
             tickSubs = subscribeServerTick(tickSubs, researchMonitor);
         } else if (tickSubs != null) {
-            tickSubs.unsubscribe();
+            tickSubs.cancel();
             tickSubs = null;
         }
     }

@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.ILaserContainer;
 import com.gregtechceu.gtceu.common.pipelike.laser.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,7 +108,7 @@ public final class LaserPipeBlockEntity extends PipeBlockEntity<LaserPipeType, L
             setChanged();
             this.sync = true;
             if (active && duration != this.activeDuration) {
-                TaskHandler.enqueueTask(getLevel(), this::queueDisconnect, 0);
+                Schedulers.of(getLevel()).schedule(this::queueDisconnect);
             }
         }
         this.activeDuration = duration;

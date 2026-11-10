@@ -21,6 +21,8 @@
     "panel_outline": "#26345E",
     "status_panel_fill": "#111933",
     "progress_track_fill": "#0C1329",
+    "tray_fill": "#0A0F24",
+    "card_pressed_fill": "#0C122A",
     "display_screen_fill": "#070B18",
     "bevel_dark": "#070A18",
     "bevel_light": "#34467A",

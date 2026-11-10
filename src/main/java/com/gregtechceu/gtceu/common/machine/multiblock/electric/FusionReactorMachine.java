@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.IFusionCasingType;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
@@ -25,6 +24,7 @@ import net.minecraft.world.level.block.Block;
 import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2IntAVLTreeMap;
@@ -67,7 +67,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
     @Nullable
     private GTRecipe colorRecipe;
     @Nullable
-    protected TickableSubscription preHeatSubs;
+    protected Task preHeatSubs;
 
     public FusionReactorMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder);
@@ -127,7 +127,7 @@ public class FusionReactorMachine extends WorkableElectricMultiblockMachine {
                 energyContainer.getEnergyStored() < energyContainer.getEnergyCapacity())) {
             preHeatSubs = subscribeServerTick(preHeatSubs, this::updateHeat);
         } else if (preHeatSubs != null) {
-            preHeatSubs.unsubscribe();
+            preHeatSubs.cancel();
             preHeatSubs = null;
         }
     }

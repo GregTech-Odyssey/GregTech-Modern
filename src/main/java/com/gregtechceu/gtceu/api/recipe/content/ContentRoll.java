@@ -26,8 +26,13 @@ public final class ContentRoll {
         if (chance == 0) return 0;
         long effective = list.effective(i, recipe.scale);
         if (chance == ContentList.MAX_CHANCE) return effective;
+        return roll(effective, list.rollUnits[i], boostedChance(recipe, list, i), rng);
+    }
+
+    public static int boostedChance(GTRecipe recipe, ContentList list, int i) {
+        int chance = list.chances[i];
+        if (chance == 0 || chance == ContentList.MAX_CHANCE) return chance;
         var definition = recipe.definition;
-        int boosted = definition.chanceFunction.getBoostedChance(chance, list.boosts[i], definition.tier, definition.tier + recipe.ocLevel);
-        return roll(effective, list.rollUnits[i], boosted, rng);
+        return definition.chanceFunction.getBoostedChance(chance, list.boosts[i], definition.tier, definition.tier + recipe.ocLevel);
     }
 }

@@ -62,6 +62,11 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
     }
 
     @Override
+    public boolean enumerateByKey() {
+        return true;
+    }
+
+    @Override
     public int size() {
         var room = hasRoom;
         return room == null ? 0 : room.getAsBoolean() ? 2 : 1;
@@ -160,6 +165,24 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
         var map = contents;
         if (map == null) return storage.extract(key, Long.MAX_VALUE, Actionable.SIMULATE, IActionSource.empty());
         return map.getAmount(key);
+    }
+
+    @Override
+    public KeyCounter getAvailableStacks() {
+        if (mark == null) {
+            var all = storage.getAvailableStacks();
+            boolean pure = true;
+            for (var e : all) {
+                if (e.getKey().getType() != type) {
+                    pure = false;
+                    break;
+                }
+            }
+            if (pure) return all;
+        }
+        var out = new KeyCounter();
+        getAvailableStacks(out);
+        return out;
     }
 
     @Override

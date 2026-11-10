@@ -492,6 +492,15 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         return false;
     }
 
+    default long outputUpTo(AEKey key, long amount) {
+        long done = 0;
+        for (var handler : getOutputUnits()) {
+            if (done >= amount) break;
+            done += handler.outputUpTo(key, amount - done);
+        }
+        return done;
+    }
+
     default boolean matchItem(ItemLike item) {
         return matchItem(item, 1);
     }

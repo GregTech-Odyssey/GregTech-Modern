@@ -21,6 +21,7 @@ import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
 import com.gregtechceu.gtceu.uiwidgets.structure.PartCellsOverlay;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureBuildFlow;
+import com.gregtechceu.gtceu.uiwidgets.structure.StructureIssueOverlay;
 import com.gregtechceu.gtceu.uiwidgets.structure.StructureProjection;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
@@ -54,6 +55,7 @@ public class ForgeClientEventListener {
             StructureProjection.render(event);
         } else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) {
             PartCellsOverlay.render(event);
+            StructureIssueOverlay.render(event);
         }
     }
 
@@ -80,6 +82,7 @@ public class ForgeClientEventListener {
             TooltipHelper.onClientTick();
             StructureProjection.tick();
             PartCellsOverlay.tick();
+            StructureIssueOverlay.tick();
             // 勘探写缓存只置脏，本帧结束前统一刷新一次地图高亮
             GroupingMapRenderer.flushPendingRefresh();
             GTValues.CLIENT_TIME++;
@@ -122,6 +125,7 @@ public class ForgeClientEventListener {
             StructureProjection.clear();
         }
         PartCellsOverlay.clear();
+        StructureIssueOverlay.clear();
         CarriedStock.clear();
         StructureBuildFlow.clear();
     }

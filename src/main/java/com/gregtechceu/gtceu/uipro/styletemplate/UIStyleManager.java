@@ -70,6 +70,8 @@ public final class UIStyleManager {
             Map.entry("panel_outline", 0xFF8B8B8B),
             Map.entry("status_panel_fill", 0xFFB5B5B5),
             Map.entry("progress_track_fill", 0xFFA4A4A4),
+            Map.entry("tray_fill", 0xFFA4A4A4),
+            Map.entry("card_pressed_fill", 0xFFB5B5B5),
             Map.entry("display_screen_fill", 0xFF21262A),
             Map.entry("bevel_dark", 0xFF7A7A7A),
             Map.entry("bevel_light", 0xFFFFFFFF),
@@ -156,6 +158,8 @@ public final class UIStyleManager {
             "slot_bevel_light", "bevel_light",
             "divider", "panel_outline",
             "card_fill", "window_fill",
+            "tray_fill", "progress_track_fill",
+            "card_pressed_fill", "status_panel_fill",
             "flow_node_fill", "window_fill");
 
     private static final TexturePack DEFAULT_TEXTURE_PACK = new TexturePack(

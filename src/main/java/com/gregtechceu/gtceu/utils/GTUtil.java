@@ -54,10 +54,6 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 
 import static com.gregtechceu.gtceu.api.data.chemical.material.properties.PropertyKey.HAZARD;
@@ -102,21 +98,6 @@ public class GTUtil {
             MAP_COLORS[i] = MapColor.byId(i + 1);
         }
     }
-
-    public static final int ASYNC_AVAILABLE_PROCESSORS = Math.max(Runtime.getRuntime().availableProcessors() - (GTCEu.isClientSide() ? 2 : 1), 1);
-
-    public static final ScheduledExecutorService ASYNC_EXECUTOR = Util.make(() -> {
-        AtomicInteger workercount = new AtomicInteger(0);
-        ThreadFactory factory = r -> {
-            var thread = new AsyncExecutorThread(r);
-            thread.setName("Async-worker-" + workercount.getAndIncrement());
-            thread.setDaemon(true);
-            thread.setPriority(1);
-            return thread;
-        };
-        if (ASYNC_AVAILABLE_PROCESSORS > 1) return Executors.newScheduledThreadPool(ASYNC_AVAILABLE_PROCESSORS, factory);
-        return Executors.newSingleThreadScheduledExecutor(factory);
-    });
 
     public static ResourceLocation getResourceLocation(String location) {
         String namespace = "minecraft";
@@ -601,12 +582,5 @@ public class GTUtil {
                     Component.literal(String.valueOf(100 * probability))
                             .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)))));
         });
-    }
-
-    public static final class AsyncExecutorThread extends Thread {
-
-        public AsyncExecutorThread(Runnable runnable) {
-            super(runnable);
-        }
     }
 }

@@ -1,24 +1,16 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
-import com.gregtechceu.gtceu.utils.TaskHandler;
-
-import com.lowdragmc.lowdraglib.syncdata.ISubscription;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import com.suried.gtoutils.schedule.Cadence;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import org.jetbrains.annotations.Nullable;
 
 public interface ITickSubscription {
-
-    static <T extends ISubscription> T unsubscribe(@Nullable T current) {
-        if (current != null) {
-            current.unsubscribe();
-        }
-        return null;
-    }
 
     GTBlockEntity getHolder();
 
@@ -27,49 +19,49 @@ public interface ITickSubscription {
      * {@link BlockEntity#clearRemoved()} event.
      */
     @Nullable
-    default TickableSubscription subscribeServerTick(Runnable runnable, int cycle) {
+    default Task subscribeServerTick(Runnable runnable, int cycle) {
         var self = getHolder();
         if (self.getLevel() instanceof ServerLevel serverLevel) {
-            return TaskHandler.enqueueTick(serverLevel, self.isRemove, runnable, cycle, self.tickDelay);
+            return Schedulers.of(serverLevel).repeat(Cadence.every(cycle), self, runnable);
         }
         return null;
     }
 
     @Nullable
-    default TickableSubscription subscribeClientTick(Runnable runnable, int cycle) {
+    default Task subscribeClientTick(Runnable runnable, int cycle) {
         var self = getHolder();
         var level = self.getLevel();
         if (level != null && level.isClientSide) {
-            return TaskHandler.enqueueTick(level, self.isRemove, runnable, cycle, self.tickDelay);
+            return Schedulers.of(level).repeat(Cadence.every(cycle), self, runnable);
         }
         return null;
     }
 
     @Nullable
-    default TickableSubscription subscribeAsyncTick(Runnable runnable, int cycle) {
+    default Task subscribeAsyncTick(Runnable runnable, int cycle) {
         var self = getHolder();
         var level = self.getLevel();
         if (level != null) {
-            return TaskHandler.enqueueAsyncTick(level, self.isRemove, runnable, cycle, self.tickDelay);
+            return Schedulers.async(level).repeat(Cadence.every(cycle), self, runnable);
         }
         return null;
     }
 
-    default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable) {
+    default Task subscribeServerTick(@Nullable Task last, Runnable runnable) {
         return subscribeServerTick(last, runnable, 0);
     }
 
-    default TickableSubscription subscribeClientTick(@Nullable TickableSubscription last, Runnable runnable) {
+    default Task subscribeClientTick(@Nullable Task last, Runnable runnable) {
         return subscribeClientTick(last, runnable, 0);
     }
 
-    default TickableSubscription subscribeAsyncTick(@Nullable TickableSubscription last, Runnable runnable) {
+    default Task subscribeAsyncTick(@Nullable Task last, Runnable runnable) {
         return subscribeAsyncTick(last, runnable, 0);
     }
 
     @Nullable
-    default TickableSubscription subscribeServerTick(@Nullable TickableSubscription last, Runnable runnable, int cycle) {
-        if (last == null || !last.stillSubscribed) {
+    default Task subscribeServerTick(@Nullable Task last, Runnable runnable, int cycle) {
+        if (!Task.isActive(last)) {
             return subscribeServerTick(runnable, cycle);
         }
         return last;
@@ -87,22 +79,22 @@ public interface ITickSubscription {
      * lambda：监控只在第一次注册时记住它，之后一直跑旧的，既会泄漏被捕获的引用，也会丢掉不变量更新。
      */
     @Nullable
-    default TickableSubscription subscribeMonitoredTick(@Nullable TickableSubscription last,
-                                                        TickTimeMonitor.Entry entry, Runnable task, int cycle) {
+    default Task subscribeMonitoredTick(@Nullable Task last,
+                                        TickTimeMonitor.Entry entry, Runnable task, int cycle) {
         return subscribeServerTick(last, getHolder().monitorTick(entry, task), cycle);
     }
 
     @Nullable
-    default TickableSubscription subscribeClientTick(@Nullable TickableSubscription last, Runnable runnable, int cycle) {
-        if (last == null || !last.stillSubscribed) {
+    default Task subscribeClientTick(@Nullable Task last, Runnable runnable, int cycle) {
+        if (!Task.isActive(last)) {
             return subscribeClientTick(runnable, cycle);
         }
         return last;
     }
 
     @Nullable
-    default TickableSubscription subscribeAsyncTick(@Nullable TickableSubscription last, Runnable runnable, int cycle) {
-        if (last == null || !last.stillSubscribed) {
+    default Task subscribeAsyncTick(@Nullable Task last, Runnable runnable, int cycle) {
+        if (!Task.isActive(last)) {
             return subscribeAsyncTick(runnable, cycle);
         }
         return last;

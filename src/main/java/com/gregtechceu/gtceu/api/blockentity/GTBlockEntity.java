@@ -3,10 +3,8 @@ package com.gregtechceu.gtceu.api.blockentity;
 import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
@@ -29,22 +27,22 @@ import com.gto.datasynclib.datastream.codec.JavaValueOps;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.datasynclib.network.DataSyncNetwork;
 import com.gto.datasynclib.util.ByteBufUtil;
+import com.suried.gtoutils.schedule.CoalescedTask;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.function.BooleanSupplier;
 
 public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickSubscription {
 
     public final int offset = GTValues.RNG.nextInt(20);
     public volatile boolean remove = false;
-    public final BooleanSupplier isRemove = () -> remove;
-    public int tickDelay = 0;
 
     protected LevelChunk chunk;
 
-    private TickableSubscription autoSyncSubscription;
+    private Task autoSyncSubscription;
 
     public boolean sync = true;
 
@@ -52,7 +50,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     private boolean changed;
     private boolean neighborChanged;
-    private TaskHandler.ReusableTask changedTask;
+    private CoalescedTask changedTask;
 
     public final long longPos;
 
@@ -123,10 +121,10 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         if (neighborChanged) return;
         if (level != null) {
             neighborChanged = true;
-            TaskHandler.enqueueTask(level, () -> {
+            Schedulers.of(level).schedule(() -> {
                 level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
                 neighborChanged = false;
-            }, 0);
+            });
         }
     }
 
@@ -189,8 +187,8 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         if (level instanceof ServerLevel serverLevel) {
             changed = true;
             var task = changedTask;
-            if (task == null) changedTask = task = new TaskHandler.ReusableTask(this::markChunkUnsaved);
-            TaskHandler.enqueueTask(serverLevel, task);
+            if (task == null) changedTask = task = new CoalescedTask(this::markChunkUnsaved);
+            Schedulers.of(serverLevel).submit(task);
         }
     }
 
@@ -215,7 +213,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         blockEntityDirectionCache.clearCache();
         blockStateDirectionCache.clearCache();
         this.remove = true;
-        autoSyncSubscription = ITickSubscription.unsubscribe(autoSyncSubscription);
+        autoSyncSubscription = Task.cancel(autoSyncSubscription);
         super.setRemoved();
         chunk = null;
     }
@@ -230,15 +228,12 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         chunk = null;
         super.clearRemoved();
         if (level instanceof ServerLevel serverLevel) {
-            tickDelay = offset;
             autoSyncSubscription = subscribeAsyncTick(autoSyncSubscription, this::autoSync, 5);
-            TaskHandler.enqueueTask(serverLevel, this::onServerDelayLoad, 1);
+            Schedulers.of(serverLevel).schedule(1, this::onServerDelayLoad);
         }
     }
 
-    protected void onServerDelayLoad() {
-        tickDelay = 0;
-    }
+    protected void onServerDelayLoad() {}
 
     protected int periodID = offset;
 

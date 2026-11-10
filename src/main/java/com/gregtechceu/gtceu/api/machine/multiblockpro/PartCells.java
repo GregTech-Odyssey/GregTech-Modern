@@ -46,7 +46,7 @@ public final class PartCells {
         if (!(machine.getDefinition() instanceof MultiblockMachineDefinition definition)) return null;
         var structure = definition.getStructure();
         var assembly = controller.getAssembly();
-        if (structure == null || assembly == null) return null;
+        if (structure == null) return null;
         return new Request(definition, structure, structure.valuesOf(assembly), machine.getPos().immutable(), machine.getFrontFacing(),
                 machine.getUpwardsFacing(), machine.isFlipped());
     }

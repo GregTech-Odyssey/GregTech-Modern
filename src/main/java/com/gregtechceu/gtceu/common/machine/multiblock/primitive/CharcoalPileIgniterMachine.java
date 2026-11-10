@@ -1,11 +1,9 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.primitive;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.item.ComponentItem;
 import com.gregtechceu.gtceu.api.machine.MultiblockMachineDefinition;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
@@ -18,7 +16,6 @@ import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.item.tool.behavior.LighterBehavior;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -48,6 +45,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.fastcollection.fastutil.OpenCacheHashSet;
+import com.suried.gtoutils.level.LoadedChunks;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.longs.Long2BooleanMap;
 import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +86,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     private int hDist = 0;
 
     private boolean hasAir = false;
-    private TickableSubscription particleSubscription;
+    private Task particleSubscription;
 
     public CharcoalPileIgniterMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -102,7 +101,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
     @Override
     public void onStructureInvalidClient() {
         super.onStructureInvalidClient();
-        particleSubscription = ITickSubscription.unsubscribe(particleSubscription);
+        particleSubscription = Task.cancel(particleSubscription);
     }
 
     @Override
@@ -110,8 +109,8 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
         super.onStructureFormed();
         updateDimensions();
         hasAir = false;
-        if (getMultiblockState().getMatchContext().containsKey(LOG_POS)) {
-            Long2BooleanMap logPositions = getMultiblockState().getMatchContext().get(LOG_POS);
+        Long2BooleanMap logPositions = getAssembly().get(LOG_POS);
+        if (logPositions != null) {
             for (var entry : logPositions.long2BooleanEntrySet()) {
                 if (entry.getBooleanValue()) {
                     logPos.add(BlockPos.of(entry.getLongKey()));
@@ -149,7 +148,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
 
     public static Structure structure(MultiblockMachineDefinition definition) {
         var floor = Predicates.blocks(Blocks.BRICKS);
-        var wallBelow = new TraceabilityPredicate(state -> ILevel.asyncGetBlockState(state.world, state.getPos().below()).is(CustomTags.CHARCOAL_PILE_IGNITER_WALLS), null, null);
+        var wallBelow = new TraceabilityPredicate(state -> LoadedChunks.blockState(state.world, state.getPos().below()).is(CustomTags.CHARCOAL_PILE_IGNITER_WALLS), null, null);
         var symbols = Symbols.create()
                 .where('S', Predicates.controller(definition))
                 .wherePart('B', Predicates.blocks(Blocks.BRICKS))
@@ -221,7 +220,7 @@ public class CharcoalPileIgniterMachine extends WorkableMultiblockMachine implem
 
     public void updateDimensions() {
         var assembly = getAssembly();
-        if (assembly == null || !assembly.has(LEFT_DIST)) return;
+        if (!assembly.has(LEFT_DIST)) return;
         this.lDist = assembly.get(LEFT_DIST);
         this.rDist = assembly.get(RIGHT_DIST);
         this.fDist = assembly.get(FRONT_DIST);

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.api.transfer.key;
 
 import com.gregtechceu.gtceu.api.blockentity.BlockEntityWatch;
-import com.gregtechceu.gtceu.core.ILevel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,6 +12,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
+import com.suried.gtoutils.level.LoadedChunks;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -95,7 +95,7 @@ public final class RemoteKeyTarget implements BlockEntityWatch.Listener {
         if (be != null && !be.isRemoved()) return be;
         var l = level;
         var p = pos;
-        be = l == null || p == null ? null : ILevel.getCachedBlockEntity(l, p);
+        be = l == null || p == null ? null : LoadedChunks.blockEntity(l, p);
         if (blockEntity != be) release(be);
         return be;
     }

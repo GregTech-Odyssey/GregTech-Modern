@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.steam;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableMultiblockMachine;
@@ -22,7 +21,6 @@ import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.ControlPanel;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 
@@ -36,8 +34,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraftforge.fluids.FluidType;
+
+import appeng.api.stacks.AEFluidKey;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,12 +53,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class LargeBoilerMachine extends WorkableMultiblockMachine implements IExplosionMachine, IMultiblockFancyUIMachine {
 
     public static final int TICKS_PER_STEAM_GENERATION = 5;
+    public static final long STEAM_BUFFER_CAPACITY = 64L * FluidType.BUCKET_VOLUME;
     private static final Component THROTTLE_LABEL = Component.translatable("gtceu.multiblock.large_boiler.throttle.label");
     private static final Component THROTTLE_TOOLTIP = Component.translatable("gtceu.multiblock.large_boiler.throttle.tooltip");
     private static final Component TEMPERATURE_LABEL = Component.translatable("gtceu.multiblock.large_boiler.temperature.label");
     private static final Component STEAM_OUTPUT_LABEL = Component.translatable("gtceu.multiblock.large_boiler.steam_output.label");
+    private static final Component STEAM_BUFFER_LABEL = Component.translatable("gtceu.multiblock.large_boiler.steam_buffer.label");
 
     private static final Fluid STEAM = GTMaterials.Steam.getFluid();
+    private static final AEFluidKey STEAM_KEY = AEFluidKey.of(STEAM);
 
     @Getter
     public final int maxTemperature;
@@ -69,9 +75,12 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     private int throttle;
     @SaveToDisk(defaultValue = "100")
     private int activeThrottle;
+    @Getter
+    @SaveToDisk(defaultValue = "0")
+    private long steamBuffer;
     @Nullable
     private final TickTimeMonitor steamMonitor = holder.monitorTick(GTTickTimeMonitors.STEAM, this::updateCurrentTemperature);
-    protected TickableSubscription temperatureSubs;
+    protected Task temperatureSubs;
     private int steamGenerated;
 
     private boolean hasNoWater;
@@ -91,7 +100,7 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     public void onStructureFormed() {
         super.onStructureFormed();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateSteamSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateSteamSubscription);
         }
     }
 
@@ -99,24 +108,24 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
     public void onStructureInvalid() {
         super.onStructureInvalid();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateSteamSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateSteamSubscription);
         }
     }
 
     @Override
     public void onUnload() {
         if (temperatureSubs != null) {
-            temperatureSubs.unsubscribe();
+            temperatureSubs.cancel();
             temperatureSubs = null;
         }
         super.onUnload();
     }
 
     protected void updateSteamSubscription() {
-        if (currentTemperature > 0) {
+        if (currentTemperature > 0 || steamBuffer > 0) {
             temperatureSubs = subscribeServerTick(temperatureSubs, steamMonitor);
         } else if (temperatureSubs != null) {
-            temperatureSubs.unsubscribe();
+            temperatureSubs.cancel();
             temperatureSubs = null;
         }
     }
@@ -131,21 +140,33 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
         } else if (currentTemperature > 0) {
             currentTemperature -= 1;
         }
-        if (currentTemperature > 100 && isFormed() && getOffsetTimer() % 5 == 0) {
-            int currentThrottle = recipeLogic.isWorking() ? activeThrottle : throttle;
-            int water = currentTemperature * currentThrottle * 5 / 16000;
-            if (water > 0) {
-                if (inputFluid(Fluids.WATER, water)) {
-                    steamGenerated = currentTemperature * currentThrottle * 5 / 100;
-                    if (steamGenerated > 0) {
-                        outputFluid(STEAM, steamGenerated);
+        if (isFormed() && getOffsetTimer() % 5 == 0) {
+            long steam = steamBuffer;
+            boolean explode = false;
+            if (currentTemperature > 100) {
+                int currentThrottle = recipeLogic.isWorking() ? activeThrottle : throttle;
+                int water = currentTemperature * currentThrottle * 5 / 16000;
+                if (water > 0) {
+                    if (inputFluid(Fluids.WATER, water)) {
+                        steamGenerated = currentTemperature * currentThrottle * 5 / 100;
+                        if (steamGenerated > 0) {
+                            steam += steamGenerated;
+                        }
+                        explode = hasNoWater;
+                    } else {
+                        hasNoWater = true;
                     }
-                    if (hasNoWater) {
-                        doExplosion(2.0F);
-                    }
-                } else {
-                    hasNoWater = true;
                 }
+            }
+            if (steam > 0) {
+                long next = Math.min(STEAM_BUFFER_CAPACITY, steam - outputUpTo(STEAM_KEY, steam));
+                if (next != steamBuffer) {
+                    steamBuffer = next;
+                    onChanged();
+                }
+            }
+            if (explode) {
+                doExplosion(2.0F);
             }
         }
     }
@@ -231,6 +252,8 @@ public class LargeBoilerMachine extends WorkableMultiblockMachine implements IEx
         page.addBar(TEMPERATURE_LABEL, UITheme::barHeat, () -> new ProgressBar.Progress(currentTemperature, maxTemperature, 0)).percent()
                 .bindDetail(MultiblockPage.cached(() -> currentTemperature, temperature -> Component.literal((temperature + 274) + " / " + (maxTemperature + 274) + " K")));
         page.addNumber(STEAM_OUTPUT_LABEL, () -> steamGenerated / TICKS_PER_STEAM_GENERATION, "mB/t");
+        page.addBar(STEAM_BUFFER_LABEL, UITheme::barSteam, () -> new ProgressBar.Progress(steamBuffer, STEAM_BUFFER_CAPACITY, 0)).percent()
+                .bindDetail(MultiblockPage.fractionText(() -> steamBuffer, () -> STEAM_BUFFER_CAPACITY, "mB"));
         addScreenReadouts(page);
         addControls(page.getControls());
         return page.build();

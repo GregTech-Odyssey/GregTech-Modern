@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.item.IGTTool;
 import com.gregtechceu.gtceu.api.item.capability.ElectricItem;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
 import com.gregtechceu.gtceu.common.item.tool.behavior.HarvestIceBehavior;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -36,6 +35,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import com.suried.gtoutils.schedule.Schedulers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,7 +124,7 @@ public class ToolEventHandlers {
             Item iceBlock = block.asItem();
             if (drops.stream().noneMatch(drop -> drop.getItem() == iceBlock)) {
                 drops.add(new ItemStack(iceBlock));
-                TaskHandler.enqueueTask(level, () -> {
+                Schedulers.of(level).schedule(() -> {
                     BlockState oldState = level.getBlockState(pos);
                     if (oldState.getFluidState().isSourceOfType(Fluids.WATER)) {
                         // I think it may be a waterlogged block, although the probability is very small
@@ -133,7 +133,7 @@ public class ToolEventHandlers {
                                 Blocks.AIR.defaultBlockState();
                         level.setBlockAndUpdate(pos, newState);
                     }
-                }, 0);
+                });
                 ((IGTTool) tool.getItem()).playSound(player);
             }
         }

@@ -7,7 +7,6 @@ import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
 import com.gregtechceu.gtceu.common.pipelike.optical.*;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +123,7 @@ public final class OpticalPipeBlockEntity extends PipeBlockEntity<OpticalPipeTyp
         } else if (!this.isActive && active) {
             this.isActive = true;
             stateChanged = true;
-            TaskHandler.enqueueTask(getLevel(), () -> setActive(false, 0), duration);
+            Schedulers.of(getLevel()).schedule(duration, () -> setActive(false, 0));
         }
         if (stateChanged) {
             setChanged();

@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.cover;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -11,6 +10,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidType;
 
 import appeng.api.stacks.AEFluidKey;
+import com.suried.gtoutils.schedule.Task;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -18,7 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class InfiniteWaterCover extends CoverBehavior {
 
-    private TickableSubscription subscription;
+    private Task subscription;
 
     public InfiniteWaterCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
@@ -39,7 +39,7 @@ public class InfiniteWaterCover extends CoverBehavior {
     public void onRemoved() {
         super.onRemoved();
         if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
         }
     }
 

@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
 import com.gregtechceu.gtceu.api.cover.IMachineShutdownListener;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.tooltip.TipRole;
 import com.gregtechceu.gtceu.api.tooltip.TipSpec;
 import com.gregtechceu.gtceu.common.cover.data.ControllerMode;
@@ -24,6 +23,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +65,7 @@ public class AdvancedMachineControllerCover extends MachineControllerCover imple
     @SaveToDisk
     private int remainingTicks;
     @Nullable
-    private TickableSubscription subscription;
+    private Task subscription;
 
     public AdvancedMachineControllerCover(CoverDefinition definition, ICoverable coverHolder, Direction attachedSide) {
         super(definition, coverHolder, attachedSide);
@@ -130,7 +130,7 @@ public class AdvancedMachineControllerCover extends MachineControllerCover imple
 
     private void unsubscribe() {
         if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
             subscription = null;
         }
     }

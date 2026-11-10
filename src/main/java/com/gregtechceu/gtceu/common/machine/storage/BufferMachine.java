@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.storage;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputBoth;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
@@ -15,7 +14,6 @@ import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.DualHatchPartMachine;
 import com.gregtechceu.gtceu.common.machine.multiblock.part.FluidHatchPartMachine;
 import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
@@ -35,6 +33,8 @@ import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +77,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     @SaveToDisk
     protected final NotifiableInventory<AEFluidKey> tank;
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::autoOutput);
     @Nullable
     protected ISubscription invSubs;
@@ -115,7 +115,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
             this.invSubs = inventory.addChangedListener(this::updateAutoOutputSubscription);
             this.tankSubs = tank.addChangedListener(this::updateAutoOutputSubscription);
         }
@@ -175,7 +175,7 @@ public class BufferMachine extends TieredMachine implements IMachineLife, IAutoO
         if ((isAutoOutputItems() && !inventory.isEmpty() && outputFacingItems != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacingItems, AEKeyTypes.ITEMS, StorageAccess.INSERT)) || (isAutoOutputFluids() && !tank.isEmpty() && outputFacingFluids != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacingFluids, AEKeyTypes.FLUIDS, StorageAccess.INSERT))) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, 20);
         } else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }

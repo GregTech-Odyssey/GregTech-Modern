@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.uipro.elements.Form;
 import com.gregtechceu.gtceu.uipro.elements.NumberField;
 import com.gregtechceu.gtceu.uipro.elements.Switch;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -20,6 +19,7 @@ import net.minecraft.world.level.block.Block;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
 
 public class ControlPartMachine extends MultiblockPartMachine implements IControllable {
 
@@ -66,7 +66,7 @@ public class ControlPartMachine extends MultiblockPartMachine implements IContro
     public void addedToController(IMultiController controller) {
         super.addedToController(controller);
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateInput, 0);
+            Schedulers.of(serverLevel).schedule(this::updateInput);
         }
     }
 

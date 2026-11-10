@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.uiwidgets.structure;
 
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBuild;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureTree;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
 import com.gregtechceu.gtceu.uipro.UIElement;
@@ -15,7 +17,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.Arrays;
 
 /**
- * 普通终端结构预览的镜像、拆除与取料模式：预览、结构树、投影与建造共用同一份状态，变化时递增版本号。
+ * 普通终端结构预览的镜像、替换、拆除与取料模式：预览、结构树、投影与建造共用同一份状态，变化时递增版本号。
  */
 @OnlyIn(Dist.CLIENT)
 public final class TerminalModes {
@@ -23,6 +25,8 @@ public final class TerminalModes {
     public static final Component MIRROR = Component.translatable("gtceu.structure_build.mirror");
     public static final Component MIRROR_DESC = Component.translatable("gtceu.structure_build.mirror.desc");
     public static final Component MIRROR_UNSUPPORTED = Component.translatable("gtceu.structure_build.mirror.unsupported");
+    public static final Component REPLACE = Component.translatable("gtceu.structure_build.replace");
+    public static final Component REPLACE_DESC = Component.translatable("gtceu.structure_build.replace.desc");
     public static final Component DEMOLISH = Component.translatable("gtceu.structure_build.demolish");
     public static final Component DEMOLISH_DESC = Component.translatable("gtceu.structure_build.demolish.desc");
     public static final Component DEMOLISH_NODE = Component.translatable("gtceu.structure_build.demolish.node");
@@ -32,19 +36,26 @@ public final class TerminalModes {
     private static final String MIRROR_PREFERENCE = "structure_build.mirror";
     private static final String NETWORK_PREFERENCE = "structure_build.network";
 
+    private final IMultiController controller;
     private final boolean canMirror;
     private final boolean[] demolishNodes;
     private boolean demolish;
+    private boolean replace;
     private int version;
 
-    public TerminalModes(boolean canMirror, StructureTree tree) {
-        this.canMirror = canMirror;
+    public TerminalModes(IMultiController controller, StructureTree tree) {
+        this.controller = controller;
+        this.canMirror = controller.self().allowFlip();
         this.demolishNodes = new boolean[tree.nodes().length];
         Arrays.fill(demolishNodes, true);
     }
 
     public int getVersion() {
         return version;
+    }
+
+    public IMultiController getController() {
+        return controller;
     }
 
     public boolean isMirror() {
@@ -64,7 +75,24 @@ public final class TerminalModes {
     public void setDemolish(boolean demolish) {
         if (this.demolish == demolish) return;
         this.demolish = demolish;
+        if (demolish) replace = false;
         version++;
+    }
+
+    public boolean isReplace() {
+        return replace;
+    }
+
+    public void setReplace(boolean replace) {
+        if (this.replace == replace) return;
+        this.replace = replace;
+        if (replace) demolish = false;
+        version++;
+    }
+
+    public int buildFlags() {
+        return (isMirror() ? StructureBuild.FLAG_MIRROR : 0) | (isNetwork() ? StructureBuild.FLAG_NETWORK : 0) |
+                (demolish ? StructureBuild.FLAG_DEMOLISH : 0) | (replace ? StructureBuild.FLAG_REPLACE : 0);
     }
 
     public static boolean isNetwork() {
@@ -96,6 +124,7 @@ public final class TerminalModes {
     public UIElement options() {
         return UIElement.column(LayoutStyle.AUTO).layout(l -> l.gapAll(UISizes.GAP)).addChildren(
                 Form.controlRow(MIRROR, Switch.of(this::isMirror, this::setMirror).disabled(() -> !canMirror, MIRROR_UNSUPPORTED), MIRROR_DESC),
+                Form.controlRow(REPLACE, Switch.of(this::isReplace, this::setReplace), REPLACE_DESC),
                 Form.controlRow(DEMOLISH, Switch.of(this::isDemolish, this::setDemolish), DEMOLISH_DESC),
                 networkRow());
     }

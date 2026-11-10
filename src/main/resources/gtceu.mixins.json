@@ -45,7 +45,6 @@
     "PotionBrewingAccessor",
     "PrimedTntAccessor",
     "RepairItemRecipeMixin",
-    "ServerChunkProviderMixin",
     "ShapedRecipeAccessor",
     "SidedRedstoneConnectivityMixin",
     "StrictNBTIngredientAccessor",

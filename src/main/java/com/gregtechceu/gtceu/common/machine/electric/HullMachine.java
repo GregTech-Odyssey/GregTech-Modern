@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.TieredPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
 import com.gregtechceu.gtceu.integration.ae2.machine.trait.GridNodeHostTrait;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -17,6 +16,7 @@ import net.minecraftforge.common.util.LazyOptional;
 
 import appeng.capabilities.Capabilities;
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Schedulers;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -61,7 +61,7 @@ public class HullMachine extends TieredPartMachine {
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel level) {
-            TaskHandler.enqueueTask(level, gridNodeHost::init, 0);
+            Schedulers.of(level).schedule(gridNodeHost::init);
         }
     }
 

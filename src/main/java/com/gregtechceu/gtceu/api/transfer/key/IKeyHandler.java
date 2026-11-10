@@ -39,6 +39,10 @@ public interface IKeyHandler<K extends AEKey> extends KeyTypedStorage, IKeyInven
         return false;
     }
 
+    default boolean enumerateByKey() {
+        return false;
+    }
+
     @Nullable
     K keyAt(int slot);
 

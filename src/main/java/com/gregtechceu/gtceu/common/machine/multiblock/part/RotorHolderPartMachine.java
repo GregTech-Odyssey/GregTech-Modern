@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -46,6 +45,7 @@ import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.gto.recipesearch.IntLongMap;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +71,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     @Nullable
     public Material rotorMaterial = null;
     @Nullable
-    protected TickableSubscription rotorSpeedSubs;
+    protected Task rotorSpeedSubs;
     @Nullable
     protected ISubscription rotorInvSubs;
 
@@ -155,7 +155,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
         if (rotorSpeed > 0) {
             rotorSpeedSubs = subscribeServerTick(rotorSpeedSubs, this::updateRotorSpeed);
         } else if (rotorSpeedSubs != null) {
-            rotorSpeedSubs.unsubscribe();
+            rotorSpeedSubs.cancel();
             rotorSpeedSubs = null;
         }
     }

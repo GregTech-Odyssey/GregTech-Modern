@@ -8,18 +8,15 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-import com.gregtechceu.gtceu.api.pattern.error.PatternError;
-import com.gregtechceu.gtceu.api.pattern.error.PatternStringError;
-import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 import com.gregtechceu.gtceu.api.pattern.util.PatternMatchContext;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.core.Iblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
 import com.gto.datasynclib.datastream.DataComponentKey;
+import com.suried.gtoutils.level.LoadedChunks;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -58,7 +55,7 @@ final class StructureMatcher {
     @Nullable
     private Long2ObjectOpenHashMap<?> savedPredicates;
     @Nullable
-    private PatternError deepest;
+    private StructureIssue deepest;
     private int deepestDepth;
     private int formedWidth;
     private int formedHeight;
@@ -112,9 +109,9 @@ final class StructureMatcher {
             for (int step = 1; step <= measure.max(); step++) {
                 pos = new BlockPos(center.getX() + dx * step, center.getY() + dy * step, center.getZ() + dz * step);
                 measuring.update(pos, measure.until());
-                if (measuring.getBlockState() == ILevel.OUTSIDE_WORLD_BLOCK) {
+                if (measuring.getBlockState() == LoadedChunks.UNLOADED) {
                     state.update(pos, null);
-                    state.setError(MultiblockState.UNLOAD_ERROR.copy());
+                    state.setIssue(StructureIssue.unloaded());
                     return false;
                 }
                 if (matchesEdge(measure.until(), measuring)) {
@@ -124,7 +121,7 @@ final class StructureMatcher {
             }
             if (found < measure.min()) {
                 state.update(pos, null);
-                state.setError(new PatternStringError("gtceu.multiblock.pattern.error.size"));
+                state.setIssue(StructureIssue.size(measure.key(), found, measure.min(), measure.max()));
                 return false;
             }
             values[i] = found;
@@ -132,7 +129,7 @@ final class StructureMatcher {
         var size = new Size(structure.measureKeys, values);
         if (structure.requirement != null && !structure.requirement.test(size)) {
             state.update(center, null);
-            state.setError(new PatternStringError("gtceu.multiblock.pattern.error.size"));
+            state.setIssue(StructureIssue.sizeCombination());
             return false;
         }
         measured = size;
@@ -176,13 +173,13 @@ final class StructureMatcher {
         if (!test(root, false)) return false;
         log.add(root);
         if (!bindings(root, 0)) {
-            if (!aborted && deepest != null) state.setError(deepest);
+            if (!aborted && deepest != null) state.setIssue(deepest);
             return false;
         }
         for (var it = state.getGlobalCount().reference2IntEntrySet().fastIterator(); it.hasNext();) {
             var entry = it.next();
             if (entry.getIntValue() < entry.getKey().minCount) {
-                state.setError(new SinglePredicateError(entry.getKey(), 1));
+                state.setIssue(StructureIssue.tooFew(entry.getKey(), entry.getKey().minCount, entry.getIntValue()));
                 return false;
             }
         }
@@ -190,10 +187,11 @@ final class StructureMatcher {
             for (int i = 0; i < measured.size(); i++) params.put(measured.key(i), measured.value(i));
         }
         calculateDimensions();
-        state.getMatchContext().set(Assembly.KEY, new Assembly(params, optionalFormed, optionalMissing,
-                formedWidth, formedHeight, formedDepth, machineProtocols, machines, portProtocols, ports));
+        var context = state.getMatchContext();
+        state.setAssembly(new Assembly(params, optionalFormed, optionalMissing, formedWidth, formedHeight, formedDepth, machineProtocols, machines,
+                portProtocols, ports, context.snapshot(), context.getParts()));
         state.setNeededFlip(flip);
-        state.setError(null);
+        state.setIssue(null);
         return true;
     }
 
@@ -241,7 +239,7 @@ final class StructureMatcher {
             var pos = host.worldPos(cells[i], cells[i + 1], cells[i + 2]);
             portProtocols.add(slot.protocol);
             ports.add(pos);
-            if (ILevel.asyncGetBlockEntity(state.world, pos) instanceof MetaMachineBlockEntity holder && slot.protocol.accepts(holder.getMetaMachine().getDefinition())) {
+            if (LoadedChunks.blockEntity(state.world, pos) instanceof MetaMachineBlockEntity holder && slot.protocol.accepts(holder.getMetaMachine().getDefinition())) {
                 machineProtocols.add(slot.protocol);
                 machines.add(holder.getMetaMachine());
             }
@@ -360,7 +358,7 @@ final class StructureMatcher {
                 if (overlap && claimed(pos.asLong())) {
                     placement.tested = i;
                     state.update(pos, piece.predicate(i));
-                    state.setError(new PatternError());
+                    state.setIssue(StructureIssue.mismatch());
                     return false;
                 }
                 int result = testCell(state, pos, piece.predicate(i), save);
@@ -368,8 +366,8 @@ final class StructureMatcher {
                     placement.tested = i + 1;
                     if (result == CELL_ABORT) {
                         aborted = true;
-                    } else if (!state.hasError()) {
-                        state.setError(new PatternError());
+                    } else if (!state.hasIssue()) {
+                        state.setIssue(StructureIssue.mismatch());
                     }
                     return false;
                 }
@@ -383,7 +381,7 @@ final class StructureMatcher {
                     var entry = it.next();
                     if (entry.getIntValue() < entry.getKey().minLayerCount) {
                         placement.tested = i;
-                        state.setError(new SinglePredicateError(entry.getKey(), 3));
+                        state.setIssue(StructureIssue.tooFewInLayer(entry.getKey(), entry.getKey().minLayerCount, entry.getIntValue()));
                         return false;
                     }
                 }
@@ -407,7 +405,7 @@ final class StructureMatcher {
             if (data != null && !((Iblock) block).gtceu$canMultiShared()) {
                 if (data.hasShared(posLong)) {
                     success = false;
-                    worldState.setError(MultiblockState.SHARE_ERROR.copy());
+                    worldState.setIssue(StructureIssue.shared());
                 } else {
                     worldState.sharedCache.add(posLong);
                 }
@@ -422,7 +420,7 @@ final class StructureMatcher {
                         if (blockentity instanceof MetaMachineBlockEntity machineBlockEntity) {
                             if (machineBlockEntity.metaMachine instanceof IMultiPart part && part != worldState.controller) {
                                 if (!worldState.world.isLoaded(pos)) {
-                                    worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
+                                    worldState.setIssue(StructureIssue.unloaded());
                                     return CELL_ABORT;
                                 }
                                 matchContext.getParts().add(part);
@@ -438,8 +436,8 @@ final class StructureMatcher {
             if (!savePredicate) worldState.cache.add(posLong);
             return CELL_PASS;
         }
-        if (worldState.blockState == ILevel.OUTSIDE_WORLD_BLOCK) {
-            worldState.setError(MultiblockState.UNLOAD_ERROR.copy());
+        if (worldState.blockState == LoadedChunks.UNLOADED) {
+            worldState.setIssue(StructureIssue.unloaded());
         }
         return CELL_FAIL;
     }
@@ -453,7 +451,7 @@ final class StructureMatcher {
             for (var simple : limitPredicates[i]) {
                 if (!simple.predicate.test(state)) continue;
                 if (global.mergeInt(simple, 1, Integer::sum) > limitMax[i]) {
-                    state.setError(new LimitError(simple, limitMax[i]));
+                    state.setIssue(StructureIssue.tooMany(simple, limitMax[i]));
                     return false;
                 }
             }
@@ -468,7 +466,7 @@ final class StructureMatcher {
     private void noteFailure() {
         if (log.size() >= deepestDepth) {
             deepestDepth = log.size();
-            deepest = state.error;
+            deepest = state.getIssue();
         }
     }
 

@@ -1,12 +1,10 @@
 package com.gregtechceu.gtceu.api.machine.multiblock;
 
 import com.gregtechceu.gtceu.api.block.ActiveBlock;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.IFancyConfiguratorButton;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.ICleanroomProvider;
 import com.gregtechceu.gtceu.api.machine.feature.IMufflableMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -22,7 +20,6 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.uiwidgets.icon.WidgetIcons;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.IMultiblockPageMachine;
 
@@ -35,6 +32,8 @@ import net.minecraft.world.level.block.Block;
 import com.gto.datasynclib.annotations.Access;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.level.LoadedChunks;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -103,7 +102,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected IWorkableMultiPart[] modifyRecipePart = new IWorkableMultiPart[0];
 
     @Nullable
-    protected TickableSubscription activeBlocksSubs;
+    protected Task activeBlocksSubs;
 
     @SyncToClient(autoDetect = false, listener = "onActiveBlocksUpdate")
     @Access
@@ -140,7 +139,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     public void onUnload() {
         super.onUnload();
         activeState = ActiveBlock.State.UNKNOWN;
-        activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
+        activeBlocksSubs = Task.cancel(activeBlocksSubs);
         recipeHandlerCache.clear();
     }
 
@@ -185,7 +184,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
     protected void onActiveBlocksUpdate(LongSet newValue, LongSet oldValue) {
         activeState = ActiveBlock.State.UNKNOWN;
         if (newValue.isEmpty()) {
-            activeBlocksSubs = ITickSubscription.unsubscribe(activeBlocksSubs);
+            activeBlocksSubs = Task.cancel(activeBlocksSubs);
         } else {
             activeBlocksSubs = subscribeAsyncTick(activeBlocksSubs, () -> {
                 if (getLevel() == null) return;
@@ -196,7 +195,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
                     List<Runnable> runnables = new ArrayList<>();
                     for (long pos : activeBlocks) {
                         var blockPos = BlockPos.of(pos);
-                        var blockState = ILevel.asyncGetBlockState(getLevel(), blockPos);
+                        var blockState = LoadedChunks.blockState(getLevel(), blockPos);
                         if (blockState.hasProperty(ActiveBlock.ACTIVE)) {
                             var newState = blockState.setValue(ActiveBlock.ACTIVE, shouldActive);
                             if (newState != blockState) {
@@ -258,7 +257,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         afterWorkingPart = afterWorkingList.toArray(new IWorkableMultiPart[0]);
         modifyRecipePart = modifyRecipeList.toArray(new IWorkableMultiPart[0]);
 
-        activeBlocks = getMultiblockState().getMatchContext().getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET);
+        activeBlocks = getAssembly().getOrDefault(Predicates.DataKey.ACTIVE_BLOCKS, LongSets.EMPTY_SET);
 
         // attach parts' traits
         Runnable listener = recipeLogic::updateTickSubscription;

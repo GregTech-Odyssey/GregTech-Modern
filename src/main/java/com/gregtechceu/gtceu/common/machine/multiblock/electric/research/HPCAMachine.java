@@ -9,7 +9,6 @@ import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.gui.util.TimedProgressSupplier;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockDisplayText;
 import com.gregtechceu.gtceu.api.machine.multiblock.WorkableElectricMultiblockMachine;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
@@ -23,7 +22,6 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.data.SyncValue;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.texture.ProgressTexture;
 import com.lowdragmc.lowdraglib.gui.texture.ResourceTexture;
@@ -47,6 +45,8 @@ import appeng.api.stacks.AEFluidKey;
 import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import dev.vfyjxf.taffy.style.AlignContent;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import lombok.Getter;
@@ -78,7 +78,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     private final TimedProgressSupplier progressSupplier;
     @Nullable
     private final TickTimeMonitor researchMonitor = holder.monitorTick(GTTickTimeMonitors.COMPUTATION, this::tick);
-    protected TickableSubscription tickSubs;
+    protected Task tickSubs;
 
     public HPCAMachine(MetaMachineBlockEntity holder, Object... args) {
         super(holder, args);
@@ -116,7 +116,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateTickSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateTickSubscription);
         }
     }
 
@@ -124,7 +124,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     public void onUnload() {
         super.onUnload();
         if (tickSubs != null) {
-            tickSubs.unsubscribe();
+            tickSubs.cancel();
             tickSubs = null;
         }
     }
@@ -133,7 +133,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
         if (isFormed) {
             tickSubs = subscribeServerTick(tickSubs, researchMonitor);
         } else if (tickSubs != null) {
-            tickSubs.unsubscribe();
+            tickSubs.cancel();
             tickSubs = null;
         }
     }

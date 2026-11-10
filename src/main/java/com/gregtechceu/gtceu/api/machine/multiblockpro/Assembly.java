@@ -1,25 +1,34 @@
 package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 
 import net.minecraft.core.BlockPos;
 
 import com.gto.datasynclib.datastream.DataComponentKey;
+import com.gto.datasynclib.datastream.DataComponentMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMaps;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
+import it.unimi.dsi.fastutil.objects.ReferenceSets;
 import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 一次成型的全部结果：结构参数、尺寸、子机器与接口，以及匹配时记下的方块内容和部件；机器只从这里读成型信息。
+ */
 public final class Assembly {
 
-    public static final DataComponentKey<Assembly> KEY = DataComponentKey.createNoCodec("MultiblockProAssembly");
+    public static final Assembly EMPTY = new Assembly(new Reference2IntOpenHashMap<>(), 0, 0, 0, 0, 0, List.of(), List.of(), List.of(), List.of(),
+            new DataComponentMap(), ReferenceSets.emptySet());
 
     private final Reference2IntMap<ParamKey> params;
     @Getter
@@ -35,9 +44,12 @@ public final class Assembly {
 
     private final Reference2ObjectMap<MachineProtocol, List<MetaMachine>> machines;
     private final Reference2ObjectMap<MachineProtocol, List<BlockPos>> ports;
+    private final DataComponentMap contents;
+    private final ReferenceSet<IMultiPart> parts;
 
     Assembly(Reference2IntOpenHashMap<ParamKey> params, int optionalFormed, int optionalMissing, int width, int height, int depth,
-             List<MachineProtocol> protocols, List<MetaMachine> machineList, List<MachineProtocol> portProtocols, List<BlockPos> portList) {
+             List<MachineProtocol> protocols, List<MetaMachine> machineList, List<MachineProtocol> portProtocols, List<BlockPos> portList,
+             DataComponentMap contents, ReferenceSet<IMultiPart> parts) {
         this.params = params.isEmpty() ? Reference2IntMaps.emptyMap() : params.clone();
         this.optionalFormed = optionalFormed;
         this.optionalMissing = optionalMissing;
@@ -46,6 +58,8 @@ public final class Assembly {
         this.depth = depth;
         this.machines = group(protocols, machineList);
         this.ports = group(portProtocols, portList);
+        this.contents = contents;
+        this.parts = parts;
     }
 
     private static <T> Reference2ObjectMap<MachineProtocol, List<T>> group(List<MachineProtocol> protocols, List<T> values) {
@@ -76,6 +90,23 @@ public final class Assembly {
 
     public boolean has(ParamKey key) {
         return params.getInt(key) > 0;
+    }
+
+    @Nullable
+    public <T> T get(DataComponentKey<T> key) {
+        return contents.getData(key);
+    }
+
+    public <T> T getOrDefault(DataComponentKey<T> key, T defaultValue) {
+        return contents.getOrDefaultData(key, defaultValue);
+    }
+
+    public boolean contains(DataComponentKey<?> key) {
+        return contents.containsKey(key);
+    }
+
+    public ReferenceSet<IMultiPart> getParts() {
+        return parts;
     }
 
     @Override

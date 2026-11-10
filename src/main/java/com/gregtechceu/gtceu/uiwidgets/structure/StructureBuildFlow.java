@@ -6,7 +6,9 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.BuildUpload;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Layout;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBuild;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.TerminalBuildPlans;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
+import com.gregtechceu.gtceu.common.network.packets.CPacketSaveBuildPlan;
 import com.gregtechceu.gtceu.common.network.packets.CPacketStructureBuild;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
@@ -22,6 +24,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 @OnlyIn(Dist.CLIENT)
@@ -39,11 +43,12 @@ public final class StructureBuildFlow {
     public static final Component INCLUDE = Component.translatable("gtceu.structure_build.include");
     public static final Component BLOCKED = Component.translatable("gtceu.structure_build.blocked");
     public static final Component DEMOLISH_CONFIRM = Component.translatable("gtceu.structure_build.demolish.confirm");
+    public static final Component REPLACE_CONFIRM = Component.translatable("gtceu.structure_build.replace.confirm");
 
     private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, int[]> REMEMBERED = new Reference2ObjectOpenHashMap<>();
     private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, Choices> CHOICES = new Reference2ObjectOpenHashMap<>();
 
-    private record Choices(int[] values, boolean[] excluded, PatternBuilderModel model) {}
+    private record Choices(int[] values, boolean[] excluded, PatternBuilderModel model, Set<StructureBuild.Swap> kept) {}
 
     @FunctionalInterface
     public interface SecondPage {
@@ -93,7 +98,7 @@ public final class StructureBuildFlow {
         if (structure == null) return;
         var pos = machine.getPos();
         var icon = definition.asStack();
-        var modes = new TerminalModes(machine.allowFlip(), structure.tree());
+        var modes = new TerminalModes(controller, structure.tree());
         var project = new StructurePreviewScreen.Action(StructurePreviewScreen.PROJECT, preview -> {
             var layout = preview.layout();
             var chosen = chosen(definition, preview.values(), layout.excludedNodes());
@@ -104,24 +109,36 @@ public final class StructureBuildFlow {
         StructurePreviewScreen.open(definition, structure, null, modes, project, action(StructurePreviewScreen.BUILD, (layout, values, navigator, preview) -> {
             var stock = layoutStock(Minecraft.getInstance().player, layout);
             var excluded = layout.excludedNodes();
-            var model = chosen(definition, values, excluded);
-            if (model == null) {
-                model = StructurePlans.modelBuilder(icon, layout, false).build(stock);
+            var choices = choices(definition, values, excluded);
+            if (choices == null) {
+                var model = StructurePlans.modelBuilder(icon, layout, false).build(stock);
                 model.selectMinimum();
-                CHOICES.put(definition, new Choices(values.clone(), excluded, model));
+                choices = new Choices(values.clone(), excluded, model, new ObjectOpenHashSet<>());
+                CHOICES.put(definition, choices);
             }
-            var built = model;
+            var built = choices.model();
+            var kept = choices.kept();
             boolean demolish = modes.isDemolish();
-            return new PatternBuilderPanel(model, icon, icon.getHoverName(), Integer.MAX_VALUE, navigator.maxHeight(), () -> {
+            boolean replace = modes.isReplace();
+            var panel = new PatternBuilderPanel(built, icon, icon.getHoverName(), Integer.MAX_VALUE, navigator.maxHeight(), () -> {
                 int upload = BuildUpload.send(definition, values, StructurePlans.assign(built, layout));
-                int flags = (modes.isMirror() ? StructureBuild.FLAG_MIRROR : 0) | (TerminalModes.isNetwork() ? StructureBuild.FLAG_NETWORK : 0) |
-                        (demolish ? StructureBuild.FLAG_DEMOLISH : 0);
-                if (upload >= 0) GTNetwork.NETWORK.sendToServer(new CPacketStructureBuild(pos, values, upload, flags, modes.getDemolishNodes()));
+                if (upload >= 0) GTNetwork.NETWORK.sendToServer(new CPacketStructureBuild(pos, values, upload, modes.buildFlags(), modes.getDemolishNodes(), sent(replace, kept)));
                 preview.closePreview();
             }, navigator::close, new PatternBuilderPanel.Footer(title -> Component.translatable(BUILD_TITLE, title),
-                    demolish ? DEMOLISH_CONFIRM : BUILD, INCLUDE, BLOCKED,
+                    demolish ? DEMOLISH_CONFIRM : replace ? REPLACE_CONFIRM : BUILD, INCLUDE, BLOCKED,
                     false, !demolish, navigator::close));
+            if (replace) panel.prependSection(new ReplaceSection(controller, layout, built, modes.isMirror(), kept));
+            if (!demolish) panel.addAction(TerminalBuildPlans.SAVE, () -> {
+                int upload = BuildUpload.send(definition, values, StructurePlans.assign(built, layout));
+                if (upload >= 0) GTNetwork.NETWORK.sendToServer(new CPacketSaveBuildPlan(definition.getId(), values, upload, modes.buildFlags(), sent(replace, kept)));
+                preview.closePreview();
+            });
+            return panel;
         }));
+    }
+
+    private static Set<StructureBuild.Swap> sent(boolean replace, Set<StructureBuild.Swap> kept) {
+        return replace ? Set.copyOf(kept) : Set.of();
     }
 
     private static ReferenceOpenHashSet<Item> wantedItems(Layout layout) {
@@ -134,8 +151,19 @@ public final class StructureBuildFlow {
 
     @Nullable
     public static PatternBuilderModel chosen(MultiblockMachineDefinition definition, int[] values, boolean[] excludedNodes) {
+        var choices = choices(definition, values, excludedNodes);
+        return choices == null ? null : choices.model();
+    }
+
+    public static Set<StructureBuild.Swap> kept(MultiblockMachineDefinition definition, int[] values, boolean[] excludedNodes) {
+        var choices = choices(definition, values, excludedNodes);
+        return choices == null ? Set.of() : choices.kept();
+    }
+
+    @Nullable
+    private static Choices choices(MultiblockMachineDefinition definition, int[] values, boolean[] excludedNodes) {
         var choices = CHOICES.get(definition);
-        return choices != null && Arrays.equals(choices.values(), values) && sameExclusion(choices.excluded(), excludedNodes) ? choices.model() : null;
+        return choices != null && Arrays.equals(choices.values(), values) && sameExclusion(choices.excluded(), excludedNodes) ? choices : null;
     }
 
     private static boolean sameExclusion(boolean[] a, boolean[] b) {

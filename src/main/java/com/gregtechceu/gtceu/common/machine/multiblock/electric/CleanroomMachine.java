@@ -23,6 +23,7 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.PortKey;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Size;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Slot;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureIssue;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Symbols;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.misc.EnergyContainerList;
@@ -82,7 +83,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         if (blockWorldState.getTileEntity() instanceof MetaMachineBlockEntity machineBlockEntity) {
             var machine = machineBlockEntity.getMetaMachine();
             if (isMachineBanned(machine)) {
-                blockWorldState.setError(MultiblockState.BANNED_ERROR.copy());
+                blockWorldState.setIssue(StructureIssue.forbidden());
                 return false;
             }
             if (machine instanceof ICleanroomReceiver cleanroomReceiver) {
@@ -174,14 +175,14 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
         super.onStructureFormed();
         updateStructureDimensions();
         initializeAbilities();
-        var filterType = getMultiblockState().getMatchContext().get(Predicates.DataKey.FILTER_TYPE);
+        var filterType = getAssembly().get(Predicates.DataKey.FILTER_TYPE);
         this.cleanroomTier = Objects.requireNonNullElse(filterType, 0);
         // bind cleanroom
         if (cleanroomReceivers != null) {
             this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(null));
             this.cleanroomReceivers = null;
         }
-        this.cleanroomReceivers = getMultiblockState().getMatchContext().getOrDefault(CLEANROOM_RECEIVER, ReferenceSets.emptySet());
+        this.cleanroomReceivers = getAssembly().getOrDefault(CLEANROOM_RECEIVER, ReferenceSets.emptySet());
         this.cleanroomReceivers.forEach(receiver -> receiver.setCleanroom(this));
         // max progress is based roughly on the dimensions of the structure: ((w * d) ^ .8 * h)
         // taller cleanrooms take longer than wider ones
@@ -242,7 +243,7 @@ public class CleanroomMachine extends WorkableElectricMultiblockMachine implemen
 
     public void updateStructureDimensions() {
         var assembly = getAssembly();
-        if (assembly == null || !assembly.has(LEFT_DIST)) return;
+        if (!assembly.has(LEFT_DIST)) return;
         this.lDist = assembly.get(LEFT_DIST);
         this.rDist = assembly.get(RIGHT_DIST);
         this.fDist = assembly.get(FRONT_DIST);

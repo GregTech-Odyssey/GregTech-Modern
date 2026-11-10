@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.capability.IControllable;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.cover.CoverBehavior;
 import com.gregtechceu.gtceu.api.cover.CoverDefinition;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.Direction;
@@ -16,6 +15,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,7 +29,7 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     @Setter
     @SaveToDisk
     protected boolean isWorkingEnabled = true;
-    protected TickableSubscription subscription;
+    protected Task subscription;
     @Getter
     @Setter
     @SaveToDisk
@@ -50,7 +50,7 @@ public abstract class DetectorCover extends CoverBehavior implements IControllab
     public void onRemoved() {
         super.onRemoved();
         if (subscription != null) {
-            subscription.unsubscribe();
+            subscription.cancel();
         }
     }
 

@@ -1,7 +1,6 @@
 package com.gregtechceu.gtceu.common.machine.electric;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.IControllable;
@@ -34,6 +33,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import dev.vfyjxf.taffy.style.AlignContent;
+import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
@@ -216,7 +216,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
             if (isWorkingEnabled()) {
                 super.checkOutputSubscription();
             } else if (outputSubs != null) {
-                outputSubs.unsubscribe();
+                outputSubs.cancel();
                 outputSubs = null;
             }
         }
@@ -254,12 +254,12 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
                 }
                 if (changed) {
                     changed();
-                    outputSubs.cycle = 0;
-                } else if (outputSubs.cycle < 10) {
-                    outputSubs.cycle++;
+                    outputSubs.setPeriod(1);
+                } else if (outputSubs.period() < 10) {
+                    outputSubs.setPeriod(outputSubs.period() + 1);
                 }
             } else {
-                outputSubs = ITickSubscription.unsubscribe(outputSubs);
+                outputSubs = Task.cancel(outputSubs);
             }
         }
 

@@ -105,7 +105,7 @@ public class CreativeTankMachine extends QuantumTankMachine {
     public void setTicksPerCycle(int value) {
         if (value < 1) return;
         ticksPerCycle = value;
-        if (autoOutputSubs != null) autoOutputSubs.cycle = ticksPerCycle;
+        if (autoOutputSubs != null) autoOutputSubs.setPeriod(ticksPerCycle);
         onFluidChanged();
     }
 

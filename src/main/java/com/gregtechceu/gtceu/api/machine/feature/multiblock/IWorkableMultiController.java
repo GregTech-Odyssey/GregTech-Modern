@@ -7,10 +7,10 @@ import com.gregtechceu.gtceu.api.recipe.GTRecipeType;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.handler.IRecipeHandler;
 import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.server.level.ServerLevel;
 
+import com.suried.gtoutils.schedule.Schedulers;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceLinkedOpenHashMap;
@@ -77,7 +77,7 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
     default void arrangeHandlerList() {
         if (self().getLevel() instanceof ServerLevel serverLevel) {
             getRecipeLogic().markLastRecipeDirty();
-            TaskHandler.enqueueTask(serverLevel, getRecipeLogic()::updateTickSubscription, 0);
+            Schedulers.of(serverLevel).schedule(getRecipeLogic()::updateTickSubscription);
         }
         getOutputColorMap().clear();
         var outputs = getCapabilitiesProxy(IO.OUT);

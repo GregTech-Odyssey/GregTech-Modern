@@ -29,7 +29,7 @@ public class CoilWorkableElectricMultiblockMachine extends WorkableElectricMulti
     @Override
     public void onStructureFormed() {
         super.onStructureFormed();
-        var type = getMultiblockState().getMatchContext().get(Predicates.DataKey.COIL_TYPE);
+        var type = getAssembly().get(Predicates.DataKey.COIL_TYPE);
         if (type != null) {
             this.coilType = type;
         }

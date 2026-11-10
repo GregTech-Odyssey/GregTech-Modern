@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.fancy.ConfiguratorPanel;
 import com.gregtechceu.gtceu.api.gui.fancy.TabsWidget;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.annotation.SaveToDataStick;
 import com.gregtechceu.gtceu.api.machine.fancyconfigurator.CircuitFancyConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutput;
@@ -21,7 +20,6 @@ import com.gregtechceu.gtceu.api.recipe.handler.RecipeHandlerUnit;
 import com.gregtechceu.gtceu.common.data.GTMachines;
 import com.gregtechceu.gtceu.common.data.GTTickTimeMonitors;
 import com.gregtechceu.gtceu.uiwidgets.inventory.HatchViews;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import com.lowdragmc.lowdraglib.syncdata.ISubscription;
@@ -43,6 +41,8 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyTypes;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +59,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public final NotifiableInventory<AEFluidKey> tank;
     protected final int slots;
     @Nullable
-    protected TickableSubscription autoIOSubs;
+    protected Task autoIOSubs;
     protected final TickTimeMonitor autoIOMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_IO, this::autoIO);
     @Nullable
     protected ISubscription tankSubs;
@@ -111,7 +111,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateTankSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateTankSubscription);
             getHandlerUnit().setDistinct(isDistinct);
             getHandlerUnit().setColor(getPaintingColor());
             tankSubs = tank.addChangedListener(this::updateTankSubscription);
@@ -177,7 +177,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
         if (isWorkingEnabled() && ((io == IO.OUT && !tank.isEmpty()) || io == IO.IN) && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), newFacing, AEKeyTypes.FLUIDS, io.neighbourAccess())) {
             autoIOSubs = subscribeServerTick(autoIOSubs, autoIOMonitor, 20);
         } else if (autoIOSubs != null) {
-            autoIOSubs.unsubscribe();
+            autoIOSubs.cancel();
             autoIOSubs = null;
         }
     }

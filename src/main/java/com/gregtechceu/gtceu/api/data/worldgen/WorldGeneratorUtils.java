@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.data.worldgen;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
-import com.gregtechceu.gtceu.core.ILevel;
 import com.gregtechceu.gtceu.data.recipe.CustomTags;
 import com.gregtechceu.gtceu.utils.PosUtils;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
@@ -22,10 +21,10 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 import net.minecraft.world.level.levelgen.structure.templatesystem.TagMatchTest;
 
 import com.google.common.collect.HashBiMap;
-import com.gto.datasynclib.datastream.DataComponentKey;
 import com.gto.fastcollection.fastutil.O2OOpenCacheHashMap;
 import com.gto.fastcollection.fastutil.OpenCacheHashSet;
 import com.mojang.serialization.Codec;
+import com.suried.gtoutils.level.LevelStore;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -39,7 +38,7 @@ import java.util.function.Predicate;
 
 public class WorldGeneratorUtils {
 
-    private static final DataComponentKey<WorldOreVeinCache> KEY = DataComponentKey.createNoCodec("cache");
+    private static final LevelStore<WorldOreVeinCache> VEIN_CACHE = LevelStore.createWithLevel(level -> new WorldOreVeinCache((ServerLevel) level));
 
     public static final RuleTest END_ORE_REPLACEABLES = new TagMatchTest(CustomTags.ENDSTONE_ORE_REPLACEABLES);
 
@@ -95,12 +94,7 @@ public class WorldGeneratorUtils {
     }
 
     public static List<WeightedVein> getCachedBiomeVeins(ServerLevel level, Holder<Biome> biome) {
-        WorldOreVeinCache cache = ILevel.getCapability(level, KEY);
-        if (cache == null) {
-            cache = new WorldOreVeinCache(level);
-            ILevel.setCapability(level, KEY, cache);
-        }
-        return cache.getEntry(biome);
+        return VEIN_CACHE.get(level).getEntry(biome);
     }
 
     public static Optional<String> getWorldGenLayerKey(IWorldGenLayer layer) {

@@ -270,4 +270,12 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
         }
         return true;
     }
+
+    @Override
+    public boolean enumerateByKey() {
+        for (var h : handlers) {
+            if (h.enumerateByKey()) return true;
+        }
+        return false;
+    }
 }

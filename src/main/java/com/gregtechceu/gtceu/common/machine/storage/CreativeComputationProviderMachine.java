@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationHatch;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
 import com.gregtechceu.gtceu.uipro.elements.Form;
@@ -22,6 +21,7 @@ import net.minecraft.network.chat.Component;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +46,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
     @SyncToClient
     private boolean active;
     @Nullable
-    private TickableSubscription computationSubs;
+    private Task computationSubs;
 
     public CreativeComputationProviderMachine(MetaMachineBlockEntity holder) {
         super(holder);
@@ -101,7 +101,7 @@ public class CreativeComputationProviderMachine extends MetaMachine implements I
         if (active) {
             this.computationSubs = subscribeServerTick(computationSubs, this::updateComputationTick, 20);
         } else if (computationSubs != null) {
-            computationSubs.unsubscribe();
+            computationSubs.cancel();
             this.computationSubs = null;
             this.lastRequestedCWUt = 0;
             this.requestedCWUPerSec = 0;

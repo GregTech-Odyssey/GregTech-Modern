@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.common.machine.multiblock.part;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.capability.GTCapability;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IExplosionMachine;
 import com.gregtechceu.gtceu.api.machine.multiblock.part.WorkableTieredIOPartMachine;
 import com.gregtechceu.gtceu.api.machine.trait.NotifiableEnergyContainer;
@@ -24,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +35,7 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
 
     @SaveToDisk
     public final NotifiableEnergyContainer energyContainer;
-    protected TickableSubscription explosionSubs;
+    protected Task explosionSubs;
     @Nullable
     protected ISubscription energyListener;
     @Getter
@@ -105,7 +105,7 @@ public class EnergyHatchPartMachine extends WorkableTieredIOPartMachine implemen
         if (ConfigHolder.INSTANCE.machines.shouldWeatherOrTerrainExplosion && shouldWeatherOrTerrainExplosion() && energyContainer.getEnergyStored() > 0) {
             explosionSubs = subscribeAsyncTick(explosionSubs, this::checkExplosion, 100);
         } else if (explosionSubs != null) {
-            explosionSubs.unsubscribe();
+            explosionSubs.cancel();
             explosionSubs = null;
         }
     }

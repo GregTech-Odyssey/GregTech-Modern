@@ -3,13 +3,11 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineFeature;
 import com.gregtechceu.gtceu.api.machine.multiblock.MultiblockControllerMachine;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.Assembly;
-import com.gregtechceu.gtceu.api.machine.multiblockpro.ParamKey;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
 import com.gregtechceu.gtceu.common.network.packets.SCPacketUpdateActiveBlock;
-import com.gregtechceu.gtceu.utils.TaskHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
+import com.suried.gtoutils.schedule.Schedulers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,20 +90,10 @@ public interface IMultiController extends IMachineFeature {
         }
     }
 
-    @Nullable
     default Assembly getAssembly() {
-        if (!isFormed() && !checking()) return null;
-        return getMultiblockState().getMatchContext().get(Assembly.KEY);
-    }
-
-    default boolean hasStructurePart(ParamKey key) {
-        var assembly = getAssembly();
-        return assembly != null && assembly.has(key);
-    }
-
-    default int structureParam(ParamKey key) {
-        var assembly = getAssembly();
-        return assembly == null ? 0 : assembly.get(key);
+        if (!isFormed() && !checking()) return Assembly.EMPTY;
+        var assembly = getMultiblockState().getAssembly();
+        return assembly == null ? Assembly.EMPTY : assembly;
     }
 
     /**
@@ -197,7 +186,7 @@ public interface IMultiController extends IMachineFeature {
         if (self().getLevel() instanceof ServerLevel serverLevel) {
             var vaBlocks = getMultiblockState().matchContext.get(Predicates.DataKey.ACTIVE_BLOCKS);
             if (vaBlocks == null || vaBlocks.isEmpty()) return;
-            TaskHandler.enqueueTask(serverLevel, () -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(vaBlocks, active)), 0);
+            Schedulers.of(serverLevel).schedule(() -> GTNetwork.NETWORK.sendToAll(new SCPacketUpdateActiveBlock(vaBlocks, active)));
         }
     }
 }

@@ -57,6 +57,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -85,6 +86,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
     private static final String CONTROLS_SEEN_PREFERENCE = "structure_preview.controls_seen";
     private static final int HIGHLIGHT_COLOR = 0x5055FF55;
     private static final int DEMOLISH_COLOR = 0x50FF3B30;
+    private static final int REPLACE_COLOR = 0x50FF9500;
     private static final int MINIMAP_THRESHOLD = 64;
 
     private static final int MARGIN = 8;
@@ -224,6 +226,9 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         private final Reference2BooleanOpenHashMap<TraceabilityPredicate> replaceable = new Reference2BooleanOpenHashMap<>();
         @Nullable
         private LongArrayList highlightCells;
+        @Nullable
+        private StructurePlans.Preview replaceSource;
+        private Set<StructureBuild.Swap> replaceKept = Set.of();
         private final PartsGrid parts = new PartsGrid(this::toggleShown, PARTS_PER_ROW);
         @Nullable
         private UIElement partsSection;
@@ -406,6 +411,7 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             if (placedMinimap != minimapShown()) place();
             long now = System.currentTimeMillis();
             checkModes();
+            if (isReplacing() && !replaceKept.equals(keptSwaps())) applyHighlight();
             if (pipeline.modelChanged(chosenModel()) && layout != null) pipeline.scheduleRebuild();
             if (pipeline.rebuildDue(now)) {
                 scene.continueProgress();
@@ -444,6 +450,10 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
             return modes != null && history.isRoot() && modes.isDemolish();
         }
 
+        private boolean isReplacing() {
+            return modes != null && history.isRoot() && modes.isReplace();
+        }
+
         private void checkModes() {
             if (modes == null || modes.getVersion() == modesVersion) return;
             modesVersion = modes.getVersion();
@@ -461,6 +471,20 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
         }
 
         private void applyHighlight() {
+            if (isReplacing() && preview != null) {
+                var kept = keptSwaps();
+                if (highlightCells == null || replaceSource != preview || !replaceKept.equals(kept)) {
+                    replaceSource = preview;
+                    replaceKept = Set.copyOf(kept);
+                    highlightCells = new LongArrayList();
+                    var source = preview.layout();
+                    boolean flip = isFlip();
+                    var targets = ReplaceScan.scan(modes.getController(), source, preview.items(), flip, kept).cells();
+                    for (int n = 0; n < targets.size(); n++) highlightCells.add(source.previewPos(targets.getInt(n), flip).asLong());
+                }
+                scene.setHighlight(highlightCells, REPLACE_COLOR);
+                return;
+            }
             if (isDemolishing() && layout != null) {
                 if (highlightCells == null) {
                     highlightCells = new LongArrayList();
@@ -484,6 +508,10 @@ public final class StructurePreviewScreen extends ModularUIGuiContainer {
                 }
             }
             scene.setHighlight(highlightCells, HIGHLIGHT_COLOR);
+        }
+
+        private Set<StructureBuild.Swap> keptSwaps() {
+            return StructureBuildFlow.kept(page.definition, page.values, page.excluded);
         }
 
         private boolean isReplaceable(TraceabilityPredicate predicate) {

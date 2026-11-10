@@ -9,6 +9,8 @@ import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
@@ -20,27 +22,64 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public final class StructureBuild {
 
     public static final String RESULT = "gtceu.structure_build.result";
     public static final String MISSING = "gtceu.structure_build.missing";
+    public static final String REPLACED = "gtceu.structure_build.replaced";
     public static final Component INVALID = Component.translatable("gtceu.structure_build.invalid");
     public static final String DEMOLISHED = "gtceu.structure_build.demolished";
     public static final Component NO_NETWORK = Component.translatable("gtceu.structure_build.no_network");
     public static final int FLAG_MIRROR = 1;
     public static final int FLAG_NETWORK = 2;
     public static final int FLAG_DEMOLISH = 4;
+    public static final int FLAG_REPLACE = 8;
+    public static final int ALL_FLAGS = FLAG_MIRROR | FLAG_NETWORK | FLAG_DEMOLISH | FLAG_REPLACE;
+    public static final int MAX_KEPT = 256;
+
+    public record Swap(Item from, Item to) {
+
+        public static void write(FriendlyByteBuf buf, Collection<Swap> swaps) {
+            buf.writeVarInt(Math.min(swaps.size(), MAX_KEPT));
+            int written = 0;
+            for (var swap : swaps) {
+                if (written++ >= MAX_KEPT) break;
+                buf.writeId(BuiltInRegistries.ITEM, swap.from);
+                buf.writeId(BuiltInRegistries.ITEM, swap.to);
+            }
+        }
+
+        public static Set<Swap> read(FriendlyByteBuf buf) {
+            int size = buf.readVarInt();
+            if (size < 0 || size > MAX_KEPT) throw new IllegalArgumentException("Too many kept swaps: " + size);
+            var swaps = new ObjectOpenHashSet<Swap>(size);
+            for (int i = 0; i < size; i++) {
+                var from = buf.readById(BuiltInRegistries.ITEM);
+                var to = buf.readById(BuiltInRegistries.ITEM);
+                if (from != null && to != null) swaps.add(new Swap(from, to));
+            }
+            return swaps;
+        }
+    }
 
     private StructureBuild() {}
 
@@ -63,6 +102,11 @@ public final class StructureBuild {
     }
 
     public static void build(ServerPlayer player, IMultiController controller, Layout layout, Item[] choices, int flags, @Nullable boolean[] demolishNodes) {
+        build(player, controller, layout, choices, flags, demolishNodes, Collections.emptySet());
+    }
+
+    public static void build(ServerPlayer player, IMultiController controller, Layout layout, Item[] choices, int flags, @Nullable boolean[] demolishNodes,
+                             Set<Swap> kept) {
         if (layout.cells().size() != choices.length) {
             player.sendSystemMessage(INVALID);
             return;
@@ -79,13 +123,14 @@ public final class StructureBuild {
             demolish(player, controller, layout, demolishNodes, flip, useNetwork);
             return;
         }
+        boolean replace = (flags & FLAG_REPLACE) != 0;
         var level = player.serverLevel();
         var origin = machine.getPos();
         var front = machine.getFrontFacing();
         var up = machine.getUpwardsFacing();
         boolean ultraWarm = level.dimensionType().ultraWarm();
         var allowed = new Reference2ObjectOpenHashMap<TraceabilityPredicate, ReferenceOpenHashSet<Item>>();
-        int placed = 0, missing = 0;
+        int placed = 0, replaced = 0, missing = 0;
         var supply = player.isCreative() ? null : PlayerSupply.of(player, true, useNetwork);
         var cells = layout.cells();
         var retry = new IntArrayList();
@@ -102,18 +147,34 @@ public final class StructureBuild {
                 if (!isBlock && ultraWarm && ((BucketItem) item).getFluid().is(FluidTags.WATER)) continue;
                 if (!allowed.computeIfAbsent(predicate, StructureBuild::candidates).contains(item)) continue;
                 var pos = layout.worldPos(origin, i, front, up, flip);
-                if (!level.isLoaded(pos) || !level.isEmptyBlock(pos) || !level.mayInteract(player, pos)) continue;
+                if (!level.isLoaded(pos) || !level.mayInteract(player, pos)) continue;
+                boolean swapping = !level.isEmptyBlock(pos);
+                if (swapping) {
+                    if (!replace) continue;
+                    var from = swapFrom(level, pos, item);
+                    if (from == null || kept.contains(new Swap(from, item))) continue;
+                    var target = ((BlockItem) item).getBlock().defaultBlockState();
+                    if (!target.canSurvive(level, pos) || !level.isUnobstructed(target, pos, CollisionContext.of(player))) continue;
+                }
                 var taken = supply == null ? new ItemStack(item) : supply.take(item);
                 if (taken.isEmpty()) {
                     missing++;
                     continue;
+                }
+                List<ItemStack> drops = Collections.emptyList();
+                if (swapping) {
+                    drops = Block.getDrops(level.getBlockState(pos), level, pos, null, player, ItemStack.EMPTY);
+                    level.removeBlock(pos, false);
                 }
                 var facing = layout.outwardWorld(i, front, up, flip);
                 if (item instanceof BlockItem blockItem) {
                     var context = new BlockPlaceContext(level, player, InteractionHand.MAIN_HAND, taken.copy(),
                             BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
                     if (blockItem.place(context) == InteractionResult.FAIL) {
-                        if (supply != null) supply.giveBack(player, taken);
+                        if (supply != null) {
+                            supply.giveBack(player, taken);
+                            for (var drop : drops) supply.giveBack(player, drop);
+                        }
                         if (pass == 0) retry.add(i);
                         continue;
                     }
@@ -128,14 +189,32 @@ public final class StructureBuild {
                     level.setBlock(pos, StructureBlocks.stateOf(item), 3);
                     if (supply != null) player.getInventory().placeItemBackInInventory(new ItemStack(Items.BUCKET));
                 }
-                placed++;
+                if (swapping) {
+                    if (supply != null) {
+                        for (var drop : drops) supply.giveBack(player, drop);
+                    }
+                    replaced++;
+                } else {
+                    placed++;
+                }
             }
         }
-        player.sendSystemMessage(Component.translatable(RESULT, placed));
+        if (placed > 0 || replaced == 0) player.sendSystemMessage(Component.translatable(RESULT, placed));
+        if (replaced > 0) player.sendSystemMessage(Component.translatable(REPLACED, replaced));
         if (missing > 0) player.sendSystemMessage(Component.translatable(MISSING, missing));
         controller.setWaitingTime(0);
         if (controller.isFormed()) controller.requestCheck();
         else controller.asyncCheckPattern(MultiblockWorldData.getOrCreate(level));
+    }
+
+    @Nullable
+    public static Item swapFrom(BlockGetter level, BlockPos pos, Item chosen) {
+        if (!(chosen instanceof BlockItem blockItem) || blockItem.getBlock().defaultBlockState().hasBlockEntity()) return null;
+        var state = level.getBlockState(pos);
+        if (state.isAir() || state.hasBlockEntity() || state.getBlock() instanceof LiquidBlock || !state.getFluidState().isEmpty()) return null;
+        if (state.getDestroySpeed(level, pos) < 0) return null;
+        var from = SimplePredicate.toItem(state.getBlock());
+        return from == Items.AIR || from == chosen ? null : from;
     }
 
     public static boolean demolishes(@Nullable boolean[] nodes, int node) {

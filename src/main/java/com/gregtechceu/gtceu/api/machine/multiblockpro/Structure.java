@@ -37,6 +37,7 @@ public final class Structure {
     private static final int RESOLVED_LIMIT = 64;
     private static final int[][] NO_CHILDREN = new int[0][];
     private static final int[][] MIRRORS = mirrors();
+    private static final Direction[] HORIZONTAL_FACINGS = { Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST };
     static final Set<Class<?>> WHITELIST = new ReferenceOpenHashSet<>();
 
     final Piece root;
@@ -59,6 +60,8 @@ public final class Structure {
     private volatile int[] dimensions;
     @Nullable
     private volatile Boolean mirrorSymmetric;
+    @Nullable
+    private volatile Direction[] freeFacings;
     private final List<Limit> limits;
     private final List<Option> options;
     private final List<SizeControl> controls;
@@ -371,17 +374,72 @@ public final class Structure {
     public boolean match(MultiblockState state, boolean save) {
         var controller = state.controller;
         var center = state.controllerPos;
-        var front = controller.self().getFrontFacing();
-        var facings = controller.hasFrontFacing() ? new Direction[] { front } : new Direction[] { Direction.SOUTH, Direction.NORTH, Direction.EAST, Direction.WEST };
         var up = controller.self().getUpwardsFacing();
+        var facings = controller.hasFrontFacing() ? new Direction[] { controller.self().getFrontFacing() } : freeFacings(up);
         boolean allowsFlip = controller.self().allowFlip();
-        state.errorRecord.clear();
+        StructureIssue issue = null;
+        int progress = -1;
         for (var facing : facings) {
-            if (matchAt(state, center, facing, up, false, save)) return true;
-            if (!save) state.errorRecord.add(state.error);
-            if (allowsFlip) return matchAt(state, center, facing, up, true, save);
+            for (int f = 0; f < (allowsFlip ? 2 : 1); f++) {
+                if (matchAt(state, center, facing, up, f == 1, save)) {
+                    if (!save) state.report(null);
+                    return true;
+                }
+                if (state.cache.size() > progress) {
+                    progress = state.cache.size();
+                    issue = state.getIssue();
+                }
+            }
         }
+        state.setIssue(issue);
+        if (!save) state.report(issue);
         return false;
+    }
+
+    Direction[] freeFacings(Direction up) {
+        if (up != Direction.NORTH) return HORIZONTAL_FACINGS;
+        var result = freeFacings;
+        if (result == null) {
+            result = computeFreeFacings();
+            freeFacings = result;
+        }
+        return result;
+    }
+
+    private Direction[] computeFreeFacings() {
+        if (measures.length > 0 || optionalSlots || perSize) return HORIZONTAL_FACINGS;
+        var values = defaultValues();
+        var layout = accepts(values) ? layout(values) : null;
+        if (layout == null) return HORIZONTAL_FACINGS;
+        var cells = layout.cells();
+        for (var cell : cells) {
+            if (directional(cell.predicate())) return HORIZONTAL_FACINGS;
+        }
+        var south = placed(cells, Direction.SOUTH);
+        if (sameAs(south, cells, Direction.EAST)) return new Direction[] { Direction.SOUTH };
+        if (sameAs(south, cells, Direction.NORTH)) return new Direction[] { Direction.SOUTH, Direction.EAST };
+        return HORIZONTAL_FACINGS;
+    }
+
+    private static Long2ObjectOpenHashMap<Layout.Cell> placed(List<Layout.Cell> cells, Direction front) {
+        int[] w = Orientation.world(front, Direction.NORTH, false);
+        var map = new Long2ObjectOpenHashMap<Layout.Cell>(cells.size());
+        for (var cell : cells) map.put(rotated(w, cell), cell);
+        return map;
+    }
+
+    private static boolean sameAs(Long2ObjectOpenHashMap<Layout.Cell> base, List<Layout.Cell> cells, Direction front) {
+        int[] w = Orientation.world(front, Direction.NORTH, false);
+        for (var cell : cells) {
+            var other = base.get(rotated(w, cell));
+            if (other == null || other.predicate() != cell.predicate()) return false;
+        }
+        return true;
+    }
+
+    private static long rotated(int[] w, Layout.Cell cell) {
+        return BlockPos.asLong(cell.x() * w[0] + cell.y() * w[3] + cell.z() * w[6], cell.x() * w[1] + cell.y() * w[4] + cell.z() * w[7],
+                cell.x() * w[2] + cell.y() * w[5] + cell.z() * w[8]);
     }
 
     private boolean matchAt(MultiblockState state, BlockPos center, Direction front, Direction up, boolean flip, boolean save) {
@@ -394,11 +452,11 @@ public final class Structure {
 
     private boolean fuller(MultiblockState state, BlockPos center, Direction front, Direction up) {
         if (mirrorSymmetric()) return false;
-        var assembly = state.getMatchContext().get(Assembly.KEY);
+        var assembly = state.getAssembly();
         if (assembly == null || assembly.getOptionalMissing() == 0 || !state.controller.self().allowFlip()) return false;
         var probe = MultiblockState.probe(state);
         if (!StructureMatcher.acquire().match(this, probe, center, front, up, true, false)) return false;
-        var flipped = probe.getMatchContext().get(Assembly.KEY);
+        var flipped = probe.getAssembly();
         return flipped != null && flipped.getOptionalFormed() > assembly.getOptionalFormed();
     }
 

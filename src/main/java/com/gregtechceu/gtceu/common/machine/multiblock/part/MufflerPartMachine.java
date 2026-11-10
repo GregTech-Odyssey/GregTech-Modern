@@ -1,9 +1,7 @@
 package com.gregtechceu.gtceu.common.machine.multiblock.part;
 
 import com.gregtechceu.gtceu.api.GTValues;
-import com.gregtechceu.gtceu.api.blockentity.ITickSubscription;
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMufflerMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
@@ -22,6 +20,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
+import com.suried.gtoutils.schedule.Task;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +35,7 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     @SaveToDisk
     private final KeyInventory<AEItemKey> inventory;
     @Nullable
-    protected TickableSubscription particleSubs;
+    protected Task particleSubs;
 
     public MufflerPartMachine(MetaMachineBlockEntity holder, int tier) {
         super(holder, tier);
@@ -74,7 +73,7 @@ public class MufflerPartMachine extends WorkableTieredPartMachine implements IMu
     @Override
     public void onUnload() {
         super.onUnload();
-        particleSubs = ITickSubscription.unsubscribe(particleSubs);
+        particleSubs = Task.cancel(particleSubs);
     }
 
     @OnlyIn(Dist.CLIENT)

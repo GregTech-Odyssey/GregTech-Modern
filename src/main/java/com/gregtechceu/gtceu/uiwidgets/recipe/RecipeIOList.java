@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.uiwidgets.recipe;
 import com.gregtechceu.gtceu.api.machine.trait.RecipeLogic;
 import com.gregtechceu.gtceu.api.recipe.GTRecipe;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
+import com.gregtechceu.gtceu.api.recipe.content.ContentRoll;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 import com.gregtechceu.gtceu.uipro.LayoutStyle;
@@ -198,10 +199,10 @@ public class RecipeIOList extends UIElement {
             return cached;
         }
         var list = new ArrayList<Entry>(recipe.itemInputs.size() + recipe.fluidInputs.size() + recipe.itemOutputs.size() + recipe.fluidOutputs.size());
-        addItems(list, false, recipe.itemInputs, recipe.scale);
-        addFluids(list, false, recipe.fluidInputs, recipe.scale, 0);
-        addItems(list, true, recipe.itemOutputs, recipe.scale);
-        addFluids(list, true, recipe.fluidOutputs, recipe.scale, blocked);
+        addItems(list, false, recipe, recipe.itemInputs);
+        addFluids(list, false, recipe, recipe.fluidInputs, 0);
+        addItems(list, true, recipe, recipe.itemOutputs);
+        addFluids(list, true, recipe, recipe.fluidOutputs, blocked);
         cached = new Snapshot(recipe.duration, list);
         return cached;
     }
@@ -215,20 +216,20 @@ public class RecipeIOList extends UIElement {
         return mask;
     }
 
-    private static void addItems(List<Entry> list, boolean output, ContentList contents, long scale) {
+    private static void addItems(List<Entry> list, boolean output, GTRecipe recipe, ContentList contents) {
         for (int i = 0; i < contents.size(); i++) {
             var ingredient = contents.ingredient(i);
             if (ingredient.displayKey() instanceof AEItemKey key) {
-                list.add(new Entry(output, Keys.displayStack(key), FluidStack.EMPTY, tagOf(ingredient), contents.effective(i, scale), contents.chance(i), false));
+                list.add(new Entry(output, Keys.displayStack(key), FluidStack.EMPTY, tagOf(ingredient), contents.effective(i, recipe.scale), ContentRoll.boostedChance(recipe, contents, i), false));
             }
         }
     }
 
-    private static void addFluids(List<Entry> list, boolean output, ContentList contents, long scale, long blocked) {
+    private static void addFluids(List<Entry> list, boolean output, GTRecipe recipe, ContentList contents, long blocked) {
         for (int i = 0; i < contents.size(); i++) {
             var ingredient = contents.ingredient(i);
             if (ingredient.displayKey() instanceof AEFluidKey key) {
-                list.add(new Entry(output, ItemStack.EMPTY, Keys.displayFluid(key), tagOf(ingredient), contents.effective(i, scale), contents.chance(i), i < Long.SIZE && (blocked >>> i & 1) != 0));
+                list.add(new Entry(output, ItemStack.EMPTY, Keys.displayFluid(key), tagOf(ingredient), contents.effective(i, recipe.scale), ContentRoll.boostedChance(recipe, contents, i), i < Long.SIZE && (blocked >>> i & 1) != 0));
             }
         }
     }

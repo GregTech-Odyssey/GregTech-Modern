@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.TieredMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IAutoOutputItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDropSaveMachine;
@@ -69,6 +68,8 @@ import com.gto.datasynclib.annotations.AdditionalHolder;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.mojang.blaze3d.MethodsReturnNonnullByDefault;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Task;
 import dev.vfyjxf.taffy.style.AlignItems;
 import it.unimi.dsi.fastutil.objects.Reference2LongOpenHashMap;
 import lombok.Getter;
@@ -133,7 +134,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     protected long storedAmount;
     private final KeyInventory<AEItemKey> display = KeyInventory.items(1);
     @Nullable
-    protected TickableSubscription autoOutputSubs;
+    protected Task autoOutputSubs;
     protected final TickTimeMonitor autoOutputMonitor = holder.monitorTick(GTTickTimeMonitors.AUTO_OUTPUT, this::checkAutoOutput);
 
     public QuantumChestMachine(MetaMachineBlockEntity holder, int tier, long maxAmount, Object... args) {
@@ -157,7 +158,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
     public void onLoad() {
         super.onLoad();
         if (getLevel() instanceof ServerLevel serverLevel) {
-            TaskHandler.enqueueTask(serverLevel, this::updateAutoOutputSubscription, 0);
+            Schedulers.of(serverLevel).schedule(this::updateAutoOutputSubscription);
         }
         MEStorageProviderIndex.add(getLevel(), this);
     }
@@ -289,7 +290,7 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         if ((isAutoOutputItems() && cache.storage.amountAt(0) > 0) && outputFacing != null && holder.blockEntityDirectionCache.hasAdjacentTarget(getLevel(), getPos(), outputFacing, AEKeyTypes.ITEMS, StorageAccess.INSERT)) {
             autoOutputSubs = subscribeServerTick(autoOutputSubs, autoOutputMonitor, getTicksPerCycle());
         } else if (autoOutputSubs != null) {
-            autoOutputSubs.unsubscribe();
+            autoOutputSubs.cancel();
             autoOutputSubs = null;
         }
     }

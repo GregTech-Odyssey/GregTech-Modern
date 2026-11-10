@@ -125,6 +125,7 @@ public final class WidgetIcons {
     public static final IGuiTexture MAP_DARK = ATLAS.icon(40, 1);
     public static final IGuiTexture FAVORITE_OFF = ATLAS.icon(41, 0);
     public static final IGuiTexture FAVORITE_ON = ATLAS.icon(41, 1);
+    public static final IGuiTexture DIAGNOSIS = ATLAS.icon(42);
     public static final IGuiTexture PART_CELLS_OFF = ATLAS.icon(43, 0);
     public static final IGuiTexture PART_CELLS_ON = ATLAS.icon(43, 1);
     public static final IGuiTexture NO_HATCHES_OFF = ATLAS.icon(44, 0);

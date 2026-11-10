@@ -5,7 +5,6 @@ import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.gui.GuiTextures;
 import com.gregtechceu.gtceu.api.item.tool.GTToolType;
 import com.gregtechceu.gtceu.api.item.tool.ToolHelper;
-import com.gregtechceu.gtceu.api.machine.TickableSubscription;
 import com.gregtechceu.gtceu.api.machine.feature.IInteractedMachine;
 import com.gregtechceu.gtceu.api.machine.feature.IMachineLife;
 import com.gregtechceu.gtceu.api.machine.feature.IRecipeLogicMachine;
@@ -49,6 +48,7 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
+import com.suried.gtoutils.schedule.Task;
 import dev.gigaherz.toolbelt.BeltFinder;
 import dev.gigaherz.toolbelt.belt.ToolBeltInventory;
 import lombok.Getter;
@@ -95,7 +95,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
     @SaveToDisk
     private float durationMultiplier = 1.0F;
     @Nullable
-    protected TickableSubscription maintenanceSubs;
+    protected Task maintenanceSubs;
 
     public MaintenanceHatchPartMachine(MetaMachineBlockEntity metaTileEntityId, boolean isConfigurable) {
         super(metaTileEntityId, isConfigurable ? 3 : 1);
@@ -177,7 +177,7 @@ public class MaintenanceHatchPartMachine extends WorkableTieredPartMachine imple
         if (hasMaintenanceProblems()) {
             maintenanceSubs = subscribeServerTick(maintenanceSubs, this::update, 80);
         } else if (maintenanceSubs != null) {
-            maintenanceSubs.unsubscribe();
+            maintenanceSubs.cancel();
             maintenanceSubs = null;
         }
     }

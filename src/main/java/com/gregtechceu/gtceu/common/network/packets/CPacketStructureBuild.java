@@ -13,6 +13,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.Collections;
+import java.util.Set;
+
 public class CPacketStructureBuild implements IPacket {
 
     private static final double MAX_DISTANCE_SQR = 64 * 64;
@@ -23,8 +26,14 @@ public class CPacketStructureBuild implements IPacket {
     private int upload;
     private int flags;
     private boolean[] demolishNodes = new boolean[0];
+    private Set<StructureBuild.Swap> kept = Collections.emptySet();
 
     public CPacketStructureBuild() {}
+
+    public CPacketStructureBuild(BlockPos pos, int[] values, int upload, int flags, boolean[] demolishNodes, Set<StructureBuild.Swap> kept) {
+        this(pos, values, upload, flags, demolishNodes);
+        this.kept = kept;
+    }
 
     public CPacketStructureBuild(BlockPos pos, int[] values, int upload, int flags, boolean[] demolishNodes) {
         this(pos, values, upload, flags);
@@ -46,6 +55,7 @@ public class CPacketStructureBuild implements IPacket {
         buf.writeVarInt(flags);
         buf.writeVarInt(demolishNodes.length);
         for (boolean node : demolishNodes) buf.writeBoolean(node);
+        StructureBuild.Swap.write(buf, kept);
     }
 
     @Override
@@ -53,11 +63,12 @@ public class CPacketStructureBuild implements IPacket {
         pos = buf.readBlockPos();
         values = buf.readVarIntArray(BuildUpload.MAX_VALUES);
         upload = buf.readVarInt();
-        flags = buf.readVarInt() & (StructureBuild.FLAG_MIRROR | StructureBuild.FLAG_NETWORK | StructureBuild.FLAG_DEMOLISH);
+        flags = buf.readVarInt() & StructureBuild.ALL_FLAGS;
         int nodes = buf.readVarInt();
         if (nodes < 0 || nodes > BuildUpload.MAX_VALUES) throw new IllegalArgumentException("Too many structure nodes: " + nodes);
         demolishNodes = new boolean[nodes];
         for (int i = 0; i < nodes; i++) demolishNodes[i] = buf.readBoolean();
+        kept = StructureBuild.Swap.read(buf);
     }
 
     @Override
@@ -77,6 +88,6 @@ public class CPacketStructureBuild implements IPacket {
             player.sendSystemMessage(StructureBuild.INVALID);
             return;
         }
-        StructureBuild.build(player, controller, layout, choices, flags, demolishNodes.length == 0 ? null : demolishNodes);
+        StructureBuild.build(player, controller, layout, choices, flags, demolishNodes.length == 0 ? null : demolishNodes, kept);
     }
 }

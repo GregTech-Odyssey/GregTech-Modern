@@ -17,6 +17,7 @@ public final class RequestThrottle {
 
     public static final RequestThrottle CARRIED_STOCK = new RequestThrottle(10);
     public static final RequestThrottle PART_CELLS = new RequestThrottle(20);
+    public static final RequestThrottle STRUCTURE_DIAGNOSIS = new RequestThrottle(40);
 
     static {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, PlayerEvent.PlayerLoggedOutEvent.class, RequestThrottle::onLoggedOut);

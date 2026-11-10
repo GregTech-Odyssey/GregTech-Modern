@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
+import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureIssue;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.Predicates;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
-import com.gregtechceu.gtceu.api.pattern.error.SinglePredicateError;
 import com.gregtechceu.gtceu.data.lang.LangHandler;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
@@ -134,7 +134,7 @@ public class SimplePredicate {
         boolean base = predicate.test(blockWorldState);
         int count = blockWorldState.getGlobalCount().mergeInt(this, base ? 1 : 0, Integer::sum);
         if (maxCount == -1 || count <= maxCount) return base;
-        blockWorldState.setError(new SinglePredicateError(this, 0));
+        blockWorldState.setIssue(StructureIssue.tooMany(this, maxCount));
         return false;
     }
 
@@ -143,7 +143,7 @@ public class SimplePredicate {
         boolean base = predicate.test(blockWorldState);
         int count = blockWorldState.getLayerCount().mergeInt(this, base ? 1 : 0, Integer::sum);
         if (maxLayerCount == -1 || count <= maxLayerCount) return base;
-        blockWorldState.setError(new SinglePredicateError(this, 2));
+        blockWorldState.setIssue(StructureIssue.tooManyInLayer(this, maxLayerCount));
         return false;
     }
 
