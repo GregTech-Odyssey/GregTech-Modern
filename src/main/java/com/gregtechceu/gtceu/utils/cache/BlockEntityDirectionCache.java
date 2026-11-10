@@ -20,40 +20,37 @@ public class BlockEntityDirectionCache extends DirectionCache<BlockEntity> {
         return new BlockEntityDirectionCache();
     }
 
-    public BlockEntity getAdjacentBlockEntity(Level level, BlockPos pos, Direction direction) {
+    public final BlockEntity getAdjacentBlockEntity(Level level, BlockPos pos, Direction direction) {
         var cache = getCache(direction);
         if (cache == null) {
-            var blockEntity = level.getBlockEntity(pos.relative(direction));
-            setCache(direction, blockEntity == null ? NULL : blockEntity);
-            return blockEntity;
+            return set(level, pos, direction);
         } else {
             if (cache == NULL) return null;
             var blockEntity = (BlockEntity) cache;
             if (blockEntity.isRemoved()) {
-                blockEntity = level.getBlockEntity(pos.relative(direction));
-                if (blockEntity != null) {
-                    setCache(direction, blockEntity);
-                    return blockEntity;
-                } else {
-                    setCache(direction, NULL);
-                    return null;
-                }
+                return set(level, pos, direction);
             }
             return blockEntity;
         }
     }
 
-    public boolean hasAdjacentTarget(Level level, BlockPos pos, Direction facing, AEKeyType type, StorageAccess access) {
+    private BlockEntity set(Level level, BlockPos pos, Direction direction) {
+        var blockEntity = level.getBlockEntity(pos.relative(direction));
+        setCache(direction, blockEntity == null ? NULL : blockEntity);
+        return blockEntity;
+    }
+
+    public final boolean hasAdjacentTarget(Level level, BlockPos pos, Direction facing, AEKeyType type, StorageAccess access) {
         var blockEntity = getAdjacentBlockEntity(level, pos, facing);
         return blockEntity != null && target(facing).has(blockEntity, facing.getOpposite(), type, access);
     }
 
-    public @Nullable IKeyHandler<?> getAdjacentKeyHandler(Level level, BlockPos pos, Direction facing, AEKeyType type, StorageAccess access) {
+    public final @Nullable IKeyHandler<?> getAdjacentKeyHandler(Level level, BlockPos pos, Direction facing, AEKeyType type, StorageAccess access) {
         var blockEntity = getAdjacentBlockEntity(level, pos, facing);
         return blockEntity == null ? null : target(facing).find(blockEntity, facing.getOpposite(), type, access);
     }
 
-    public @Nullable IKeyHandler<?> getAdjacentKeyHandler(BlockEntity neighbour, Direction facing, AEKeyType type, StorageAccess access) {
+    public final @Nullable IKeyHandler<?> getAdjacentKeyHandler(BlockEntity neighbour, Direction facing, AEKeyType type, StorageAccess access) {
         return target(facing).find(neighbour, facing.getOpposite(), type, access);
     }
 

@@ -23,6 +23,11 @@ public final class ForgeFluidView implements IKeyHandler<AEFluidKey> {
         return new ForgeFluidView(handler);
     }
 
+    @Override
+    public int operationTime() {
+        return this.size() * 5;
+    }
+
     public IFluidHandler getHandler() {
         return handler;
     }

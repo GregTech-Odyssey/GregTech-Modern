@@ -37,7 +37,7 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
     private static final IGuiTexture ICON = new ItemStackTexture(Blocks.BRICKS.asItem());
 
     @Getter
-    @SyncToClient(listener = "onBlockSynced")
+    @SyncToClient(scheduleUpdate = true)
     private Block block = Blocks.AIR;
 
     private Block sampleBlock = Blocks.AIR;
@@ -68,10 +68,6 @@ public final class StorageAppearance extends MachineTrait implements IFancyConfi
 
     public static boolean isValidSample(ItemStack stack) {
         return stack.getItem() instanceof BlockItem && !(stack.getItem() instanceof MetaMachineItem);
-    }
-
-    private void onBlockSynced(Block value, Block previous) {
-        machine.scheduleRenderUpdate();
     }
 
     @Override
