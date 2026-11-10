@@ -54,6 +54,10 @@ public final class ElectricText {
         return Component.translatable("gtceu.electric.power", FormattingUtil.formatNumbers(euPerTick));
     }
 
+    public static MutableComponent powerReadable(long euPerTick) {
+        return Component.translatable("gtceu.electric.power", FormattingUtil.formatNumberReadable(euPerTick));
+    }
+
     public static MutableComponent power(double euPerTick) {
         return Component.translatable("gtceu.electric.power", exact(euPerTick));
     }

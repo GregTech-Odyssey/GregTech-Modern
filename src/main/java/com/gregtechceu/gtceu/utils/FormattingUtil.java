@@ -9,7 +9,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -28,6 +30,16 @@ public class FormattingUtil {
     public static final DecimalFormat DECIMAL_FORMAT_2F = createDecimalFormat("#,##0.##");
     public static final DecimalFormat DECIMAL_FORMAT_SIC = createDecimalFormat("0E00");
     public static final DecimalFormat DECIMAL_FORMAT_SIC_2F = createDecimalFormat("0.00E00");
+
+    private static final DecimalFormat[] COMPACT_FORMATS = {
+            createCompactFormat("0.##"), createCompactFormat("0.#"), createCompactFormat("0")
+    };
+
+    private static DecimalFormat createCompactFormat(String pattern) {
+        DecimalFormat format = createDecimalFormat(pattern);
+        format.setRoundingMode(RoundingMode.HALF_UP);
+        return format;
+    }
 
     private static final int SMALL_DOWN_NUMBER_BASE = '\u2080';
     private static final int SMALL_UP_NUMBER_BASE = '\u2070';
@@ -211,6 +223,24 @@ public class FormattingUtil {
 
     public static String formatNumberReadable2F(double number, boolean milli) {
         return formatNumberReadable(number, milli, DECIMAL_FORMAT_2F, null);
+    }
+
+    /**
+     * Formats a compact number with SI prefixes up to E and up to three significant digits.
+     * Trailing fractional zeros are omitted; values below one retain at most two decimal places.
+     */
+    public static String formatNumberCompact(double number) {
+        double magnitude = Math.abs(number);
+        int exp = 0;
+        while (magnitude >= 1000 && exp < 6) {
+            number /= 1000;
+            magnitude /= 1000;
+            exp++;
+        }
+        DecimalFormat format = COMPACT_FORMATS[magnitude >= 100 ? 2 : magnitude >= 10 ? 1 : 0];
+        StringBuilder result = new StringBuilder().append(Double.isFinite(number) ? format.format(BigDecimal.valueOf(number)) : Double.toString(number));
+        if (exp > 0) result.append("kMGTPE".charAt(exp - 1));
+        return result.toString();
     }
 
     /**

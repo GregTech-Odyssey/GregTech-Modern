@@ -106,8 +106,9 @@ public final class EnergyTierPreview implements RecipeTierPreview {
         }
         int voltageTier = GTUtil.getTierByVoltage(eut);
         var amperage = ElectricText.flowOf(eut, voltageTier);
-        return ElectricText.power(eut)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, amperage)));
+        var hoverText = eut >= 1000 ? ElectricText.power(eut).append("\n").append(amperage) : amperage;
+        return ElectricText.powerReadable(eut)
+                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
     }
 
     private static boolean isTotalCwu(GTRecipeDefinition recipe) {

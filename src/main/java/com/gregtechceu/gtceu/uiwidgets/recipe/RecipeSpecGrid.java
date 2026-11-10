@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.render.UIText;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.utils.FormattingUtil;
 
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
@@ -20,20 +21,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
- * 配方页参数网格：首行固定「耗能 | 档位」，其余按标准两列连续排（耗时、总计、条件、属性依次补空位，单出一格的占满整行，说明各占一行），百万以上的数值缩写；半格按棋盘格明暗交替，整行格单用一种底色。
+ * 配方页内凹参数网格：首行固定「耗能 | 等级」，其余按标准两列连续排（耗时、总计、条件、属性依次补空位，末尾单出的半格不合并，只有一项时占满整行，说明各占一行），百万以上的数值缩写；双色棋盘格填充。
  * 版位由 {@link #plan} 一次算出，配方页量尺寸与建控件共用；超出行数上限时说明、属性、总计依次让位，计入悬停的"+N 项"。
  */
 public final class RecipeSpecGrid extends UIElement {
 
-    public static final int ROW_HEIGHT = UISizes.TEXT_HEIGHT + 1;
+    public static final int ROW_HEIGHT = UISizes.TEXT_HEIGHT + 3;
+    private static final int FRAME = 1;
     private static final int CELL_PADDING = 2;
+    private static final int LABEL_VALUE_GAP = UISizes.TEXT_PADDING + 2;
     public static final int TOP = 3;
     private static final int BOTTOM = 1;
-    private static final String[] UNITS = { "k", "M", "G", "T", "P", "E" };
+    private static final Component TIER_LABEL = Component.translatable("gtceu.tip.stat.tier");
     private static final double ABBREVIATE_FROM = 1_000_000;
 
     public enum Kind {
@@ -83,7 +85,30 @@ public final class RecipeSpecGrid extends UIElement {
     }
 
     public static int columnWidth(int width) {
-        return width / 2 - 2 * CELL_PADDING;
+        return (width - 2 * FRAME) / 2 - 2 * CELL_PADDING;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static int valueWidth(Component value) {
+        return UIText.width(abbreviated(value.getString(), Integer.MAX_VALUE));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static int requiredWidth(Plan plan, int tierWidth) {
+        int half = tierWidth > 0 ? UIText.width(TIER_LABEL) + LABEL_VALUE_GAP + tierWidth : 0;
+        int full = 0, count = 0;
+        for (var placed : plan.cells()) {
+            var cell = placed.cell();
+            int content = valueWidth(RecipeInfoLines.nonNull(cell.value().get()));
+            if (cell.label() != null) content += UIText.width(cell.label().getString()) + LABEL_VALUE_GAP;
+            if (cell.wide()) full = Math.max(full, content);
+            else {
+                half = Math.max(half, content);
+                count++;
+            }
+        }
+        int columns = plan.tierRow() >= 0 || count > 1 ? 2 : 1;
+        return 2 * FRAME + Math.max(columns * (half + 2 * CELL_PADDING), full + 2 * CELL_PADDING);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -142,7 +167,7 @@ public final class RecipeSpecGrid extends UIElement {
         flowing.addAll(stats);
         flowing.addAll(requirements);
         flowing.addAll(properties);
-        row = flow(flowing, cells, row, column, hidden.isEmpty());
+        row = flow(flowing, cells, row, column, hidden.isEmpty() && row == 0 && flowing.size() == 1);
         for (var cell : sentences) cells.add(new Placed(cell, row++, -1));
         return new Plan(cells, row, tierRow, List.copyOf(hidden));
     }
@@ -176,7 +201,7 @@ public final class RecipeSpecGrid extends UIElement {
     private static boolean fitsHalf(Cell cell, int column) {
         if (cell.wide()) return false;
         var font = Minecraft.getInstance().font;
-        int label = cell.label() == null ? 0 : font.width(cell.label()) + UISizes.TEXT_PADDING;
+        int label = cell.label() == null ? 0 : font.width(cell.label()) + LABEL_VALUE_GAP;
         String value = abbreviated(RecipeInfoLines.nonNull(cell.value().get()).getString(), column - label);
         return label + font.width(value) <= column;
     }
@@ -199,11 +224,12 @@ public final class RecipeSpecGrid extends UIElement {
         for (int i = 0; i < entries.length; i++) entries[i] = new Entry(plan.cells().get(i));
         splitRows = new boolean[plan.rows()];
         for (var placed : plan.cells()) {
-            if (placed.column() == 1) splitRows[placed.row()] = true;
+            if (placed.column() >= 0) splitRows[placed.row()] = true;
         }
+        if (plan.tierRow() >= 0) splitRows[plan.tierRow()] = true;
         layout(l -> l.size(width, plan.height()));
         if (tier != null && plan.tierRow() >= 0) {
-            var holder = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(CELL_PADDING).top(TOP + plan.tierRow() * ROW_HEIGHT));
+            var holder = new UIElement().layout(l -> l.positionType(TaffyPosition.ABSOLUTE).right(FRAME + CELL_PADDING).top(TOP + plan.tierRow() * ROW_HEIGHT));
             holder.addChild(tier);
             addChild(holder);
         }
@@ -214,16 +240,16 @@ public final class RecipeSpecGrid extends UIElement {
     }
 
     private int moreX(int x0) {
-        int right = tier == null ? x0 + width - CELL_PADDING : tier.getPositionX() - UISizes.TEXT_PADDING;
-        return Math.max(x0 + width / 2 + CELL_PADDING, right - moreWidth);
+        int right = tier == null ? x0 + width - FRAME - CELL_PADDING : tier.getPositionX() - UISizes.TEXT_PADDING;
+        return Math.max(x0 + FRAME + (width - 2 * FRAME) / 2 + CELL_PADDING, right - moreWidth);
     }
 
     private int cellX(Placed placed) {
-        return (placed.column() == 1 ? width / 2 : 0) + CELL_PADDING;
+        return FRAME + (placed.column() == 1 ? (width - 2 * FRAME) / 2 : 0) + CELL_PADDING;
     }
 
     private int cellWidth(Placed placed) {
-        return placed.column() < 0 ? width - 2 * CELL_PADDING : columnWidth(width);
+        return placed.column() < 0 ? width - 2 * (FRAME + CELL_PADDING) : columnWidth(width);
     }
 
     private int moreWidth() {
@@ -232,17 +258,19 @@ public final class RecipeSpecGrid extends UIElement {
     }
 
     @OnlyIn(Dist.CLIENT)
-    private void drawStripes(GuiGraphics graphics, int x0, int y0) {
+    private void drawCells(GuiGraphics graphics, int x0, int y0) {
+        int left = x0 + FRAME, right = x0 + width - FRAME;
+        int middle = left + (width - 2 * FRAME) / 2;
         for (int row = 0; row < plan.rows(); row++) {
             int y = y0 + TOP + row * ROW_HEIGHT;
-            if (!splitRows[row]) {
-                graphics.fill(x0, y, x0 + width, y + ROW_HEIGHT, UITheme.SPEC_CELL_WIDE);
-                continue;
-            }
             int even = row % 2 == 0 ? UITheme.SPEC_CELL_LIGHT : UITheme.SPEC_CELL_DARK;
             int odd = row % 2 == 0 ? UITheme.SPEC_CELL_DARK : UITheme.SPEC_CELL_LIGHT;
-            graphics.fill(x0, y, x0 + width / 2, y + ROW_HEIGHT, even);
-            graphics.fill(x0 + width / 2, y, x0 + width, y + ROW_HEIGHT, odd);
+            if (!splitRows[row]) {
+                graphics.fill(left, y, right, y + ROW_HEIGHT, even);
+                continue;
+            }
+            graphics.fill(left, y, middle, y + ROW_HEIGHT, even);
+            graphics.fill(middle, y, right, y + ROW_HEIGHT, odd);
         }
     }
 
@@ -250,8 +278,16 @@ public final class RecipeSpecGrid extends UIElement {
     @OnlyIn(Dist.CLIENT)
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         int x0 = getPositionX(), y0 = getPositionY();
-        drawStripes(graphics, x0, y0);
+        if (plan.rows() > 0) {
+            UITheme.STATUS_PANEL.draw(graphics, mouseX, mouseY, x0, y0 + TOP - FRAME, width, plan.rows() * ROW_HEIGHT + 2 * FRAME);
+            drawCells(graphics, x0, y0);
+        }
         for (var entry : entries) entry.draw(graphics, x0, y0, mouseX, mouseY);
+        if (tier != null) {
+            int x = x0 + FRAME + (width - 2 * FRAME) / 2 + CELL_PADDING;
+            int y = UIText.centerY(y0 + TOP + plan.tierRow() * ROW_HEIGHT, ROW_HEIGHT);
+            UIText.drawLeft(graphics, TIER_LABEL, x, y, UITheme.TEXT_SECONDARY);
+        }
         if (!plan.hidden().isEmpty() && plan.rows() > 0) {
             moreWidth();
             int y = UIText.centerY(y0 + TOP + markerRow() * ROW_HEIGHT, ROW_HEIGHT);
@@ -322,7 +358,7 @@ public final class RecipeSpecGrid extends UIElement {
             source = value;
             var cell = placed.cell();
             label = cell.label() == null ? "" : cell.label().getString();
-            labelWidth = label.isEmpty() ? 0 : UIText.width(label) + UISizes.TEXT_PADDING;
+            labelWidth = label.isEmpty() ? 0 : UIText.width(label) + LABEL_VALUE_GAP;
             int available = cellWidth(placed) - labelWidth;
             String text = value.getString();
             shown = cell.wide() ? UIText.fit(text, available) : compact(text, available);
@@ -391,17 +427,6 @@ public final class RecipeSpecGrid extends UIElement {
             return text;
         }
         if (value < ABBREVIATE_FROM && UIText.width(text) <= maxWidth) return text;
-        return abbreviate(value) + text.substring(end);
-    }
-
-    private static String abbreviate(double value) {
-        int unit = -1;
-        while (value >= 1000 && unit < UNITS.length - 1) {
-            value /= 1000;
-            unit++;
-        }
-        String number = String.format(Locale.ROOT, value >= 100 ? "%.0f" : value >= 10 ? "%.1f" : "%.2f", value);
-        if (number.indexOf('.') >= 0) number = number.replaceAll("0+$", "").replaceAll("\\.$", "");
-        return unit < 0 ? number : number + UNITS[unit];
+        return new StringBuilder().append(FormattingUtil.formatNumberCompact(value)).append(text, end, text.length()).toString();
     }
 }
