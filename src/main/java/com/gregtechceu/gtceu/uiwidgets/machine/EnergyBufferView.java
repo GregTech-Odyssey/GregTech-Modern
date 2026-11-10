@@ -15,7 +15,6 @@ public final class EnergyBufferView {
     private EnergyBufferView() {}
 
     public static void addTo(MultiblockPage page, IBufferedEnergyMachine machine) {
-        if (!machine.isEnergyBufferEnabled()) return;
         page.addBar(LABEL, UITheme::barEnergy, () -> progress(machine)).percent()
                 .bindDetail(MultiblockPage.chargeText(machine::getEnergyBuffer, machine::getEnergyBufferDisplayCapacity));
     }

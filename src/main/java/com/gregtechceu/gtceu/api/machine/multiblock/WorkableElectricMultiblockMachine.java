@@ -35,22 +35,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IMultiblockFancyUIMachine, IOverclockMachine, IComputationContainerMachine, IBufferedEnergyMachine {
 
-    // Keep the former Lib key so existing controller reserves load through the inherited field.
     @Getter
     @SaveToDisk(defaultValue = "0")
     protected long energyBuffer;
 
-    @Override
-    public void setEnergyBuffer(long energy) {
-        if (energyBuffer == energy) return;
-        energyBuffer = energy;
-        onChanged();
-    }
-
-    @Override
-    public long getEnergyBufferCapacity() {
-        return isFormed() && !isGenerator() ? IBufferedEnergyMachine.bufferCapacity(getOverclockVoltage()) : 0;
-    }
+    @Getter
+    protected long energyBufferCapacity;
 
     // runtime
     @Getter
@@ -65,6 +55,18 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         super(holder, args);
     }
 
+    @Override
+    public boolean useEnergy(long eu, boolean simulate) {
+        if (eu < 0) return generateEnergy(-eu, simulate);
+        if (simulate) return (energyBuffer + energyContainer.getEnergyStored()) >= eu;
+        if (energyBuffer < eu) {
+            energyBuffer -= energyContainer.changeEnergy(-energyBufferCapacity);
+            if (energyBuffer < eu) return false;
+        }
+        energyBuffer -= eu;
+        return true;
+    }
+
     //////////////////////////////////////
     // *** Multiblock Lifecycle ***//
     //////////////////////////////////////
@@ -74,6 +76,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         this.energyContainer = EnergyContainerList.EMPTY;
         this.computationProviderList = ComputationProviderList.EMPTY;
         this.tier = 0;
+        energyBufferCapacity = 0;
     }
 
     @Override
@@ -85,6 +88,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         if (containers.length > 0) energyContainer = new EnergyContainerList(containers);
         if (providers.length > 0) computationProviderList = new ComputationProviderList(providers);
         this.tier = GTUtil.getFloorTierByVoltage(getMaxVoltage());
+        energyBufferCapacity = IBufferedEnergyMachine.bufferCapacity(getOverclockVoltage());
     }
 
     //////////////////////////////////////

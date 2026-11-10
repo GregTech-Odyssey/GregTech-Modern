@@ -11,11 +11,6 @@ public interface IElectricMachine extends ITieredMachine {
     @NotNull
     IEnergyContainer getEnergyContainer();
 
-    /** Virtual supplies such as steam and mana consume their own resource directly. */
-    default boolean isEnergyBufferEnabled() {
-        return true;
-    }
-
     default int getTier() {
         return GTUtil.getTierByVoltage(getEnergyContainer().getEnergyCapacity());
     }
