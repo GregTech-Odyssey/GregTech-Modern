@@ -198,15 +198,17 @@ public class ChemicalHelper {
         if (itemKey instanceof IGTTool tool) {
             return new MaterialEntry(TagPrefix.nugget, tool.getMaterial());
         }
-        var entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(((IAEItem) itemKey).ae2$getUid());
-        if (entry == null && !ITEM_MATERIAL_ENTRY.isEmpty()) {
+        if (!ITEM_MATERIAL_ENTRY.isEmpty()) collectMaterialEntries();
+        return ITEM_MATERIAL_ENTRY_COLLECTED.get(((IAEItem) itemKey).ae2$getUid());
+    }
+
+    private static void collectMaterialEntries() {
+        synchronized (ITEM_MATERIAL_ENTRY) {
             for (var e : ITEM_MATERIAL_ENTRY) {
                 ITEM_MATERIAL_ENTRY_COLLECTED.put(((IAEItem) e.getFirst().get().asItem()).ae2$getUid(), e.getSecond());
             }
             ITEM_MATERIAL_ENTRY.clear();
-            entry = ITEM_MATERIAL_ENTRY_COLLECTED.get(((IAEItem) itemKey).ae2$getUid());
         }
-        return entry;
     }
 
     public static List<Item> getItems(MaterialEntry MaterialEntry) {

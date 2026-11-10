@@ -64,7 +64,9 @@ public class ItemMaterialData {
     public static void registerMaterialEntry(@NotNull Supplier<? extends ItemLike> supplier,
                                              @NotNull MaterialEntry materialEntry) {
         registerItemEntry(supplier, materialEntry.tagPrefix(), materialEntry.material());
-        ITEM_MATERIAL_ENTRY.add(Pair.of(() -> supplier.get().asItem(), materialEntry));
+        synchronized (ITEM_MATERIAL_ENTRY) {
+            ITEM_MATERIAL_ENTRY.add(Pair.of(() -> supplier.get().asItem(), materialEntry));
+        }
         var blockSupplier = convertToBlock(supplier);
         if (blockSupplier != null) {
             registerBlockEntry(blockSupplier, materialEntry.tagPrefix(), materialEntry.material());
