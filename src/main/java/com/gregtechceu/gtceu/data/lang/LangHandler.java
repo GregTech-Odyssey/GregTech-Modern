@@ -1775,6 +1775,7 @@ public class LangHandler {
         provider.add("gtceu.gui.multiblock.off", "Off");
         provider.add("gtceu.gui.multiblock.slot_empty", "Empty");
         provider.add("gtceu.gui.multiblock.energy", "Energy");
+        provider.add("gtceu.gui.internal_energy", "Internal Energy");
         provider.add("gtceu.multiblock.large_boiler.throttle.label", "Throttle (%%)");
         provider.add("gtceu.multiblock.large_boiler.temperature.label", "Temperature");
         provider.add("gtceu.multiblock.large_boiler.steam_output.label", "Steam Output");

@@ -123,15 +123,7 @@ public class CleanroomLogic extends RecipeLogic {
     }
 
     protected boolean consumeEnergy() {
-        long energyToDrain = getEnergyPerTick();
-        if (energyContainer != null) {
-            long resultEnergy = energyContainer.getEnergyStored() - energyToDrain;
-            if (resultEnergy >= 0L && resultEnergy <= energyContainer.getEnergyCapacity()) {
-                energyContainer.removeEnergy(energyToDrain);
-                return true;
-            }
-        }
-        return false;
+        return energyContainer != null && machine.useEnergy(getEnergyPerTick(), false);
     }
 
     protected int getTierDifference() {

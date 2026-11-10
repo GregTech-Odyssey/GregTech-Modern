@@ -115,7 +115,7 @@ abstract class DataMachine extends WorkableElectricMultiblockMachine {
     }
 
     public void tick() {
-        if (this.energyContainer.removeEnergy(energyUsage) >= energyUsage) {
+        if (useEnergy(energyUsage, false)) {
             getRecipeLogic().setStatus(RecipeLogic.WORKING);
         } else {
             getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", ElectricText.power(energyUsage)));

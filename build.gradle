@@ -102,3 +102,10 @@ tasks.register('medicalConditionCheck', JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.gregtechceu.gtceu.api.data.medicalcondition.MedicalConditionProgressionCheck'
 }
+
+
+tasks.register('energyBufferCheck', JavaExec) {
+    group = 'verification'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.gregtechceu.gtceu.api.machine.feature.EnergyBufferCheck'
+}

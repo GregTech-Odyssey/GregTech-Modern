@@ -161,7 +161,7 @@ public class HPCAMachine extends WorkableElectricMultiblockMachine implements IO
     public void tick() {
         if (isWorkingEnabled()) {
             long energyToConsume = hpcaHandler.getCurrentEUt();
-            if (this.energyContainer.removeEnergy(energyToConsume) >= energyToConsume) {
+            if (useEnergy(energyToConsume, false)) {
                 getRecipeLogic().setStatus(RecipeLogic.WORKING);
             } else {
                 getRecipeLogic().setWaiting(Component.translatable("gtceu.issue.eu_short", ElectricText.power(energyToConsume)));

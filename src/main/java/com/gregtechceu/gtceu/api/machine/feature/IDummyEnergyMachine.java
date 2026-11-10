@@ -6,6 +6,11 @@ import net.minecraft.core.Direction;
 
 public interface IDummyEnergyMachine extends IElectricMachine {
 
+    @Override
+    default boolean isEnergyBufferEnabled() {
+        return false;
+    }
+
     default boolean jade() {
         return true;
     }

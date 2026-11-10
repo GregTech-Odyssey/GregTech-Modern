@@ -2661,6 +2661,7 @@
     "gtceu.gui.multiblock.off": "关",
     "gtceu.gui.multiblock.slot_empty": "空",
     "gtceu.gui.multiblock.energy": "能量",
+    "gtceu.gui.internal_energy": "内部储能",
     "gtceu.gui.recipe_io.inputs": "输入",
     "gtceu.gui.recipe_io.outputs": "输出",
     "gtceu.gui.vein_drill.vein": "矿脉：%s",

@@ -15,6 +15,7 @@ import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.ProgressBar;
 import com.gregtechceu.gtceu.uipro.styletemplate.MachineEra;
 import com.gregtechceu.gtceu.uipro.styletemplate.UITheme;
+import com.gregtechceu.gtceu.uiwidgets.machine.EnergyBufferView;
 import com.gregtechceu.gtceu.uiwidgets.multiblock.MultiblockPage;
 import com.gregtechceu.gtceu.utils.FormattingUtil;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -22,6 +23,7 @@ import com.gregtechceu.gtceu.utils.GTUtil;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 
+import com.gto.datasynclib.annotations.SaveToDisk;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +33,24 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IMultiblockFancyUIMachine, IOverclockMachine, IComputationContainerMachine, IElectricMachine {
+public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine implements IMultiblockFancyUIMachine, IOverclockMachine, IComputationContainerMachine, IBufferedEnergyMachine {
+
+    // Keep the former Lib key so existing controller reserves load through the inherited field.
+    @Getter
+    @SaveToDisk(defaultValue = "0")
+    protected long energyBuffer;
+
+    @Override
+    public void setEnergyBuffer(long energy) {
+        if (energyBuffer == energy) return;
+        energyBuffer = energy;
+        onChanged();
+    }
+
+    @Override
+    public long getEnergyBufferCapacity() {
+        return isFormed() && !isGenerator() ? IBufferedEnergyMachine.bufferCapacity(getOverclockVoltage()) : 0;
+    }
 
     // runtime
     @Getter
@@ -113,6 +132,7 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         }, parallels -> Component.literal(FormattingUtil.formatNumbers(parallels))));
         page.addBar(LANG_ENERGY, UITheme::barEnergy, () -> new ProgressBar.Progress(energyContainer.getEnergyStored(), Math.max(1, energyContainer.getEnergyCapacity()), 0)).percent()
                 .bindDetail(MultiblockPage.cached(energyContainer::getEnergyStored, ElectricText::energyExact));
+        if (!generator) EnergyBufferView.addTo(page, this);
         addScreenReadouts(page);
         page.addText(this::addScreenText, this::handleDisplayClick);
         addControls(page.getControls());
