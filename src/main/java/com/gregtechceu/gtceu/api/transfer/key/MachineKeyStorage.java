@@ -46,6 +46,11 @@ public final class MachineKeyStorage implements KeyTypedStorage {
     }
 
     @Override
+    public int operationTime() {
+        return Math.max(items.operationTime(), fluids.operationTime());
+    }
+
+    @Override
     public long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
         if (amount <= 0) return 0;
         if (what instanceof AEItemKey key) return items.insert(key, amount, mode == Actionable.SIMULATE);

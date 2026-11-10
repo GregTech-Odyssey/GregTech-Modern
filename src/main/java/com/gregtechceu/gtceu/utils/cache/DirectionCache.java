@@ -21,17 +21,17 @@ public class DirectionCache<T> {
     private Object any;
     private final Object[] array = new Object[6];
 
-    public boolean has(@Nullable Direction direction) {
+    public final boolean has(@Nullable Direction direction) {
         return getCache(direction) != null;
     }
 
     @SuppressWarnings("unchecked")
-    public @Nullable T get(@Nullable Direction direction) {
+    public final @Nullable T get(@Nullable Direction direction) {
         var cache = getCache(direction);
         return cache == null || cache == NULL ? null : (T) cache;
     }
 
-    public T getOrSet(@Nullable Direction direction, @NotNull Supplier<T> supplier) {
+    public final T getOrSet(@Nullable Direction direction, @NotNull Supplier<T> supplier) {
         var cache = getCache(direction);
         if (cache == null) {
             var value = supplier.get();
@@ -42,7 +42,7 @@ public class DirectionCache<T> {
         }
     }
 
-    public @Nullable Object getCache(@Nullable Direction direction) {
+    public final @Nullable Object getCache(@Nullable Direction direction) {
         if (direction == null) {
             return any;
         } else {
@@ -50,7 +50,7 @@ public class DirectionCache<T> {
         }
     }
 
-    public void setCache(@Nullable Direction direction, @Nullable Object value) {
+    public final void setCache(@Nullable Direction direction, @Nullable Object value) {
         if (direction == null) {
             any = value;
         } else {
@@ -58,18 +58,18 @@ public class DirectionCache<T> {
         }
     }
 
-    public void remove(@Nullable Direction direction) {
+    public final void remove(@Nullable Direction direction) {
         setCache(direction, null);
     }
 
     @SuppressWarnings("unchecked")
-    public void remove(@Nullable Direction direction, @NotNull Consumer<? super T> onRemove) {
+    public final void remove(@Nullable Direction direction, @NotNull Consumer<? super T> onRemove) {
         var old = getCache(direction);
         setCache(direction, null);
         if (old != null && old != NULL) onRemove.accept((T) old);
     }
 
-    public void clearCache() {
+    public final void clearCache() {
         any = null;
         Arrays.fill(array, null);
     }
@@ -80,7 +80,7 @@ public class DirectionCache<T> {
      * so that other mods holding them know to re-query.
      * Values are removed from the cache before the callback runs.
      */
-    public void clearCache(@NotNull Consumer<? super T> onClear) {
+    public final void clearCache(@NotNull Consumer<? super T> onClear) {
         var oldAny = any;
         any = null;
         if (oldAny != null && oldAny != NULL) {

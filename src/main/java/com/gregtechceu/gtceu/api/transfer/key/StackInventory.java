@@ -89,6 +89,11 @@ public class StackInventory extends AbstractDataSerializable implements IKeyHand
     }
 
     @Override
+    public int operationTime() {
+        return this.size() * 5;
+    }
+
+    @Override
     public IItemHandler forgeItemHandler() {
         return new ForgeStackAdapter(this);
     }

@@ -12,6 +12,9 @@ import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.utils.GTUtil;
 
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import com.gto.datasynclib.annotations.SaveToDisk;
@@ -133,6 +136,8 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Override
     public void onLoad() {
         super.onLoad();
+        // Legacy machines can have fluid anti-clog enabled while their item inventory is unrestricted.
+        setInputLimit(isInputLimit());
         // attach self traits
         Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
         for (var trait : getTraits(IRecipeHandlerTrait.class)) {
@@ -141,6 +146,12 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
             }
         }
         recipeHandlerCache.addHandlerLists(this, ioTraits, recipeLogic::updateTickSubscription);
+    }
+
+    @Override
+    public void onMachinePlaced(@Nullable LivingEntity player, ItemStack stack) {
+        // Item data loads after onLoad; empty legacy item inventories omit the disabled flag.
+        if (importFluids.storage.size() > 1) setInputLimit(importFluids.storage.isUniqueKeys());
     }
 
     @Override
