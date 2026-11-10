@@ -462,7 +462,11 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
             var idx = new AEKeyIntMap<>(keys.length);
             idx.defaultReturnValue(-1);
             for (int i = 0; i < keys.length; i++) {
-                if (amounts[i] != 0) idx.put(keys[i], i);
+                if (amounts[i] != 0 && idx.put(keys[i], i) >= 0) {
+                    // Enabling anti-clog must leave existing duplicate stacks accessible.
+                    index = null;
+                    return;
+                }
             }
             index = idx;
         } else {
