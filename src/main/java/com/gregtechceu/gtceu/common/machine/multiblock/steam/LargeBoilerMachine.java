@@ -37,7 +37,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidType;
 
 import appeng.api.stacks.AEFluidKey;
-
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.suried.gtoutils.schedule.Schedulers;
 import com.suried.gtoutils.schedule.Task;

@@ -90,6 +90,10 @@ public class GTCovers {
             "machine_controller", MachineControllerCover::new,
             new SimpleCoverRenderer(GTCEu.id("block/cover/overlay_controller")));
 
+    public final static CoverDefinition RECIPE_HANDLER_CONTROL = register(
+            "recipe_handler_control", RecipeHandlerControlCover::new,
+            new SimpleCoverRenderer(GTCEu.id("block/cover/overlay_recipe_handler_control")));
+
     public final static CoverDefinition ADVANCED_MACHINE_CONTROLLER = register(
             "advanced_machine_controller", AdvancedMachineControllerCover::new,
             new SimpleCoverRenderer(GTCEu.id("block/cover/overlay_advanced_controller")));

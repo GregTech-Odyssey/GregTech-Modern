@@ -42,7 +42,7 @@ final class OverlapParallel extends OverlapBound implements KeyVisitor {
         try {
             for (int h = 0, n = members.length; h < n; h++) {
                 var m = members[h];
-                if (m.isNotConsumable()) continue;
+                if (!m.isActive() || m.isNotConsumable()) continue;
                 var inv = stores[h];
                 if (inv != null) scan(inv, active);
                 else scanCustom(m, type, active);

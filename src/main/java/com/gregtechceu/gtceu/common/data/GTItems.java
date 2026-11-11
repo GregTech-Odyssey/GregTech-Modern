@@ -26,6 +26,7 @@ import com.gregtechceu.gtceu.api.tooltip.ElectricText;
 import com.gregtechceu.gtceu.api.tooltip.Tips;
 import com.gregtechceu.gtceu.common.cover.AdvancedMachineControllerCover;
 import com.gregtechceu.gtceu.common.cover.MachineControllerCover;
+import com.gregtechceu.gtceu.common.cover.RecipeHandlerControlCover;
 import com.gregtechceu.gtceu.common.data.materials.GTFoods;
 import com.gregtechceu.gtceu.common.entity.GTBoat;
 import com.gregtechceu.gtceu.common.item.*;
@@ -1862,6 +1863,12 @@ public class GTItems {
             .lang("Advanced Machine Controller")
             .onRegister(attach(new TooltipBehavior(lines -> lines.addAll(AdvancedMachineControllerCover.TIPS.get())),
                     new CoverPlaceBehavior(GTCovers.ADVANCED_MACHINE_CONTROLLER)))
+            .register();
+    public static ItemEntry<ComponentItem> COVER_RECIPE_HANDLER_CONTROL = REGISTRATE
+            .item("recipe_handler_control_cover", ComponentItem::create)
+            .lang("Recipe Handler Control")
+            .onRegister(attach(new TooltipBehavior(lines -> lines.addAll(RecipeHandlerControlCover.TIPS.get())),
+                    new CoverPlaceBehavior(GTCovers.RECIPE_HANDLER_CONTROL)))
             .register();
 
     public static ItemEntry<ComponentItem> COVER_ACTIVITY_DETECTOR = REGISTRATE

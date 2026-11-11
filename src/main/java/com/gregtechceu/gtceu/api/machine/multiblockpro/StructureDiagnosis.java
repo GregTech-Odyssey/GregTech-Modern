@@ -6,7 +6,6 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
 import com.gregtechceu.gtceu.api.pattern.predicates.SimplePredicate;
-import com.suried.gtoutils.level.LoadedChunks;
 import com.gregtechceu.gtceu.core.Iblock;
 
 import net.minecraft.core.BlockPos;
@@ -21,6 +20,7 @@ import net.minecraft.world.level.block.Block;
 
 import com.gto.datasynclib.datastream.codec.StreamCodec;
 import com.gto.datasynclib.util.ByteBufCodecExtends;
+import com.suried.gtoutils.level.LoadedChunks;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;

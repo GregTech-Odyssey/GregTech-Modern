@@ -504,6 +504,16 @@ public class MachineRecipeLoader {
                 .addMaterialInfo(true, true)
                 .save();
 
+        ASSEMBLER_RECIPES.recipeBuilder("cover_recipe_handler_control")
+                .inputItems(new ItemStack(Blocks.LEVER))
+                .inputItems(plate, Iron)
+                .inputItems(CustomTags.LV_CIRCUITS)
+                .inputFluids(SolderingAlloy, L / 2)
+                .outputItems(COVER_RECIPE_HANDLER_CONTROL)
+                .EUt(16).duration(100)
+                .addMaterialInfo(true, true)
+                .save();
+
         ASSEMBLER_RECIPES.recipeBuilder("cover_energy_detector")
                 .inputItems(cableGtSingle, Copper, 4)
                 .inputItems(CustomTags.LV_CIRCUITS)

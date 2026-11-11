@@ -22,6 +22,14 @@ public final class RecipeModifierList implements RecipeModifier {
         this.modifiers = modifiers;
     }
 
+    @Override
+    public boolean has(@NotNull Object identity) {
+        for (RecipeModifier m : modifiers) {
+            if (m.has(identity)) return true;
+        }
+        return false;
+    }
+
     /**
      * 依次施加每个修饰器。
      *

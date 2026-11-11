@@ -79,6 +79,17 @@ public interface IRecipeHandler extends IFilteredHandler {
         return true;
     }
 
+    /**
+     * 该处理器当前是否参与配方。默认参与；关闭后它的存储会被检索、匹配与提交整条链路<b>实时</b>跳过
+     * （不参与检索、不扣料、不接产物），因此可以在工作时随时开关，无需重建任何处理器分组。
+     * <p>
+     * 「是否挂载」看 {@link #isAvailable()}，「是否激活」看这里：前者在机器创建时就固定，后者可以随界面按钮或
+     * 覆盖板变化，见 {@link com.gregtechceu.gtceu.api.machine.trait.NotifiableContentHandler#setActive(boolean)}。
+     */
+    default boolean isActive() {
+        return true;
+    }
+
     default boolean isNotConsumable() {
         return false;
     }

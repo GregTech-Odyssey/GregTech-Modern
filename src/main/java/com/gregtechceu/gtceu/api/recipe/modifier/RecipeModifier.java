@@ -48,6 +48,18 @@ public interface RecipeModifier extends IRecipeInfo {
     /** 什么都不改的修饰器。 */
     RecipeModifier NO_MODIFIER = (h, u, r) -> r;
 
+    default boolean has(RecipeModifier modifier) {
+        return has(modifier.getIdentity());
+    }
+
+    default boolean has(Object identity) {
+        return this.getIdentity() == identity;
+    }
+
+    default Object getIdentity() {
+        return this;
+    }
+
     /**
      * 对配方做变换。
      *
@@ -112,11 +124,13 @@ public interface RecipeModifier extends IRecipeInfo {
                 final long maxVoltage = overclockMachine.getOverclockVoltage();
                 int amountPerfectOC = Math.max(0, (temperature - recipeTemp) / 1800);
                 final int limit = overclockMachine.getOverclockLimit();
+                final int maxOverclockCount = overclockMachine.getOverclockCountLimit();
                 int ocLevel = 0;
-                while (true) {
+                while (ocLevel < maxOverclockCount) {
                     final long overclockVoltage = recipeVoltage << 2;
                     if (overclockVoltage > maxVoltage || overclockVoltage < 0) break;
-                    final int d = duration >> (amountPerfectOC > 0 ? 2 : 1);
+                    final boolean perfect = amountPerfectOC > 0;
+                    final int d = duration >> (perfect ? 2 : 1);
                     if (d < limit) {
                         if (maxContentMultiplier == 0) {
                             maxContentMultiplier = ParallelLogic.getRemainingMaxParallelAmount(holder, unit, recipe);
@@ -221,12 +235,12 @@ public interface RecipeModifier extends IRecipeInfo {
             if (recipeVoltage != 0 && euMultiplier != 1) {
                 recipeVoltage = Math.max(1, (long) (recipeVoltage * euMultiplier));
             }
-            return overclocking(holder, unit, recipe, holder instanceof IWorkableMultiController controller && controller.isBatchEnabled(), overclockMachine.getOverclockLimit(), recipeVoltage, overclockMachine.getOverclockVoltage(), generator, durationMultiplier, durationFactor);
+            return overclocking(holder, unit, recipe, holder instanceof IWorkableMultiController controller && controller.isBatchEnabled(), overclockMachine.getOverclockLimit(), overclockMachine.getOverclockCountLimit(), recipeVoltage, overclockMachine.getOverclockVoltage(), generator, durationMultiplier, durationFactor);
         }
         return recipe;
     }
 
-    static @Nullable GTRecipe overclocking(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, boolean batchEnabled, int limitDuration, long recipeVoltage, long maxVoltage, boolean generator, double durationMultiplier, double durationFactor) {
+    static @Nullable GTRecipe overclocking(IRecipeHandlerHolder holder, RecipeHandlerUnit unit, GTRecipe recipe, boolean batchEnabled, int limitDuration, int maxOverclockCount, long recipeVoltage, long maxVoltage, boolean generator, double durationMultiplier, double durationFactor) {
         long maxContentMultiplier = 0;
         long contentMultiplier = 1;
         double duration = recipe.duration * durationMultiplier;
@@ -234,7 +248,7 @@ public interface RecipeModifier extends IRecipeInfo {
             durationFactor = recipe.perfect ? 0.25 : durationFactor;
             final int parallelFactor = generator ? 5 : 2;
             int ocLevel = 0;
-            while (true) {
+            while (ocLevel < maxOverclockCount) {
                 final long overclockVoltage = recipeVoltage << 2;
                 if (overclockVoltage > maxVoltage || overclockVoltage < 0) break;
                 final double d = duration * durationFactor;

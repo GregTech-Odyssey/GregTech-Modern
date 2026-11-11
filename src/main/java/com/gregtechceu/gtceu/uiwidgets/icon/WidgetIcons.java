@@ -12,7 +12,7 @@ import com.lowdragmc.lowdraglib.gui.texture.IGuiTexture;
 public final class WidgetIcons {
 
     /// 行数必须与图集高度一致；加图标时加一行并改这里
-    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 46);
+    private static final WidgetIconAtlas ATLAS = new WidgetIconAtlas(GTCEu.id("textures/gui/uiwidgets/widget_icons.png"), 47);
 
     /// 机器开关
     public static final IGuiTexture POWER_OFF = ATLAS.icon(0, 0);
@@ -132,6 +132,9 @@ public final class WidgetIcons {
     public static final IGuiTexture NO_HATCHES_ON = ATLAS.icon(44, 1);
     /// 页面切换：标题栏页面按钮、页面切换页的标题图标（8 格一比一）
     public static final IGuiTexture PAGES = ATLAS.pixelIcon(45);
+    /// 仓的配方处理开关：关闭时仓仍照常收发，但配方检索/匹配/扣料/产出都会跳过它
+    public static final IGuiTexture RECIPE_HANDLER_OFF = ATLAS.icon(46, 0);
+    public static final IGuiTexture RECIPE_HANDLER_ON = ATLAS.icon(46, 1);
 
     private WidgetIcons() {}
 }

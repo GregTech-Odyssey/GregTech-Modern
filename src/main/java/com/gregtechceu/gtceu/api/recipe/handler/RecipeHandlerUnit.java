@@ -80,6 +80,7 @@ public class RecipeHandlerUnit {
     private final boolean searchCacheable;
     private GTRecipeType searchType;
     private int searchStamp;
+    private long searchActiveMask;
     private int[] searchKeys;
 
     protected RecipeHandlerUnit(IO handlerIO, IMultiPart part, IRecipeHandler... handlers) {
@@ -234,22 +235,29 @@ public class RecipeHandlerUnit {
         var map = intIngredientMap;
         var handlers = contentHandlers;
         int stamp = 0;
+        long activeMask = 0;
         if (searchCacheable) {
-            for (var s : handlers) {
-                var h = (NotifiableContentHandler) s;
-                h.getSearchMap(type);
-                stamp += h.searchMapVersion();
+            for (int i = 0; i < handlers.length; i++) {
+                var h = (NotifiableContentHandler) handlers[i];
+                boolean active = h.isActive();
+                if (active) {
+                    activeMask |= (i < 64 ? 1L << i : 0L);
+                    h.getSearchMap(type);
+                    stamp += h.searchMapVersion();
+                }
             }
-            if (searchType == type && searchStamp == stamp) return map;
+            if (searchType == type && searchStamp == stamp && searchActiveMask == activeMask) return map;
         }
         searchKeys = null;
         map.clear();
         for (var s : handlers) {
+            if (!s.isActive()) continue;
             s.addToSearchMap(map, type);
         }
         if (searchCacheable) {
             searchType = type;
             searchStamp = stamp;
+            searchActiveMask = activeMask;
         }
         return map;
     }
@@ -262,7 +270,9 @@ public class RecipeHandlerUnit {
     }
 
     public void onCommitted(GTRecipe recipe) {
-        for (var h : allHandlers) h.onRecipeCommitted(recipe);
+        for (var h : allHandlers) {
+            if (h.isActive()) h.onRecipeCommitted(recipe);
+        }
     }
 
     private void beginPlan(PlanScratch p) {
@@ -309,6 +319,7 @@ public class RecipeHandlerUnit {
             byte flags = consume ? (byte) (fluidFlag | PlanScratch.FLAG_CONSUME) : fluidFlag;
             for (int h = 0; h < memberCount && need > 0; h++) {
                 var m = members[h];
+                if (!m.isActive()) continue;
                 if (consume && m.isNotConsumable()) continue;
                 if (emptyRecipe && m.isOnlyRecipe()) continue;
                 var inv = stores[h];
@@ -588,13 +599,17 @@ public class RecipeHandlerUnit {
     private boolean versionsUnchanged(PlanScratch p) {
         var stores = itemStores;
         var versions = p.itemVersions;
+        var members = itemHandlers;
         for (int h = 0; h < stores.length; h++) {
+            if (!members[h].isActive()) continue;
             var inv = stores[h];
             if (inv != null && inv.version() != versions[h]) return false;
         }
         stores = fluidStores;
         versions = p.fluidVersions;
+        members = fluidHandlers;
         for (int h = 0; h < stores.length; h++) {
+            if (!members[h].isActive()) continue;
             var inv = stores[h];
             if (inv != null && inv.version() != versions[h]) return false;
         }
@@ -648,7 +663,7 @@ public class RecipeHandlerUnit {
         boolean exact = true;
         var items = recipe.itemOutputs;
         if (checkItems && !items.isEmpty() && !isInfiniteItemCapacity) {
-            long b = outputListBound(p, items, itemStores, scale);
+            long b = outputListBound(p, items, itemHandlers, itemStores, scale);
             if (b < 0) {
                 exact = false;
                 b = ~b;
@@ -657,7 +672,7 @@ public class RecipeHandlerUnit {
         }
         var fluids = recipe.fluidOutputs;
         if (checkFluids && !fluids.isEmpty() && !isInfiniteFluidCapacity) {
-            long b = outputListBound(p, fluids, fluidStores, scale);
+            long b = outputListBound(p, fluids, fluidHandlers, fluidStores, scale);
             if (b < 0) {
                 exact = false;
                 b = ~b;
@@ -671,14 +686,16 @@ public class RecipeHandlerUnit {
         return list.chance(i) != 0 && list.amount(i) > 0;
     }
 
-    private static long outputListBound(PlanScratch p, ContentList list, KeyInventory<?>[] stores, long scale) {
+    private static long outputListBound(PlanScratch p, ContentList list, IRecipeHandler[] members, KeyInventory<?>[] stores, long scale) {
         if (!list.hasActiveOutput()) return Long.MAX_VALUE;
         if (!list.distinctOutputKeys()) return ~Long.MAX_VALUE;
         int n = list.size();
         long[] cap = p.outLeft(n);
         Arrays.fill(cap, 0, n, 0L);
         boolean exact = true;
-        for (var inv : stores) {
+        for (int h = 0; h < stores.length; h++) {
+            if (!members[h].isActive()) continue;
+            var inv = stores[h];
             if (inv == null) return ~Long.MAX_VALUE;
             int size = inv.size();
             boolean unique = inv.isUniqueKeys();
@@ -747,6 +764,8 @@ public class RecipeHandlerUnit {
         }
         if (total == 0) return true;
         for (int h = 0; h < members.length; h++) {
+            var m = members[h];
+            if (!m.isActive()) continue;
             var inv = stores[h];
             boolean remaining = false;
             for (int i = 0; i < n; i++) {
@@ -812,6 +831,7 @@ public class RecipeHandlerUnit {
         for (int h = 0; h < members.length; h++) {
             var inv = stores[h];
             var m = members[h];
+            if (!m.isActive()) continue;
             boolean inserted = false;
             boolean remaining = false;
             for (int i = 0; i < n; i++) {
@@ -903,6 +923,7 @@ public class RecipeHandlerUnit {
         long avail = 0;
         for (int h = 0, memberCount = members.length; h < memberCount && avail < enough; h++) {
             var m = members[h];
+            if (!m.isActive()) continue;
             if (consume && m.isNotConsumable()) continue;
             var inv = stores[h];
             if (inv == null) {
@@ -935,7 +956,7 @@ public class RecipeHandlerUnit {
             long need = amount;
             for (int h = 0; h < members.length && need > 0; h++) {
                 var m = members[h];
-                if (m.isNotConsumable() || m.isOnlyRecipe()) continue;
+                if (!m.isActive() || m.isNotConsumable() || m.isOnlyRecipe()) continue;
                 var inv = stores[h];
                 need -= inv != null ? reserveArray(p, h, offsets[h], inv, ing, 0, need, flags) : m.reserveInput(p, h, type, 0, ing, need, true);
             }
@@ -958,6 +979,7 @@ public class RecipeHandlerUnit {
         long total = 0;
         for (int h = 0; h < members.length; h++) {
             var m = members[h];
+            if (!m.isActive()) continue;
             if (consumable && m.isNotConsumable()) continue;
             var inv = stores[h];
             total = Keys.add(total, inv != null ? sumArray(inv, ing, Long.MAX_VALUE) : m.available(type, ing));
@@ -978,8 +1000,10 @@ public class RecipeHandlerUnit {
                 beginPlan(p);
                 long left = amount;
                 for (int h = 0; h < members.length && left > 0; h++) {
+                    var m = members[h];
+                    if (!m.isActive()) continue;
                     var inv = stores[h];
-                    left -= inv != null ? reserveOutputSingle(inv, key, left) : members[h].reserveOutput(p, h, type, 0, key, left);
+                    left -= inv != null ? reserveOutputSingle(inv, key, left) : m.reserveOutput(p, h, type, 0, key, left);
                 }
                 return left <= 0;
             } finally {
@@ -997,13 +1021,15 @@ public class RecipeHandlerUnit {
         var type = fluid ? AEKeyTypes.FLUIDS : AEKeyTypes.ITEMS;
         long left = amount;
         for (int h = 0; h < members.length && left > 0; h++) {
+            var m = members[h];
+            if (!m.isActive()) continue;
             var inv = stores[h];
             if (inv != null) {
                 long n = insertInto(inv, key, left);
                 if (n > 0) inv.notifyChanged();
                 left -= n;
             } else {
-                left -= members[h].insertOutput(type, key, left);
+                left -= m.insertOutput(type, key, left);
             }
         }
         return amount - left;
@@ -1109,7 +1135,7 @@ public class RecipeHandlerUnit {
         var members = itemHandlers;
         var stores = itemStores;
         for (int h = 0; h < members.length; h++) {
-            if (!members[h].isNotConsumable()) continue;
+            if (!members[h].isActive() || !members[h].isNotConsumable()) continue;
             var inv = stores[h];
             if (inv == null) continue;
             int size = inv.size();
@@ -1157,6 +1183,7 @@ public class RecipeHandlerUnit {
     public boolean forEachKey(AEKeyType type, boolean consumable, KeyVisitor visitor) {
         var members = type == AEKeyTypes.FLUIDS ? fluidHandlers : itemHandlers;
         for (var m : members) {
+            if (!m.isActive()) continue;
             if (consumable && m.isNotConsumable()) continue;
             if (m.forEachKey(type, visitor)) return true;
         }

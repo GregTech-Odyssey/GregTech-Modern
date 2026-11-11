@@ -127,6 +127,7 @@ public final class ResearchManager {
             long[] amounts = new long[2];
             int slots = 0;
             for (var handler : unit.itemHandlers) {
+                if (!handler.isActive()) continue;
                 var inv = handler.storage(AEKeyTypes.ITEMS);
                 if (inv == null) continue;
                 for (int i = 0; i < inv.size() && slots < 2; i++, slots++) {

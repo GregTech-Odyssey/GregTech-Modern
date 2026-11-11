@@ -259,6 +259,7 @@ public class FluidHatchPartMachine extends WorkableTieredIOPartMachine implement
             IInputLimitableMachine.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
+        attachRecipeHandlingConfigurator(configuratorPanel);
     }
 
     @Override

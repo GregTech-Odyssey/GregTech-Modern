@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.capability.GTCapability;
 import com.gregtechceu.gtceu.api.capability.IOpticalComputationProvider;
 import com.gregtechceu.gtceu.api.capability.IParallelHatch;
 import com.gregtechceu.gtceu.api.gui.fancy.*;
+import com.gregtechceu.gtceu.api.machine.fancyconfigurator.OverclockCountConfigurator;
 import com.gregtechceu.gtceu.api.machine.feature.*;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiblockFancyUIMachine;
 import com.gregtechceu.gtceu.api.misc.ComputationProviderList;
@@ -38,9 +39,13 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
     @Getter
     @SaveToDisk(defaultValue = "0")
     protected long energyBuffer;
-
     @Getter
     protected long energyBufferCapacity;
+
+    /** 超频次数限制，0 表示禁止超频。 */
+    @Getter
+    @SaveToDisk(defaultValue = "30")
+    protected int overclockCountLimit = IOverclockMachine.MAX_OVERCLOCK_COUNT;
 
     // runtime
     @Getter
@@ -158,6 +163,14 @@ public class WorkableElectricMultiblockMachine extends WorkableMultiblockMachine
         attachRecipeConfigurators(configuratorPanel);
         attachPowerConfigurator(configuratorPanel);
         attachCoverConfigurators(configuratorPanel);
+        if (hasOverclockConfig()) {
+            configuratorPanel.attachConfigurators(new OverclockCountConfigurator(this));
+        }
+    }
+
+    @Override
+    public void setOverclockCountLimit(int count) {
+        this.overclockCountLimit = Math.clamp(count, 0, IOverclockMachine.MAX_OVERCLOCK_COUNT);
     }
 
     //////////////////////////////////////

@@ -267,6 +267,7 @@ public class ItemBusPartMachine extends WorkableTieredIOPartMachine implements I
             IInputLimitableMachine.super.attachConfigurators(configuratorPanel);
             configuratorPanel.attachConfigurators(new CircuitFancyConfigurator(circuitInventory.storage));
         }
+        attachRecipeHandlingConfigurator(configuratorPanel);
     }
 
     @Override
