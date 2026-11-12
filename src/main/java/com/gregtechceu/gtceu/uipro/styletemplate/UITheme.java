@@ -284,6 +284,9 @@ public final class UITheme {
         CARD_OUTLINE = color(colors, "card_outline");
         CARD_HIGHLIGHT = color(colors, "card_highlight");
         CARD_SHADOW = color(colors, "card_shadow");
+        SPEC_CELL_LIGHT = color(colors, "spec_cell_light");
+        SPEC_CELL_DARK = color(colors, "spec_cell_dark");
+        SPEC_CELL_WIDE = color(colors, "spec_cell_wide");
         FLOW_NODE_FILL = color(colors, "flow_node_fill");
         FLOW_NODE_OUTLINE = color(colors, "flow_node_outline");
         FLOW_NODE_HIGHLIGHT = color(colors, "flow_node_highlight");
