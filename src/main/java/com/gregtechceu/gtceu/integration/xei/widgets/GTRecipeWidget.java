@@ -613,23 +613,24 @@ public class GTRecipeWidget extends UIElement implements ILocalUI {
 
     // ==================== 公共工具 ====================
 
-    public static void setConsumedChance(int chance, int boost, List<Component> tooltips, int recipeTier,
-                                         int chanceTier, ChanceBoostFunction function) {
-        if (chance < ContentList.MAX_CHANCE) {
-            int boostedChance = function.getBoostedChance(chance, boost, recipeTier, chanceTier);
-            if (boostedChance == 0) {
-                tooltips.add(CHANCE_NC);
-            } else {
-                float baseChanceFloat = 100f * chance / ContentList.MAX_CHANCE;
-                float boostedChanceFloat = 100f * boostedChance / ContentList.MAX_CHANCE;
-                tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_base", baseChanceFloat));
-                if (boost != 0) {
-                    String key = boost > 0 ? "gtceu.gui.content.chance_tier_boost_plus" : "gtceu.gui.content.chance_tier_boost_minus";
-                    tooltips.add(FormattingUtil.formatPercentage2Places(key, Math.abs(100f * boost / ContentList.MAX_CHANCE)));
-                }
-                tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_boosted", boostedChanceFloat));
-            }
+    public static void appendChanceTooltips(IO io, int chance, int boost, List<Component> tooltips, int recipeTier,
+                                            int chanceTier, ChanceBoostFunction function) {
+        if (chance >= ContentList.MAX_CHANCE) return;
+        boolean input = io == IO.IN;
+        int boostedChance = function.getBoostedChance(chance, boost, recipeTier, chanceTier);
+        if (input && boostedChance == 0) {
+            tooltips.add(CHANCE_NC);
+            return;
         }
+        float baseChanceFloat = 100f * chance / ContentList.MAX_CHANCE;
+        if (boost == 0) {
+            tooltips.add(FormattingUtil.formatPercentage2Places(input ? "gtceu.gui.content.consume_chance" : "gtceu.gui.content.output_chance", baseChanceFloat));
+            return;
+        }
+        float boostedChanceFloat = 100f * boostedChance / ContentList.MAX_CHANCE;
+        tooltips.add(FormattingUtil.formatPercentage2Places(input ? "gtceu.gui.content.consume_chance_base" : "gtceu.gui.content.output_chance_base", baseChanceFloat));
+        tooltips.add(FormattingUtil.formatPercentage2Places(boost > 0 ? "gtceu.gui.content.chance_tier_boost_plus" : "gtceu.gui.content.chance_tier_boost_minus", Math.abs(100f * boost / ContentList.MAX_CHANCE)));
+        tooltips.add(FormattingUtil.formatPercentage2Places(input ? "gtceu.gui.content.consume_chance_boosted" : "gtceu.gui.content.output_chance_boosted", boostedChanceFloat));
     }
 
     public static IGuiTexture contentOverlay(int chance, int boost, long fluidAmount, int recipeTier, int chanceTier, @Nullable ChanceBoostFunction function) {

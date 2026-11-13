@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -375,7 +376,7 @@ public class ReactorRecipes {
                 .circuitMeta(1)
                 .inputItems(gem, Charcoal)
                 .inputFluids(Oxygen.getFluid(1000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonMonoxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -383,7 +384,7 @@ public class ReactorRecipes {
                 .circuitMeta(1)
                 .inputItems(gem, Coal)
                 .inputFluids(Oxygen.getFluid(1000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonMonoxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -391,7 +392,7 @@ public class ReactorRecipes {
                 .circuitMeta(1)
                 .inputItems(dust, Charcoal)
                 .inputFluids(Oxygen.getFluid(1000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonMonoxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -400,7 +401,7 @@ public class ReactorRecipes {
                 .inputItems(dust, Coal)
                 .circuitMeta(1)
                 .inputFluids(Oxygen.getFluid(1000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonMonoxide.getFluid(1000))
                 .save();
 
@@ -445,7 +446,7 @@ public class ReactorRecipes {
                 .circuitMeta(2)
                 .inputItems(gem, Charcoal)
                 .inputFluids(Oxygen.getFluid(2000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonDioxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -453,7 +454,7 @@ public class ReactorRecipes {
                 .circuitMeta(2)
                 .inputItems(gem, Coal)
                 .inputFluids(Oxygen.getFluid(2000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonDioxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -461,7 +462,7 @@ public class ReactorRecipes {
                 .circuitMeta(2)
                 .inputItems(dust, Charcoal)
                 .inputFluids(Oxygen.getFluid(2000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonDioxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 
@@ -469,7 +470,7 @@ public class ReactorRecipes {
                 .circuitMeta(2)
                 .inputItems(dust, Coal)
                 .inputFluids(Oxygen.getFluid(2000))
-                .chancedOutput(dust, Ash, 1111, 0)
+                .chancedOutput(dust, Ash, Chance.of(1111))
                 .outputFluids(CarbonDioxide.getFluid(1000))
                 .duration(80).EUt(VA[ULV]).save();
 

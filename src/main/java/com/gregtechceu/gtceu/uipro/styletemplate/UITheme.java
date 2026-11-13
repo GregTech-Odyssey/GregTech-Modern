@@ -284,9 +284,6 @@ public final class UITheme {
         CARD_OUTLINE = color(colors, "card_outline");
         CARD_HIGHLIGHT = color(colors, "card_highlight");
         CARD_SHADOW = color(colors, "card_shadow");
-        SPEC_CELL_LIGHT = color(colors, "spec_cell_light");
-        SPEC_CELL_DARK = color(colors, "spec_cell_dark");
-        SPEC_CELL_WIDE = color(colors, "spec_cell_wide");
         FLOW_NODE_FILL = color(colors, "flow_node_fill");
         FLOW_NODE_OUTLINE = color(colors, "flow_node_outline");
         FLOW_NODE_HIGHLIGHT = color(colors, "flow_node_highlight");
@@ -319,7 +316,11 @@ public final class UITheme {
         itemSlot = new OreSprites.Bevel(slotBevelDark, slotBevelLight, color(colors, "slot_fill"));
         fluidSlot = new OreSprites.Bevel(slotBevelDark, slotBevelLight, color(colors, "fluid_slot_fill"));
         panel = new OreSprites.Bevel(color(colors, "panel_outline"), color(colors, "panel_outline"), color(colors, "panel_fill"));
-        statusPanel = new OreSprites.Bevel(bevelDark, bevelLight, color(colors, "status_panel_fill"));
+        int statusPanelFill = color(colors, "status_panel_fill");
+        statusPanel = new OreSprites.Bevel(bevelDark, bevelLight, statusPanelFill);
+        SPEC_CELL_LIGHT = specCell(colors, "spec_cell_light", statusPanelFill);
+        SPEC_CELL_DARK = specCell(colors, "spec_cell_dark", statusPanelFill);
+        SPEC_CELL_WIDE = specCell(colors, "spec_cell_wide", statusPanelFill);
         deck = new OreSprites.Plate(slotBevelDark, bevelLight, bevelDark, color(colors, "panel_fill"));
         card = new OreSprites.Plate(bevelDark, bevelLight, bevelDark, CARD_FILL, false);
         cardPressed = new OreSprites.Plate(bevelDark, slotBevelDark, bevelLight, color(colors, "card_pressed_fill"), false);
@@ -349,6 +350,18 @@ public final class UITheme {
     private static int color(Map<String, Integer> colors, String key) {
         var value = schemeColor(colors, key);
         return value != null ? value : UIStyleManager.DEFAULT_COLORS.get(key);
+    }
+
+    private static int specCell(Map<String, Integer> colors, String key, int statusPanelFill) {
+        var value = schemeColor(colors, key);
+        if (value != null) return value;
+        int base = UIStyleManager.DEFAULT_COLORS.get("status_panel_fill"), cell = UIStyleManager.DEFAULT_COLORS.get(key);
+        int result = 0xFF000000;
+        for (int shift = 0; shift <= 16; shift += 8) {
+            int channel = (statusPanelFill >> shift & 0xFF) + (cell >> shift & 0xFF) - (base >> shift & 0xFF);
+            result |= Math.max(0, Math.min(255, channel)) << shift;
+        }
+        return result;
     }
 
     @Nullable

@@ -181,7 +181,7 @@ public class FlowView extends PlanarView {
     public void drawInBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         drawFrame(graphics, mouseX, mouseY);
         if (viewportWidth() <= 0 || viewportHeight() <= 0) return;
-        prepareView();
+        prepareView(mouseX, mouseY);
         updateTransform();
         pushClip(graphics);
         drawGrid(graphics);

@@ -29,11 +29,11 @@ public class TerminalBehavior implements IInteractionItem {
                 !controller.self().getDefinition().hasStructure()) {
             return InteractionResult.PASS;
         }
-        if (player.isShiftKeyDown() && TerminalBuildPlans.has(itemStack, controller.self().getDefinition())) {
+        if (player.isShiftKeyDown()) {
             if (player instanceof ServerPlayer serverPlayer) TerminalBuildPlans.build(serverPlayer, controller, itemStack);
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (level.isClientSide) DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> StructureBuildFlow.onTerminalUse(controller));
+        if (level.isClientSide) DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> StructureBuildFlow.onTerminalUse(controller, itemStack));
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 

@@ -27,12 +27,14 @@ import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 
 import com.gto.datasynclib.annotations.Access;
 import com.gto.datasynclib.annotations.SaveToDisk;
 import com.gto.datasynclib.annotations.SyncToClient;
 import com.suried.gtoutils.level.LoadedChunks;
+import com.suried.gtoutils.schedule.Schedulers;
 import com.suried.gtoutils.schedule.Task;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -264,8 +266,7 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
         recipeHandlerCache.clear();
         for (var part : workableMultiPart) {
             for (var handlerList : part.getRecipeHandlers()) {
-                this.addHandlerList(handlerList);
-                this.addSubscription(handlerList.subscribe(listener));
+                recipeHandlerCache.attach(this, part, handlerList, listener);
             }
         }
         // attach self traits
@@ -276,6 +277,32 @@ public abstract class WorkableMultiblockMachine extends MultiblockControllerMach
             }
         }
         recipeHandlerCache.addHandlerLists(this, ioTraits, listener);
+    }
+
+    @Override
+    public void refreshPartHandlers(IWorkableMultiPart part) {
+        if (!(getLevel() instanceof ServerLevel level)) return;
+        var lane = Schedulers.of(level);
+        if (lane.foreign()) {
+            lane.schedule(0, holder, () -> refreshPartHandlers(part));
+            return;
+        }
+        if (!isFormed()) return;
+        recipeHandlerCache.detach(part);
+        boolean member = false;
+        for (var owned : getParts()) {
+            if (owned == part) {
+                member = true;
+                break;
+            }
+        }
+        if (member) {
+            Runnable listener = recipeLogic::updateTickSubscription;
+            for (var handlerList : part.getRecipeHandlers()) {
+                recipeHandlerCache.attach(this, part, handlerList, listener);
+            }
+        }
+        arrangeHandlerList();
     }
 
     @Override

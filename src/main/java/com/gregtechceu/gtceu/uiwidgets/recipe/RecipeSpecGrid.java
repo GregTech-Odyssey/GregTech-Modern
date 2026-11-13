@@ -11,7 +11,6 @@ import com.lowdragmc.lowdraglib.gui.widget.Widget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -393,11 +392,12 @@ public final class RecipeSpecGrid extends UIElement {
         @Nullable
         private List<Component> tooltip() {
             if (source == null) return null;
-            var hoverEvent = source.getStyle().getHoverEvent();
-            var hoverText = hoverEvent == null ? null : hoverEvent.getValue(HoverEvent.Action.SHOW_TEXT);
-            if (truncated && hoverText != null) return List.of(fullText(placed.cell(), source), hoverText);
-            if (truncated) return List.of(fullText(placed.cell(), source));
-            return hoverText == null ? null : List.of(hoverText);
+            var hover = RecipeInfoLines.hoverLines(source);
+            if (!truncated) return hover.isEmpty() ? null : hover;
+            var lines = new ArrayList<Component>(1 + hover.size());
+            lines.add(fullText(placed.cell(), source));
+            lines.addAll(hover);
+            return lines;
         }
     }
 

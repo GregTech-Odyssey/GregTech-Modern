@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
+
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 
@@ -18,8 +20,8 @@ public class GrowthMediumRecipes {
                 .inputItems(PLANT_BALL, 2)
                 .outputItems(BIO_CHAFF)
                 .outputItems(BIO_CHAFF)
-                .chancedOutput(BIO_CHAFF.asStack(), 5000, 0)
-                .chancedOutput(BIO_CHAFF.asStack(), 2500, 0)
+                .chancedOutput(BIO_CHAFF.asStack(), Chance.of(5000))
+                .chancedOutput(BIO_CHAFF.asStack(), Chance.of(2500))
                 .save();
 
         MACERATOR_RECIPES.recipeBuilder("dirt_from_bio_chaff").EUt(4).duration(300)

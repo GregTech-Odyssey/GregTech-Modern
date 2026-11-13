@@ -291,7 +291,7 @@ public class GTOreByProduct {
             var entry = chances.get(slotIndex);
             float chance = 100 * (float) entry.chance() / ContentList.MAX_CHANCE;
             float boost = entry.boost() / 100.0f;
-            tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_base", chance));
+            tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.output_chance_base", chance));
             tooltips.add(FormattingUtil.formatPercentage2Places("gtceu.gui.content.chance_tier_boost_plus", boost));
         }
     }

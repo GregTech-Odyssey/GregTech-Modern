@@ -27,6 +27,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodConstants;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -57,6 +59,8 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
     public static final int BREATH_COST_PARTS = 1;
     public static final int FOOD_COST_PARTS = 5;
     public static final int JUMP_COST_PARTS = 1;
+    public static final int FOOD_INTERVAL = 20;
+    public static final int FOOD_LOW_LEVEL = 6;
     private float charge = 0.0F;
 
     @OnlyIn(Dist.CLIENT)
@@ -91,7 +95,7 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
 
         boolean ret = false;
         if (type == ArmorItem.Type.HELMET) {
-            ret = supplyAir(item, player) || supplyFood(item, player);
+            ret = supplyAir(item, player) || (!world.isClientSide && supplyFood(item, player));
 
             removeNegativeEffects(item, player);
         } else if (type == ArmorItem.Type.CHESTPLATE) {
@@ -166,14 +170,15 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
     }
 
     public boolean supplyFood(@NotNull IElectricItem item, Player player) {
+        if (player.tickCount % FOOD_INTERVAL != 0 || player.hasEffect(MobEffects.SATURATION)) return false;
         long cost = ampHourParts(FOOD_COST_PARTS);
         if (item.canUse(cost) && player.getFoodData().needsFood()) {
             int slotId = -1;
             IItemHandler playerInv = player.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(null);
             if (playerInv instanceof IItemHandlerModifiable items) {
+                int foodLevel = player.getFoodData().getFoodLevel();
                 for (int i = 0; i < items.getSlots(); i++) {
-                    ItemStack current = items.getStackInSlot(i);
-                    if (current.getFoodProperties(player) != null) {
+                    if (isWorthEating(items.getStackInSlot(i), player, foodLevel)) {
                         slotId = i;
                         break;
                     }
@@ -194,6 +199,16 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
             }
         }
         return false;
+    }
+
+    private static boolean isWorthEating(ItemStack stack, Player player, int foodLevel) {
+        FoodProperties food = stack.getFoodProperties(player);
+        if (food == null) return false;
+        for (var effect : food.getEffects()) {
+            if (effect.getFirst().getEffect() == MobEffects.SATURATION) return true;
+        }
+        int nutrition = ArmorUtils.effectiveNutrition(stack, player, food.getNutrition());
+        return nutrition > 0 && (foodLevel + nutrition <= FoodConstants.MAX_FOOD || foodLevel <= FOOD_LOW_LEVEL);
     }
 
     public void removeNegativeEffects(@NotNull IElectricItem item, Player player) {
@@ -328,6 +343,8 @@ public class QuarkTechSuite extends ArmorLogicSuite implements IStepAssist, IJet
             ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.per_use", ArmorTooltips.ampSeconds(BREATH_COST_PARTS));
             passives.add(ArmorTooltips.passive("metaarmor.gto.ability.auto_eat"));
             ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.per_use", ArmorTooltips.ampSeconds(FOOD_COST_PARTS));
+            ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.auto_eat_pace");
+            ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.auto_eat_choice", FOOD_LOW_LEVEL);
             passives.add(ArmorTooltips.passive("metaarmor.gto.ability.cleanse"));
             ArmorTooltips.addDetail(passives, "metaarmor.gto.detail.cleanse",
                     potionRemovalCost.getInt(MobEffects.POISON), potionRemovalCost.getInt(MobEffects.WITHER),

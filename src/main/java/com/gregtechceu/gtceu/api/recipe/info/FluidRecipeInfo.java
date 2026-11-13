@@ -102,7 +102,7 @@ public final class FluidRecipeInfo extends ContentRecipeInfo {
                     if (!isXEI && display instanceof AEFluidKey fluidKey) {
                         TooltipsHandler.appendFluidTooltips(fluidKey.getReadOnlyStack(), tooltips::add, TooltipFlag.NORMAL);
                     }
-                    GTRecipeWidget.setConsumedChance(chance, boost, tooltips, recipeTier, chanceTier, recipe.chanceFunction);
+                    GTRecipeWidget.appendChanceTooltips(io, chance, boost, tooltips, recipeTier, chanceTier, recipe.chanceFunction);
                 });
                 if (io == IO.IN && chance == 0) {
                     tank.setIngredientIO(IngredientIO.CATALYST);

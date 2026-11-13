@@ -1,155 +1,94 @@
 package com.gregtechceu.gtceu.api.blockentity;
 
-import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.machine.MetaMachine;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import com.suried.gtoutils.level.LevelStore;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import com.suried.gtoutils.level.LoadedChunks;
+import com.suried.gtoutils.schedule.KeyedSignal;
+import com.suried.gtoutils.schedule.Schedulers;
+import com.suried.gtoutils.schedule.Scope;
+import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
- * 按位置订阅方块实体的出现、移除（含区块卸载）、方块状态变化与存储暴露变化；订阅者弱引用，回调在事件现场同步发生，只应标记失效或排任务。
- * 维度内没有订阅时事件只多一次判空；同一位置的回调里再次触发该位置的事件会被忽略。
+ * 按位置关注方块实体的出现、移除（含区块卸载）、方块状态变化与存储暴露变化，只有作用域一种用法：派生里用 at、machineAt 读已加载的方块实体，读即追踪该位置；要当场反应的用 listen 挂在作用域上，作用域结束自动撤销。
+ * 监听在事件现场同步执行并拿到触发事件的方块实体（出现事件发生时它还没进区块表），只应标记失效或排任务；同一位置的监听里再次触发该位置的事件会被忽略；别的线程上的事件转投到维度车道；维度内没人关注时事件只多一次判空。
  */
 public final class BlockEntityWatch {
 
-    @FunctionalInterface
-    public interface Listener {
-
-        void onBlockEntityChanged(BlockEntity blockEntity);
-    }
-
-    private static final LevelStore<BlockEntityWatch> WATCHES = LevelStore.create(() -> null);
+    private static final LevelStore<BlockEntityWatch> WATCHES = LevelStore.createWithLevel(BlockEntityWatch::new);
 
     private final Level owner;
-    private final Long2ObjectOpenHashMap<Ref[]> watchers = new Long2ObjectOpenHashMap<>();
-    private final ReferenceQueue<Listener> queue = new ReferenceQueue<>();
+    private final KeyedSignal<BlockPos> signals = new KeyedSignal<>();
     private long[] firing = new long[4];
     private int depth;
+    private BlockEntity current;
 
     private BlockEntityWatch(Level owner) {
         this.owner = owner;
     }
 
-    public static void watch(Level level, BlockPos pos, Listener listener) {
-        var watch = WATCHES.getIfPresent(level);
-        if (watch == null) WATCHES.set(level, watch = new BlockEntityWatch(level));
-        watch.add(pos.asLong(), listener);
-        watch.purge();
+    @Nullable
+    public static BlockEntity at(Level level, BlockPos pos) {
+        WATCHES.get(level).signals.track(pos.immutable());
+        var blockEntity = LoadedChunks.blockEntity(level, pos);
+        return blockEntity == null || blockEntity.isRemoved() ? null : blockEntity;
     }
 
-    public static void unwatch(Level level, BlockPos pos, Listener listener) {
+    @Nullable
+    public static MetaMachine machineAt(Level level, BlockPos pos) {
+        return MetaMachine.getMachine(at(level, pos));
+    }
+
+    public static void listen(Scope scope, Level level, BlockPos pos, Consumer<? super BlockEntity> listener) {
+        var watch = WATCHES.get(level);
+        watch.signals.listen(scope, pos.immutable(), () -> {
+            var blockEntity = watch.current;
+            if (blockEntity != null) listener.accept(blockEntity);
+        });
+    }
+
+    public static int watchedPositions(Level level) {
         var watch = WATCHES.getIfPresent(level);
-        if (watch == null) return;
-        watch.remove(pos.asLong(), listener);
-        watch.purge();
+        return watch == null ? 0 : watch.signals.keyCount();
     }
 
     public static void changed(BlockEntity blockEntity) {
         var level = blockEntity.getLevel();
         if (level == null) return;
         var watch = WATCHES.getIfPresent(level);
-        if (watch != null) watch.fire(blockEntity);
+        if (watch != null && watch.signals.keyCount() != 0) watch.fire(blockEntity);
     }
 
     private void fire(BlockEntity blockEntity) {
-        long pos = blockEntity.getBlockPos().asLong();
-        var refs = watchers.get(pos);
-        if (refs == null) return;
+        var lane = Schedulers.of(owner);
+        if (lane.foreign()) {
+            lane.schedule(0, null, () -> fire(blockEntity));
+            return;
+        }
+        var pos = blockEntity.getBlockPos();
+        long packed = pos.asLong();
         int d = depth;
         var f = firing;
         for (int i = 0; i < d; i++) {
-            if (f[i] == pos) return;
+            if (f[i] == packed) return;
         }
         if (d == f.length) firing = f = Arrays.copyOf(f, d << 1);
-        f[d] = pos;
+        f[d] = packed;
         depth = d + 1;
-        boolean stale = false;
+        var outer = current;
+        current = blockEntity;
         try {
-            for (var ref : refs) {
-                var listener = ref.get();
-                if (listener == null) {
-                    stale = true;
-                    continue;
-                }
-                try {
-                    listener.onBlockEntityChanged(blockEntity);
-                } catch (RuntimeException e) {
-                    GTCEu.LOGGER.error("Block entity watcher failed at {}", blockEntity.getBlockPos(), e);
-                }
-            }
+            signals.emit(pos);
         } finally {
+            current = outer;
             depth = d;
-        }
-        if (stale) purge();
-    }
-
-    private void add(long pos, Listener listener) {
-        var refs = watchers.get(pos);
-        int n = 0;
-        if (refs == null) {
-            refs = new Ref[1];
-        } else {
-            for (var ref : refs) {
-                if (ref.get() == listener) return;
-            }
-            n = refs.length;
-            refs = Arrays.copyOf(refs, n + 1);
-        }
-        refs[n] = new Ref(listener, pos, queue);
-        watchers.put(pos, refs);
-    }
-
-    private void remove(long pos, Listener listener) {
-        var refs = watchers.get(pos);
-        if (refs == null) return;
-        for (var ref : refs) {
-            if (ref.get() == listener) {
-                ref.clear();
-                drop(pos, refs, ref);
-                return;
-            }
-        }
-    }
-
-    private void purge() {
-        Ref ref;
-        while ((ref = (Ref) queue.poll()) != null) {
-            var refs = watchers.get(ref.pos);
-            if (refs != null) drop(ref.pos, refs, ref);
-        }
-        if (watchers.isEmpty() && WATCHES.getIfPresent(owner) == this) WATCHES.set(owner, null);
-    }
-
-    private void drop(long pos, Ref[] refs, Ref ref) {
-        int n = refs.length;
-        for (int i = 0; i < n; i++) {
-            if (refs[i] != ref) continue;
-            if (n == 1) {
-                watchers.remove(pos);
-            } else {
-                var next = new Ref[n - 1];
-                System.arraycopy(refs, 0, next, 0, i);
-                System.arraycopy(refs, i + 1, next, i, n - i - 1);
-                watchers.put(pos, next);
-            }
-            return;
-        }
-    }
-
-    private static final class Ref extends WeakReference<Listener> {
-
-        private final long pos;
-
-        private Ref(Listener listener, long pos, ReferenceQueue<Listener> queue) {
-            super(listener, queue);
-            this.pos = pos;
         }
     }
 }

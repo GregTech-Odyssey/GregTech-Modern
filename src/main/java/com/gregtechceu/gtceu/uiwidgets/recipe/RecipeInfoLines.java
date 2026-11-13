@@ -5,12 +5,17 @@ import com.gregtechceu.gtceu.api.recipe.ui.RecipeInfoBuilder;
 import com.lowdragmc.lowdraglib.gui.widget.Widget;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 
 import com.google.common.base.Suppliers;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -75,6 +80,28 @@ public final class RecipeInfoLines implements RecipeInfoBuilder {
 
     static Component nonNull(@Nullable Component value) {
         return value == null ? Component.empty() : value;
+    }
+
+    static List<Component> hoverLines(Component source) {
+        var hover = source.getStyle().getHoverEvent();
+        var text = hover == null ? null : hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        if (text == null) return Collections.emptyList();
+        if (text.getString().indexOf('\n') < 0) return Collections.singletonList(text);
+        var lines = new ArrayList<Component>(2);
+        var line = new MutableComponent[] { Component.empty() };
+        text.visit((style, part) -> {
+            int start = 0;
+            for (int end = part.indexOf('\n'); end >= 0; end = part.indexOf('\n', start)) {
+                if (end > start) line[0].append(Component.literal(part.substring(start, end)).withStyle(style));
+                lines.add(line[0]);
+                line[0] = Component.empty();
+                start = end + 1;
+            }
+            if (start < part.length()) line[0].append(Component.literal(part.substring(start)).withStyle(style));
+            return Optional.empty();
+        }, Style.EMPTY);
+        lines.add(line[0]);
+        return lines;
     }
 
     public List<Line> lines() {

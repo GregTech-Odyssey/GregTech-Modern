@@ -4,6 +4,7 @@ import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.BuildUpload;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBuild;
+import com.gregtechceu.gtceu.api.machine.multiblockpro.TerminalBuildPlans;
 import com.gregtechceu.gtceu.common.data.GTItems;
 
 import com.lowdragmc.lowdraglib.networking.IHandlerContext;
@@ -19,7 +20,6 @@ import java.util.Set;
 public class CPacketStructureBuild implements IPacket {
 
     private static final double MAX_DISTANCE_SQR = 64 * 64;
-    private static final int COOLDOWN = 40;
 
     private BlockPos pos = BlockPos.ZERO;
     private int[] values = new int[0];
@@ -76,10 +76,8 @@ public class CPacketStructureBuild implements IPacket {
         if (!(handler.getPlayer() instanceof ServerPlayer player) || player.isSpectator() || !player.isAlive()) return;
         var terminal = GTItems.TERMINAL.get();
         if (!player.getMainHandItem().is(terminal) && !player.getOffhandItem().is(terminal)) return;
-        if (player.getCooldowns().isOnCooldown(terminal)) return;
         if (player.distanceToSqr(pos.getCenter()) > MAX_DISTANCE_SQR || !player.level().isLoaded(pos)) return;
         if (!(MetaMachine.getMachine(player.level(), pos) instanceof IMultiController controller)) return;
-        player.getCooldowns().addCooldown(terminal, COOLDOWN);
         var definition = controller.self().getDefinition();
         var structure = definition.displayStructure();
         var layout = structure == null ? null : structure.layout(values);
@@ -88,6 +86,7 @@ public class CPacketStructureBuild implements IPacket {
             player.sendSystemMessage(StructureBuild.INVALID);
             return;
         }
+        if ((flags & StructureBuild.FLAG_DEMOLISH) == 0) TerminalBuildPlans.record(player, definition, values, choices, flags, kept);
         StructureBuild.build(player, controller, layout, choices, flags, demolishNodes.length == 0 ? null : demolishNodes, kept);
     }
 }

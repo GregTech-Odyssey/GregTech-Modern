@@ -356,6 +356,7 @@ public class LangHandler {
         provider.add("metaarmor.gto.separator", " / ");
         provider.add("metaarmor.gto.section.gaia", "Gaia Guardian");
         provider.add("metaarmor.gto.name.life_boost", "Life boost");
+        provider.add("metaarmor.gto.name.step_assist", "Step assist");
         provider.add("metaarmor.gto.detail.life_boost", "Max health: +%s per piece, +%s for the full set; %s");
         provider.add("metaarmor.gto.detail.timed_cleanse", "%s per effect level");
         provider.add("metaarmor.gto.detail.regen", "1 health every 4/3 s, %s per point");
@@ -390,6 +391,8 @@ public class LangHandler {
         provider.add("metaarmor.gto.ability.breath", "Refills air underwater");
         provider.add("metaarmor.gto.ability.auto_eat", "Eats food from the inventory when hungry");
         provider.add("metaarmor.gto.detail.per_use", "%s per use");
+        provider.add("metaarmor.gto.detail.auto_eat_pace", "At most once per second, paused while Saturation is active");
+        provider.add("metaarmor.gto.detail.auto_eat_choice", "Only food whose actual restoration does not overflow, unrestricted at hunger %s or below");
         provider.add("metaarmor.gto.ability.cleanse", "Removes poison, wither and similar effects at once");
         provider.add("metaarmor.gto.detail.cleanse", "Per level (A·s): poison %s, wither %s, nausea %s, mining fatigue %s, slowness %s, bad luck %s");
         provider.add("metaarmor.gto.ability.timed_cleanse", "Clears all harmful effects every 2 s");
@@ -1410,13 +1413,9 @@ public class LangHandler {
         provider.add("gtceu.structure_build.demolish.node.desc", "When off, this part is kept; blocks it shares with other parts are kept as well");
         provider.add("gtceu.structure_build.demolished", "Removed %s blocks");
         provider.add("gtceu.structure_build.no_network", "No ME network found: carry a wireless terminal bound to a network");
-        provider.add("gtceu.structure_build.save_plan", "Set as Terminal One-Click Plan");
-        provider.add("gtceu.structure_build.plan_saved", "Saved the one-click build plan for %s; sneak right-click its controller with the terminal to build it");
-        provider.add("gtceu.structure_build.plan_saved.replace", "Saved the one-click build plan for %s in replace mode; sneak right-click its controller with the terminal to build it and replace differing blocks");
-        provider.add("gtceu.structure_build.plan_invalid", "The structure configuration is invalid; the plan was not saved");
-        provider.add("gtceu.structure_build.plan_too_large", "This plan is too large to store on the terminal");
-        provider.add("gtceu.structure_build.plan_full", "The terminal stores at most %s plans; only existing machines' plans can be overwritten");
-        provider.add("gtceu.structure_build.plan_outdated", "The one-click build plan for %s no longer matches this structure; save it again");
+        provider.add("gtceu.structure_build.plan_missing", "The terminal has no build record for %s yet: right-click the controller and build it once through the panel; afterwards sneak right-click builds it directly with the same plan");
+        provider.add("gtceu.structure_build.plan_too_large", "This structure has too many blocks for the terminal to record; sneak right-click building is unavailable for it");
+        provider.add("gtceu.structure_build.plan_outdated", "The last build plan for %s no longer matches this structure; right-click the controller and build it once again");
         provider.add("gtceu.multiblock.assembly_line.sections", "Assembly line sections");
         provider.add("gtceu.multiblock.cleanroom.left", "Distance to left edge");
         provider.add("gtceu.multiblock.cleanroom.right", "Distance to right edge");
@@ -1516,6 +1515,7 @@ public class LangHandler {
         provider.add("gtceu.key.armor_charging", "Armor Charging to Inventory Toggle");
         provider.add("gtceu.key.armor_speed", "Armor Speed Multiplier");
         provider.add("gtceu.key.armor_life", "Armor Life Boost");
+        provider.add("gtceu.key.armor_step_assist", "Boots Step Assist");
         provider.add("gtceu.debug.f3_h.enabled",
                 "GregTech has modified the debug info! For Developers: enable the misc:debug config option in the GregTech config file to see more");
         provider.add("config.jade.plugin_gtceu.block_entity_provider", "[GTCEu] Block Entity General");
@@ -1814,8 +1814,14 @@ public class LangHandler {
         provider.add("gtceu.gui.content.chance_nc_short", "§cNC§r");
         provider.add("gtceu.gui.content.chance_base", "Base Chance: %s%%");
         provider.add("gtceu.gui.content.chance_base_logic", "Base Chance: %s%% (%s)");
-        provider.add("gtceu.gui.content.chance_tier_boost_plus", "Bonus Chance: +%s%%/tier");
-        provider.add("gtceu.gui.content.chance_tier_boost_minus", "Bonus Chance: -%s%%/tier");
+        provider.add("gtceu.gui.content.chance_tier_boost_plus", "Per Overclock: +%s%%");
+        provider.add("gtceu.gui.content.chance_tier_boost_minus", "Per Overclock: -%s%%");
+        provider.add("gtceu.gui.content.consume_chance", "Consumption Chance: %s%%");
+        provider.add("gtceu.gui.content.consume_chance_base", "Base Consumption Chance: %s%%");
+        provider.add("gtceu.gui.content.consume_chance_boosted", "Current Consumption Chance: %s%%");
+        provider.add("gtceu.gui.content.output_chance", "Output Chance: %s%%");
+        provider.add("gtceu.gui.content.output_chance_base", "Base Output Chance: %s%%");
+        provider.add("gtceu.gui.content.output_chance_boosted", "Current Output Chance: %s%%");
         provider.add("gtceu.gui.content.chance_boosted", "Chance at Tier: %s%%");
         provider.add("gtceu.gui.content.chance_boosted_logic", "Chance at Tier: %s%% (%s)");
         provider.add("gtceu.gui.content.count_range", "%s-%sx");
@@ -1925,7 +1931,6 @@ public class LangHandler {
         provider.add("gtceu.gui.recipe_io.none", "No active recipe");
         provider.add("gtceu.gui.recipe_io.not_consumed", "Not consumed");
         provider.add("gtceu.gui.recipe_io.per_second", "%s/s");
-        provider.add("gtceu.gui.recipe_io.chance", "Chance: %s%%");
         provider.add("gtceu.gui.recipe_io.exact", "Exact: %s");
         provider.add("gtceu.flow.amount", "%s mB");
         provider.add("gtceu.flow.issue.ok", "Normal");
@@ -2009,7 +2014,7 @@ public class LangHandler {
         provider.add("gtceu.structure_preview.minimap.tip", "Red dot: camera position. Click or drag to move the camera");
         provider.add("gtceu.uipro.canvas.locked", "Size locked");
         provider.add("gtceu.uipro.canvas.unlock", "Right-click: unlock");
-        provider.add("gtceu.uipro.canvas.help.pan", "Drag with left or middle mouse: pan");
+        provider.add("gtceu.uipro.canvas.help.pan", "Drag with left or middle mouse, or hold %s%s%s%s: pan (Shift: faster)");
         provider.add("gtceu.uipro.canvas.help.zoom", "Scroll wheel: zoom around the cursor");
         provider.add("gtceu.uipro.canvas.zoom_in", "Zoom in");
         provider.add("gtceu.uipro.canvas.zoom_out", "Zoom out");

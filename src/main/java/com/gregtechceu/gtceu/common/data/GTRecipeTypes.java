@@ -533,10 +533,10 @@ public class GTRecipeTypes {
 
                         if (shouldDivide && fluidsDivisible) {
                             builder.chance(inputs.chance(0))
-                                    .tierChanceBoost(inputs.boost(0))
+                                    .chancePerOverclock(inputs.boost(0))
                                     .inputFluids(input, Math.max(1, inputAmount / ratio))
                                     .chance(contents.chance(i))
-                                    .tierChanceBoost(contents.boost(i))
+                                    .chancePerOverclock(contents.boost(i))
                                     .outputFluids(output, Math.max(1, outputAmount / ratio))
                                     .duration(Math.max(1, recipeDuration / ratio));
                         } else if (!shouldDivide) {
@@ -545,10 +545,10 @@ public class GTRecipeTypes {
                             }
                             builder.addCondition(recipeBuilder.getConditions());
                             builder.chance(inputs.chance(0))
-                                    .tierChanceBoost(inputs.boost(0))
+                                    .chancePerOverclock(inputs.boost(0))
                                     .inputFluids(input, inputAmount)
                                     .chance(contents.chance(i))
-                                    .tierChanceBoost(contents.boost(i))
+                                    .chancePerOverclock(contents.boost(i))
                                     .outputFluids(output, outputAmount)
                                     .duration(recipeDuration)
                                     .save();

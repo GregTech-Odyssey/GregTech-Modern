@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -69,6 +70,6 @@ public class ElectricContainerBlockProvider extends CapabilityBlockProvider<IEne
 
     protected float getProgress(BigInteger progress, BigInteger maxProgress) {
         if (maxProgress.compareTo(BigInteger.ZERO) <= 0) return 0;
-        return new BigDecimal(progress).divide(new BigDecimal(maxProgress), MathContext.DECIMAL32).floatValue();
+        return Mth.clamp(new BigDecimal(progress).divide(new BigDecimal(maxProgress), MathContext.DECIMAL32).floatValue(), 0F, 1F);
     }
 }

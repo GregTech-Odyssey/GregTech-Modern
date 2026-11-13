@@ -18,8 +18,9 @@ public final class ChancedInputCheck {
         var id = new ResourceLocation("gtceu", "chanced_input_check");
         var item = new TestIngredient(true);
         var fluid = new TestIngredient(false);
-        var builder = new GTRecipeBuilder(id).chance(200).tierChanceBoost(10)
+        var builder = new GTRecipeBuilder(id).chance(200).chancePerOverclock(-10)
                 .inputItems(item, 1L).inputFluids(fluid, 1000L)
+                .chancePerOverclock(10)
                 .outputItems(item, 1L).outputFluids(fluid, 1000L);
         var items = builder.getItemInputs().build();
         var fluids = builder.getFluidInputs().build();
@@ -41,7 +42,7 @@ public final class ChancedInputCheck {
         check(items, GTValues.MV, GTValues.LV, 200, rng);
         var fixed = new GTRecipeBuilder(id).chance(200).inputItems(item, 1L).getItemInputs().build();
         check(fixed, GTValues.LV, GTValues.UHV, 200, rng);
-        var penalty = new GTRecipeBuilder(id).chance(9900).tierChanceBoost(-100)
+        var penalty = new GTRecipeBuilder(id).chance(9900).chancePerOverclock(100)
                 .inputItems(item, 1L).getItemInputs().build();
         check(penalty, GTValues.LV, GTValues.HV, 10000, rng);
         int unchanged = ChanceBoostFunction.NONE.getBoostedChance(items.chance(0), items.boost(0), GTValues.LV, GTValues.UHV);

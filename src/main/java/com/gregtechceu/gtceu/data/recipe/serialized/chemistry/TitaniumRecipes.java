@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
+
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.*;
@@ -134,8 +136,8 @@ public class TitaniumRecipes {
         ELECTROMAGNETIC_SEPARATOR_RECIPES.recipeBuilder("bauxite_slag_separation")
                 .inputItems(dust, BauxiteSlag)
                 .outputItems(dust, Salt)
-                .chancedOutput(dust, Neodymium, 2000, 250)
-                .chancedOutput(dust, Chromium, 1000, 250)
+                .chancedOutput(dust, Neodymium, Chance.of(2000).risePerOverclock(250))
+                .chancedOutput(dust, Chromium, Chance.of(1000).risePerOverclock(250))
                 .duration(50).EUt(VA[MV]).save();
 
         // Bauxite Sludge -> Calcite (looped) + Decalcified Bauxite Sludge
@@ -150,11 +152,11 @@ public class TitaniumRecipes {
         CENTRIFUGE_RECIPES.recipeBuilder("bauxite_sludge_centrifuge")
                 .inputFluids(DecalcifiedBauxiteSludge.getFluid(250))
                 .outputItems(dust, Rutile, 2)
-                .chancedOutput(dust, Gallium, 5000, 550)
-                .chancedOutput(dust, Gallium, 3000, 800)
-                .chancedOutput(dust, Gallium, 1000, 1000)
-                .chancedOutput(dust, SiliconDioxide, 9000, 250)
-                .chancedOutput(dust, Iron, 8000, 250)
+                .chancedOutput(dust, Gallium, Chance.of(5000).risePerOverclock(550))
+                .chancedOutput(dust, Gallium, Chance.of(3000).risePerOverclock(800))
+                .chancedOutput(dust, Gallium, Chance.of(1000).risePerOverclock(1000))
+                .chancedOutput(dust, SiliconDioxide, Chance.of(9000).risePerOverclock(250))
+                .chancedOutput(dust, Iron, Chance.of(8000).risePerOverclock(250))
                 .outputFluids(Water.getFluid(250))
                 .duration(100).EUt(VA[MV]).save();
     }
@@ -163,9 +165,9 @@ public class TitaniumRecipes {
         // Byproduct separation for Ilmenite
         ELECTROMAGNETIC_SEPARATOR_RECIPES.recipeBuilder("ilmenite_separation")
                 .inputItems(dust, IlmeniteSlag)
-                .chancedOutput(dust, Iron, 8000, 0)
-                .chancedOutput(dust, Tantalum, 2000, 0)
-                .chancedOutput(dust, Niobium, 500, 0)
+                .chancedOutput(dust, Iron, Chance.of(8000))
+                .chancedOutput(dust, Tantalum, Chance.of(2000))
+                .chancedOutput(dust, Niobium, Chance.of(500))
                 .duration(50).EUt(VA[MV]).save();
     }
 }

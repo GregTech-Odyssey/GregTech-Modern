@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.objects.Reference2LongLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -556,6 +557,79 @@ public final class PatternBuilderModel {
             for (var candidate : role.original) candidate.selected = 0;
         }
         reallocate();
+    }
+
+    public boolean restore(List<TraceabilityPredicate> cells, IntComparator order, int[] sections, Item[] items) {
+        if (items.length != cells.size() || sections.length != cells.size()) return false;
+        var tallies = new Reference2ObjectOpenHashMap<Group, Reference2IntOpenHashMap<Item>>();
+        var lastFill = new Reference2IntOpenHashMap<Group>();
+        lastFill.defaultReturnValue(-1);
+        var placed = new ReferenceOpenHashSet<Item>();
+        for (int i = 0; i < items.length; i++) {
+            var predicate = cells.get(i);
+            var item = items[i];
+            if (predicate == null || item == null) continue;
+            placed.add(item);
+            var group = groupOf.get(new GroupKey(predicate, sections[i]));
+            if (group == null) continue;
+            tallies.computeIfAbsent(group, g -> new Reference2IntOpenHashMap<>()).addTo(item, 1);
+            int last = lastFill.getInt(group);
+            if (fillIndex(group, item) >= 0 && (last < 0 || order.compare(i, last) > 0)) lastFill.put(group, i);
+        }
+        var lookup = new Reference2ObjectOpenHashMap<Group, Reference2ObjectOpenHashMap<Item, Candidate>>();
+        for (var candidate : candidates) {
+            candidate.selected = 0;
+            for (var group : candidate.groups) lookup.computeIfAbsent(group, g -> new Reference2ObjectOpenHashMap<>()).putIfAbsent(candidate.stack.getItem(), candidate);
+        }
+        var mainPlaced = new Reference2IntOpenHashMap<Group>();
+        for (var leader : groups) {
+            leader.fillLimit = -1;
+            leader.setIncluded(true);
+            var members = leader.linkedWithSelf();
+            int last = -1;
+            for (var member : members) {
+                int cell = lastFill.getInt(member);
+                if (cell >= 0 && (last < 0 || order.compare(cell, last) > 0)) last = cell;
+            }
+            if (last < 0) continue;
+            int best = fillIndex(leader, items[last]);
+            int count = 0;
+            for (var member : members) {
+                member.fill = best;
+                var tally = tallies.get(member);
+                if (tally != null) count += tally.getInt(items[last]);
+            }
+            mainPlaced.put(leader, count);
+        }
+        for (var it = tallies.reference2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            var entry = it.next();
+            var group = entry.getKey();
+            var main = group.hasFill() ? group.getFillStack().getItem() : null;
+            var byItem = lookup.get(group);
+            for (var counts = entry.getValue().reference2IntEntrySet().fastIterator(); counts.hasNext();) {
+                var count = counts.next();
+                if (count.getKey() == main) continue;
+                var candidate = byItem == null ? null : byItem.get(count.getKey());
+                if (candidate != null) candidate.selected += count.getIntValue();
+            }
+        }
+        reallocate();
+        for (var leader : groups) {
+            int main = mainPlaced.getInt(leader);
+            if (main >= leader.getFreeCount()) continue;
+            if (leader.airAllowed) leader.fillLimit = main;
+            else if (main == 0) leader.setIncluded(false);
+        }
+        for (var entry : fixed) entry.setIncluded(placed.contains(entry.stack.getItem()));
+        invalidateInputs();
+        return isComplete();
+    }
+
+    private static int fillIndex(Group group, Item item) {
+        for (int f = 0; f < group.fills.size(); f++) {
+            if (group.fills.get(f).getItem() == item) return f;
+        }
+        return -1;
     }
 
     private static void distribute(List<Candidate> pool, int amount) {

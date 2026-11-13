@@ -57,7 +57,6 @@ public class RecipeIOList extends UIElement {
     public static final Component NONE = Component.translatable("gtceu.gui.recipe_io.none");
     public static final Component NOT_CONSUMED = Component.translatable("gtceu.gui.recipe_io.not_consumed");
     public static final String PER_SECOND = "gtceu.gui.recipe_io.per_second";
-    public static final String CHANCE = "gtceu.gui.recipe_io.chance";
     public static final String EXACT = "gtceu.gui.recipe_io.exact";
 
     private static final int ROW = UISizes.STATUS_LINE_ICON_HEIGHT;
@@ -416,7 +415,7 @@ public class RecipeIOList extends UIElement {
         }
         tooltips.add(Component.translatable(EXACT, exact).withStyle(ChatFormatting.GRAY));
         if (entry.chance > 0 && entry.chance < FULL_CHANCE) {
-            tooltips.add(Component.translatable(CHANCE, FormattingUtil.formatNumbers(entry.chance / 100.0)).withStyle(ChatFormatting.YELLOW));
+            tooltips.add(Component.translatable(entry.output ? "gtceu.gui.content.output_chance" : "gtceu.gui.content.consume_chance", FormattingUtil.formatNumbers(entry.chance / 100.0)).withStyle(ChatFormatting.YELLOW));
         }
         if (entry.blocked && blockedDetail != null) tooltips.add(blockedDetail.copy().withStyle(ChatFormatting.RED));
         gui.getModularUIGui().setHoverTooltip(tooltips, itemStack, null, itemStack.getTooltipImage().orElse(null));

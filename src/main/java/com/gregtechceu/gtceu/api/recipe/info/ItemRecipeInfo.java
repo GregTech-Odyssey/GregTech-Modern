@@ -132,7 +132,7 @@ public final class ItemRecipeInfo extends ContentRecipeInfo {
                 int chance = contents.chance(contentIndex);
                 int boost = contents.boost(contentIndex);
                 slot.setXEIChance((float) recipe.chanceFunction.getBoostedChance(chance, boost, recipeTier, chanceTier) / ContentList.MAX_CHANCE);
-                slot.setOnAddedTooltips((w, tooltips) -> GTRecipeWidget.setConsumedChance(chance, boost, tooltips, recipeTier, chanceTier, recipe.chanceFunction));
+                slot.setOnAddedTooltips((w, tooltips) -> GTRecipeWidget.appendChanceTooltips(io, chance, boost, tooltips, recipeTier, chanceTier, recipe.chanceFunction));
                 if (io == IO.IN && chance == 0) {
                     slot.setIngredientIO(IngredientIO.CATALYST);
                 }

@@ -4,13 +4,18 @@ import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
+import com.gregtechceu.gtceu.api.item.IDataComponentItem;
+import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
 import com.gregtechceu.gtceu.api.item.armor.ArmorComponentItem;
 import com.gregtechceu.gtceu.api.item.armor.ArmorLogicSuite;
 import com.gregtechceu.gtceu.common.item.NanoSaberBehavior;
 import com.gregtechceu.gtceu.utils.input.KeyBind;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -43,6 +48,8 @@ import java.util.List;
 public final class ArmorSuiteFeatures {
 
     public static final String LIFE_BOOST = "lifeBoost";
+    public static final ItemDataComponentKey<Boolean, Tag> STEP_ASSIST_OFF = ItemDataComponentKey.create("stepAssistOff", ByteTag::valueOf,
+            t -> t instanceof NumericTag n ? n.getAsByte() != 0 : null);
     public static final double LIFE_AMPS = 0.1;
     public static final int CLEANSE_PARTS = 20;
     public static final int CLEANSE_INTERVAL = 40;
@@ -79,6 +86,16 @@ public final class ArmorSuiteFeatures {
         return data == null || !data.contains(LIFE_BOOST) || data.getBoolean(LIFE_BOOST);
     }
 
+    public static boolean isStepAssistEnabled(ItemStack stack) {
+        return !IDataComponentItem.getBoolean(stack, STEP_ASSIST_OFF);
+    }
+
+    private static void toggleStepAssist(Player player, ItemStack boots) {
+        boolean enabled = !isStepAssistEnabled(boots);
+        IDataComponentItem.set(boots, STEP_ASSIST_OFF, enabled ? null : Boolean.TRUE);
+        player.displayClientMessage(ArmorTooltips.toggleMessage(boots, "metaarmor.gto.name.step_assist", enabled, true), false);
+    }
+
     public static long lifeBoostCostPerSecond(ArmorLogicSuite suite) {
         return Math.round(LIFE_AMPS * GTValues.V[suite.getTier()]);
     }
@@ -103,6 +120,7 @@ public final class ArmorSuiteFeatures {
         }
 
         ArmorItem.Type type = suite.getArmorType();
+        if (type == ArmorItem.Type.BOOTS && KeyBind.ARMOR_STEP_ASSIST.consumePress(player)) toggleStepAssist(player, stack);
         if (type == ArmorItem.Type.HELMET && player.tickCount % CLEANSE_INTERVAL == 0) {
             cleanseHarmfulEffects(suite, player, stack);
         }
@@ -295,6 +313,9 @@ public final class ArmorSuiteFeatures {
         controls.add(ArmorTooltips.hotkey(KeyBind.ARMOR_LIFE, "metaarmor.gto.name.life_boost", isLifeBoostEnabled(stack)));
         ArmorTooltips.addDetail(controls, "metaarmor.gto.detail.life_boost", ArmorTooltips.amps(suite.getPieceHealthBoost()),
                 suite.getGrade() * 10, ArmorTooltips.ampsPerSecond(LIFE_AMPS));
+        if (suite.getArmorType() == ArmorItem.Type.BOOTS) {
+            controls.add(ArmorTooltips.hotkey(KeyBind.ARMOR_STEP_ASSIST, "metaarmor.gto.name.step_assist", isStepAssistEnabled(stack)));
+        }
     }
 
     /**

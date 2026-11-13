@@ -88,6 +88,8 @@ public class UIElement extends WidgetGroup implements ElementState.Host<UIElemen
     private int updatingPosition;
     private int styleBatch;
     private boolean styleBatchDirty;
+    private int layoutHold;
+    private boolean layoutHeld;
 
     public UIElement() {
         super(Position.ORIGIN, Size.ZERO);
@@ -160,6 +162,19 @@ public class UIElement extends WidgetGroup implements ElementState.Host<UIElemen
 
     public LayoutStyle getLayoutStyle() {
         return style;
+    }
+
+    public void batchStructure(Runnable changes) {
+        var root = layoutRoot();
+        root.layoutHold++;
+        try {
+            changes.run();
+        } finally {
+            if (--root.layoutHold == 0 && root.layoutHeld) {
+                root.layoutHeld = false;
+                root.requestLayout();
+            }
+        }
     }
 
     public UIElement addChild(Widget child) {
@@ -339,6 +354,10 @@ public class UIElement extends WidgetGroup implements ElementState.Host<UIElemen
 
     /** 本元素是树根：算到不再变脏为止（写回尺寸可能引发新的样式变化，如滚动条显隐）。 */
     private void requestLayout() {
+        if (layoutHold > 0) {
+            layoutHeld = true;
+            return;
+        }
         if (layoutTree != null && layoutTree.running) {
             layoutTree.pending = true;
             return;

@@ -348,7 +348,7 @@ public class ItemLang {
         multilineLang(provider, "item.gtceu.basic_tape.tooltip",
                 "§7Not strong enough for mechanical issues\n§7Can be used to pick up crates without dropping their items");
         provider.add("item.gtceu.terminal.tooltip",
-                "R-Click a controller to preview and build the multiblock; sneak R-Click to build it from the saved one-click plan");
+                "R-Click a controller to preview and build the multiblock; sneak R-Click to build it again with the plan last used for that structure");
 
         provider.add("item.gtceu.sus_record.desc", "§7sussy!");
     }

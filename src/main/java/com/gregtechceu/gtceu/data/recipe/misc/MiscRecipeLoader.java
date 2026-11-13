@@ -3,6 +3,7 @@ package com.gregtechceu.gtceu.data.recipe.misc;
 import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeBuilder;
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
 import com.gregtechceu.gtceu.api.recipe.ingredient.FluidContainerIngredient;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTRecipeCategories;
@@ -68,11 +69,11 @@ public class MiscRecipeLoader {
         SIFTER_RECIPES.recipeBuilder("gravel_sifting").duration(100).EUt(16)
                 .inputItems(new ItemStack(Blocks.GRAVEL))
                 .outputItems(gem, Flint)
-                .chancedOutput(gem, Flint, 9000, 0)
-                .chancedOutput(gem, Flint, 8000, 0)
-                .chancedOutput(gem, Flint, 6000, 0)
-                .chancedOutput(gem, Flint, 3333, 0)
-                .chancedOutput(gem, Flint, 2500, 0)
+                .chancedOutput(gem, Flint, Chance.of(9000))
+                .chancedOutput(gem, Flint, Chance.of(8000))
+                .chancedOutput(gem, Flint, Chance.of(6000))
+                .chancedOutput(gem, Flint, Chance.of(3333))
+                .chancedOutput(gem, Flint, Chance.of(2500))
                 .save();
 
         PACKER_RECIPES.recipeBuilder("matchbox")

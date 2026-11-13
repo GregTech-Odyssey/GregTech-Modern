@@ -86,6 +86,10 @@ public final class StructurePlans {
         return model.assign(bound, layout.placementOrder(), layout.layers(), sections(layout));
     }
 
+    public static boolean restore(PatternBuilderModel model, Layout layout, Item[] items) {
+        return model.restore(layout.predicates(), layout.placementOrder(), sections(layout), items);
+    }
+
     @Nullable
     private static List<TraceabilityPredicate> bind(PatternBuilderModel model, Layout layout) {
         var current = layout.predicates();

@@ -104,6 +104,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     public void onLoad() {
         super.onLoad();
         if (!isRemote()) {
+            if (rotorSpeed < 0) setRotorSpeed(0);
             updateRotorSubscription();
             rotorInvSubs = this.inventory.addChangedListener(this::onRotorInventoryChanged);
         }
@@ -148,11 +149,15 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
 
     @Override
     public boolean hasRotor() {
-        return inventory.storage.getStackInSlot(0) != ItemStack.EMPTY;
+        return !inventory.storage.getStackInSlot(0).isEmpty();
+    }
+
+    public boolean isRotorSlotLocked() {
+        return rotorSpeed > 0 && hasRotor();
     }
 
     protected void updateRotorSubscription() {
-        if (rotorSpeed > 0) {
+        if (rotorSpeed != 0) {
             rotorSpeedSubs = subscribeServerTick(rotorSpeedSubs, this::updateRotorSpeed);
         } else if (rotorSpeedSubs != null) {
             rotorSpeedSubs.cancel();
@@ -166,13 +171,14 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
         }
         if (!hasRotor()) {
             setRotorSpeed(0);
-        } else if (rotorSpeed > 0) {
-            setRotorSpeed(Math.max(0, rotorSpeed - SPEED_DECREMENT));
+        } else {
+            setRotorSpeed(rotorSpeed - SPEED_DECREMENT);
         }
         updateRotorSubscription();
     }
 
     public void setRotorSpeed(int rotorSpeed) {
+        rotorSpeed = Math.max(0, Math.min(rotorSpeed, maxRotorHolderSpeed));
         if ((this.rotorSpeed > 0 && rotorSpeed <= 0) || (this.rotorSpeed <= 0 && rotorSpeed > 0)) {
             scheduleRenderUpdate();
         }
@@ -214,7 +220,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     }
 
     public InteractionResult onUse(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (!isRemote() && rotorSpeed > 0 && !player.isCreative()) {
+        if (!isRemote() && isRotorSlotLocked() && !player.isCreative()) {
             player.hurt(GTDamageTypes.TURBINE.source(level), TurbineRotorBehaviour.getBehaviour(getRotorStack()).getDamage(getRotorStack()));
             return InteractionResult.FAIL;
         }
@@ -226,7 +232,7 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
     //////////////////////////////////////
     @Override
     public Widget createUIWidget() {
-        var slot = ItemSlot.of(inventory.storage, 0).disabled(() -> rotorSpeed != 0, null);
+        var slot = ItemSlot.of(inventory.storage, 0).disabled(this::isRotorSlotLocked, null);
         slot.setBackgroundTexture(new GuiTextureGroup(UITheme.ITEM_SLOT, GuiTextures.TURBINE_OVERLAY));
         return HatchViews.page(slot);
     }

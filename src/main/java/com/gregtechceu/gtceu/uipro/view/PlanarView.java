@@ -34,6 +34,9 @@ public abstract class PlanarView extends Viewport {
     private static final float WHEEL_ZOOM_RATE = 18;
     private static final Animation VIEW_ANIMATION = Animation.of(0.25f, Eases.CUBIC_OUT);
     private static final double WHEEL_PAN = 13;
+    private static final float KEY_PAN_SPEED = 420;
+    private static final float KEY_PAN_FAST = 2.5f;
+    private static final float KEY_PAN_MAX_SECONDS = 0.1f;
 
     protected float minScale = 0.1f, maxScale = 4f;
     private float lodSimplifiedPixelScale = 0.5f, lodBlockPixelScale = 0.2f;
@@ -66,6 +69,7 @@ public abstract class PlanarView extends Viewport {
     private float wheelTarget = Float.NaN;
     private float anchorLocalX, anchorLocalY, anchorWorldX, anchorWorldY;
     private long wheelFrameNanos;
+    private long keyPanNanos;
     private String percentText = "";
 
     protected PlanarView(String id, int width, int height) {
@@ -444,7 +448,22 @@ public abstract class PlanarView extends Viewport {
     }
 
     @OnlyIn(Dist.CLIENT)
-    protected void prepareView() {
+    private void stepKeyPan(int mouseX, int mouseY) {
+        long now = System.nanoTime(), last = keyPanNanos;
+        keyPanNanos = now;
+        if (!allowPan || last == 0 || !isInViewport(mouseX, mouseY) || !isPointerOver(mouseX, mouseY) || isTextInputFocused()) return;
+        var minecraft = Minecraft.getInstance();
+        long window = minecraft.getWindow().getWindow();
+        float dx = ViewKeys.axis(window, minecraft.options.keyRight, minecraft.options.keyLeft);
+        float dy = ViewKeys.axis(window, minecraft.options.keyDown, minecraft.options.keyUp);
+        if (dx == 0 && dy == 0) return;
+        float step = KEY_PAN_SPEED * (Screen.hasShiftDown() ? KEY_PAN_FAST : 1) * Math.min(KEY_PAN_MAX_SECONDS, (now - last) / 1e9f) / scale;
+        if (dx != 0 && dy != 0) step /= Mth.SQRT_OF_TWO;
+        panBy(dx * step, dy * step);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    protected void prepareView(int mouseX, int mouseY) {
         int vw = viewportWidth(), vh = viewportHeight();
         if (!viewInitialized) {
             lastViewportWidth = vw;
@@ -468,6 +487,7 @@ public abstract class PlanarView extends Viewport {
         lastViewportHeight = vh;
         animations.updateFrame();
         stepWheelZoom();
+        stepKeyPan(mouseX, mouseY);
         if (isRememberView() && allowZoom && scale != rememberedScale) {
             rememberedScale = scale;
             ViewPrefs.remember(zoomKey(), scale);

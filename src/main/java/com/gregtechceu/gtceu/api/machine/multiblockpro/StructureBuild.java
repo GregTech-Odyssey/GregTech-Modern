@@ -156,6 +156,17 @@ public final class StructureBuild {
                     var target = ((BlockItem) item).getBlock().defaultBlockState();
                     if (!target.canSurvive(level, pos) || !level.isUnobstructed(target, pos, CollisionContext.of(player))) continue;
                 }
+                if (!isBlock) {
+                    var took = supply == null ? PlayerSupply.FluidTake.STORED : supply.takeFluid(((BucketItem) item).getFluid());
+                    if (took == PlayerSupply.FluidTake.NONE) {
+                        missing++;
+                        continue;
+                    }
+                    level.setBlock(pos, StructureBlocks.stateOf(item), 3);
+                    if (took == PlayerSupply.FluidTake.BUCKET) player.getInventory().placeItemBackInInventory(new ItemStack(Items.BUCKET));
+                    placed++;
+                    continue;
+                }
                 var taken = supply == null ? new ItemStack(item) : supply.take(item);
                 if (taken.isEmpty()) {
                     missing++;
@@ -167,27 +178,22 @@ public final class StructureBuild {
                     level.removeBlock(pos, false);
                 }
                 var facing = layout.outwardWorld(i, front, up, flip);
-                if (item instanceof BlockItem blockItem) {
-                    var context = new BlockPlaceContext(level, player, InteractionHand.MAIN_HAND, taken.copy(),
-                            BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
-                    if (blockItem.place(context) == InteractionResult.FAIL) {
-                        if (supply != null) {
-                            supply.giveBack(player, taken);
-                            for (var drop : drops) supply.giveBack(player, drop);
-                        }
-                        if (pass == 0) retry.add(i);
-                        continue;
+                var context = new BlockPlaceContext(level, player, InteractionHand.MAIN_HAND, taken.copy(),
+                        BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
+                if (((BlockItem) item).place(context) == InteractionResult.FAIL) {
+                    if (supply != null) {
+                        supply.giveBack(player, taken);
+                        for (var drop : drops) supply.giveBack(player, drop);
                     }
-                    if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity holder) {
-                        if (facing != null && holder.getMetaMachine().isFacingValid(facing)) holder.getMetaMachine().setFrontFacing(facing);
-                    } else {
-                        var state = level.getBlockState(pos);
-                        var faced = StructureBlocks.face(state, facing);
-                        if (faced != state && faced.canSurvive(level, pos)) level.setBlock(pos, faced, 3);
-                    }
+                    if (pass == 0) retry.add(i);
+                    continue;
+                }
+                if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity holder) {
+                    if (facing != null && holder.getMetaMachine().isFacingValid(facing)) holder.getMetaMachine().setFrontFacing(facing);
                 } else {
-                    level.setBlock(pos, StructureBlocks.stateOf(item), 3);
-                    if (supply != null) player.getInventory().placeItemBackInInventory(new ItemStack(Items.BUCKET));
+                    var state = level.getBlockState(pos);
+                    var faced = StructureBlocks.face(state, facing);
+                    if (faced != state && faced.canSurvive(level, pos)) level.setBlock(pos, faced, 3);
                 }
                 if (swapping) {
                     if (supply != null) {

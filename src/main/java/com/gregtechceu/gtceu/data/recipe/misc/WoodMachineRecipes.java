@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.ItemMaterialData;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.ItemMaterialInfo;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialEntry;
 import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
 import com.gregtechceu.gtceu.common.data.GTBlocks;
 import com.gregtechceu.gtceu.common.data.GTItems;
 import com.gregtechceu.gtceu.common.data.GTMaterials;
@@ -1215,21 +1216,21 @@ public class WoodMachineRecipes {
         // COAL TAR ============================================
         PYROLYSE_RECIPES.recipeBuilder("charcoal_to_coal_tar").circuitMeta(8)
                 .inputItems(Items.CHARCOAL, 32)
-                .chancedOutput(dust, Ash, 5000, 0)
+                .chancedOutput(dust, Ash, Chance.of(5000))
                 .outputFluids(CoalTar.getFluid(1000))
                 .duration(640).EUt(64)
                 .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coal_to_coal_tar").circuitMeta(8)
                 .inputItems(Items.COAL, 12)
-                .chancedOutput(dust, DarkAsh, 5000, 0)
+                .chancedOutput(dust, DarkAsh, Chance.of(5000))
                 .outputFluids(CoalTar.getFluid(3000))
                 .duration(320).EUt(96)
                 .save();
 
         PYROLYSE_RECIPES.recipeBuilder("coke_to_coal_tar").circuitMeta(8)
                 .inputItems(gem, Coke, 8)
-                .chancedOutput(dust, Ash, 7500, 0)
+                .chancedOutput(dust, Ash, Chance.of(7500))
                 .outputFluids(CoalTar.getFluid(4000))
                 .duration(320).EUt(96)
                 .save();

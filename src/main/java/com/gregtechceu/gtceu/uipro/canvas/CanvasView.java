@@ -32,7 +32,8 @@ import java.util.function.Consumer;
  */
 public class CanvasView extends PlanarView {
 
-    public static final Component HELP_PAN = Component.translatable("gtceu.uipro.canvas.help.pan");
+    public static final Component HELP_PAN = Component.translatable("gtceu.uipro.canvas.help.pan", Component.keybind("key.forward"),
+            Component.keybind("key.left"), Component.keybind("key.back"), Component.keybind("key.right"));
     public static final Component HELP_ZOOM = Component.translatable("gtceu.uipro.canvas.help.zoom");
 
     private final List<CanvasLayer> layers = new ArrayList<>();
@@ -166,7 +167,7 @@ public class CanvasView extends PlanarView {
         drawFrame(graphics, mouseX, mouseY);
         int vx = viewportX(), vy = viewportY(), vw = viewportWidth(), vh = viewportHeight();
         if (vw <= 0 || vh <= 0) return;
-        prepareView();
+        prepareView(mouseX, mouseY);
         updateMinimapRect();
 
         boolean overOverlay = isOverChild(mouseX, mouseY);

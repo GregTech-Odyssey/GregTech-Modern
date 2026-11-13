@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -75,6 +76,6 @@ public abstract class CapabilityBlockProvider<C> implements IBlockComponentProvi
     }
 
     protected float getProgress(long progress, long maxProgress) {
-        return maxProgress == 0 ? 0 : (float) ((double) progress / maxProgress);
+        return maxProgress == 0 ? 0 : Mth.clamp((float) ((double) progress / maxProgress), 0F, 1F);
     }
 }

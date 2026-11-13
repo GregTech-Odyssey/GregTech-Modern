@@ -1,5 +1,7 @@
 package com.gregtechceu.gtceu.data.recipe.serialized.chemistry;
 
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
+
 import static com.gregtechceu.gtceu.api.GTValues.*;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.dust;
 import static com.gregtechceu.gtceu.api.data.tag.TagPrefix.ingotHot;
@@ -86,7 +88,7 @@ public class NaquadahRecipes {
 
         DISTILLATION_RECIPES.recipeBuilder("enriched_naquadah_waste_separation").EUt(VA[HV]).duration(300)
                 .inputFluids(EnrichedNaquadahWaste.getFluid(2000))
-                .chancedOutput(dust, BariumSulfide, 5000, 0)
+                .chancedOutput(dust, BariumSulfide, Chance.of(5000))
                 .outputFluids(SulfuricAcid.getFluid(500))
                 .outputFluids(EnrichedNaquadahSolution.getFluid(250))
                 .outputFluids(NaquadriaSolution.getFluid(100))
@@ -123,7 +125,7 @@ public class NaquadahRecipes {
 
         DISTILLATION_RECIPES.recipeBuilder("naquadria_waste_separation").EUt(VA[HV]).duration(300)
                 .inputFluids(NaquadriaWaste.getFluid(2000))
-                .chancedOutput(dust, GalliumSulfide, 5000, 0)
+                .chancedOutput(dust, GalliumSulfide, Chance.of(5000))
                 .outputFluids(SulfuricAcid.getFluid(500))
                 .outputFluids(NaquadriaSolution.getFluid(250))
                 .outputFluids(EnrichedNaquadahSolution.getFluid(100))

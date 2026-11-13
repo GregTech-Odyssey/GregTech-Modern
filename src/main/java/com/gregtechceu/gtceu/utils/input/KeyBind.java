@@ -47,6 +47,7 @@ public enum KeyBind {
     ARMOR_LIFE("gtceu.key.armor_life", KeyConflictContext.IN_GAME, -1),
     ACTION("gtceu.key.action", KeyConflictContext.GUI, InputConstants.KEY_DELETE),
     TOOL_SETTING("gtceu.key.tool_setting", KeyConflictContext.IN_GAME, InputConstants.KEY_J),
+    ARMOR_STEP_ASSIST("gtceu.key.armor_step_assist", KeyConflictContext.IN_GAME, -1),
     ;
 
     public static final KeyBind[] VALUES = values();

@@ -202,6 +202,10 @@ public class ServerList<K> extends UIElement {
         }
 
         private void apply(List<Entry<K>> next) {
+            batchStructure(() -> rebuild(next));
+        }
+
+        private void rebuild(List<Entry<K>> next) {
             var used = new HashMap<K, Widget>(next.size() * 2);
             var ordered = new ArrayList<Widget>(next.size());
             for (var entry : next) {

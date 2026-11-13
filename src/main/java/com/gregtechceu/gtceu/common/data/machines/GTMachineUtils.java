@@ -505,7 +505,7 @@ public class GTMachineUtils {
                     var symbols = Symbols.create()
                             .where('S', Predicates.controller(definition))
                             .where('P', blocks(pipe.get()))
-                            .where('X', fireboxPred)
+                            .wherePart('X', fireboxPred)
                             .wherePart('C', blocks(casing.get()).setMinGlobalLimited(20)
                                     .or(Predicates.abilities(PartAbility.EXPORT_FLUIDS).setMinGlobalLimited(1)
                                             .setPreviewCount(1)));

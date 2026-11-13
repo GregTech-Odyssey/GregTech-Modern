@@ -1,5 +1,6 @@
 package com.gregtechceu.gtceu.api.item.armor;
 
+import com.gregtechceu.gtceu.GTCEu;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.item.IElectricItem;
 import com.gregtechceu.gtceu.common.data.GTSoundEntries;
@@ -31,6 +32,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,6 +155,44 @@ public class ArmorUtils {
             return InteractionResultHolder.success(result);
         } else {
             return InteractionResultHolder.fail(food);
+        }
+    }
+
+    public static int effectiveNutrition(ItemStack food, Player player, int nutrition) {
+        return SpiceOfLife.nutrition(food, player, nutrition);
+    }
+
+    private static final class SpiceOfLife {
+
+        private static final MethodHandle MULTIPLIER;
+        private static final MethodHandle NUTRITION;
+
+        static {
+            MethodHandle multiplier = null, nutrition = null;
+            if (GTCEu.isModLoaded("solclassic")) {
+                try {
+                    Class<?> calculator = Class.forName("com.github.leopoko.solclassic.utils.FoodCalculator");
+                    var lookup = MethodHandles.publicLookup();
+                    multiplier = lookup.findStatic(calculator, "CalculateMultiplier", MethodType.methodType(float.class, ItemStack.class, Player.class));
+                    nutrition = lookup.findStatic(calculator, "CalculateNutrition", MethodType.methodType(int.class, int.class, float.class));
+                    GTCEu.LOGGER.info("Spice of Life food calculator linked for armor auto eating");
+                } catch (ReflectiveOperationException | RuntimeException e) {
+                    GTCEu.LOGGER.warn("Spice of Life food calculator unavailable, armor auto eating uses nominal nutrition", e);
+                    multiplier = nutrition = null;
+                }
+            }
+            MULTIPLIER = multiplier;
+            NUTRITION = nutrition;
+        }
+
+        static int nutrition(ItemStack food, Player player, int nutrition) {
+            if (MULTIPLIER == null) return nutrition;
+            try {
+                float multiplier = (float) MULTIPLIER.invokeExact(food, player);
+                return (int) NUTRITION.invokeExact(nutrition, multiplier);
+            } catch (Throwable e) {
+                return nutrition;
+            }
         }
     }
 

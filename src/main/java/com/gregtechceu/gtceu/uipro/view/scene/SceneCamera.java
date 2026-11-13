@@ -1,15 +1,14 @@
 package com.gregtechceu.gtceu.uipro.view.scene;
 
-import net.minecraft.client.KeyMapping;
+import com.gregtechceu.gtceu.uipro.view.ViewKeys;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFW;
 
 @OnlyIn(Dist.CLIENT)
 public final class SceneCamera {
@@ -183,11 +182,11 @@ public final class SceneCamera {
 
     public void move(long window, float seconds) {
         var options = Minecraft.getInstance().options;
-        float forward = axis(window, options.keyUp, options.keyDown);
-        float strafe = axis(window, options.keyRight, options.keyLeft);
-        float lift = axis(window, options.keyJump, options.keyShift);
+        float forward = ViewKeys.axis(window, options.keyUp, options.keyDown);
+        float strafe = ViewKeys.axis(window, options.keyRight, options.keyLeft);
+        float lift = ViewKeys.axis(window, options.keyJump, options.keyShift);
         if (forward == 0 && strafe == 0 && lift == 0) return;
-        float step = FLY_SPEED * speedScale() * (down(window, options.keySprint) ? SPRINT_MULTIPLIER : 1) * seconds;
+        float step = FLY_SPEED * speedScale() * (ViewKeys.down(window, options.keySprint) ? SPRINT_MULTIPLIER : 1) * seconds;
         double p = Math.toRadians(pitch);
         var horizontal = new Vector3f((float) (-Math.cos(p) * forward + Math.sin(p) * strafe), 0,
                 (float) (-Math.sin(p) * forward - Math.cos(p) * strafe));
@@ -197,21 +196,7 @@ public final class SceneCamera {
 
     public static boolean moving(long window) {
         var options = Minecraft.getInstance().options;
-        return down(window, options.keyUp) || down(window, options.keyDown) || down(window, options.keyLeft) ||
-                down(window, options.keyRight) || down(window, options.keyJump) || down(window, options.keyShift);
-    }
-
-    private static float axis(long window, KeyMapping positive, KeyMapping negative) {
-        float value = 0;
-        if (down(window, positive)) value += 1;
-        if (down(window, negative)) value -= 1;
-        return value;
-    }
-
-    private static boolean down(long window, KeyMapping mapping) {
-        var key = mapping.getKey();
-        if (key.getType() == InputConstants.Type.MOUSE) return GLFW.glfwGetMouseButton(window, key.getValue()) == GLFW.GLFW_PRESS;
-        return key.getType() == InputConstants.Type.KEYSYM && key.getValue() != InputConstants.UNKNOWN.getValue() &&
-                InputConstants.isKeyDown(window, key.getValue());
+        return ViewKeys.down(window, options.keyUp) || ViewKeys.down(window, options.keyDown) || ViewKeys.down(window, options.keyLeft) ||
+                ViewKeys.down(window, options.keyRight) || ViewKeys.down(window, options.keyJump) || ViewKeys.down(window, options.keyShift);
     }
 }

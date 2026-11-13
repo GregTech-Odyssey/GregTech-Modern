@@ -6,10 +6,18 @@ import com.gregtechceu.gtceu.api.item.LampBlockItem;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import net.minecraftforge.items.wrapper.PlayerOffhandInvWrapper;
 
@@ -17,6 +25,7 @@ import appeng.api.config.Actionable;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
+import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.helpers.WirelessTerminalMenuHost;
 import appeng.items.tools.powered.WirelessTerminalItem;
@@ -37,7 +46,15 @@ import java.util.List;
 public final class PlayerSupply {
 
     private static final String BACKPACK_MOD = "sophisticatedbackpacks";
+    private static final int BUCKET_VOLUME = 1000;
 
+    public enum FluidTake {
+        NONE,
+        BUCKET,
+        STORED
+    }
+
+    private final Player player;
     private final List<IItemHandler> handlers;
     private final Reference2ObjectOpenHashMap<Item, int[]> cursors = new Reference2ObjectOpenHashMap<>();
     @Nullable
@@ -45,19 +62,20 @@ public final class PlayerSupply {
     @Nullable
     private final IActionSource source;
 
-    private PlayerSupply(List<IItemHandler> handlers, @Nullable IStorageService network, @Nullable IActionSource source) {
+    private PlayerSupply(Player player, List<IItemHandler> handlers, @Nullable IStorageService network, @Nullable IActionSource source) {
+        this.player = player;
         this.handlers = handlers;
         this.network = network;
         this.source = source;
     }
 
     public static PlayerSupply of(Player player, boolean backpacks) {
-        return new PlayerSupply(handlers(player, backpacks), null, null);
+        return new PlayerSupply(player, handlers(player, backpacks), null, null);
     }
 
     public static PlayerSupply of(ServerPlayer player, boolean backpacks, boolean network) {
         var storage = network ? Network.storage(player) : null;
-        return new PlayerSupply(handlers(player, backpacks), storage, storage == null ? null : IActionSource.ofPlayer(player));
+        return new PlayerSupply(player, handlers(player, backpacks), storage, storage == null ? null : IActionSource.ofPlayer(player));
     }
 
     public static boolean hasNetwork(ServerPlayer player) {
@@ -103,9 +121,22 @@ public final class PlayerSupply {
             for (int slot = 0; slot < handler.getSlots(); slot++) {
                 var stack = handler.getStackInSlot(slot);
                 if (usable(stack)) counts.addTo(stack.getItem(), stack.getCount());
+                else if (!stack.isEmpty()) countFluids(stack, counts);
             }
         }
         return counts;
+    }
+
+    private static void countFluids(ItemStack stack, Reference2LongOpenHashMap<Item> counts) {
+        var fluids = stack.copyWithCount(1).getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).resolve().orElse(null);
+        if (fluids == null) return;
+        for (int tank = 0; tank < fluids.getTanks(); tank++) {
+            var fluid = fluids.getFluidInTank(tank);
+            if (fluid.isEmpty() || fluid.hasTag()) continue;
+            var bucket = fluid.getFluid().getBucket();
+            long buckets = fluid.getAmount() / BUCKET_VOLUME;
+            if (bucket != Items.AIR && buckets > 0) counts.addTo(bucket, buckets * stack.getCount());
+        }
     }
 
     public void countNetwork(Reference2LongOpenHashMap<Item> counts, Iterable<Item> wanted) {
@@ -114,6 +145,10 @@ public final class PlayerSupply {
         for (var item : wanted) {
             long amount = available.get(AEItemKey.of(item));
             if (amount > 0) counts.addTo(item, amount);
+            if (item instanceof BucketItem bucket && bucket.getFluid() != Fluids.EMPTY) {
+                long buckets = available.get(AEFluidKey.of(bucket.getFluid())) / BUCKET_VOLUME;
+                if (buckets > 0) counts.addTo(item, buckets);
+            }
         }
     }
 
@@ -131,6 +166,51 @@ public final class PlayerSupply {
         var taken = takeCarried(item);
         if (!taken.isEmpty() || network == null) return taken;
         return network.getInventory().extract(AEItemKey.of(item), 1, Actionable.MODULATE, source) > 0 ? new ItemStack(item) : ItemStack.EMPTY;
+    }
+
+    public FluidTake takeFluid(Fluid fluid) {
+        if (!takeCarried(fluid.getBucket()).isEmpty()) return FluidTake.BUCKET;
+        if (drainCarried(fluid) || drainNetwork(fluid)) return FluidTake.STORED;
+        return FluidTake.NONE;
+    }
+
+    private boolean drainCarried(Fluid fluid) {
+        var wanted = new FluidStack(fluid, BUCKET_VOLUME);
+        for (var handler : handlers) {
+            if (!(handler instanceof IItemHandlerModifiable modifiable)) continue;
+            for (int slot = 0; slot < handler.getSlots(); slot++) {
+                var stack = handler.getStackInSlot(slot);
+                if (stack.isEmpty() || usable(stack)) continue;
+                var one = stack.copyWithCount(1);
+                var fluids = one.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).resolve().orElse(null);
+                if (fluids == null || fluids.drain(wanted, IFluidHandler.FluidAction.SIMULATE).getAmount() < BUCKET_VOLUME) continue;
+                if (fluids.drain(wanted, IFluidHandler.FluidAction.EXECUTE).getAmount() < BUCKET_VOLUME) continue;
+                writeBack(modifiable, slot, stack, fluids);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void writeBack(IItemHandlerModifiable handler, int slot, ItemStack stack, IFluidHandlerItem fluids) {
+        var container = fluids.getContainer();
+        if (stack.getCount() == 1) {
+            if (!ItemStack.matches(stack, container)) handler.setStackInSlot(slot, container);
+            return;
+        }
+        handler.setStackInSlot(slot, stack.copyWithCount(stack.getCount() - 1));
+        if (!container.isEmpty()) player.getInventory().placeItemBackInInventory(container);
+    }
+
+    private boolean drainNetwork(Fluid fluid) {
+        if (network == null) return false;
+        var key = AEFluidKey.of(fluid);
+        var inventory = network.getInventory();
+        if (inventory.extract(key, BUCKET_VOLUME, Actionable.SIMULATE, source) < BUCKET_VOLUME) return false;
+        long drained = inventory.extract(key, BUCKET_VOLUME, Actionable.MODULATE, source);
+        if (drained >= BUCKET_VOLUME) return true;
+        if (drained > 0) inventory.insert(key, drained, Actionable.MODULATE, source);
+        return false;
     }
 
     private ItemStack takeCarried(Item item) {

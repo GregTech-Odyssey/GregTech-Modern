@@ -8,7 +8,6 @@ import com.gregtechceu.gtceu.api.machine.multiblockpro.Structure;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.StructureBuild;
 import com.gregtechceu.gtceu.api.machine.multiblockpro.TerminalBuildPlans;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
-import com.gregtechceu.gtceu.common.network.packets.CPacketSaveBuildPlan;
 import com.gregtechceu.gtceu.common.network.packets.CPacketStructureBuild;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uiwidgets.patternbuilder.CarriedStock;
@@ -47,6 +46,7 @@ public final class StructureBuildFlow {
 
     private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, int[]> REMEMBERED = new Reference2ObjectOpenHashMap<>();
     private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, Choices> CHOICES = new Reference2ObjectOpenHashMap<>();
+    private static final Reference2ObjectOpenHashMap<MultiblockMachineDefinition, TerminalBuildPlans.Plan> SEEDED = new Reference2ObjectOpenHashMap<>();
 
     private record Choices(int[] values, boolean[] excluded, PatternBuilderModel model, Set<StructureBuild.Swap> kept) {}
 
@@ -60,6 +60,7 @@ public final class StructureBuildFlow {
 
     public static void clear() {
         CHOICES.clear();
+        SEEDED.clear();
     }
 
     public static int[] remembered(MultiblockMachineDefinition definition, Structure structure) {
@@ -80,9 +81,9 @@ public final class StructureBuildFlow {
                 navigator -> second.create(preview.layout(), preview.values(), navigator, preview)));
     }
 
-    public static void onTerminalUse(IMultiController controller) {
+    public static void onTerminalUse(IMultiController controller, ItemStack terminal) {
         if (StructureProjection.isProjecting(controller.self().getPos())) StructureProjection.clear();
-        else openTerminal(controller);
+        else openTerminal(controller, terminal);
     }
 
     public static boolean cancelProjection() {
@@ -91,11 +92,13 @@ public final class StructureBuildFlow {
         return true;
     }
 
-    public static void openTerminal(IMultiController controller) {
+    public static void openTerminal(IMultiController controller, ItemStack terminal) {
         var machine = controller.self();
         var definition = machine.getDefinition();
         var structure = definition.displayStructure();
         if (structure == null) return;
+        var plan = TerminalBuildPlans.get(terminal, definition);
+        if (plan != null) seed(definition, structure, plan);
         var pos = machine.getPos();
         var icon = definition.asStack();
         var modes = new TerminalModes(controller, structure.tree());
@@ -128,13 +131,23 @@ public final class StructureBuildFlow {
                     demolish ? DEMOLISH_CONFIRM : replace ? REPLACE_CONFIRM : BUILD, INCLUDE, BLOCKED,
                     false, !demolish, navigator::close));
             if (replace) panel.prependSection(new ReplaceSection(controller, layout, built, modes.isMirror(), kept));
-            if (!demolish) panel.addAction(TerminalBuildPlans.SAVE, () -> {
-                int upload = BuildUpload.send(definition, values, StructurePlans.assign(built, layout));
-                if (upload >= 0) GTNetwork.NETWORK.sendToServer(new CPacketSaveBuildPlan(definition.getId(), values, upload, modes.buildFlags(), sent(replace, kept)));
-                preview.closePreview();
-            });
             return panel;
         }));
+    }
+
+    private static void seed(MultiblockMachineDefinition definition, Structure structure, TerminalBuildPlans.Plan plan) {
+        if (plan.equals(SEEDED.put(definition, plan)) || !structure.accepts(plan.values())) return;
+        var values = plan.values().clone();
+        REMEMBERED.put(definition, values);
+        var full = structure.layout(values);
+        var cells = full == null ? null : plan.cells(full.cells().size());
+        if (cells == null) return;
+        var excluded = StructureConfigView.defaultExcluded(structure.tree(), values);
+        var layout = full.exclude(excluded);
+        var model = StructurePlans.modelBuilder(definition.asStack(), layout, false).build(layoutStock(Minecraft.getInstance().player, layout));
+        if (StructurePlans.restore(model, layout, cells)) {
+            CHOICES.put(definition, new Choices(values.clone(), excluded, model, new ObjectOpenHashSet<>(plan.kept())));
+        }
     }
 
     private static Set<StructureBuild.Swap> sent(boolean replace, Set<StructureBuild.Swap> kept) {

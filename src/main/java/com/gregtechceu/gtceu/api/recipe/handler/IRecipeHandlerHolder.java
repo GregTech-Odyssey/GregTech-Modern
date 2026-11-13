@@ -18,6 +18,7 @@ import net.minecraft.world.level.material.Fluid;
 import appeng.api.stacks.*;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -565,6 +566,8 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
         public final Map<IO, List<IRecipeHandler>> capabilitiesFlat = new EnumMap<>(IO.class);
         public final List<ISubscription> traitSubscriptions = new ArrayList<>();
         public final Map<IO, ClassInstanceCache<IRecipeHandler>> handlerByClass = new EnumMap<>(IO.class);
+        private final Reference2ObjectOpenHashMap<Object, List<RecipeHandlerUnit>> ownerUnits = new Reference2ObjectOpenHashMap<>();
+        private final Reference2ObjectOpenHashMap<Object, List<ISubscription>> ownerSubscriptions = new Reference2ObjectOpenHashMap<>();
 
         public void addHandlerLists(IRecipeHandlerHolder holder, Map<IO, List<IRecipeHandler>> ioMap, @Nullable Runnable listener) {
             for (var entry : ioMap.entrySet()) {
@@ -572,6 +575,60 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
                 holder.addHandlerList(handlerList);
                 if (listener != null) traitSubscriptions.add(handlerList.subscribe(listener));
             }
+        }
+
+        public void attach(IRecipeHandlerHolder holder, Object owner, RecipeHandlerUnit unit, @Nullable Runnable listener) {
+            int mark = traitSubscriptions.size();
+            holder.addHandlerList(unit);
+            if (listener != null) traitSubscriptions.add(unit.subscribe(listener));
+            ownerUnits.computeIfAbsent(owner, k -> new ArrayList<>()).add(unit);
+            int size = traitSubscriptions.size();
+            if (size > mark) {
+                var owned = ownerSubscriptions.computeIfAbsent(owner, k -> new ArrayList<>());
+                for (int i = mark; i < size; i++) owned.add(traitSubscriptions.get(i));
+            }
+            handlerByClass.clear();
+        }
+
+        public void detach(Object owner) {
+            var subscriptions = ownerSubscriptions.remove(owner);
+            if (subscriptions != null) {
+                for (var subscription : subscriptions) {
+                    subscription.unsubscribe();
+                    removeSame(traitSubscriptions, subscription);
+                }
+            }
+            handlerByClass.clear();
+            var units = ownerUnits.remove(owner);
+            if (units == null) return;
+            for (var unit : units) {
+                var grouped = capabilitiesProxy.get(unit.handlerIO);
+                if (grouped == null || !removeSame(grouped, unit)) continue;
+                var flat = capabilitiesFlat.get(unit.handlerIO);
+                if (flat == null) continue;
+                for (var handler : unit.allHandlers) {
+                    if (!referenced(grouped, handler)) removeSame(flat, handler);
+                }
+            }
+        }
+
+        private static <T> boolean removeSame(List<T> list, T value) {
+            for (int i = 0, n = list.size(); i < n; i++) {
+                if (list.get(i) == value) {
+                    list.remove(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static boolean referenced(List<RecipeHandlerUnit> units, IRecipeHandler handler) {
+            for (int i = 0, n = units.size(); i < n; i++) {
+                for (var other : units.get(i).allHandlers) {
+                    if (other == handler) return true;
+                }
+            }
+            return false;
         }
 
         @NotNull
@@ -591,6 +648,8 @@ public interface IRecipeHandlerHolder extends IMachineFeature {
             capabilitiesProxy.clear();
             traitSubscriptions.clear();
             handlerByClass.clear();
+            ownerUnits.clear();
+            ownerSubscriptions.clear();
         }
 
         public void unsubscribe() {

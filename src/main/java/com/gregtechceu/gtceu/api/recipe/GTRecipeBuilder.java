@@ -11,6 +11,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.stack.MaterialStack;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.machine.MachineDefinition;
 import com.gregtechceu.gtceu.api.recipe.category.GTRecipeCategory;
+import com.gregtechceu.gtceu.api.recipe.content.Chance;
 import com.gregtechceu.gtceu.api.recipe.content.ChanceBoostFunction;
 import com.gregtechceu.gtceu.api.recipe.content.ContentList;
 import com.gregtechceu.gtceu.api.recipe.content.KeyIngredient;
@@ -116,7 +117,7 @@ public class GTRecipeBuilder {
     protected int priority;
 
     protected int chance = ContentList.MAX_CHANCE;
-    protected int tierChanceBoost = 0;
+    protected int chancePerOverclock = 0;
 
     @Nullable
     protected Consumer<GTRecipeBuilder> onSave;
@@ -366,8 +367,7 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("Input amount must be positive, id: {}, ingredient: {}", id, ingredient);
             return this;
         }
-        // Input chance is consumption: a positive tier bonus saves ingredients.
-        getItemInputs().add(ingredient, amount, chance, -tierChanceBoost);
+        getItemInputs().add(ingredient, amount, chance, chancePerOverclock);
         return this;
     }
 
@@ -588,7 +588,7 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("Output amount must be positive, id: {}, ingredient: {}", id, ingredient);
             return this;
         }
-        getItemOutputs().add(ingredient, amount, chance, tierChanceBoost);
+        getItemOutputs().add(ingredient, amount, chance, chancePerOverclock);
         return this;
     }
 
@@ -685,68 +685,68 @@ public class GTRecipeBuilder {
         return notConsumable(KeyIngredient.circuit(configuration), 1L);
     }
 
-    public GTRecipeBuilder chancedInput(ItemStack stack, int chance, int tierChanceBoost) {
-        if (checkChanceAndPrintError(chance)) {
+    public GTRecipeBuilder chancedInput(ItemStack stack, Chance chance) {
+        if (checkChanceAndPrintError(chance.base())) {
             return this;
         }
         int lastChance = this.chance;
-        int lastTierChanceBoost = this.tierChanceBoost;
-        this.chance = chance;
-        this.tierChanceBoost = tierChanceBoost;
+        int lastChancePerOverclock = this.chancePerOverclock;
+        this.chance = chance.base();
+        this.chancePerOverclock = chance.perOverclock();
         inputItems(stack);
         this.chance = lastChance;
-        this.tierChanceBoost = lastTierChanceBoost;
+        this.chancePerOverclock = lastChancePerOverclock;
         return this;
     }
 
-    public GTRecipeBuilder chancedInput(FluidStack stack, int chance, int tierChanceBoost) {
-        if (checkChanceAndPrintError(chance)) {
+    public GTRecipeBuilder chancedInput(FluidStack stack, Chance chance) {
+        if (checkChanceAndPrintError(chance.base())) {
             return this;
         }
         int lastChance = this.chance;
-        int lastTierChanceBoost = this.tierChanceBoost;
-        this.chance = chance;
-        this.tierChanceBoost = tierChanceBoost;
+        int lastChancePerOverclock = this.chancePerOverclock;
+        this.chance = chance.base();
+        this.chancePerOverclock = chance.perOverclock();
         inputFluids(stack);
         this.chance = lastChance;
-        this.tierChanceBoost = lastTierChanceBoost;
+        this.chancePerOverclock = lastChancePerOverclock;
         return this;
     }
 
-    public GTRecipeBuilder chancedOutput(ItemStack stack, int chance, int tierChanceBoost) {
-        if (checkChanceAndPrintError(chance)) {
+    public GTRecipeBuilder chancedOutput(ItemStack stack, Chance chance) {
+        if (checkChanceAndPrintError(chance.base())) {
             return this;
         }
         int lastChance = this.chance;
-        int lastTierChanceBoost = this.tierChanceBoost;
-        this.chance = chance;
-        this.tierChanceBoost = tierChanceBoost;
+        int lastChancePerOverclock = this.chancePerOverclock;
+        this.chance = chance.base();
+        this.chancePerOverclock = chance.perOverclock();
         outputItems(stack);
         this.chance = lastChance;
-        this.tierChanceBoost = lastTierChanceBoost;
+        this.chancePerOverclock = lastChancePerOverclock;
         return this;
     }
 
-    public GTRecipeBuilder chancedOutput(FluidStack stack, int chance, int tierChanceBoost) {
-        if (checkChanceAndPrintError(chance)) {
+    public GTRecipeBuilder chancedOutput(FluidStack stack, Chance chance) {
+        if (checkChanceAndPrintError(chance.base())) {
             return this;
         }
         int lastChance = this.chance;
-        int lastTierChanceBoost = this.tierChanceBoost;
-        this.chance = chance;
-        this.tierChanceBoost = tierChanceBoost;
+        int lastChancePerOverclock = this.chancePerOverclock;
+        this.chance = chance.base();
+        this.chancePerOverclock = chance.perOverclock();
         outputFluids(stack);
         this.chance = lastChance;
-        this.tierChanceBoost = lastTierChanceBoost;
+        this.chancePerOverclock = lastChancePerOverclock;
         return this;
     }
 
-    public GTRecipeBuilder chancedOutput(TagPrefix tag, Material mat, int chance, int tierChanceBoost) {
-        return chancedOutput(ChemicalHelper.get(tag, mat), chance, tierChanceBoost);
+    public GTRecipeBuilder chancedOutput(TagPrefix tag, Material mat, Chance chance) {
+        return chancedOutput(ChemicalHelper.get(tag, mat), chance);
     }
 
-    public GTRecipeBuilder chancedOutput(TagPrefix tag, Material mat, int count, int chance, int tierChanceBoost) {
-        return chancedOutput(ChemicalHelper.get(tag, mat, count), chance, tierChanceBoost);
+    public GTRecipeBuilder chancedOutput(TagPrefix tag, Material mat, int count, Chance chance) {
+        return chancedOutput(ChemicalHelper.get(tag, mat, count), chance);
     }
 
     public GTRecipeBuilder inputFluids(Material material, int amount) {
@@ -775,7 +775,7 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("Input amount must be positive, id: {}, ingredient: {}", id, ingredient);
             return this;
         }
-        getFluidInputs().add(ingredient, amount, chance, -tierChanceBoost);
+        getFluidInputs().add(ingredient, amount, chance, chancePerOverclock);
         return this;
     }
 
@@ -799,7 +799,7 @@ public class GTRecipeBuilder {
             GTCEu.LOGGER.error("Output amount must be positive, id: {}, ingredient: {}", id, ingredient);
             return this;
         }
-        getFluidOutputs().add(ingredient, amount, chance, tierChanceBoost);
+        getFluidOutputs().add(ingredient, amount, chance, chancePerOverclock);
         return this;
     }
 
@@ -1163,8 +1163,8 @@ public class GTRecipeBuilder {
     /**
      * @return {@code this}.
      */
-    public GTRecipeBuilder tierChanceBoost(final int tierChanceBoost) {
-        this.tierChanceBoost = tierChanceBoost;
+    public GTRecipeBuilder chancePerOverclock(final int chancePerOverclock) {
+        this.chancePerOverclock = chancePerOverclock;
         return this;
     }
 

@@ -22,6 +22,7 @@ import com.gregtechceu.gtceu.common.fluid.potion.BottleItemFluidHandler;
 import com.gregtechceu.gtceu.common.fluid.potion.PotionItemFluidHandler;
 import com.gregtechceu.gtceu.common.item.NanoSaberBehavior;
 import com.gregtechceu.gtceu.common.item.ToggleEnergyConsumerBehavior;
+import com.gregtechceu.gtceu.common.item.armor.ArmorSuiteFeatures;
 import com.gregtechceu.gtceu.common.item.armor.IJetpack;
 import com.gregtechceu.gtceu.common.item.armor.QuarkTechSuite;
 import com.gregtechceu.gtceu.common.network.GTNetwork;
@@ -41,12 +42,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
@@ -75,6 +79,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class ForgeCommonEventListener {
 
@@ -241,16 +246,19 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent
     public static void stepAssistHandler(LivingEvent.LivingTickEvent event) {
-        float MAGIC_STEP_HEIGHT = 1.0023f;
-        if (event.getEntity() == null || !(event.getEntity() instanceof Player player)) return;
-        if (!player.isCrouching() && player.getItemBySlot(EquipmentSlot.FEET).is(CustomTags.STEP_BOOTS)) {
-            if (player.getStepHeight() < MAGIC_STEP_HEIGHT) {
-                player.setMaxUpStep(MAGIC_STEP_HEIGHT);
-            }
-        } else if (player.getStepHeight() == MAGIC_STEP_HEIGHT) {
-            player.setMaxUpStep(0.6f);
-        }
+        if (!(event.getEntity() instanceof Player player)) return;
+        AttributeInstance step = player.getAttribute(ForgeMod.STEP_HEIGHT_ADDITION.get());
+        if (step == null) return;
+        ItemStack feet = player.getItemBySlot(EquipmentSlot.FEET);
+        boolean active = !player.isCrouching() && feet.is(CustomTags.STEP_BOOTS) && ArmorSuiteFeatures.isStepAssistEnabled(feet);
+        if (active == (step.getModifier(STEP_ASSIST_ID) != null)) return;
+        if (active) step.addTransientModifier(STEP_ASSIST);
+        else step.removeModifier(STEP_ASSIST_ID);
     }
+
+    private static final UUID STEP_ASSIST_ID = UUID.fromString("5d0c2a1e-7c41-4a52-9a0e-6f3b2b1c2140");
+    private static final AttributeModifier STEP_ASSIST = new AttributeModifier(STEP_ASSIST_ID, "GT step assist", 0.4023,
+            AttributeModifier.Operation.ADDITION);
 
     @SubscribeEvent
     public static void onLivingHurt(LivingHurtEvent event) {

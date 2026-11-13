@@ -74,6 +74,8 @@ public interface IWorkableMultiController extends IMultiController, IRecipeLogic
         return getOutputUnits();
     }
 
+    void refreshPartHandlers(IWorkableMultiPart part);
+
     default void arrangeHandlerList() {
         if (self().getLevel() instanceof ServerLevel serverLevel) {
             getRecipeLogic().markLastRecipeDirty();

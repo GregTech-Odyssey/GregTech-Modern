@@ -13,19 +13,14 @@ import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import appeng.api.storage.StorageAccess;
 import com.suried.gtoutils.level.LoadedChunks;
+import com.suried.gtoutils.schedule.Scope;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * 按位置指定的取用目标（超立方体、无线传输等远端转发）：只取已加载区块里的方块实体，按面各用一个 {@link KeyTarget}；
- * 订阅后目标出现、移除、方块状态或存储暴露变化时经 {@link BlockEntityWatch} 回调订阅者（设施弱持本对象，本对象强持订阅者）。
+ * 所有者用 mount 把它挂到自己的作用域上，目标出现、移除、方块状态或存储暴露变化时先丢掉旧缓存再通知所有者，作用域结束自动撤销。
  */
-public final class RemoteKeyTarget implements BlockEntityWatch.Listener {
-
-    @FunctionalInterface
-    public interface Listener {
-
-        void onTargetChanged(RemoteKeyTarget target);
-    }
+public final class RemoteKeyTarget {
 
     private final KeyTarget[] targets = new KeyTarget[7];
     @Nullable
@@ -34,8 +29,6 @@ public final class RemoteKeyTarget implements BlockEntityWatch.Listener {
     private BlockPos pos;
     @Nullable
     private BlockEntity blockEntity;
-    @Nullable
-    private Listener listener;
 
     public RemoteKeyTarget() {}
 
@@ -43,43 +36,27 @@ public final class RemoteKeyTarget implements BlockEntityWatch.Listener {
         bind(level, pos);
     }
 
-    public void bind(@Nullable Level level, @Nullable BlockPos pos) {
-        if (this.level == level && (pos == null ? this.pos == null : pos.equals(this.pos))) return;
-        unwatch();
+    public boolean bind(@Nullable Level level, @Nullable BlockPos pos) {
+        if (this.level == level && (pos == null ? this.pos == null : pos.equals(this.pos))) return false;
         this.level = level;
         this.pos = pos == null ? null : pos.immutable();
         release(null);
-        watch();
+        return true;
     }
 
-    public void subscribe(@Nullable Listener listener) {
-        if (this.listener == listener) return;
-        unwatch();
-        this.listener = listener;
-        watch();
-    }
-
-    private void watch() {
+    public void mount(Scope scope, Runnable changed) {
         var l = level;
         var p = pos;
-        if (listener != null && l != null && p != null) BlockEntityWatch.watch(l, p, this);
-    }
-
-    private void unwatch() {
-        var l = level;
-        var p = pos;
-        if (listener != null && l != null && p != null) BlockEntityWatch.unwatch(l, p, this);
-    }
-
-    @Override
-    public void onBlockEntityChanged(BlockEntity be) {
-        if (be.isRemoved()) {
-            if (be == blockEntity) release(null);
-        } else if (be != blockEntity) {
-            release(be);
-        }
-        var l = listener;
-        if (l != null) l.onTargetChanged(this);
+        if (l == null || p == null) return;
+        BlockEntityWatch.listen(scope, l, p, be -> {
+            if (level != l || !p.equals(pos)) return;
+            if (be.isRemoved()) {
+                if (be == blockEntity) release(null);
+            } else if (be != blockEntity) {
+                release(be);
+            }
+            changed.run();
+        });
     }
 
     public @Nullable Level level() {
