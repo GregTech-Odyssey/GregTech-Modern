@@ -2,18 +2,38 @@ package com.gregtechceu.gtceu.api.machine.feature.multiblock;
 
 import com.gregtechceu.gtceu.api.gui.fancy.TooltipsPanel;
 import com.gregtechceu.gtceu.api.machine.feature.IFancyUIMachine;
+import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
+import it.unimi.dsi.fastutil.objects.ReferenceSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
 
 public interface IMultiPart extends IFancyUIMachine {
+
+    /**
+     * Block identity used by block and ability predicates. Return {@code null} to reject this part.
+     * This does not change the physical block used for structure tracking or rendering.
+     */
+    @Nullable
+    default Block getPatternBlock(MultiblockState state) {
+        return state.getBlockState().getBlock();
+    }
+
+    /**
+     * Collect the parts participating in a successful structure cell. Proxies may also add their
+     * backing part so native controller callbacks and class-based part queries see it once.
+     */
+    default void addToAssembly(ReferenceSet<IMultiPart> parts) {
+        parts.add(this);
+    }
 
     /**
      * Can it be shared among multi multiblock.

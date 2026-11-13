@@ -423,7 +423,7 @@ final class StructureMatcher {
                                     worldState.setIssue(StructureIssue.unloaded());
                                     return CELL_ABORT;
                                 }
-                                matchContext.getParts().add(part);
+                                part.addToAssembly(matchContext.getParts());
                             }
                         } else if (!(blockentity instanceof GTBlockEntity) && !Structure.WHITELIST.contains(blockentity.getClass())) {
                             worldState.blockEntityCache.add(posLong);

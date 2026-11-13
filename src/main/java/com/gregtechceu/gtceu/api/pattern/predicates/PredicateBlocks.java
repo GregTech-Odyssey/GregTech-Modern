@@ -1,6 +1,8 @@
 package com.gregtechceu.gtceu.api.pattern.predicates;
 
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
+import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.api.pattern.MultiblockState;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
@@ -73,7 +75,12 @@ public class PredicateBlocks extends SimplePredicate {
 
         @Override
         public boolean test(MultiblockState state) {
-            return lookup.contains(IUnique.getUid(state.getBlockState().getBlock()));
+            var block = state.getBlockState().getBlock();
+            if (block instanceof MetaMachineBlock && state.getTileEntity() instanceof MetaMachineBlockEntity holder &&
+                    holder.metaMachine instanceof IMultiPart part) {
+                block = part.getPatternBlock(state);
+            }
+            return block != null && lookup.contains(IUnique.getUid(block));
         }
 
         @Override

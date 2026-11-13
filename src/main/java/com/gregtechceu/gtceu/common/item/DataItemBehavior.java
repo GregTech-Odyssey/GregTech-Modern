@@ -1,8 +1,10 @@
 package com.gregtechceu.gtceu.common.item;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
+import com.gregtechceu.gtceu.api.item.IComponentItem;
 import com.gregtechceu.gtceu.api.item.component.IAddInformation;
 import com.gregtechceu.gtceu.api.item.component.IDataItem;
+import com.gregtechceu.gtceu.api.item.component.IDataItemExtension;
 import com.gregtechceu.gtceu.api.item.component.IInteractionItem;
 import com.gregtechceu.gtceu.api.machine.feature.IDataStickInteractable;
 import com.gregtechceu.gtceu.api.recipe.GTRecipeDefinition;
@@ -91,12 +93,22 @@ public class DataItemBehavior implements IInteractionItem, IAddInformation, IDat
                 return machine instanceof IDataStickInteractable ?
                         InteractionResult.sidedSuccess(context.getLevel().isClientSide) : InteractionResult.PASS;
             }
+            var result = InteractionResult.PASS;
             if (machine instanceof IDataStickInteractable interactable) {
-                var result = copy ? interactable.onDataStickShiftUse(context.getPlayer(), itemStack) :
+                result = copy ? interactable.onDataStickShiftUse(context.getPlayer(), itemStack) :
                         interactable.onDataStickUse(context.getPlayer(), itemStack);
-                if (result != InteractionResult.PASS) return result;
             }
-            return DataStickData.interact(machine, itemStack, copy, context.getPlayer());
+            if (result == InteractionResult.PASS) result = DataStickData.interact(machine, itemStack, copy, context.getPlayer());
+            if (result == InteractionResult.FAIL) return result;
+            if (itemStack.getItem() instanceof IComponentItem item) {
+                for (var component : item.getComponents()) {
+                    if (component instanceof IDataItemExtension extension) {
+                        result = extension.afterDataItemUse(machine, itemStack, context, result);
+                        if (result == InteractionResult.FAIL) return result;
+                    }
+                }
+            }
+            return result;
         }
         return InteractionResult.PASS;
     }
