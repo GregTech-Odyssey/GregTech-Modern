@@ -3,9 +3,13 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.fastcollection.cache.CustomHashInterner;
 import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ public final class ContentList {
     }
 
     private static final byte ACTIVE_OUTPUT = 1, DISTINCT_OUTPUT_KEYS = 2, OVERLAP = 4;
+    private static final byte SEEN_KEY = 1, SEEN_CIRCUIT = 2, SEEN_LOOSE = 4;
     private static final int MAX_OVERLAP = 64;
     private static final CustomHashInterner<int[]> LAYOUTS = new CustomHashInterner<>(IntArrays.HASH_STRATEGY);
 
@@ -69,17 +74,23 @@ public final class ContentList {
 
     private static byte outputShape(KeyIngredient[] ingredients, long[] amounts, int[] chances) {
         int n = ingredients.length;
-        boolean active = false;
+        AEKey first = null;
+        ReferenceOpenHashSet<AEKey> seen = null;
         for (int i = 0; i < n; i++) {
             if (chances[i] == 0 || amounts[i] <= 0) continue;
-            active = true;
             var key = ingredients[i].key();
             if (key == null) return ACTIVE_OUTPUT;
-            for (int j = 0; j < i; j++) {
-                if (chances[j] != 0 && amounts[j] > 0 && ingredients[j].key() == key) return ACTIVE_OUTPUT;
+            if (first == null) {
+                first = key;
+                continue;
             }
+            if (seen == null) {
+                seen = new ReferenceOpenHashSet<>(n - i + 1);
+                seen.add(first);
+            }
+            if (!seen.add(key)) return ACTIVE_OUTPUT;
         }
-        return active ? (byte) (ACTIVE_OUTPUT | DISTINCT_OUTPUT_KEYS) : 0;
+        return first != null ? (byte) (ACTIVE_OUTPUT | DISTINCT_OUTPUT_KEYS) : 0;
     }
 
     private static int[] order(KeyIngredient[] ingredients) {
@@ -115,19 +126,76 @@ public final class ContentList {
 
     private static int[] plan(KeyIngredient[] ingredients, int[] chances) {
         int n = ingredients.length;
-        int[] root = null;
-        for (int i = 1; i < n; i++) {
+        if (n < 2) return order(ingredients);
+        AEKeyType[] types = new AEKeyType[n];
+        int[] typeFirst = new int[n];
+        byte[] typeSeen = new byte[n];
+        int[] typeOf = new int[n];
+        int typeCount = 0;
+        for (int i = 0; i < n; i++) {
             if (chances[i] == 0) continue;
-            var a = ingredients[i];
-            for (int j = 0; j < i; j++) {
-                if (chances[j] == 0) continue;
-                if (root != null && find(root, i) == find(root, j)) continue;
-                if (!mayOverlap(a, ingredients[j])) continue;
-                if (root == null) root = identityOf(n);
-                root[find(root, i)] = find(root, j);
+            var ing = ingredients[i];
+            var type = ing.getType();
+            int t = 0;
+            while (t < typeCount && types[t] != type) t++;
+            if (t == typeCount) {
+                types[t] = type;
+                typeFirst[t] = i;
+                typeCount++;
+            }
+            typeOf[i] = t;
+            Object o = ing;
+            typeSeen[t] |= o instanceof CircuitIngredient ? SEEN_CIRCUIT : o instanceof AEKey ? SEEN_KEY : SEEN_LOOSE;
+        }
+        int[] root = null;
+        Long2IntOpenHashMap baseByUid = null;
+        for (int i = 0; i < n; i++) {
+            if (chances[i] == 0 || mergesWholeType(typeSeen[typeOf[i]])) continue;
+            var ing = ingredients[i];
+            if (ing.kind() != KeyIngredient.BASE || !((Object) ing instanceof AEKey key)) continue;
+            if (baseByUid == null) {
+                baseByUid = new Long2IntOpenHashMap();
+                baseByUid.defaultReturnValue(-1);
+            }
+            int prev = baseByUid.putIfAbsent(uidKey(typeOf[i], key), i);
+            if (prev >= 0) root = union(root, n, i, prev);
+        }
+        Reference2IntOpenHashMap<KeyIngredient> sameKey = null;
+        for (int i = 0; i < n; i++) {
+            if (chances[i] == 0) continue;
+            int t = typeOf[i];
+            if (mergesWholeType(typeSeen[t])) {
+                if (i != typeFirst[t]) root = union(root, n, i, typeFirst[t]);
+                continue;
+            }
+            var ing = ingredients[i];
+            if (ing.kind() == KeyIngredient.BASE) continue;
+            if (sameKey == null) {
+                sameKey = new Reference2IntOpenHashMap<>();
+                sameKey.defaultReturnValue(-1);
+            }
+            int prev = sameKey.putIfAbsent(ing, i);
+            if (prev >= 0) root = union(root, n, i, prev);
+            if (baseByUid != null && (Object) ing instanceof AEKey key) {
+                int base = baseByUid.get(uidKey(t, key));
+                if (base >= 0) root = union(root, n, i, base);
             }
         }
         return root == null ? order(ingredients) : layout(ingredients, root);
+    }
+
+    private static boolean mergesWholeType(byte seen) {
+        return (seen & SEEN_LOOSE) != 0 || (seen & (SEEN_CIRCUIT | SEEN_KEY)) == (SEEN_CIRCUIT | SEEN_KEY);
+    }
+
+    private static long uidKey(int type, AEKey key) {
+        return (long) type << 32 | key.getUid() & 0xFFFFFFFFL;
+    }
+
+    private static int[] union(@Nullable int[] root, int n, int a, int b) {
+        if (root == null) root = identityOf(n);
+        root[find(root, a)] = find(root, b);
+        return root;
     }
 
     private static int find(int[] root, int i) {
@@ -136,22 +204,6 @@ public final class ContentList {
             i = root[i];
         }
         return i;
-    }
-
-    private static boolean mayOverlap(KeyIngredient a, KeyIngredient b) {
-        if (a.getType() != b.getType()) return false;
-        if (!concrete(a) || !concrete(b)) return true;
-        boolean ca = a instanceof CircuitIngredient, cb = b instanceof CircuitIngredient;
-        if (ca || cb) return a == b || ca != cb;
-        var ka = a.key();
-        var kb = b.key();
-        if (a.kind() == KeyIngredient.EXACT && b.kind() == KeyIngredient.EXACT) return ka == kb;
-        return ka.getUid() == kb.getUid();
-    }
-
-    private static boolean concrete(KeyIngredient ing) {
-        Object o = ing;
-        return o instanceof AEKey || o instanceof CircuitIngredient;
     }
 
     private static int specificity(KeyIngredient ing) {
