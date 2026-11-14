@@ -27,12 +27,14 @@ import java.util.function.Predicate;
 
 public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, FluidPipeProperties, FluidPipeNet> {
 
-    public static List<FluidRoutePath> createNetData(FluidPipeNet pipeNet, BlockPos sourcePipe) {
+    public static List<FluidRoutePath> createNetData(FluidPipeNet pipeNet, BlockPos sourcePipe, Direction sourceFacing) {
         if (!(pipeNet.getLevel().getBlockEntity(sourcePipe) instanceof FluidPipeBlockEntity)) {
             return null;
         }
         try {
             FluidNetWalker walker = new FluidNetWalker(pipeNet, sourcePipe, 1, new ArrayList<>(), null);
+            walker.sourcePipe = sourcePipe;
+            walker.facingToHandler = sourceFacing;
             walker.traversePipeNet();
             return walker.inventories;
         } catch (Exception e) {
@@ -45,6 +47,9 @@ public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, Fl
     private final List<FluidRoutePath> inventories;
     private final List<Predicate<FluidStack>> filters = new ArrayList<>();
     private final EnumMap<Direction, List<Predicate<FluidStack>>> nextFilters = new EnumMap<>(Direction.class);
+    private BlockPos sourcePipe;
+    @Nullable
+    private Direction facingToHandler;
 
     private FluidNetWalker(FluidPipeNet world, BlockPos sourcePipe, int distance, List<FluidRoutePath> inventories,
                            FluidPipeProperties properties) {
@@ -61,6 +66,8 @@ public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, Fl
                                                                                                      int walkedBlocks) {
         FluidNetWalker walker = new FluidNetWalker(pipeNet, nextPos, walkedBlocks, inventories, minProperties);
         walker.filters.addAll(filters);
+        walker.facingToHandler = facingToHandler;
+        walker.sourcePipe = sourcePipe;
         List<Predicate<FluidStack>> moreFilters = nextFilters.get(facingToNextPos);
         if (moreFilters != null && !moreFilters.isEmpty()) {
             walker.filters.addAll(moreFilters);
@@ -97,7 +104,7 @@ public final class FluidNetWalker extends PipeNetWalker<FluidPipeBlockEntity, Fl
     @Override
     protected void checkNeighbour(FluidPipeBlockEntity pipeTile, BlockPos pipePos, Direction faceToNeighbour,
                                   @Nullable BlockEntity neighbourTile) {
-        if (neighbourTile == null) {
+        if (neighbourTile == null || (pipePos.equals(sourcePipe) && (facingToHandler == null || faceToNeighbour == facingToHandler))) {
             return;
         }
         if (GTCapabilityHelper.hasTarget(neighbourTile, faceToNeighbour.getOpposite(), AEKeyTypes.FLUIDS, StorageAccess.INSERT)) {

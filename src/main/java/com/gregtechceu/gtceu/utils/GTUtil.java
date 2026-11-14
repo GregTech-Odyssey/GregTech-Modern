@@ -116,6 +116,19 @@ public class GTUtil {
         return new ResourceLocation(namespace, path);
     }
 
+    public static int getTimer(Level level) {
+        if (level == null) return 0;
+        var server = level.getServer();
+        if (server != null) return GTValues.SERVER_TIME;
+        return GTValues.CLIENT_TIME;
+    }
+
+    public static final int OBSERVE_TTL = 40;
+
+    public static boolean isRecentlyObserved(int lastObserved) {
+        return GTValues.SERVER_TIME - lastObserved <= OBSERVE_TTL;
+    }
+
     @Nullable
     public static Direction determineWrenchingSide(Direction facing, float x, float y, float z) {
         Direction opposite = facing.getOpposite();

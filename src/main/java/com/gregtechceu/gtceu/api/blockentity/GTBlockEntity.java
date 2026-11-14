@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.capability.ICoverable;
 import com.gregtechceu.gtceu.api.misc.TickTimeMonitor;
 import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
+import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.cache.BlockEntityDirectionCache;
 import com.gregtechceu.gtceu.utils.cache.DirectionCache;
 
@@ -46,7 +47,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
 
     public boolean sync = true;
 
-    public boolean observe;
+    private int observe = Integer.MIN_VALUE;
 
     private boolean changed;
     private boolean neighborChanged;
@@ -89,8 +90,12 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
         return getCoverContainer().getGTCapability(cap, side);
     }
 
+    public boolean isObserved() {
+        return GTUtil.isRecentlyObserved(observe);
+    }
+
     public void observe() {
-        observe = true;
+        observe = GTValues.SERVER_TIME;
         sync = true;
         setChanged();
     }
@@ -106,7 +111,7 @@ public abstract class GTBlockEntity extends BlockEntity implements ISync, ITickS
     public int getOffsetTimer() {
         if (level == null) return offset;
         var server = level.getServer();
-        if (server != null) return server.getTickCount() + offset;
+        if (server != null) return GTValues.SERVER_TIME + offset;
         return GTValues.CLIENT_TIME + offset;
     }
 

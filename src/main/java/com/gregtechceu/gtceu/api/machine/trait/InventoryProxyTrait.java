@@ -49,6 +49,16 @@ public class InventoryProxyTrait<K extends AEKey> extends MachineTrait implement
     }
 
     @Override
+    public int operationTime() {
+        return proxy == null ? 0 : proxy.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return proxy == null || proxy.isDirectKey();
+    }
+
+    @Override
     public AEKeyType keyType() {
         return type;
     }

@@ -3,13 +3,13 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeySet;
 import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.fastcollection.cache.CustomHashInterner;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -75,7 +75,7 @@ public final class ContentList {
     private static byte outputShape(KeyIngredient[] ingredients, long[] amounts, int[] chances) {
         int n = ingredients.length;
         AEKey first = null;
-        ReferenceOpenHashSet<AEKey> seen = null;
+        AEKeySet<AEKey> seen = null;
         for (int i = 0; i < n; i++) {
             if (chances[i] == 0 || amounts[i] <= 0) continue;
             var key = ingredients[i].key();
@@ -85,7 +85,7 @@ public final class ContentList {
                 continue;
             }
             if (seen == null) {
-                seen = new ReferenceOpenHashSet<>(n - i + 1);
+                seen = new AEKeySet<>(n - i + 1);
                 seen.add(first);
             }
             if (!seen.add(key)) return ACTIVE_OUTPUT;

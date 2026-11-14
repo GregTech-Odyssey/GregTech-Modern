@@ -53,10 +53,10 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
 
     public long fillFirst(AEFluidKey key, long amount, boolean simulate) {
         long total = 0;
-        var data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos());
+        var data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), facing);
         if (simulate) {
             for (var inv : data.array) {
-                if (isBackToSelf(inv) || (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide)) continue;
+                if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
                 long fill = fill(inv, key, amount, simulate, false);
                 amount -= fill;
                 total += fill;
@@ -64,8 +64,7 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
             }
         } else {
             for (var inv : data) {
-                if (isBackToSelf(inv) || (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide))
-                    continue;
+                if (pipe.autoTransfer && inv.getTargetPipe() == pipe && inv.getTargetFacing() != pipe.blockedSide) continue;
                 long fill = fill(inv, key, amount, simulate, false);
                 amount -= fill;
                 total += fill;
@@ -73,10 +72,6 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
             }
         }
         return total;
-    }
-
-    private boolean isBackToSelf(FluidRoutePath routePath) {
-        return routePath.getTargetPipe() == pipe && routePath.getTargetFacing() == facing;
     }
 
     public long fill(FluidRoutePath routePath, AEFluidKey key, long amount, boolean simulate, boolean ignoreLimit) {
@@ -237,5 +232,25 @@ public final class FluidNetHandler implements IKeyHandler<AEFluidKey> {
     @Override
     public long extract(AEFluidKey key, long amount, boolean simulate) {
         return 0;
+    }
+
+    @Override
+    public int operationTime() {
+        var time = 0;
+        var data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), null);
+        for (var inv : data.array) {
+            var neighbourHandler = inv.getHandler(net.getLevel());
+            if (neighbourHandler == null) {
+                time++;
+            } else {
+                time += neighbourHandler.operationTime();
+            }
+        }
+        return time;
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return true;
     }
 }

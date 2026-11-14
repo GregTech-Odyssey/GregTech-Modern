@@ -15,6 +15,8 @@ public final class EnergyNet extends PipeNet<WireProperties> {
 
     private final Long2ObjectOpenHashMap<LoopIterator<EnergyRoutePath>> netData = new Long2ObjectOpenHashMap<>();
 
+    public int observedTick = Integer.MIN_VALUE;
+
     EnergyNet(LevelPipeNet<WireProperties, ? extends EnergyNet> world) {
         super(world);
     }

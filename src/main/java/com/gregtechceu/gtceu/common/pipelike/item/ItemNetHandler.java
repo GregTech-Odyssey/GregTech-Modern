@@ -405,6 +405,26 @@ public final class ItemNetHandler implements IKeyHandler<AEItemKey> {
         return true;
     }
 
+    @Override
+    public int operationTime() {
+        var time = 0;
+        var data = net.getNetData(pipe.getPipeLongPos(), pipe.getPipePos(), null);
+        for (var inv : data.array) {
+            var neighbourHandler = inv.getHandler(net.getLevel());
+            if (neighbourHandler == null) {
+                time++;
+            } else {
+                time += neighbourHandler.operationTime();
+            }
+        }
+        return time;
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return true;
+    }
+
     private void transferTo(ItemRoutePath handler, boolean simulate, int amount) {
         if (simulate) {
             simulatedTransfersGlobalRoundRobin.addTo(handler.toFacingPos(), amount);

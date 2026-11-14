@@ -42,6 +42,16 @@ public class NotifiableInfiniteSource<K extends AEKey> extends NotifiableContent
         config.setOnChanged(this::onContentsChanged);
     }
 
+    @Override
+    public int operationTime() {
+        return config.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return config.isDirectKey();
+    }
+
     public InfiniteKeySource<K> source() {
         return source;
     }

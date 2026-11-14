@@ -40,6 +40,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -75,7 +76,7 @@ public class ForgeClientEventListener {
         TipTooltipLayout.gather(event);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onClientTickEvent(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             sendToolSettingKeys();

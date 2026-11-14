@@ -278,4 +278,21 @@ public final class KeyHandlerList<K extends AEKey> implements IKeyHandler<K> {
         }
         return false;
     }
+
+    @Override
+    public int operationTime() {
+        var time = 0;
+        for (var h : handlers) {
+            time += h.operationTime();
+        }
+        return time;
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        for (var h : handlers) {
+            if (!h.isDirectKey()) return false;
+        }
+        return true;
+    }
 }

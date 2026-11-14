@@ -202,4 +202,14 @@ public class KeyHandlerView<K extends AEKey> implements IKeyHandler<K> {
     public boolean enumerateByKey() {
         return delegate.enumerateByKey();
     }
+
+    @Override
+    public int operationTime() {
+        return delegate.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return delegate.isDirectKey();
+    }
 }
