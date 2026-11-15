@@ -290,7 +290,7 @@ public final class RecipeSpecGrid extends UIElement {
         if (!plan.hidden().isEmpty() && plan.rows() > 0) {
             moreWidth();
             int y = UIText.centerY(y0 + TOP + markerRow() * ROW_HEIGHT, ROW_HEIGHT);
-            UIText.drawLeft(graphics, more, moreX(x0), y, UITheme.PLACEHOLDER_TEXT);
+            UIText.drawLeft(graphics, more, moreX(x0), y, UITheme.TEXT_SECONDARY);
         }
         super.drawInBackground(graphics, mouseX, mouseY, partialTicks);
     }

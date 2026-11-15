@@ -321,6 +321,10 @@ public final class UITheme {
         SPEC_CELL_LIGHT = specCell(colors, "spec_cell_light", statusPanelFill);
         SPEC_CELL_DARK = specCell(colors, "spec_cell_dark", statusPanelFill);
         SPEC_CELL_WIDE = specCell(colors, "spec_cell_wide", statusPanelFill);
+        XEI_BUTTON_FILL = color(colors, "xei_button_fill");
+        XEI_BUTTON_OUTLINE = color(colors, "xei_button_outline");
+        XEI_BUTTON_ICON = color(colors, "xei_button_icon");
+        XEI_BUTTON_ICON_HOVER = color(colors, "xei_button_icon_hover");
         deck = new OreSprites.Plate(slotBevelDark, bevelLight, bevelDark, color(colors, "panel_fill"));
         card = new OreSprites.Plate(bevelDark, bevelLight, bevelDark, CARD_FILL, false);
         cardPressed = new OreSprites.Plate(bevelDark, slotBevelDark, bevelLight, color(colors, "card_pressed_fill"), false);
