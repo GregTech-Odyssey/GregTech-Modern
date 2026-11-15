@@ -63,16 +63,20 @@ public final class RecipeSlotLayouts {
     });
 
     private static UIElement fixed(RecipeSlots slots) {
-        var shapes = sideShapes(slots.count(IO.IN, ItemRecipeInfo.INSTANCE), slots.count(IO.IN, FluidRecipeInfo.INSTANCE),
-                slots.count(IO.OUT, ItemRecipeInfo.INSTANCE), slots.count(IO.OUT, FluidRecipeInfo.INSTANCE));
         var row = new UIElement().layout(l -> l.row().paddingHorizontal(PADDING).paddingVertical(COMPACT_PADDING_VERTICAL)
                 .gapAll(COMPACT_PROGRESS_MARGIN).alignCenter());
-        var inputs = fixedSide(slots, IO.IN, shapes[0]);
+        var inputs = fixedSide(slots, IO.IN, fixedShape(slots, IO.IN));
         if (inputs != null) row.addChild(inputs);
         row.addChild(slots.progress());
-        var outputs = fixedSide(slots, IO.OUT, shapes[1]);
+        var outputs = fixedSide(slots, IO.OUT, fixedShape(slots, IO.OUT));
         if (outputs != null) row.addChild(outputs);
         return row;
+    }
+
+    private static SideShape fixedShape(RecipeSlots slots, IO io) {
+        var shape = sideShape(slots.templateCount(io, ItemRecipeInfo.INSTANCE), slots.templateCount(io, FluidRecipeInfo.INSTANCE));
+        if (shape.width() > 0) return shape;
+        return sideShape(slots.count(io, ItemRecipeInfo.INSTANCE), slots.count(io, FluidRecipeInfo.INSTANCE));
     }
 
     @Nullable
