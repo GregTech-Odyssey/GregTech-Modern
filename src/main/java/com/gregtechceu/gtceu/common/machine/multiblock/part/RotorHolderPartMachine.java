@@ -249,6 +249,16 @@ public class RotorHolderPartMachine extends WorkableTieredPartMachine implements
         }
 
         @Override
+        public int operationTime() {
+            return storage.operationTime();
+        }
+
+        @Override
+        public boolean isDirectKey() {
+            return false;
+        }
+
+        @Override
         public void fillSearchMap(@NotNull GTRecipeType type, @NotNull IntLongMap map) {}
 
         @Override

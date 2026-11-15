@@ -2,6 +2,7 @@ package com.gregtechceu.gtceu.common.pipelike.cable;
 
 import com.gregtechceu.gtceu.api.capability.IEnergyContainer;
 import com.gregtechceu.gtceu.common.blockentity.CableBlockEntity;
+import com.gregtechceu.gtceu.utils.GTUtil;
 
 import net.minecraft.core.Direction;
 
@@ -41,6 +42,7 @@ public final class EnergyNetHandler implements IEnergyContainer {
         }
         long energyUsed = 0;
         var pos = cable.getPipePos();
+        boolean observed = GTUtil.isRecentlyObserved(net.observedTick);
         for (var path : net.getNetData(cable.getPipeLongPos(), pos)) {
             long available = energyToAdd - energyUsed;
             if (available <= 0) break;
@@ -64,7 +66,7 @@ public final class EnergyNetHandler implements IEnergyContainer {
             if (accept <= 0) continue;
             long paid = Math.min(available, CableTransfer.cost(accept, voltage, perAmp));
             energyUsed += paid;
-            CableTransfer.load(path.getPath(), voltage, paid);
+            if (path.getMaxLoss() > 0 || observed) CableTransfer.load(path.getPath(), voltage, paid);
         }
         return energyUsed;
     }

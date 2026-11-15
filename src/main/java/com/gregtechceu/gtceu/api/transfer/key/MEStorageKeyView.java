@@ -290,4 +290,14 @@ public final class MEStorageKeyView<K extends AEKey> implements IKeyHandler<K> {
     public Component getDescription() {
         return storage.getDescription();
     }
+
+    @Override
+    public int operationTime() {
+        return storage.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return true;
+    }
 }

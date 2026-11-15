@@ -352,4 +352,14 @@ public class NotifiableInventory<K extends AEKey> extends NotifiableContentHandl
         this.isAvailable = available;
         return this;
     }
+
+    @Override
+    public int operationTime() {
+        return storage.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return storage.isDirectKey();
+    }
 }

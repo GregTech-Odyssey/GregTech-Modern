@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.forge;
 
 import com.gregtechceu.gtceu.GTCEu;
+import com.gregtechceu.gtceu.api.GTValues;
 import com.gregtechceu.gtceu.api.block.MetaMachineBlock;
 import com.gregtechceu.gtceu.api.capability.GTCapabilityHelper;
 import com.gregtechceu.gtceu.api.capability.forge.GTForgeCapability;
@@ -58,6 +59,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
@@ -85,6 +87,13 @@ public class ForgeCommonEventListener {
 
     public static void init() {
         MinecraftForge.EVENT_BUS.register(ForgeCommonEventListener.class);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onServerTickEvent(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            GTValues.SERVER_TIME++;
+        }
     }
 
     @SubscribeEvent

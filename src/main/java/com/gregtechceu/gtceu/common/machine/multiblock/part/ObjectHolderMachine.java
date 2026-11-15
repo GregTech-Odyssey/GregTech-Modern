@@ -194,6 +194,16 @@ public class ObjectHolderMachine extends MultiblockPartMachine implements IObjec
         }
 
         @Override
+        public int operationTime() {
+            return storage.operationTime();
+        }
+
+        @Override
+        public boolean isDirectKey() {
+            return false;
+        }
+
+        @Override
         public IO getCapabilityIO() {
             return IO.BOTH;
         }

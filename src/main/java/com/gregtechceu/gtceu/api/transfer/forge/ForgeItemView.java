@@ -55,8 +55,8 @@ public final class ForgeItemView implements IKeyHandler<AEItemKey> {
     }
 
     @Override
-    public int operationTime() {
-        return this.size() * 5;
+    public boolean isDirectKey() {
+        return false;
     }
 
     @Override

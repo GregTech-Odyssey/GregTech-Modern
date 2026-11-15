@@ -496,6 +496,16 @@ public class QuantumTankMachine extends TieredMachine implements IAutoOutputFlui
         }
 
         @Override
+        public int operationTime() {
+            return storage.operationTime();
+        }
+
+        @Override
+        public boolean isDirectKey() {
+            return true;
+        }
+
+        @Override
         public AEKeyType<AEFluidKey> keyType() {
             return AEKeyTypes.FLUIDS;
         }

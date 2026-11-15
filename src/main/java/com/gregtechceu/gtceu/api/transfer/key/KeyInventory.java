@@ -742,4 +742,9 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     void legacyUniqueKeys(boolean uniqueKeys) {
         this.uniqueKeys = uniqueKeys;
     }
+
+    @Override
+    public boolean isDirectKey() {
+        return true;
+    }
 }

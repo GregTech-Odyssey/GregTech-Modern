@@ -174,4 +174,14 @@ public sealed class ForgeFluidAdapter implements IFluidHandler, ExternalStorageF
         touchKey(key);
         return handler.extract(key, amount, mode == Actionable.SIMULATE);
     }
+
+    @Override
+    public int operationTime() {
+        return handler.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return handler.isDirectKey();
+    }
 }

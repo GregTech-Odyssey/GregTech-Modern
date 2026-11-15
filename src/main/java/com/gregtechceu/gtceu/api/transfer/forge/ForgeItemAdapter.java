@@ -187,6 +187,16 @@ public sealed class ForgeItemAdapter implements IItemHandler, ExternalStorageFac
         return handler.extract(key, amount, mode == Actionable.SIMULATE);
     }
 
+    @Override
+    public int operationTime() {
+        return handler.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return handler.isDirectKey();
+    }
+
     static final class Flat {
 
         static final KeyInventory<?>[] NO_INVS = new KeyInventory<?>[0];

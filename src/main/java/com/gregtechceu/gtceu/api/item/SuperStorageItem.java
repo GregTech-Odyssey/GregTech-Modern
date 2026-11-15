@@ -127,6 +127,16 @@ public class SuperStorageItem extends MetaMachineItem {
         }
 
         @Override
+        public int operationTime() {
+            return contents.operationTime();
+        }
+
+        @Override
+        public boolean isDirectKey() {
+            return contents.isDirectKey();
+        }
+
+        @Override
         public AEKeyType<AEItemKey> keyType() {
             return AEKeyTypes.ITEMS;
         }

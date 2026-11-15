@@ -48,6 +48,7 @@ public final class ItemNetWalker extends PipeNetWalker<ItemPipeBlockEntity, Item
     private final List<Predicate<ItemStack>> filters = new ArrayList<>();
     private final EnumMap<Direction, List<Predicate<ItemStack>>> nextFilters = new EnumMap<>(Direction.class);
     private BlockPos sourcePipe;
+    @Nullable
     private Direction facingToHandler;
 
     private ItemNetWalker(ItemPipeNet world, BlockPos sourcePipe, int distance, List<ItemRoutePath> inventories,
@@ -99,7 +100,7 @@ public final class ItemNetWalker extends PipeNetWalker<ItemPipeBlockEntity, Item
     @Override
     protected void checkNeighbour(ItemPipeBlockEntity pipeTile, BlockPos pipePos, Direction faceToNeighbour,
                                   @Nullable BlockEntity neighbourTile) {
-        if (neighbourTile == null || (pipePos.equals(sourcePipe) && faceToNeighbour == facingToHandler)) {
+        if (neighbourTile == null || (pipePos.equals(sourcePipe) && (facingToHandler == null || faceToNeighbour == facingToHandler))) {
             return;
         }
         if (GTCapabilityHelper.hasTarget(neighbourTile, faceToNeighbour.getOpposite(), AEKeyTypes.ITEMS, StorageAccess.INSERT)) {

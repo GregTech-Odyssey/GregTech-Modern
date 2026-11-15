@@ -18,6 +18,16 @@ public final class InfiniteKeySource<K extends AEKey> implements IKeyHandler<K> 
         this.acceptInsert = acceptInsert;
     }
 
+    @Override
+    public int operationTime() {
+        return config.operationTime();
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return config.isDirectKey();
+    }
+
     public KeyInventory<K> config() {
         return config;
     }

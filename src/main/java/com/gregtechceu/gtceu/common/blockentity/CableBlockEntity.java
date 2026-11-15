@@ -76,6 +76,15 @@ public final class CableBlockEntity extends PipeBlockEntity<Insulation, WireProp
     }
 
     @Override
+    public void observe() {
+        super.observe();
+        EnergyNet net = getEnergyNet();
+        if (net == null) return;
+        net.observedTick = GTValues.SERVER_TIME;
+        checkNetwork();
+    }
+
+    @Override
     @Nullable
     public <T> Object getGTCapability(Class<T> cap, @Nullable Direction side) {
         if (cap == GTCapability.ENERGY_CONTAINER) {

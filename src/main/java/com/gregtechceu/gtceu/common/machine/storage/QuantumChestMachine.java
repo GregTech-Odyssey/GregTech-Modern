@@ -580,6 +580,16 @@ public class QuantumChestMachine extends TieredMachine implements IAutoOutputIte
         }
 
         @Override
+        public int operationTime() {
+            return storage.operationTime();
+        }
+
+        @Override
+        public boolean isDirectKey() {
+            return true;
+        }
+
+        @Override
         public AEKeyType keyType() {
             return AEKeyTypes.ITEMS;
         }

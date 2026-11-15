@@ -23,11 +23,6 @@ public final class ForgeFluidView implements IKeyHandler<AEFluidKey> {
         return new ForgeFluidView(handler);
     }
 
-    @Override
-    public int operationTime() {
-        return this.size() * 5;
-    }
-
     public IFluidHandler getHandler() {
         return handler;
     }
@@ -89,5 +84,10 @@ public final class ForgeFluidView implements IKeyHandler<AEFluidKey> {
             if (Keys.fluid(stack) == key) total = Keys.add(total, stack.getAmount());
         }
         return total;
+    }
+
+    @Override
+    public boolean isDirectKey() {
+        return false;
     }
 }
