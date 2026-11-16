@@ -16,13 +16,10 @@ public class ConfigHolder {
     public static boolean GENERATE_ENERGY_NO_MATCH = false;
 
     public static ConfigHolder INSTANCE;
-    private static final Object LOCK = new Object();
 
     public static void init() {
-        synchronized (LOCK) {
-            if (INSTANCE == null) {
-                INSTANCE = Configuration.registerConfig(ConfigHolder.class, ConfigFormats.yaml()).getConfigInstance();
-            }
+        if (INSTANCE == null) {
+            INSTANCE = Configuration.registerConfig(ConfigHolder.class, ConfigFormats.yaml()).getConfigInstance();
         }
     }
 

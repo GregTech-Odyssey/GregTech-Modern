@@ -20,16 +20,15 @@ dependencies {
     modImplementation("com.gto:gtorenders-forge-1.20.1:26.10.1")
     modCompileOnly("curse.maven:tool-belt-260262:5929061")
 
-    modImplementation("org.appliedenergistics:guideme:20.1.13")
     modImplementation("curse.maven:duplicationless-1380105:8646420")
 
     modRuntimeOnly("curse.maven:spark-361579:4738952")
-    modRuntimeOnly("curse.maven:modernfix-790626:7928686")
+    modRuntimeOnly("curse.maven:modernfix-790626:9597914")
     modRuntimeOnly("dev:jecharacters:1.20.1-forge-4.5.11-dev-shadow")
 
-    modCompileOnly("mezz.jei:jei-1.20.1-forge-api:15.59.0.211")
-    modCompileOnly("mezz.jei:jei-1.20.1-common-api:15.59.0.211")
-    modImplementation("mezz.jei:jei-1.20.1-forge:15.59.0.211")
+    modCompileOnly("mezz.jei:jei-1.20.1-forge-api:15.59.0.212")
+    modCompileOnly("mezz.jei:jei-1.20.1-common-api:15.59.0.212")
+    modImplementation("mezz.jei:jei-1.20.1-forge:15.59.0.212")
 
     // LDLib
     modApi(forge.ldlib.get())
