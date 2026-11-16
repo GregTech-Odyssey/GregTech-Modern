@@ -173,7 +173,7 @@ public class BatteryBufferMachine extends TieredEnergyMachine implements IContro
         if (nonEmptyBatteries == null) {
             nonEmptyBatteries = new ObjectArrayList<>(inventorySize);
             for (var battery : getAllBatteries()) {
-                if (battery instanceof IElectricItem electricItem && electricItem.canProvideChargeExternally() && electricItem.getCharge() >= energyContainer.getOutputVoltage()) nonEmptyBatteries.add(electricItem);
+                if (battery instanceof IElectricItem electricItem && electricItem.canProvideChargeExternally() && electricItem.getCharge() > 0) nonEmptyBatteries.add(electricItem);
             }
         }
         return nonEmptyBatteries;
