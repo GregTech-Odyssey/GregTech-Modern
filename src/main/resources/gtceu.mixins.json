@@ -50,7 +50,6 @@
     "StrictNBTIngredientAccessor",
     "TagLoaderMixin",
     "TagManagerMixin",
-    "emi.FillRecipePacketMixin",
     "emi.FluidEmiStackMixin",
     "ldlib.ModularUIBudgetMixin",
     "ldlib.ModularUIContainerFaultMixin",

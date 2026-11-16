@@ -3,13 +3,12 @@ package com.gregtechceu.gtceu.api.recipe.content;
 import com.gregtechceu.gtceu.api.transfer.key.Keys;
 
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.AEKeyIntMap;
 import appeng.api.stacks.AEKeySet;
 import appeng.api.stacks.AEKeyType;
 import com.gto.datasynclib.datastream.codec.ValueOps;
 import com.gto.fastcollection.cache.CustomHashInterner;
 import it.unimi.dsi.fastutil.ints.IntArrays;
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -148,19 +147,18 @@ public final class ContentList {
             typeSeen[t] |= o instanceof CircuitIngredient ? SEEN_CIRCUIT : o instanceof AEKey ? SEEN_KEY : SEEN_LOOSE;
         }
         int[] root = null;
-        Long2IntOpenHashMap baseByUid = null;
+        AEKeyIntMap<AEKey> baseOf = null;
         for (int i = 0; i < n; i++) {
             if (chances[i] == 0 || mergesWholeType(typeSeen[typeOf[i]])) continue;
             var ing = ingredients[i];
             if (ing.kind() != KeyIngredient.BASE || !((Object) ing instanceof AEKey key)) continue;
-            if (baseByUid == null) {
-                baseByUid = new Long2IntOpenHashMap();
-                baseByUid.defaultReturnValue(-1);
+            if (baseOf == null) {
+                baseOf = new AEKeyIntMap<>();
+                baseOf.defaultReturnValue(-1);
             }
-            int prev = baseByUid.putIfAbsent(uidKey(typeOf[i], key), i);
-            if (prev >= 0) root = union(root, n, i, prev);
+            root = firstOf(baseOf, key.dropSecondary(), root, n, i);
         }
-        Reference2IntOpenHashMap<KeyIngredient> sameKey = null;
+        AEKeyIntMap<AEKey> sameKey = null;
         for (int i = 0; i < n; i++) {
             if (chances[i] == 0) continue;
             int t = typeOf[i];
@@ -171,13 +169,13 @@ public final class ContentList {
             var ing = ingredients[i];
             if (ing.kind() == KeyIngredient.BASE) continue;
             if (sameKey == null) {
-                sameKey = new Reference2IntOpenHashMap<>();
+                sameKey = new AEKeyIntMap<>();
                 sameKey.defaultReturnValue(-1);
             }
-            int prev = sameKey.putIfAbsent(ing, i);
-            if (prev >= 0) root = union(root, n, i, prev);
-            if (baseByUid != null && (Object) ing instanceof AEKey key) {
-                int base = baseByUid.get(uidKey(t, key));
+            var key = ing.key();
+            root = firstOf(sameKey, key, root, n, i);
+            if (baseOf != null && (Object) ing instanceof AEKey) {
+                int base = baseOf.getInt(key.dropSecondary());
                 if (base >= 0) root = union(root, n, i, base);
             }
         }
@@ -188,8 +186,11 @@ public final class ContentList {
         return (seen & SEEN_LOOSE) != 0 || (seen & (SEEN_CIRCUIT | SEEN_KEY)) == (SEEN_CIRCUIT | SEEN_KEY);
     }
 
-    private static long uidKey(int type, AEKey key) {
-        return (long) type << 32 | key.getUid() & 0xFFFFFFFFL;
+    private static int[] firstOf(AEKeyIntMap<AEKey> first, AEKey key, @Nullable int[] root, int n, int i) {
+        int prev = first.getInt(key);
+        if (prev >= 0) return union(root, n, i, prev);
+        first.put(key, i);
+        return root;
     }
 
     private static int[] union(@Nullable int[] root, int n, int a, int b) {
