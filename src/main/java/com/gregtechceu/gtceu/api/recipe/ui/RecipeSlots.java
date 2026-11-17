@@ -84,19 +84,19 @@ public final class RecipeSlots {
     /** 该方向、该种类的槽位数（不显示时为 0）。 */
     public int count(IO io, ContentRecipeInfo cap) {
         if (!renders(io, cap)) return 0;
-        int max = io == IO.IN ? recipeType().getMaxInputs(cap) : recipeType().getMaxOutputs(cap);
+        int max = maxCount(io, cap);
         if (recipeCounts == null || !ui.getSlotLayout().fitsRecipe()) return max;
         int count = recipeCounts.applyAsInt(io, cap);
         if (ui.getSlotLayout() != RecipeSlotLayouts.DEFAULT) return Math.min(count, max);
         return Math.max(count, templateCount(io, cap));
     }
 
-    public int reservedWidth() {
-        return ui.getDisplayWidth();
+    public int maxCount(IO io, ContentRecipeInfo cap) {
+        return io == IO.IN ? recipeType().getMaxInputs(cap) : recipeType().getMaxOutputs(cap);
     }
 
-    public boolean isCompactTemplate() {
-        return ui.isCompactTemplate();
+    public int reservedWidth() {
+        return ui.getDisplayWidth();
     }
 
     public int templateCount(IO io, ContentRecipeInfo cap) {

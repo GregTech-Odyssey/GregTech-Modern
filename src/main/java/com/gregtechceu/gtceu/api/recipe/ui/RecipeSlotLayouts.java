@@ -36,7 +36,6 @@ public final class RecipeSlotLayouts {
     private static final int COMPACT_PROGRESS_MARGIN = 8;
     private static final int TEMPLATE_COLUMNS = 3;
     private static final int TEMPLATE_ROWS = 3;
-    private static final int MACHINE_ROWS = 4;
     public static final int DISPLAY_SLOT_GAP = 6;
 
     /**
@@ -86,10 +85,9 @@ public final class RecipeSlotLayouts {
         if (caps.isEmpty()) return null;
         var side = new UIElement().layout(l -> l.column().alignItems(AlignItems.START).minWidth(shape.width() * UISizes.SLOT_SIZE));
         int columns = Math.max(1, shape.width());
-        boolean fillRows = slots.isCompactTemplate();
         for (var cap : caps) {
             var capSlots = slots.slots(io, cap);
-            int count = fillRows ? rows(capSlots.size(), columns) * columns : capSlots.size();
+            int count = Math.min(rows(capSlots.size(), columns) * columns, Math.max(capSlots.size(), slots.maxCount(io, cap)));
             // 补齐的空槽不分配 id，保持仅渲染，不参与配方内容绑定。
             side.addChild(SlotGrid.of(columns, count, i -> i < capSlots.size() ? capSlots.get(i) : cap.createWidget()));
         }
@@ -115,9 +113,9 @@ public final class RecipeSlotLayouts {
         return columns == 0 ? 0 : (count + columns - 1) / columns;
     }
 
-    static boolean fitsMachineRows(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs) {
+    static boolean fitsTemplateRows(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs) {
         var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
-        return shapes[0].rows() <= MACHINE_ROWS && shapes[1].rows() <= MACHINE_ROWS;
+        return shapes[0].rows() <= TEMPLATE_ROWS && shapes[1].rows() <= TEMPLATE_ROWS;
     }
 
     public static long trimTemplate(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs, int reserved) {

@@ -166,17 +166,13 @@ public class GTRecipeTypeUI {
         return template;
     }
 
-    boolean isCompactTemplate() {
-        return machineTemplate() < 0;
-    }
-
     private long machineTemplate() {
         if (recipeType.group.equals(GTRecipeTypes.MULTIBLOCK)) return -1;
         int itemInputs = recipeType.getMaxInputs(ItemRecipeInfo.INSTANCE);
         int fluidInputs = recipeType.getMaxInputs(FluidRecipeInfo.INSTANCE);
         int itemOutputs = recipeType.getMaxOutputs(ItemRecipeInfo.INSTANCE);
         int fluidOutputs = recipeType.getMaxOutputs(FluidRecipeInfo.INSTANCE);
-        if (!RecipeSlotLayouts.fitsMachineRows(itemInputs, fluidInputs, itemOutputs, fluidOutputs)) return -1;
+        if (!RecipeSlotLayouts.fitsTemplateRows(itemInputs, fluidInputs, itemOutputs, fluidOutputs)) return -1;
         return pack(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
     }
 
