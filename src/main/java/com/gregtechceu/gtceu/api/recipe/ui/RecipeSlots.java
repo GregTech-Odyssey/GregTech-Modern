@@ -95,6 +95,10 @@ public final class RecipeSlots {
         return ui.getDisplayWidth();
     }
 
+    public boolean isCompactTemplate() {
+        return ui.isCompactTemplate();
+    }
+
     public int templateCount(IO io, ContentRecipeInfo cap) {
         if (!renders(io, cap) || shapeCounts == null) return 0;
         return shapeCounts.applyAsInt(io, cap);

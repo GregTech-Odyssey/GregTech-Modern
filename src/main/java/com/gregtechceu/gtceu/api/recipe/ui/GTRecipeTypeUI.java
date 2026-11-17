@@ -157,16 +157,27 @@ public class GTRecipeTypeUI {
         var category = recipe.recipeCategory;
         if (categoryTemplates.containsKey(category)) return categoryTemplates.getLong(category);
         if (displayWidth < 0) displayWidth = displayWidth(recipe);
-        long template;
-        if (recipeType.group.equals(GTRecipeTypes.MULTIBLOCK)) {
+        long template = machineTemplate();
+        if (template < 0) {
             var counts = categoryCounts.get(category);
             template = counts == null ? 0 : RecipeSlotLayouts.trimTemplate(percentile(counts[0]), percentile(counts[1]), percentile(counts[2]), percentile(counts[3]), displayWidth);
-        } else {
-            template = pack(recipeType.getMaxInputs(ItemRecipeInfo.INSTANCE), recipeType.getMaxInputs(FluidRecipeInfo.INSTANCE),
-                    recipeType.getMaxOutputs(ItemRecipeInfo.INSTANCE), recipeType.getMaxOutputs(FluidRecipeInfo.INSTANCE));
         }
         categoryTemplates.put(category, template);
         return template;
+    }
+
+    boolean isCompactTemplate() {
+        return machineTemplate() < 0;
+    }
+
+    private long machineTemplate() {
+        if (recipeType.group.equals(GTRecipeTypes.MULTIBLOCK)) return -1;
+        int itemInputs = recipeType.getMaxInputs(ItemRecipeInfo.INSTANCE);
+        int fluidInputs = recipeType.getMaxInputs(FluidRecipeInfo.INSTANCE);
+        int itemOutputs = recipeType.getMaxOutputs(ItemRecipeInfo.INSTANCE);
+        int fluidOutputs = recipeType.getMaxOutputs(FluidRecipeInfo.INSTANCE);
+        if (!RecipeSlotLayouts.fitsMachineRows(itemInputs, fluidInputs, itemOutputs, fluidOutputs)) return -1;
+        return pack(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
     }
 
     public int getDisplayWidth() {

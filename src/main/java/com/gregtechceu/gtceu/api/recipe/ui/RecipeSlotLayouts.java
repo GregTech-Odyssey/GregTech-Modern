@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.recipe.ui;
 import com.gregtechceu.gtceu.api.recipe.handler.IO;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
-import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.uipro.UIElement;
 import com.gregtechceu.gtceu.uipro.elements.SlotGrid;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
@@ -37,6 +36,7 @@ public final class RecipeSlotLayouts {
     private static final int COMPACT_PROGRESS_MARGIN = 8;
     private static final int TEMPLATE_COLUMNS = 3;
     private static final int TEMPLATE_ROWS = 3;
+    private static final int MACHINE_ROWS = 4;
     public static final int DISPLAY_SLOT_GAP = 6;
 
     /**
@@ -45,7 +45,7 @@ public final class RecipeSlotLayouts {
      * <li>每一侧按内容种类依次排（物品在前、流体在后……），每种一个尽量方正的网格（{@link #columns}：4 格 2×2、5~6 格 3×2……），
      * 另起一行的网格与上面的网格同宽对齐；</li>
      * <li>机器界面中，第二种（通常是流体）放得下时竖排在第一种右边（第一种不足 3 列且行数够），否则另起一行；</li>
-     * <li>配方查看器中，物品在上、流体在下，各行从左到右、左边缘对齐，多方块的末行补齐空槽；</li>
+     * <li>配方查看器中，物品在上、流体在下，各行从左到右、左边缘对齐；</li>
      * <li>两侧等宽（取较宽的一侧），各自居中，进度箭头因此总在正中；</li>
      * <li>一侧没有槽位时（如发电机界面不显示输出）照样占位，箭头不偏。</li>
      * </ul>
@@ -86,11 +86,11 @@ public final class RecipeSlotLayouts {
         if (caps.isEmpty()) return null;
         var side = new UIElement().layout(l -> l.column().alignItems(AlignItems.START).minWidth(shape.width() * UISizes.SLOT_SIZE));
         int columns = Math.max(1, shape.width());
-        boolean fillRows = slots.recipeType().group.equals(GTRecipeTypes.MULTIBLOCK);
+        boolean fillRows = slots.isCompactTemplate();
         for (var cap : caps) {
             var capSlots = slots.slots(io, cap);
             int count = fillRows ? rows(capSlots.size(), columns) * columns : capSlots.size();
-            // 补齐的空槽不分配 id，只装饰多方块配方页，不参与内容绑定。
+            // 补齐的空槽不分配 id，保持仅渲染，不参与配方内容绑定。
             side.addChild(SlotGrid.of(columns, count, i -> i < capSlots.size() ? capSlots.get(i) : cap.createWidget()));
         }
         return side;
@@ -113,6 +113,11 @@ public final class RecipeSlotLayouts {
 
     private static int rows(int count, int columns) {
         return columns == 0 ? 0 : (count + columns - 1) / columns;
+    }
+
+    static boolean fitsMachineRows(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs) {
+        var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
+        return shapes[0].rows() <= MACHINE_ROWS && shapes[1].rows() <= MACHINE_ROWS;
     }
 
     public static long trimTemplate(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs, int reserved) {
