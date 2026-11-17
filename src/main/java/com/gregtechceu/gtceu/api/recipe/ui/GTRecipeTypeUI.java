@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
@@ -155,9 +156,15 @@ public class GTRecipeTypeUI {
     private long categoryTemplate(GTRecipeDefinition recipe) {
         var category = recipe.recipeCategory;
         if (categoryTemplates.containsKey(category)) return categoryTemplates.getLong(category);
-        var counts = categoryCounts.get(category);
         if (displayWidth < 0) displayWidth = displayWidth(recipe);
-        long template = counts == null ? 0 : RecipeSlotLayouts.trimTemplate(percentile(counts[0]), percentile(counts[1]), percentile(counts[2]), percentile(counts[3]), displayWidth);
+        long template;
+        if (recipeType.group.equals(GTRecipeTypes.MULTIBLOCK)) {
+            var counts = categoryCounts.get(category);
+            template = counts == null ? 0 : RecipeSlotLayouts.trimTemplate(percentile(counts[0]), percentile(counts[1]), percentile(counts[2]), percentile(counts[3]), displayWidth);
+        } else {
+            template = pack(recipeType.getMaxInputs(ItemRecipeInfo.INSTANCE), recipeType.getMaxInputs(FluidRecipeInfo.INSTANCE),
+                    recipeType.getMaxOutputs(ItemRecipeInfo.INSTANCE), recipeType.getMaxOutputs(FluidRecipeInfo.INSTANCE));
+        }
         categoryTemplates.put(category, template);
         return template;
     }
