@@ -91,7 +91,7 @@ public class ForgeCommonEventListener {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onServerTickEvent(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
+        if (event.phase == TickEvent.Phase.START) {
             GTValues.SERVER_TIME++;
         }
     }

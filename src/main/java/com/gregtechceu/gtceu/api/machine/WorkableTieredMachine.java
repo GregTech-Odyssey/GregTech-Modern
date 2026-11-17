@@ -88,6 +88,10 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
         this.exportItems = createExportItemHandler(args);
         this.importFluids = createImportFluidHandler(args);
         this.exportFluids = createExportFluidHandler(args);
+        if (IInputLimitableMachine.limited(importItems.storage, importFluids.storage)) {
+            if (importItems.storage.size() > 1) importItems.storage.setUniqueKeys(true);
+            if (importFluids.storage.size() > 1) importFluids.storage.setUniqueKeys(true);
+        }
     }
 
     @Override
@@ -137,7 +141,7 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     public void onLoad() {
         super.onLoad();
         // Legacy machines can have fluid anti-clog enabled while their item inventory is unrestricted.
-        setInputLimit(isInputLimit());
+        syncInputLimit();
         // attach self traits
         Map<IO, List<IRecipeHandler>> ioTraits = new EnumMap<>(IO.class);
         for (var trait : getTraits(IRecipeHandlerTrait.class)) {
@@ -151,7 +155,11 @@ public abstract class WorkableTieredMachine extends TieredEnergyMachine implemen
     @Override
     public void onMachinePlaced(@Nullable LivingEntity player, ItemStack stack) {
         // Item data loads after onLoad; empty legacy item inventories omit the disabled flag.
-        if (importFluids.storage.size() > 1) setInputLimit(importFluids.storage.isUniqueKeys());
+        syncInputLimit();
+    }
+
+    private void syncInputLimit() {
+        setInputLimit(importFluids.storage.size() > 1 ? importFluids.storage.isUniqueKeys() : isInputLimit());
     }
 
     @Override

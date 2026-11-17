@@ -51,8 +51,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     private final long slotLimit;
     @Getter
     private boolean uniqueKeys;
-    // Preserve an explicitly disabled limit even when the loading machine enables it by default.
-    private boolean uniqueKeysConfigured;
+    private boolean defaultUniqueKeys;
     @Nullable
     private AEKeyIntMap<AEKey> index;
     @Nullable
@@ -149,9 +148,13 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
     }
 
     public KeyInventory<K> setUniqueKeys(boolean uniqueKeys) {
+        defaultUniqueKeys = uniqueKeys;
+        return switchUniqueKeys(uniqueKeys);
+    }
+
+    public KeyInventory<K> switchUniqueKeys(boolean uniqueKeys) {
         if (this.uniqueKeys == uniqueKeys) return this;
         this.uniqueKeys = uniqueKeys;
-        uniqueKeysConfigured = true;
         rebuildIndex();
         notifyChanged();
         return this;
@@ -631,7 +634,6 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         for (int i = n; i < keys.length; i++) amounts[i] = 0;
         high = h;
         uniqueKeys = other.uniqueKeys;
-        uniqueKeysConfigured = true;
         rebuildIndex();
         markAll();
         notifyChanged();
@@ -664,7 +666,6 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
             put(s - 1, key, amount);
         }
         uniqueKeys = buf.readBoolean();
-        uniqueKeysConfigured = true;
         rebuildIndex();
         markAll();
         version++;
@@ -679,7 +680,7 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
         for (long a : amounts) {
             if (a > 0) count++;
         }
-        if (count == 0 && !uniqueKeys && !uniqueKeysConfigured) return ops.createNull();
+        if (count == 0 && uniqueKeys == defaultUniqueKeys) return ops.createNull();
         return ops.createByteArray(KeyInventoryCodec.encode(this, MAGIC | FLAG_COMPACT | (uniqueKeys ? FLAG_UNIQUE : 0), count));
     }
 
@@ -692,7 +693,6 @@ public final class KeyInventory<K extends AEKey> extends AbstractDataSerializabl
             int header = bytes.length >= 4 ? (bytes[0] & 0xFF) << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | bytes[3] & 0xFF : 0;
             if ((header & ~0xFF) == MAGIC && (header & FLAG_COMPACT) != 0) {
                 uniqueKeys = (header & FLAG_UNIQUE) != 0;
-                uniqueKeysConfigured = true;
                 try {
                     KeyInventoryCodec.decode(this, bytes);
                 } catch (RuntimeException e) {

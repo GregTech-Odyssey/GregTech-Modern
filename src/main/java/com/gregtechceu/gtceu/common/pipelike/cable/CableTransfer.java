@@ -24,7 +24,9 @@ public final class CableTransfer {
     }
 
     public static long offer(long available, long voltage, long perAmp) {
-        return perAmp == voltage ? available : GTMath.mulDivFloor(available, perAmp, voltage);
+        if (perAmp == voltage) return available;
+        long offer = GTMath.mulDivFloor(available, perAmp, voltage);
+        return offer == 0 && available > 0 ? 1 : offer;
     }
 
     public static long cost(long accepted, long voltage, long perAmp) {

@@ -37,7 +37,7 @@ public interface IInputLimitableMachine extends IFancyUIMachine {
 
     static void limit(boolean inputLimit, KeyInventory<?>... inventories) {
         for (var inventory : inventories) {
-            if (inventory.size() > 1) inventory.setUniqueKeys(inputLimit);
+            if (inventory.size() > 1) inventory.switchUniqueKeys(inputLimit);
         }
     }
 
