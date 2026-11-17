@@ -13,6 +13,7 @@ import com.gregtechceu.gtceu.api.recipe.info.ContentRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.FluidRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.ItemRecipeInfo;
 import com.gregtechceu.gtceu.api.recipe.info.RecipeInfo;
+import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
 import com.gregtechceu.gtceu.uipro.elements.ScrollerView;
 import com.gregtechceu.gtceu.uipro.styletemplate.UISizes;
 
@@ -155,11 +156,24 @@ public class GTRecipeTypeUI {
     private long categoryTemplate(GTRecipeDefinition recipe) {
         var category = recipe.recipeCategory;
         if (categoryTemplates.containsKey(category)) return categoryTemplates.getLong(category);
-        var counts = categoryCounts.get(category);
         if (displayWidth < 0) displayWidth = displayWidth(recipe);
-        long template = counts == null ? 0 : RecipeSlotLayouts.trimTemplate(percentile(counts[0]), percentile(counts[1]), percentile(counts[2]), percentile(counts[3]), displayWidth);
+        long template = machineTemplate();
+        if (template < 0) {
+            var counts = categoryCounts.get(category);
+            template = counts == null ? 0 : RecipeSlotLayouts.trimTemplate(percentile(counts[0]), percentile(counts[1]), percentile(counts[2]), percentile(counts[3]), displayWidth);
+        }
         categoryTemplates.put(category, template);
         return template;
+    }
+
+    private long machineTemplate() {
+        if (recipeType.group.equals(GTRecipeTypes.MULTIBLOCK)) return -1;
+        int itemInputs = recipeType.getMaxInputs(ItemRecipeInfo.INSTANCE);
+        int fluidInputs = recipeType.getMaxInputs(FluidRecipeInfo.INSTANCE);
+        int itemOutputs = recipeType.getMaxOutputs(ItemRecipeInfo.INSTANCE);
+        int fluidOutputs = recipeType.getMaxOutputs(FluidRecipeInfo.INSTANCE);
+        if (!RecipeSlotLayouts.fitsTemplateRows(itemInputs, fluidInputs, itemOutputs, fluidOutputs)) return -1;
+        return pack(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
     }
 
     public int getDisplayWidth() {

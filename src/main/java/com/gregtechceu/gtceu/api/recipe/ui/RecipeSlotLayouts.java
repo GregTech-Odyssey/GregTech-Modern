@@ -44,7 +44,7 @@ public final class RecipeSlotLayouts {
      * <li>每一侧按内容种类依次排（物品在前、流体在后……），每种一个尽量方正的网格（{@link #columns}：4 格 2×2、5~6 格 3×2……），
      * 另起一行的网格与上面的网格同宽对齐；</li>
      * <li>机器界面中，第二种（通常是流体）放得下时竖排在第一种右边（第一种不足 3 列且行数够），否则另起一行；</li>
-     * <li>配方查看器中，物品在上、流体在下，各行从左到右、左边缘对齐，末行补齐空槽；</li>
+     * <li>配方查看器中，物品在上、流体在下，各行从左到右、左边缘对齐；</li>
      * <li>两侧等宽（取较宽的一侧），各自居中，进度箭头因此总在正中；</li>
      * <li>一侧没有槽位时（如发电机界面不显示输出）照样占位，箭头不偏。</li>
      * </ul>
@@ -87,9 +87,9 @@ public final class RecipeSlotLayouts {
         int columns = Math.max(1, shape.width());
         for (var cap : caps) {
             var capSlots = slots.slots(io, cap);
+            int count = Math.min(rows(capSlots.size(), columns) * columns, Math.max(capSlots.size(), slots.maxCount(io, cap)));
             // 补齐的空槽不分配 id，保持仅渲染，不参与配方内容绑定。
-            side.addChild(SlotGrid.of(columns, rows(capSlots.size(), columns) * columns,
-                    i -> i < capSlots.size() ? capSlots.get(i) : cap.createWidget()));
+            side.addChild(SlotGrid.of(columns, count, i -> i < capSlots.size() ? capSlots.get(i) : cap.createWidget()));
         }
         return side;
     }
@@ -113,6 +113,11 @@ public final class RecipeSlotLayouts {
         return columns == 0 ? 0 : (count + columns - 1) / columns;
     }
 
+    static boolean fitsTemplateRows(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs) {
+        var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
+        return shapes[0].rows() <= TEMPLATE_ROWS && shapes[1].rows() <= TEMPLATE_ROWS;
+    }
+
     public static long trimTemplate(int itemInputs, int fluidInputs, int itemOutputs, int fluidOutputs, int reserved) {
         while (true) {
             var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
@@ -128,9 +133,6 @@ public final class RecipeSlotLayouts {
                 fluidOutputs = trimmed[1];
             } else break;
         }
-        var shapes = sideShapes(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
-        if (fluidInputs > 0) itemInputs = shapes[0].itemColumns() * rows(itemInputs, shapes[0].itemColumns());
-        if (fluidOutputs > 0) itemOutputs = shapes[1].itemColumns() * rows(itemOutputs, shapes[1].itemColumns());
         return GTRecipeTypeUI.pack(itemInputs, fluidInputs, itemOutputs, fluidOutputs);
     }
 
