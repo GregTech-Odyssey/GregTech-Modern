@@ -13,8 +13,10 @@ import com.gregtechceu.gtceu.integration.xei.widgets.GTOreVeinWidget;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.level.block.state.BlockState;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,7 @@ public class OreRenderLayer extends MapRenderLayer {
         return Component.translatable("gtceu.jei.ore_vein." + GTOreVeinWidget.getOreName(vein.definition()));
     }
 
-    public static @NotNull Material getMaterial(@NotNull GeneratedVeinMetadata vein) {
+    public static @Nullable Material getMaterial(@NotNull GeneratedVeinMetadata vein) {
         Material firstMaterial = null;
         if (!vein.definition().indicatorGenerators().isEmpty()) {
             var blockOrMaterial = vein.definition().indicatorGenerators().getFirst().block();
@@ -52,10 +54,26 @@ public class OreRenderLayer extends MapRenderLayer {
                     Function.identity());
         }
         if (firstMaterial == null) {
-            firstMaterial = vein.definition().veinGenerator().getAllMaterials().getFirst();
+            var materials = vein.definition().veinGenerator().getAllMaterials();
+            firstMaterial = materials.isEmpty() ? null : materials.getFirst();
         }
         return firstMaterial;
     }
+
+    /** Selects the first material, or the first block for a vein without materials. */
+    public static Icon getIcon(GeneratedVeinMetadata vein) {
+        var generator = vein.definition().veinGenerator();
+        var materials = generator.getAllMaterials();
+        if (!materials.isEmpty()) {
+            var material = materials.getFirst();
+            return new Icon(material, null, material.getMaterialARGB());
+        }
+        var block = generator.getAllEntries().getFirst().mapToBlockState();
+        return new Icon(null, block, block.getBlock().defaultMapColor().col | 0xFF000000);
+    }
+
+    /** Exactly one of material and block is present; color is ARGB. */
+    public record Icon(@Nullable Material material, @Nullable BlockState block, int color) {}
 
     public static List<Component> getTooltip(String name, GeneratedVeinMetadata vein) {
         final List<Component> tooltip = new ArrayList<>();

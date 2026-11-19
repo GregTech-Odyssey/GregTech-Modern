@@ -77,7 +77,7 @@ public class OreVeinElementReader extends MinimapElementReader<OreVeinElement, O
 
     @Override
     public int getRightClickTitleBackgroundColor(OreVeinElement element) {
-        return element.getFirstMaterial().getMaterialRGB();
+        return element.getIcon().color() & 0xFFFFFF;
     }
 
     @Override

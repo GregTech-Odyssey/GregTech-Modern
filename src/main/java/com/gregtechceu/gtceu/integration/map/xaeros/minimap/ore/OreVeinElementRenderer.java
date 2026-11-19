@@ -2,7 +2,6 @@ package com.gregtechceu.gtceu.integration.map.xaeros.minimap.ore;
 
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.chemical.material.info.MaterialIconType;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.GeneratedVeinMetadata;
 import com.gregtechceu.gtceu.client.util.DrawUtil;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.GroupingMapRenderer;
@@ -41,22 +40,28 @@ public class OreVeinElementRenderer extends MinimapElementRenderer<OreVeinElemen
                                  double optionalDepth, float optionalScale, double partialX, double partialY,
                                  MinimapElementRenderInfo renderInfo,
                                  GuiGraphics graphics, MultiBufferSource.BufferSource renderTypeBuffers) {
-        GeneratedVeinMetadata vein = element.getVein();
         int iconSize = ConfigHolder.INSTANCE.compat.minimap.oreIconSize;
 
-        Material firstMaterial = vein.definition().veinGenerator().getAllMaterials().getFirst();
-        int materialARGB = firstMaterial.getMaterialARGB();
-        float[] colors = DrawUtil.floats(materialARGB);
+        var icon = element.getIcon();
+        Material firstMaterial = icon.material();
+        int materialARGB = icon.color();
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        ResourceLocation oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(),
-                true);
-        if (oreTexture != null) {
-            var oreSprite = Minecraft.getInstance()
-                    .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-                    .apply(oreTexture);
+        if (firstMaterial == null) {
+            var oreSprite = Minecraft.getInstance().getBlockRenderer().getBlockModel(icon.block()).getParticleIcon();
             graphics.blit(-iconSize / 2, -iconSize / 2, 0, iconSize, iconSize,
-                    oreSprite, colors[0], colors[1], colors[2], 1);
+                    oreSprite, 1, 1, 1, 1);
+        } else {
+            float[] colors = DrawUtil.floats(materialARGB);
+            ResourceLocation oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(),
+                    true);
+            if (oreTexture != null) {
+                var oreSprite = Minecraft.getInstance()
+                        .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+                        .apply(oreTexture);
+                graphics.blit(-iconSize / 2, -iconSize / 2, 0, iconSize, iconSize,
+                        oreSprite, colors[0], colors[1], colors[2], 1);
+            }
         }
         // FIXME drawing the 2nd layer makes xaero's minimap transparent. so we won't. for now.
         // oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(), "secondary",
