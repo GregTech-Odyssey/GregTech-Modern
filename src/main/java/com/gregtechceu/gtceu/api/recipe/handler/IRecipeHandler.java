@@ -46,6 +46,15 @@ public interface IRecipeHandler extends IFilteredHandler {
 
     default void rollbackInput(PlanScratch plan, int member, AEKeyType type) {}
 
+    /**
+     * Reports the exact available output space for a key without modifying the handler.
+     * Space reported for different keys must be independently usable. Return {@code -1}
+     * to use reservation simulation for capacity that cannot be determined this way.
+     */
+    default long independentOutputSpace(AEKey key) {
+        return -1;
+    }
+
     default long reserveOutput(PlanScratch plan, int member, AEKeyType type, int entry, AEKey key, long amount) {
         return 0;
     }

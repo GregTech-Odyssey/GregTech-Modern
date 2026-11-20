@@ -694,9 +694,18 @@ public class RecipeHandlerUnit {
         Arrays.fill(cap, 0, n, 0L);
         boolean exact = true;
         for (int h = 0; h < stores.length; h++) {
-            if (!members[h].isActive()) continue;
+            var member = members[h];
+            if (!member.isActive()) continue;
             var inv = stores[h];
-            if (inv == null) return ~Long.MAX_VALUE;
+            if (inv == null) {
+                for (int i = 0; i < n; i++) {
+                    if (!activeOutput(list, i)) continue;
+                    long space = member.independentOutputSpace(list.outputKey(i));
+                    if (space < 0) return ~Long.MAX_VALUE;
+                    cap[i] = saturatedAdd(cap[i], space);
+                }
+                continue;
+            }
             int size = inv.size();
             boolean unique = inv.isUniqueKeys();
             int spill = 0;
