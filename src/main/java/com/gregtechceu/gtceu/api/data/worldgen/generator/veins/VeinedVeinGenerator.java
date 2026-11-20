@@ -17,6 +17,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.blending.Blender;
@@ -169,6 +171,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
     private static final class InterpolatedNoiseCache implements DensityFunction.FunctionContext {
 
+        private static final KeyDispatchDataCodec<? extends DensityFunction> INTERPOLATED_CODEC = DensityFunctions.interpolated(DensityFunctions.zero()).codec();
+
         // shortcut: assumes vanilla 4x8 noise cells; derive spacing from dimension NoiseSettings if custom settings
         // need support.
         private static final int XZ_STEP = 4;
@@ -186,10 +190,6 @@ public class VeinedVeinGenerator extends VeinGenerator {
         private final int sizeX;
         private final int sizeY;
         private final int sizeZ;
-        private final double[] toggleValues;
-        private final double[] ridgedValues;
-        private final byte[] toggleSamples;
-        private final byte[] ridgedSamples;
         private int sampleX;
         private int sampleY;
         private int sampleZ;
@@ -197,8 +197,6 @@ public class VeinedVeinGenerator extends VeinGenerator {
         private InterpolatedNoiseCache(DensityFunction toggleFunction, DensityFunction ridgedFunction,
                                        Blender blender, int offsetX, int offsetY, int offsetZ,
                                        int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-            this.toggleFunction = toggleFunction;
-            this.ridgedFunction = ridgedFunction;
             this.blender = blender;
             this.offsetX = offsetX;
             this.offsetY = offsetY;
@@ -209,58 +207,111 @@ public class VeinedVeinGenerator extends VeinGenerator {
             this.sizeX = Math.floorDiv(maxX + offsetX, XZ_STEP) - minCellX + 2;
             this.sizeY = Math.floorDiv(maxY + offsetY, Y_STEP) - minCellY + 2;
             this.sizeZ = Math.floorDiv(maxZ + offsetZ, XZ_STEP) - minCellZ + 2;
-            int sampleCount = sizeX * sizeY * sizeZ;
-            this.toggleValues = new double[sampleCount];
-            this.ridgedValues = new double[sampleCount];
-            this.toggleSamples = new byte[sampleCount];
-            this.ridgedSamples = new byte[sampleCount];
+            // Preserve registry expressions: abs/max must run after their interpolated inputs.
+            DensityFunction.Visitor visitor = function -> function instanceof DensityFunctions.MarkerOrMarked marker && marker.codec() == INTERPOLATED_CODEC ?
+                    new InterpolatedFunction(marker.wrapped()) : function;
+            this.toggleFunction = toggleFunction.mapAll(visitor);
+            this.ridgedFunction = ridgedFunction.mapAll(visitor);
         }
 
         private double toggle(int x, int y, int z) {
-            return interpolate(toggleFunction, toggleValues, toggleSamples, x, y, z);
+            return compute(toggleFunction, x, y, z);
         }
 
         private double ridged(int x, int y, int z) {
-            return interpolate(ridgedFunction, ridgedValues, ridgedSamples, x, y, z);
+            return compute(ridgedFunction, x, y, z);
         }
 
-        private double interpolate(DensityFunction function, double[] values, byte[] sampled,
-                                   int x, int y, int z) {
-            int shiftedX = x + offsetX;
-            int shiftedY = y + offsetY;
-            int shiftedZ = z + offsetZ;
-            int cellX = Math.floorDiv(shiftedX, XZ_STEP) - minCellX;
-            int cellY = Math.floorDiv(shiftedY, Y_STEP) - minCellY;
-            int cellZ = Math.floorDiv(shiftedZ, XZ_STEP) - minCellZ;
-            assert cellX >= 0 && cellX + 1 < sizeX;
-            assert cellY >= 0 && cellY + 1 < sizeY;
-            assert cellZ >= 0 && cellZ + 1 < sizeZ;
-            double deltaX = Math.floorMod(shiftedX, XZ_STEP) / (double) XZ_STEP;
-            double deltaY = Math.floorMod(shiftedY, Y_STEP) / (double) Y_STEP;
-            double deltaZ = Math.floorMod(shiftedZ, XZ_STEP) / (double) XZ_STEP;
-
-            double x00 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY, cellZ),
-                    sample(function, values, sampled, cellX + 1, cellY, cellZ));
-            double x10 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY + 1, cellZ),
-                    sample(function, values, sampled, cellX + 1, cellY + 1, cellZ));
-            double x01 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY, cellZ + 1),
-                    sample(function, values, sampled, cellX + 1, cellY, cellZ + 1));
-            double x11 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY + 1, cellZ + 1),
-                    sample(function, values, sampled, cellX + 1, cellY + 1, cellZ + 1));
-            return Mth.lerp(deltaZ, Mth.lerp(deltaY, x00, x10), Mth.lerp(deltaY, x01, x11));
+        private double compute(DensityFunction function, int x, int y, int z) {
+            sampleX = x + offsetX;
+            sampleY = y + offsetY;
+            sampleZ = z + offsetZ;
+            return function.compute(this);
         }
 
-        private double sample(DensityFunction function, double[] values, byte[] sampled,
-                              int cellX, int cellY, int cellZ) {
-            int index = (cellX * sizeY + cellY) * sizeZ + cellZ;
-            if (sampled[index] == 0) {
-                sampleX = (minCellX + cellX) * XZ_STEP;
-                sampleY = (minCellY + cellY) * Y_STEP;
-                sampleZ = (minCellZ + cellZ) * XZ_STEP;
-                values[index] = function.compute(this);
-                sampled[index] = 1;
+        private final class InterpolatedFunction implements DensityFunction.SimpleFunction, DensityFunction.FunctionContext {
+
+            private final DensityFunction function;
+            private final double[] values = new double[sizeX * sizeY * sizeZ];
+            private final byte[] sampled = new byte[values.length];
+            private int sampleX;
+            private int sampleY;
+            private int sampleZ;
+
+            private InterpolatedFunction(DensityFunction function) {
+                this.function = function;
             }
-            return values[index];
+
+            @Override
+            public double compute(DensityFunction.FunctionContext context) {
+                int x = context.blockX();
+                int y = context.blockY();
+                int z = context.blockZ();
+                int cellX = Math.floorDiv(x, XZ_STEP) - minCellX;
+                int cellY = Math.floorDiv(y, Y_STEP) - minCellY;
+                int cellZ = Math.floorDiv(z, XZ_STEP) - minCellZ;
+                assert cellX >= 0 && cellX < sizeX;
+                assert cellY >= 0 && cellY < sizeY;
+                assert cellZ >= 0 && cellZ < sizeZ;
+                double deltaX = Math.floorMod(x, XZ_STEP) / (double) XZ_STEP;
+                double deltaY = Math.floorMod(y, Y_STEP) / (double) Y_STEP;
+                double deltaZ = Math.floorMod(z, XZ_STEP) / (double) XZ_STEP;
+                if (deltaX == 0.0 && deltaY == 0.0 && deltaZ == 0.0) return sample(cellX, cellY, cellZ);
+                assert cellX + 1 < sizeX && cellY + 1 < sizeY && cellZ + 1 < sizeZ;
+
+                double x00 = Mth.lerp(deltaX, sample(cellX, cellY, cellZ), sample(cellX + 1, cellY, cellZ));
+                double x10 = Mth.lerp(deltaX, sample(cellX, cellY + 1, cellZ), sample(cellX + 1, cellY + 1, cellZ));
+                double x01 = Mth.lerp(deltaX, sample(cellX, cellY, cellZ + 1), sample(cellX + 1, cellY, cellZ + 1));
+                double x11 = Mth.lerp(deltaX, sample(cellX, cellY + 1, cellZ + 1), sample(cellX + 1, cellY + 1, cellZ + 1));
+                return Mth.lerp(deltaZ, Mth.lerp(deltaY, x00, x10), Mth.lerp(deltaY, x01, x11));
+            }
+
+            private double sample(int cellX, int cellY, int cellZ) {
+                int index = (cellX * sizeY + cellY) * sizeZ + cellZ;
+                if (sampled[index] == 0) {
+                    sampleX = (minCellX + cellX) * XZ_STEP;
+                    sampleY = (minCellY + cellY) * Y_STEP;
+                    sampleZ = (minCellZ + cellZ) * XZ_STEP;
+                    values[index] = function.compute(this);
+                    sampled[index] = 1;
+                }
+                return values[index];
+            }
+
+            @Override
+            public double minValue() {
+                return function.minValue();
+            }
+
+            @Override
+            public double maxValue() {
+                return function.maxValue();
+            }
+
+            @Override
+            public KeyDispatchDataCodec<? extends DensityFunction> codec() {
+                throw new UnsupportedOperationException("Cannot serialize vein noise cache");
+            }
+
+            @Override
+            public int blockX() {
+                return sampleX;
+            }
+
+            @Override
+            public int blockY() {
+                return sampleY;
+            }
+
+            @Override
+            public int blockZ() {
+                return sampleZ;
+            }
+
+            @Override
+            public Blender getBlender() {
+                return blender;
+            }
         }
 
         @Override
