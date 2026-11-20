@@ -27,11 +27,15 @@ public class GTWorldgen {
         Holder<NormalNoise.NoiseParameters> oreVeinB = noises.getOrThrow(Noises.ORE_VEIN_B);
         ctx.register(ResourceKey.create(Registries.DENSITY_FUNCTION, NEW_ORE_VEIN_RIDGED),
                 DensityFunctions.add(
-                        DensityFunctions.constant(-0.08f),
+                        DensityFunctions.constant(GTFeatures.NEW_ORE_VEIN_RIDGED_OFFSET),
                         DensityFunctions.max(
                                 DensityFunctions.interpolated(
-                                        DensityFunctions.noise(oreVeinA, 4.0f, 4.0f)).abs(),
+                                        DensityFunctions.noise(oreVeinA, GTFeatures.NEW_ORE_VEIN_RIDGED_SCALE,
+                                                GTFeatures.NEW_ORE_VEIN_RIDGED_SCALE))
+                                        .abs(),
                                 DensityFunctions.interpolated(
-                                        DensityFunctions.noise(oreVeinB, 4.0f, 4.0f)).abs())));
+                                        DensityFunctions.noise(oreVeinB, GTFeatures.NEW_ORE_VEIN_RIDGED_SCALE,
+                                                GTFeatures.NEW_ORE_VEIN_RIDGED_SCALE))
+                                        .abs())));
     }
 }

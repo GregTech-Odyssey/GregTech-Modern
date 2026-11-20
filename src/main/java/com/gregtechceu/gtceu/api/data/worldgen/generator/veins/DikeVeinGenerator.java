@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
@@ -59,13 +60,19 @@ public class DikeVeinGenerator extends VeinGenerator {
 
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        return toBlockPositionMap(generateSections(level, random, entry, origin));
+    }
+
+    @Override
+    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         NormalNoise normalNoise = createNoise(level.getSeed());
         ChunkPos chunkPos = new ChunkPos(origin);
         int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
         int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
-        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> generatedBlocks
-                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, pos, entry)));
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, randomSeed, pos, entry);
+        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
+                .add(pos.asLong(), randomSeed));
         return generatedBlocks;
     }
 

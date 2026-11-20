@@ -29,7 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * Responsible for placing ores of surrounding veins for the current chunk.
  * 
  * <p>
- * Surrounding veins are resolved from the {@link OreGenCache} and placed using each block position's
+ * Surrounding veins are resolved from the {@link OreGenCache} and placed using each section's
  * {@link OreBlockPlacer}.
  */
 @Getter
@@ -60,21 +60,31 @@ public class OrePlacer {
 
     public void placeVein(long chunk, RandomSource random, BulkSectionAccess access, GeneratedVein generatedVein, @Nullable RuleTest targetOverride) {
         RuleTest layerTarget = targetOverride != null ? targetOverride : generatedVein.getLayer().getTarget();
-        resolvePlacerLists(chunk, generatedVein).forEach(((sectionPos, placers) -> {
+        Long2ObjectMap<OreBlockPlacer> placers = generatedVein.consumeSectionOres(chunk);
+        if (!placers.isEmpty() && placers.values().iterator().next() instanceof SectionOreBlockPlacer) {
+            for (ObjectIterator<Long2ObjectMap.Entry<OreBlockPlacer>> it = Long2ObjectMaps.fastIterator(placers); it.hasNext();) {
+                var entry = it.next();
+                SectionPos sectionPos = SectionPos.of(entry.getLongKey());
+                LevelChunkSection section = access.getSection(sectionPos.origin());
+                if (section != null) ((SectionOreBlockPlacer) entry.getValue()).placeSectionBlocks(access, section, layerTarget, random);
+            }
+            return;
+        }
+        resolvePlacerLists(chunk, generatedVein).forEach((sectionPos, sectionPlacers) -> {
             LevelChunkSection section = access.getSection(sectionPos.origin());
             if (section == null) return;
-            for (ObjectIterator<Long2ObjectMap.Entry<OreBlockPlacer>> it = placers.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
+            for (ObjectIterator<Long2ObjectMap.Entry<OreBlockPlacer>> it = sectionPlacers.long2ObjectEntrySet().fastIterator(); it.hasNext();) {
                 var entry = it.next();
                 var pos = entry.getLongKey();
                 var blockState = section.getBlockState(SectionPos.sectionRelative(BlockPos.getX(pos)), SectionPos.sectionRelative(BlockPos.getY(pos)), SectionPos.sectionRelative(BlockPos.getZ(pos)));
                 if (layerTarget.test(blockState, random)) entry.getValue().placeBlock(access, section);
             }
-        }));
+        });
     }
 
     private O2OOpenCacheHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> resolvePlacerLists(long chunk, GeneratedVein vein) {
         O2OOpenCacheHashMap<SectionPos, Long2ObjectOpenHashMap<OreBlockPlacer>> groupedMap = new O2OOpenCacheHashMap<>();
-        for (var entry : Long2ObjectMaps.fastIterable(vein.consumeOres(chunk))) {
+        for (var entry : Long2ObjectMaps.fastIterable(vein.consumeSectionOres(chunk))) {
             var pos = entry.getLongKey();
             groupedMap.computeIfAbsent(SectionPos.of(BlockPos.getX(pos) >> 4, BlockPos.getY(pos) >> 4, BlockPos.getZ(pos) >> 4), k -> new Long2ObjectOpenHashMap<>()).put(pos, entry.getValue());
         }

@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.core.BlockPos;
@@ -147,6 +148,12 @@ public class StandardVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                    BlockPos origin) {
+        return toBlockPositionMap(generateSections(level, random, entry, origin));
+    }
+
+    @Override
+    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                           BlockPos origin) {
         Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
 
         int size = entry.clusterSize().sample(random);
@@ -190,6 +197,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         int size = entry.clusterSize().sample(random);
         float density = entry.density();
         double[] shape = new double[size * 4];
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, ignored, ignoredObject) -> placeBlock(access, randomSeed, entry, targets, pos, density, placedAmount);
 
         for (int centerOffset = 0; centerOffset < size; ++centerOffset) {
             float centerOffsetFraction = (float) centerOffset / (float) size;
@@ -239,7 +247,7 @@ public class StandardVeinGenerator extends VeinGenerator {
 
             generateShape(
                     generatedBlocks, random, entry, origin, targets, pX, pY, pZ, pWidth, pHeight,
-                    shape, shapeIdxOffset, placedBlocks, posCursor, density, placedAmount);
+                    shape, shapeIdxOffset, placedBlocks, posCursor, density, placedAmount, blockPlacer);
         }
     }
 
@@ -249,7 +257,8 @@ public class StandardVeinGenerator extends VeinGenerator {
                                       int pX, int pY, int pZ, int pWidth, int pHeight, double[] shape,
                                       int shapeIdxOffset,
                                       BitSet placedBlocks, BlockPos.MutableBlockPos posCursor,
-                                      float density, MutableInt placedAmount) {
+                                      float density, MutableInt placedAmount,
+                                      SectionOreBlockPlacer.BlockPlacer blockPlacer) {
         double randomShapeOffset = shape[shapeIdxOffset + 3];
         if (randomShapeOffset < 0.0D)
             return;
@@ -288,11 +297,9 @@ public class StandardVeinGenerator extends VeinGenerator {
                         continue;
 
                     placedBlocks.set(isPlaced);
-                    BlockPos pos = posCursor.immutable();
-
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    generatedBlocks.put(pos.asLong(), (access, section) -> placeBlock(access, randomSeed, entry, targets, pos,
-                            density, placedAmount));
+                    SectionOreBlockPlacer.getOrCreate(generatedBlocks, posCursor.asLong(), blockPlacer)
+                            .add(posCursor.asLong(), randomSeed);
                 }
             }
         }

@@ -7,19 +7,13 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Responsible for actually placing a vein's block.
- * 
- * <p>
- * This is invoked for every block a vein needs to place, when the relevant chunk is being generated.<br>
- * The positions are computed in advance.
+ * Responsible for placing one generated block. The map key supplies its position.
  */
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 @FunctionalInterface
 public interface OreBlockPlacer {
 
-    /**
-     * Place a single block at the (precomputed) location this placer is mapped to.
-     */
+    /** Places the block whose position is the map key. */
     void placeBlock(BulkSectionAccess access, LevelChunkSection section);
 }

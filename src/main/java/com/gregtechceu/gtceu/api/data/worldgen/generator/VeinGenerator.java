@@ -6,6 +6,7 @@ import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -85,7 +86,8 @@ public abstract class VeinGenerator {
     }
 
     /**
-     * Generate a map of all ore placers (by block position), for each block in this ore vein.
+     * Generate ore placers for this ore vein. Legacy placers use block-position keys; section
+     * placers use section-position keys.
      *
      * <p>
      * Note that, if in any way possible, this is NOT supposed to directly place any of the vein's blocks, as their
@@ -94,6 +96,17 @@ public abstract class VeinGenerator {
 
     public abstract Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
                                                             GTOreDefinition entry, BlockPos origin);
+
+    /** Uses section batching when available, while retaining the legacy block-keyed generator API. */
+    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random,
+                                                           GTOreDefinition entry, BlockPos origin) {
+        return generate(level, random, entry, origin);
+    }
+
+    protected Long2ObjectMap<OreBlockPlacer> toBlockPositionMap(
+                                                                Long2ObjectMap<OreBlockPlacer> sectionPlacers) {
+        return SectionOreBlockPlacer.toBlockPositionMap(sectionPlacers);
+    }
 
     public boolean sample(GTOreDefinition entry, RandomSource random, BlockPos origin, BoundingBox area, SampleSink sink) {
         return false;

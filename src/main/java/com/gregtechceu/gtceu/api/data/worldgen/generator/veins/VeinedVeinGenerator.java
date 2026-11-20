@@ -5,6 +5,7 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTFeatures;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -80,6 +81,11 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
     @Override
     public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        return toBlockPositionMap(generateSections(level, random, entry, origin));
+    }
+
+    @Override
+    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         Registry<? extends DensityFunction> densityFunctions = level.registryAccess().registry(Registries.DENSITY_FUNCTION).get();
         RandomState randomState = level.getLevel().getChunkSource().randomState();
@@ -92,65 +98,190 @@ public class VeinedVeinGenerator extends VeinGenerator {
         final Blender finalizedBlender = blender;
         DensityFunction veinToggle = mapToNoise(densityFunctions.get(GTFeatures.NEW_ORE_VEIN_TOGGLE), randomState);
         DensityFunction veinRidged = mapToNoise(densityFunctions.get(GTFeatures.NEW_ORE_VEIN_RIDGED), randomState);
+        int originY = origin.getY();
+        int minY = originY - this.minYLevel;
+        int maxY = this.maxYLevel - originY;
+        if (minY < 0 || maxY < 0) return generatedBlocks;
+
+        int lowY = Math.min(maxY, minY);
+        double edgeRoundoff = Mth.clampedMap(lowY, 0.0, edgeRoundoffBegin, -maxEdgeRoundoff, 0.0);
         int size = entry.clusterSize().sample(random);
         int radius = Mth.ceil(size / 2.0F);
-        int placedCount = 0;
         int randOffsetX = random.nextInt(16);
         int randOffsetY = random.nextInt(16);
         int randOffsetZ = random.nextInt(16);
-        var posMin = origin.offset(-radius, -radius, -radius);
-        var posMax = origin.offset(+radius, +radius, +radius);
-        for (BlockPos chunkedPos : BlockPos.betweenClosed(posMin, posMax)) {
-            final int x = chunkedPos.getX();
-            final int y = chunkedPos.getY();
-            final int z = chunkedPos.getZ();
-            DensityFunction.FunctionContext functionContext = new DensityFunction.FunctionContext() {
+        int minBlockX = origin.getX() - radius;
+        int maxBlockX = origin.getX() + radius;
+        int minBlockY = originY - radius;
+        int maxBlockY = originY + radius;
+        int minBlockZ = origin.getZ() - radius;
+        int maxBlockZ = origin.getZ() + radius;
+        int minSectionX = SectionPos.blockToSectionCoord(minBlockX);
+        int maxSectionX = SectionPos.blockToSectionCoord(maxBlockX);
+        int minSectionY = SectionPos.blockToSectionCoord(minBlockY);
+        int maxSectionY = SectionPos.blockToSectionCoord(maxBlockY);
+        int minSectionZ = SectionPos.blockToSectionCoord(minBlockZ);
+        int maxSectionZ = SectionPos.blockToSectionCoord(maxBlockZ);
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, chance, ignored) -> placeBlock(access, section, randomSeed, entry, Double.longBitsToDouble(chance), rareBlocks, pos, oreBlocks);
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
-                @Override
-                public int blockX() {
-                    return x + randOffsetX;
-                }
+        for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
+            for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+                for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
+                    int sectionMinX = SectionPos.sectionToBlockCoord(sectionX);
+                    int sectionMaxX = sectionMinX + 15;
+                    int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+                    int sectionMaxY = sectionMinY + 15;
+                    int sectionMinZ = SectionPos.sectionToBlockCoord(sectionZ);
+                    int sectionMaxZ = sectionMinZ + 15;
+                    int fromX = Math.max(sectionMinX, minBlockX);
+                    int toX = Math.min(sectionMaxX, maxBlockX);
+                    int fromY = Math.max(sectionMinY, minBlockY);
+                    int toY = Math.min(sectionMaxY, maxBlockY);
+                    int fromZ = Math.max(sectionMinZ, minBlockZ);
+                    int toZ = Math.min(sectionMaxZ, maxBlockZ);
+                    InterpolatedNoiseCache noiseCache = new InterpolatedNoiseCache(veinToggle, veinRidged,
+                            finalizedBlender, randOffsetX, randOffsetY, randOffsetZ,
+                            fromX, fromY, fromZ, toX, toY, toZ);
 
-                @Override
-                public int blockY() {
-                    return y + randOffsetY;
-                }
+                    for (int x = fromX; x <= toX; x++) {
+                        for (int y = fromY; y <= toY; y++) {
+                            for (int z = fromZ; z <= toZ; z++) {
+                                double absToggleNoise = Math.abs(noiseCache.toggle(x, y, z));
+                                if (absToggleNoise + edgeRoundoff < veininessThreshold) continue;
+                                if (random.nextFloat() > entry.density()) continue;
+                                if (noiseCache.ridged(x, y, z) >= 0.0) continue;
 
-                @Override
-                public int blockZ() {
-                    return z + randOffsetZ;
+                                double chance = Mth.clampedMap(absToggleNoise, veininessThreshold,
+                                        maxRichnessThreshold, minRichness, maxRichness);
+                                pos.set(x, y, z);
+                                long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
+                                SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
+                                        .add(pos.asLong(), randomSeed, Double.doubleToRawLongBits(chance));
+                            }
+                        }
+                    }
                 }
-
-                @Override
-                public Blender getBlender() {
-                    return finalizedBlender;
-                }
-            };
-            double toggleNoise = veinToggle.compute(functionContext);
-            int blockY = origin.getY();
-            double absToggleNoise = Math.abs(toggleNoise);
-            int minY = blockY - this.minYLevel;
-            int maxY = this.maxYLevel - blockY;
-            if (minY < 0 || maxY < 0) {
-                continue;
             }
-            int lowY = Math.min(maxY, minY);
-            double edgeRoundoff = Mth.clampedMap(lowY, 0.0, edgeRoundoffBegin, -maxEdgeRoundoff, 0.0);
-            if (absToggleNoise + edgeRoundoff < veininessThreshold) {
-                continue;
-            }
-            if (random.nextFloat() > entry.density()) {
-                continue;
-            }
-            if (veinRidged.compute(functionContext) >= 0.0) {
-                continue;
-            }
-            double chance = Mth.clampedMap(absToggleNoise, veininessThreshold, maxRichnessThreshold, minRichness, maxRichness);
-            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, y, z);
-            final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-            generatedBlocks.put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, chance, rareBlocks, pos, oreBlocks));
         }
         return generatedBlocks;
+    }
+
+    private static final class InterpolatedNoiseCache implements DensityFunction.FunctionContext {
+
+        // shortcut: assumes vanilla 4x8 noise cells; derive spacing from dimension NoiseSettings if custom settings
+        // need support.
+        private static final int XZ_STEP = 4;
+        private static final int Y_STEP = 8;
+
+        private final DensityFunction toggleFunction;
+        private final DensityFunction ridgedFunction;
+        private final Blender blender;
+        private final int offsetX;
+        private final int offsetY;
+        private final int offsetZ;
+        private final int minCellX;
+        private final int minCellY;
+        private final int minCellZ;
+        private final int sizeX;
+        private final int sizeY;
+        private final int sizeZ;
+        private final double[] toggleValues;
+        private final double[] ridgedValues;
+        private final byte[] toggleSamples;
+        private final byte[] ridgedSamples;
+        private int sampleX;
+        private int sampleY;
+        private int sampleZ;
+
+        private InterpolatedNoiseCache(DensityFunction toggleFunction, DensityFunction ridgedFunction,
+                                       Blender blender, int offsetX, int offsetY, int offsetZ,
+                                       int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+            this.toggleFunction = toggleFunction;
+            this.ridgedFunction = ridgedFunction;
+            this.blender = blender;
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
+            this.offsetZ = offsetZ;
+            this.minCellX = Math.floorDiv(minX + offsetX, XZ_STEP);
+            this.minCellY = Math.floorDiv(minY + offsetY, Y_STEP);
+            this.minCellZ = Math.floorDiv(minZ + offsetZ, XZ_STEP);
+            this.sizeX = Math.floorDiv(maxX + offsetX, XZ_STEP) - minCellX + 2;
+            this.sizeY = Math.floorDiv(maxY + offsetY, Y_STEP) - minCellY + 2;
+            this.sizeZ = Math.floorDiv(maxZ + offsetZ, XZ_STEP) - minCellZ + 2;
+            int sampleCount = sizeX * sizeY * sizeZ;
+            this.toggleValues = new double[sampleCount];
+            this.ridgedValues = new double[sampleCount];
+            this.toggleSamples = new byte[sampleCount];
+            this.ridgedSamples = new byte[sampleCount];
+        }
+
+        private double toggle(int x, int y, int z) {
+            return interpolate(toggleFunction, toggleValues, toggleSamples, x, y, z);
+        }
+
+        private double ridged(int x, int y, int z) {
+            return interpolate(ridgedFunction, ridgedValues, ridgedSamples, x, y, z);
+        }
+
+        private double interpolate(DensityFunction function, double[] values, byte[] sampled,
+                                   int x, int y, int z) {
+            int shiftedX = x + offsetX;
+            int shiftedY = y + offsetY;
+            int shiftedZ = z + offsetZ;
+            int cellX = Math.floorDiv(shiftedX, XZ_STEP) - minCellX;
+            int cellY = Math.floorDiv(shiftedY, Y_STEP) - minCellY;
+            int cellZ = Math.floorDiv(shiftedZ, XZ_STEP) - minCellZ;
+            assert cellX >= 0 && cellX + 1 < sizeX;
+            assert cellY >= 0 && cellY + 1 < sizeY;
+            assert cellZ >= 0 && cellZ + 1 < sizeZ;
+            double deltaX = Math.floorMod(shiftedX, XZ_STEP) / (double) XZ_STEP;
+            double deltaY = Math.floorMod(shiftedY, Y_STEP) / (double) Y_STEP;
+            double deltaZ = Math.floorMod(shiftedZ, XZ_STEP) / (double) XZ_STEP;
+
+            double x00 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY, cellZ),
+                    sample(function, values, sampled, cellX + 1, cellY, cellZ));
+            double x10 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY + 1, cellZ),
+                    sample(function, values, sampled, cellX + 1, cellY + 1, cellZ));
+            double x01 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY, cellZ + 1),
+                    sample(function, values, sampled, cellX + 1, cellY, cellZ + 1));
+            double x11 = Mth.lerp(deltaX, sample(function, values, sampled, cellX, cellY + 1, cellZ + 1),
+                    sample(function, values, sampled, cellX + 1, cellY + 1, cellZ + 1));
+            return Mth.lerp(deltaZ, Mth.lerp(deltaY, x00, x10), Mth.lerp(deltaY, x01, x11));
+        }
+
+        private double sample(DensityFunction function, double[] values, byte[] sampled,
+                              int cellX, int cellY, int cellZ) {
+            int index = (cellX * sizeY + cellY) * sizeZ + cellZ;
+            if (sampled[index] == 0) {
+                sampleX = (minCellX + cellX) * XZ_STEP;
+                sampleY = (minCellY + cellY) * Y_STEP;
+                sampleZ = (minCellZ + cellZ) * XZ_STEP;
+                values[index] = function.compute(this);
+                sampled[index] = 1;
+            }
+            return values[index];
+        }
+
+        @Override
+        public int blockX() {
+            return sampleX;
+        }
+
+        @Override
+        public int blockY() {
+            return sampleY;
+        }
+
+        @Override
+        public int blockZ() {
+            return sampleZ;
+        }
+
+        @Override
+        public Blender getBlender() {
+            return blender;
+        }
     }
 
     private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, double chance, List<VeinBlockDefinition> rareEntries, BlockPos.MutableBlockPos pos, List<VeinBlockDefinition> commonEntries) {
