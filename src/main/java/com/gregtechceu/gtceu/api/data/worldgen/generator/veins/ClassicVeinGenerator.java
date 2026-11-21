@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 
 import net.minecraft.core.BlockPos;
@@ -75,10 +75,11 @@ public class ClassicVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
-        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> generatedBlocks
-                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, pos, layer)));
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, layer, ignored) -> placeBlock(access, section, randomSeed, entry, pos, (int) layer);
+        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
+                .add(pos.asLong(), randomSeed, layer));
         return generatedBlocks;
     }
 

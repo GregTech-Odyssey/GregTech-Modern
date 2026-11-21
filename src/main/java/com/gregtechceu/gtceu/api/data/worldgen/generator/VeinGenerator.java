@@ -5,7 +5,7 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.tag.TagPrefix;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -85,15 +85,15 @@ public abstract class VeinGenerator {
     }
 
     /**
-     * Generate a map of all ore placers (by block position), for each block in this ore vein.
+     * Generates section batches keyed by packed section positions.
      *
      * <p>
      * Note that, if in any way possible, this is NOT supposed to directly place any of the vein's blocks, as their
      * respective ore placers are invoked at a later time, when the chunk containing them is actually generated.
      */
 
-    public abstract Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
-                                                            GTOreDefinition entry, BlockPos origin);
+    public abstract Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random,
+                                                                   GTOreDefinition entry, BlockPos origin);
 
     public boolean sample(GTOreDefinition entry, RandomSource random, BlockPos origin, BoundingBox area, SampleSink sink) {
         return false;

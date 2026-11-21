@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Holds a vein's {@link OreBlockPlacer}s for each of its blocks, grouped by chunk.
+ * Holds a vein's {@link OreIndicatorPlacer}s, grouped by chunk.
  */
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault

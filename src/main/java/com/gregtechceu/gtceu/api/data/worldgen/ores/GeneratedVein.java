@@ -1,9 +1,9 @@
 package com.gregtechceu.gtceu.api.data.worldgen.ores;
 
 import com.gregtechceu.gtceu.api.data.worldgen.IWorldGenLayer;
-import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.ChunkPos;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
- * Holds a vein's {@link OreBlockPlacer}s for each of its blocks, grouped by chunk.
+ * Holds a vein's section placers, grouped by chunk.
  */
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
@@ -27,23 +27,26 @@ public class GeneratedVein {
     private final ChunkPos origin;
     @Getter
     private final IWorldGenLayer layer;
-    private final Long2ObjectOpenHashMap<Long2ObjectMap<OreBlockPlacer>> generatedOres;
+    private final Long2ObjectOpenHashMap<Long2ObjectMap<SectionOreBlockPlacer>> generatedOres;
 
     /**
-     * @param origin         The vein's origin chunk (NOT its actual center, which may be outside the origin chunk)
-     * @param oresByPosition The ore placers for each ore block position.<br>
-     *                       Doesn't need to be ordered, grouping by chunks is done internally.
+     * @param origin        The vein's origin chunk (NOT its actual center, which may be outside the origin chunk)
+     * @param oresBySection Section batches keyed by packed section positions.
      */
-    public GeneratedVein(ChunkPos origin, IWorldGenLayer layer, Long2ObjectMap<OreBlockPlacer> oresByPosition) {
+    public GeneratedVein(ChunkPos origin, IWorldGenLayer layer, Long2ObjectMap<SectionOreBlockPlacer> oresBySection) {
         this.origin = origin;
         this.layer = layer;
-        this.generatedOres = WorldGeneratorUtils.groupByChunks(oresByPosition);
+        this.generatedOres = new Long2ObjectOpenHashMap<>();
+        for (var entry : Long2ObjectMaps.fastIterable(oresBySection)) {
+            long pos = entry.getLongKey();
+            long chunkPos = ChunkPos.asLong(SectionPos.x(pos), SectionPos.z(pos));
+            generatedOres.computeIfAbsent(chunkPos, key -> new Long2ObjectOpenHashMap<>())
+                    .put(pos, entry.getValue());
+        }
     }
 
-    /**
-     * Retrieve the ore placers for all blocks inside the specified chunk.
-     */
-    public Long2ObjectMap<OreBlockPlacer> consumeOres(long chunk) {
+    /** Retrieves section batches for the specified chunk without copying them. */
+    public Long2ObjectMap<SectionOreBlockPlacer> consumeOres(long chunk) {
         return this.generatedOres.getOrDefault(chunk, Long2ObjectMaps.emptyMap());
     }
 
