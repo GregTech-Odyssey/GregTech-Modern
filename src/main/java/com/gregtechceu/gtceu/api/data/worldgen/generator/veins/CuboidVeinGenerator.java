@@ -3,7 +3,6 @@ package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 
@@ -70,13 +69,8 @@ public class CuboidVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        return toBlockPositionMap(generateSections(level, random, entry, origin));
-    }
-
-    @Override
-    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, ignored, target) -> placeOre(access, section, pos, randomSeed,
                 (Either<List<OreConfiguration.TargetBlockState>, Material>) target, entry);
         int size = entry.clusterSize().sample(random) / 2;
@@ -154,7 +148,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeTop(Long2ObjectMap<OreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
+    private boolean placeTop(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
                              GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var top = this.top.target;
         if (shouldPlaceOre(random, weightX, weightZ)) {
@@ -170,7 +164,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeMiddle(Long2ObjectMap<OreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
+    private boolean placeMiddle(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
                                 GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var middle = this.middle.target;
         if (random.nextInt(2) == 0 && shouldPlaceOre(random, weightX, weightZ)) {
@@ -186,7 +180,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeBottom(Long2ObjectMap<OreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
+    private boolean placeBottom(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
                                 GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var bottom = this.bottom.target;
         if (shouldPlaceOre(random, weightX, weightZ)) {
@@ -202,7 +196,7 @@ public class CuboidVeinGenerator extends VeinGenerator {
      *
      * @return if the ore was placed
      */
-    private boolean placeSpread(Long2ObjectMap<OreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
+    private boolean placeSpread(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, SectionOreBlockPlacer.BlockPlacer blockPlacer,
                                 GTOreDefinition entry, long randomSeed, BlockPos pos, RandomSource random, int weightX, int weightZ) {
         var spread = this.spread.target;
         if (random.nextFloat() <= entry.density() * spreadDivisor && shouldPlaceOre(random, weightX, weightZ)) {

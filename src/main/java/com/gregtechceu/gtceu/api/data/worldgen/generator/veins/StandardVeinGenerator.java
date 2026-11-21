@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.data.chemical.ChemicalHelper;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
@@ -146,15 +145,9 @@ public class StandardVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                   BlockPos origin) {
-        return toBlockPositionMap(generateSections(level, random, entry, origin));
-    }
-
-    @Override
-    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                           BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                          BlockPos origin) {
+        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
 
         int size = entry.clusterSize().sample(random);
         float f = random.nextFloat() * (float) Math.PI;
@@ -186,7 +179,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         return generatedBlocks;
     }
 
-    protected void doPlaceNormal(Long2ObjectMap<OreBlockPlacer> generatedBlocks, RandomSource random,
+    protected void doPlaceNormal(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, RandomSource random,
                                  GTOreDefinition entry, BlockPos origin,
                                  Either<List<OreConfiguration.TargetBlockState>, Material> targets,
                                  double pMinX, double pMaxX, double pMinZ, double pMaxZ, double pMinY, double pMaxY,
@@ -251,7 +244,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         }
     }
 
-    private static void generateShape(Long2ObjectMap<OreBlockPlacer> generatedBlocks, RandomSource random,
+    private static void generateShape(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, RandomSource random,
                                       GTOreDefinition entry, BlockPos origin,
                                       Either<List<OreConfiguration.TargetBlockState>, Material> targets,
                                       int pX, int pY, int pZ, int pWidth, int pHeight, double[] shape,

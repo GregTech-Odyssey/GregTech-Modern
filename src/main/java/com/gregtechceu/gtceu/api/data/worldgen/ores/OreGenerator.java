@@ -5,12 +5,6 @@ import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.IWorldGenLayer;
 import com.gregtechceu.gtceu.api.data.worldgen.WorldGeneratorUtils;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.IndicatorGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.ClassicVeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.CuboidVeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.DikeVeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.LayeredVeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.StandardVeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.generator.veins.VeinedVeinGenerator;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.config.ConfigHolder;
 import com.gregtechceu.gtceu.integration.map.cache.server.ServerCache;
@@ -112,15 +106,7 @@ public class OreGenerator {
 
     public Optional<GeneratedVein> generateOres(VeinConfiguration config, WorldGenLevel level, ChunkPos chunkPos) {
         GTOreDefinition definition = config.data.definition();
-        var veinGenerator = definition.veinGenerator();
-        Class<?> generatorClass = veinGenerator.getClass();
-        // Subclasses may override the legacy generate() entry point.
-        boolean batchSections = generatorClass == ClassicVeinGenerator.class || generatorClass == CuboidVeinGenerator.class ||
-                generatorClass == DikeVeinGenerator.class || generatorClass == LayeredVeinGenerator.class ||
-                generatorClass == StandardVeinGenerator.class || generatorClass == VeinedVeinGenerator.class;
-        Long2ObjectMap<OreBlockPlacer> generatedVeins = batchSections ?
-                veinGenerator.generateSections(level, config.newRandom(), definition, config.data.center()) :
-                veinGenerator.generate(level, config.newRandom(), definition, config.data.center());
+        Long2ObjectMap<SectionOreBlockPlacer> generatedVeins = definition.veinGenerator().generate(level, config.newRandom(), definition, config.data.center());
 
         if (generatedVeins.isEmpty()) {
             logEmptyVein(config);

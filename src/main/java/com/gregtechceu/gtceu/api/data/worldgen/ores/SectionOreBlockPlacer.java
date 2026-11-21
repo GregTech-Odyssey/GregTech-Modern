@@ -9,8 +9,6 @@ import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -20,7 +18,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 /** Batches the placements for all generated blocks in one section. */
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-public final class SectionOreBlockPlacer implements OreBlockPlacer {
+public final class SectionOreBlockPlacer {
 
     @FunctionalInterface
     public interface BlockPlacer {
@@ -42,20 +40,15 @@ public final class SectionOreBlockPlacer implements OreBlockPlacer {
         this.blockPlacer = blockPlacer;
     }
 
-    @Override
-    public void placeBlock(BulkSectionAccess access, LevelChunkSection section) {
-        throw new UnsupportedOperationException("Section placer must be dispatched by OrePlacer");
-    }
-
     /**
      * Returns the section batch containing the supplied block position.
      */
-    public static SectionOreBlockPlacer getOrCreate(Long2ObjectMap<OreBlockPlacer> sections, long blockPos,
+    public static SectionOreBlockPlacer getOrCreate(Long2ObjectMap<SectionOreBlockPlacer> sections, long blockPos,
                                                     BlockPlacer blockPlacer) {
         long sectionPos = SectionPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getY(blockPos) >> 4,
                 BlockPos.getZ(blockPos) >> 4);
-        OreBlockPlacer existing = sections.get(sectionPos);
-        if (existing != null) return (SectionOreBlockPlacer) existing;
+        SectionOreBlockPlacer existing = sections.get(sectionPos);
+        if (existing != null) return existing;
 
         SectionOreBlockPlacer created = new SectionOreBlockPlacer(blockPlacer);
         sections.put(sectionPos, created);
@@ -82,33 +75,6 @@ public final class SectionOreBlockPlacer implements OreBlockPlacer {
         randomSeeds.add(randomSeed);
         if (extraObjects == null) extraObjects = new ObjectArrayList<>();
         extraObjects.add(extraObject);
-    }
-
-    public static Long2ObjectMap<OreBlockPlacer> toBlockPositionMap(
-                                                                    Long2ObjectMap<OreBlockPlacer> sectionPlacers) {
-        Long2ObjectOpenHashMap<OreBlockPlacer> blockPlacers = new Long2ObjectOpenHashMap<>();
-        for (var entry : Long2ObjectMaps.fastIterable(sectionPlacers)) {
-            if (entry.getValue() instanceof SectionOreBlockPlacer sectionPlacer) {
-                sectionPlacer.copyBlockPlacersTo(blockPlacers);
-            } else {
-                blockPlacers.put(entry.getLongKey(), entry.getValue());
-            }
-        }
-        return blockPlacers;
-    }
-
-    private void copyBlockPlacersTo(Long2ObjectMap<OreBlockPlacer> blockPlacers) {
-        for (int i = 0; i < positions.size(); i++) {
-            long blockPos = positions.getLong(i);
-            long randomSeed = randomSeeds.getLong(i);
-            long extraValue = extraValues == null ? 0L : extraValues.getLong(i);
-            Object extraObject = extraObjects == null ? null : extraObjects.get(i);
-            blockPlacers.put(blockPos, (access, section) -> {
-                BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-                pos.set(BlockPos.getX(blockPos), BlockPos.getY(blockPos), BlockPos.getZ(blockPos));
-                blockPlacer.place(access, section, pos, randomSeed, extraValue, extraObject);
-            });
-        }
     }
 
     /** Checks each position against the layer target, then places accepted blocks. */

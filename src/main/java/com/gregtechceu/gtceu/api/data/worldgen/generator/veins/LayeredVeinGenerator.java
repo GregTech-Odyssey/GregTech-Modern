@@ -4,7 +4,6 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTLayerPattern;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 
@@ -70,15 +69,9 @@ public class LayeredVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                   BlockPos origin) {
-        return toBlockPositionMap(generateSections(level, random, entry, origin));
-    }
-
-    @Override
-    public Long2ObjectMap<OreBlockPlacer> generateSections(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                           BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                          BlockPos origin) {
+        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         float density = entry.density();
         SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, ignored, state) -> placeBlock(access, section, randomSeed, entry, density,
                 (Either<List<OreConfiguration.TargetBlockState>, Material>) state, pos);

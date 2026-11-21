@@ -2,7 +2,7 @@ package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -26,8 +26,8 @@ public class NoopVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                   BlockPos origin) {
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                          BlockPos origin) {
         return Long2ObjectMaps.emptyMap();
     }
 
