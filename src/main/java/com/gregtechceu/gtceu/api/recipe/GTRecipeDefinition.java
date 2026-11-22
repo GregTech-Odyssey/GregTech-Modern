@@ -7,6 +7,7 @@ import com.gregtechceu.gtceu.api.recipe.extension.RecipeExtension;
 import com.gregtechceu.gtceu.api.recipe.modifier.RecipeModifier;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTRecipeTypes;
+import com.gregtechceu.gtceu.datasynclib.GTDataFixer;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.FriendlyByteBuf;
@@ -77,7 +78,26 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
         }
     };
 
-    public static final ValueCodec<GTRecipeDefinition> DATA_CODEC = new ValueCodec<>() {
+    private static final ValueCodec<GTRecipeDefinition> DATA_CODEC_V2 = new ValueCodec<>() {
+
+        @Override
+        public Object encode(ValueOps ops, GTRecipeDefinition recipe) {
+            throw new IllegalArgumentException();
+        }
+
+        @Override
+        public GTRecipeDefinition decode(ValueOps ops, Object data) {
+            var list = ops.getList(data);
+            var type = GTRegistries.RECIPE_TYPES.valueCodec().decode(ops, list.getFirst());
+            var idData = list.get(1);
+            if (ops.isNull(idData)) return type.defaultDefinition;
+            var id = ValueCodecs.RESOURCE_LOCATION.decode(ops, idData);
+            var definition = type.recipes.get(id);
+            return definition == null ? type.defaultDefinition : definition;
+        }
+    };
+
+    public static final ValueCodec<GTRecipeDefinition> DATA_CODEC = new ValueCodec<GTRecipeDefinition>() {
 
         @Override
         public Object encode(ValueOps ops, GTRecipeDefinition recipe) {
@@ -90,28 +110,18 @@ public final class GTRecipeDefinition extends DataComponentKey<GTRecipeDefinitio
 
         @Override
         public GTRecipeDefinition decode(ValueOps ops, Object data) {
-            if (ops.dataVersion() < 3) {
+            if (!ops.isList(data) || ops.getList(data).isEmpty()) {
+                var id = ValueCodecs.RESOURCE_LOCATION.decode(ops, data);
+                var definition = RECIPES.get(id);
+                if (definition == null) return GTRecipeTypes.DUMMY_RECIPES.defaultDefinition;
+                return definition;
+            } else {
                 var list = ops.getList(data);
                 var type = GTRegistries.RECIPE_TYPES.valueCodec().decode(ops, list.getFirst());
-                var idData = list.get(1);
-                if (ops.isNull(idData)) return type.defaultDefinition;
-                var id = ValueCodecs.RESOURCE_LOCATION.decode(ops, idData);
-                var definition = type.recipes.get(id);
-                return definition == null ? type.defaultDefinition : definition;
-            } else {
-                if (!ops.isList(data) || ops.getList(data).isEmpty()) {
-                    var id = ValueCodecs.RESOURCE_LOCATION.decode(ops, data);
-                    var definition = RECIPES.get(id);
-                    if (definition == null) return GTRecipeTypes.DUMMY_RECIPES.defaultDefinition;
-                    return definition;
-                } else {
-                    var list = ops.getList(data);
-                    var type = GTRegistries.RECIPE_TYPES.valueCodec().decode(ops, list.getFirst());
-                    return type.defaultDefinition;
-                }
+                return type.defaultDefinition;
             }
         }
-    };
+    }.versioned(GTDataFixer.VERSION, DATA_CODEC_V2);
 
     /** 检索用的原料索引表，由 {@code RecipeDB} 在构建数据库时写入。 */
     IngredientTable container;

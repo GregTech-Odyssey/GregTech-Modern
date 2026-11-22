@@ -5,7 +5,9 @@ import com.gregtechceu.gtceu.api.item.ItemDataComponentKey;
 import com.gregtechceu.gtceu.api.machine.MetaMachine;
 import com.gregtechceu.gtceu.api.machine.annotation.SaveToDataStick;
 
+import com.gto.datasynclib.datastream.codec.NbtValueOps;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -33,7 +35,7 @@ import java.util.Map;
 /** Data-stick configuration storage; field discovery and codec resolution belong to DataSyncLib. */
 public final class DataStickData {
 
-    private static final JavaValueOps OPS = GTDataFixer.OPS;
+    private static final NbtValueOps OPS =  NbtValueOps.create(GTDataFixer.VERSION);
     private static final ClassValue<AnnotatedField<SaveToDataStick>[]> FIELDS = new ClassValue<>() {
 
         @Override
@@ -49,9 +51,9 @@ public final class DataStickData {
                 var tag = new CompoundTag();
                 tag.putString("machine", snapshot.machine());
                 tag.putInt("version", snapshot.version());
-                tag.putByteArray("fields", snapshot.fields());
+                tag.put("tag", snapshot.tag());
                 return tag;
-            }, tag -> new Snapshot(tag.getString("machine"), tag.getInt("version"), tag.getByteArray("fields")));
+            }, tag -> new Snapshot(tag.getString("machine"), tag.getInt("version"), tag.get("tag")));
 
     private DataStickData() {}
 
@@ -76,7 +78,7 @@ public final class DataStickData {
             var snapshot = IDataComponentItem.get(stack, DATA);
             if (snapshot == null || !snapshot.machine().equals(id)) return InteractionResult.PASS;
             if (!machine.isRemote()) {
-                readFields(manager, snapshot.fields(), snapshot.version());
+                readFields(manager, snapshot.tag(), snapshot.version());
                 machine.onChanged();
                 player.sendSystemMessage(Component.translatable("gtceu.machine.me.import_paste_settings"));
             }
@@ -84,9 +86,9 @@ public final class DataStickData {
         return InteractionResult.sidedSuccess(machine.isRemote());
     }
 
-    static byte[] writeFields(FieldDataManager manager) {
+    static Tag writeFields(FieldDataManager manager) {
         var fields = FIELDS.get(manager.holder.getClass());
-        var values = new HashMap<String, Object>(fields.length);
+        var values =  new HashMap<String, Object>(fields.length);
         for (var field : fields) {
             var definition = field.definition();
             var metadata = (Metadata) field.metadata();
@@ -105,7 +107,7 @@ public final class DataStickData {
             values.put(definition.key, value);
         }
         // Store bytes immediately: mutable source values must never remain attached to the stick.
-        return OPS.toBytes(values);
+        return OPS.createStringMap(values);
     }
 
     @SuppressWarnings("unchecked")
@@ -119,13 +121,13 @@ public final class DataStickData {
                 ((DataSyncCodec<T>) DataSyncCodec.get(definition.field.getType())).encode(OPS, value);
     }
 
-    static void readFields(FieldDataManager manager, byte[] bytes) {
-        readFields(manager, bytes, GTDataFixer.VERSION);
+    static void readFields(FieldDataManager manager, Tag tag) {
+        readFields(manager, tag, GTDataFixer.VERSION);
     }
 
-    private static void readFields(FieldDataManager manager, byte[] bytes, int version) {
-        var ops = JavaValueOps.create(version);
-        var values = ops.getStringMap(ops.fromBytes(bytes));
+    private static void readFields(FieldDataManager manager, Tag tag, int version) {
+        var ops = NbtValueOps.create(version);
+        var values = ops.getStringMap(tag);
         for (var field : FIELDS.get(manager.holder.getClass())) {
             var definition = field.definition();
             var value = values.get(definition.key);
@@ -202,5 +204,5 @@ public final class DataStickData {
         }
     }
 
-    private record Snapshot(String machine, int version, byte[] fields) {}
+    private record Snapshot(String machine, int version, Tag tag) {}
 }
