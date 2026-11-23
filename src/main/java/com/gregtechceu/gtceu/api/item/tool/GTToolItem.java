@@ -189,6 +189,7 @@ public class GTToolItem extends DiggerItem implements IGTTool {
 
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+        if (toolType.actsAsSword() && state.getBlock() instanceof WebBlock) return true;
         return ToolHelper.isToolEffective(state, toolType, getTotalHarvestLevel(stack));
     }
 
