@@ -165,17 +165,8 @@ public class StandardVeinGenerator extends VeinGenerator {
         int width = 2 * (Mth.ceil(f1) + i);
         int height = 2 * (2 + i);
 
-        for (int heightmapX = x; heightmapX <= x + width; ++heightmapX) {
-            for (int heightmapZ = z; heightmapZ <= z + width; ++heightmapZ) {
-                this.doPlaceNormal(generatedBlocks, random, entry, origin, this.blocks, minX, maxX, minZ, maxZ, minY,
-                        maxY, x, y, z, width, height);
-
-                // Stop after first successful placement attempt
-                if (!generatedBlocks.isEmpty())
-                    return generatedBlocks;
-            }
-        }
-
+        this.doPlaceNormal(generatedBlocks, random, entry, origin, this.blocks, minX, maxX, minZ, maxZ, minY,
+                maxY, x, y, z, width, height);
         return generatedBlocks;
     }
 

@@ -48,7 +48,8 @@ public final class GeneratedVeinMetadata {
         ChunkPos origin = new ChunkPos(buf.readVarLong());
         BlockPos center = BlockPos.of(buf.readVarLong());
         GTOreDefinition def = GTRegistries.ORE_VEINS.streamCodec().decode(buf);
-        return new GeneratedVeinMetadata(id, origin, center, def, false);
+        boolean depleted = buf.readBoolean();
+        return new GeneratedVeinMetadata(id, origin, center, def, depleted);
     }
 
     public void writeToPacket(FriendlyByteBuf buf) {
@@ -56,6 +57,7 @@ public final class GeneratedVeinMetadata {
         buf.writeVarLong(this.originChunk.toLong());
         buf.writeVarLong(this.center.asLong());
         GTRegistries.ORE_VEINS.streamCodec().encode(buf, this.definition);
+        buf.writeBoolean(this.depleted);
     }
 
     @Override

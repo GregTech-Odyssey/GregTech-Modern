@@ -25,6 +25,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
+import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.structure.templatesystem.AlwaysTrueTest;
 
 import com.google.gson.JsonElement;
@@ -110,7 +111,7 @@ public class GTCommands {
         ServerLevel level = context.getSource().getLevel();
 
         GeneratedVeinMetadata metadata = new GeneratedVeinMetadata(id, chunkPos, sourcePos, vein);
-        RandomSource random = level.random;
+        RandomSource random = new XoroshiroRandomSource(level.getSeed() ^ chunkPos.toLong());
 
         OrePlacer placer = new OrePlacer();
         OreGenerator generator = placer.getOreGenCache().getOreGenerator();
