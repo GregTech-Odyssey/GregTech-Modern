@@ -44,6 +44,7 @@ import com.lowdragmc.lowdraglib.utils.Size;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -67,6 +68,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -125,6 +127,7 @@ public class MachineWindow extends FancyMachineUIWidget {
     private MetaMachine backToMachine;
     /// 始终按屏幕居中（见 setCentered）
     private boolean centered;
+    private boolean centerWithSidePanels;
     private final boolean windowLogo;
     private boolean titleFollowsTab;
     private boolean placing;
@@ -215,7 +218,7 @@ public class MachineWindow extends FancyMachineUIWidget {
      * setup, before opening any UI.
      * Factories run on both sides and must always create the same widget tree; hide unsupported accessories instead of
      * conditionally creating them. Visible accessories keep their declared width and stretch to the window's inner
-     * height.
+     * height, up to their layout's maximum height.
      * Accessory IDs determine the order on both sides, independently of addon initialization order.
      * After changing visibility, call {@link #onContentResized(Widget)} with the accessory to update the reserved
      * panel space.
@@ -226,6 +229,38 @@ public class MachineWindow extends FancyMachineUIWidget {
         if (RIGHT_ACCESSORY_FACTORIES.putIfAbsent(id, factory) != null) {
             throw new IllegalArgumentException("Duplicate window accessory: " + id);
         }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public Rect2i getMainPanelBounds() {
+        return new Rect2i(getPositionX(), getPositionY(), mainPanelWidth, getSizeHeight());
+    }
+
+    /** Screen-space bounds of visible panels, including ones inside the outer ModularUI rectangle. */
+    @OnlyIn(Dist.CLIENT)
+    public void forEachSidePanelBounds(Consumer<Rect2i> consumer) {
+        if (!isVisible()) return;
+        if (tabs.isVisible() && tabs.shown()) consumer.accept(tabs.toRectangleBox());
+        if (configurators.isVisible()) {
+            for (var widget : configurators.widgets) {
+                if (widget.isVisible()) consumer.accept(widget.toRectangleBox());
+            }
+        }
+        for (var accessory : rightAccessories) {
+            if (!accessory.isVisible()) continue;
+            consumer.accept(new Rect2i(accessory.getPositionX() - UISizes.WINDOW_PADDING_X,
+                    accessory.getPositionY() - UISizes.WINDOW_PADDING_TOP,
+                    accessory.getSizeWidth() + 2 * UISizes.WINDOW_PADDING_X, accessoryPanelHeight(accessory)));
+        }
+        if (popups.isVisible()) {
+            for (var widget : popups.widgets) {
+                if (widget.isVisible()) consumer.accept(widget.toRectangleBox());
+            }
+        }
+    }
+
+    private static int accessoryPanelHeight(UIElement accessory) {
+        return accessory.getSizeHeight() + UISizes.WINDOW_PADDING_TOP + UISizes.WINDOW_PADDING_BOTTOM;
     }
 
     // ==================== 展开的机器小组件盖住主窗口 ====================
@@ -330,10 +365,11 @@ public class MachineWindow extends FancyMachineUIWidget {
             if (!accessory.isVisible()) continue;
             int panelX = accessory.getPositionX() - UISizes.WINDOW_PADDING_X;
             int panelWidth = accessory.getSizeWidth() + 2 * UISizes.WINDOW_PADDING_X;
+            int panelHeight = accessoryPanelHeight(accessory);
             int gap = panelX - previousRight;
-            UITheme.drawWindowConnector(graphics, previousRight, y + height / 6, gap);
-            UITheme.drawWindowConnector(graphics, previousRight, y + height * 5 / 6, gap);
-            UITheme.WINDOW.draw(graphics, mouseX, mouseY, panelX, y, panelWidth, height);
+            UITheme.drawWindowConnector(graphics, previousRight, y + panelHeight / 6, gap);
+            UITheme.drawWindowConnector(graphics, previousRight, y + panelHeight * 5 / 6, gap);
+            UITheme.WINDOW.draw(graphics, mouseX, mouseY, panelX, y, panelWidth, panelHeight);
             previousRight = panelX + panelWidth;
         }
     }
@@ -508,6 +544,14 @@ public class MachineWindow extends FancyMachineUIWidget {
 
     public boolean isCentered() {
         return centered;
+    }
+
+    /** Center the window and its visible side panels together on the next layout. */
+    public void setCenterWithSidePanels(boolean centerWithSidePanels) {
+        if (this.centerWithSidePanels == centerWithSidePanels) return;
+        this.centerWithSidePanels = centerWithSidePanels;
+        anchorWidth = 0;
+        anchorTop = Integer.MIN_VALUE;
     }
 
     public MachineWindow setTitleFollowsTab(boolean follows) {
@@ -912,9 +956,10 @@ public class MachineWindow extends FancyMachineUIWidget {
     }
 
     /**
-     * 摆放弹出面板并确定界面尺寸。原则：打开面板不挪主窗口——界面尺寸就是主窗口尺寸，面板挂在窗口右侧界外
+     * 摆放弹出面板并确定界面尺寸。默认打开面板不挪主窗口——界面尺寸就是主窗口尺寸，面板挂在窗口右侧界外
      * （LDLib 会把界外控件报给 EMI 避让）；只有面板超出屏幕右边时，才把主窗口左移刚好够的距离（不越过左侧悬浮栏）。
      * 面板默认与窗口顶边对齐，超出屏幕底边时自己上移。屏幕尺寸只在客户端知道，服务端只放默认位置（不影响同步）。
+     * 使用 {@link #setCenterWithSidePanels(boolean)} 的窗口按主窗口和侧栏的合计尺寸摆放。
      * <p>
      * 注意：LDLib 的 {@code ModularUI.setSize} 只存在于客户端（专用服务器上被剥掉），服务端绝不能调用，
      * 所以界面尺寸只在 {@link #applyClientPlacement} 里设。
@@ -947,6 +992,10 @@ public class MachineWindow extends FancyMachineUIWidget {
         int screenWidth = screen.getGuiScaledWidth(), screenHeight = screen.getGuiScaledHeight();
         int width = getSizeWidth(), height = getSizeHeight();
         int tabsHeight = tabs.reservedHeight();
+        if (centerWithSidePanels) {
+            applySidePanelPlacement(screenWidth, screenHeight, width, height, tabsHeight);
+            return;
+        }
         if (centered) {
             applyCenteredPlacement(screenWidth, screenHeight, width, height, tabsHeight);
             return;
@@ -1013,6 +1062,29 @@ public class MachineWindow extends FancyMachineUIWidget {
         getGui().setSize(guiWidth, guiHeight);
         setWindowBasePosition(left - (screenWidth - guiWidth) / 2, top - (screenHeight - guiHeight) / 2);
         popups.setSelfPosition(new Position(width + UISizes.POPUP_GAP, popupY));
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void applySidePanelPlacement(int screenWidth, int screenHeight, int width, int height, int tabsHeight) {
+        int margin = UISizes.SCREEN_MARGIN;
+        int bottom = screenHeight - clientBottomMargin();
+        popups.setMaxHeight(Math.max(UISizes.SLOT_SIZE, bottom - margin));
+        int popupWidth = popups.getSizeWidth(), popupHeight = popups.getSizeHeight();
+        int configuratorWidth = configurators.getTabs().isEmpty() ? 0 : configurators.getSizeWidth() + UISizes.GAP;
+        int groupWidth = configuratorWidth + width + (popupWidth > 0 ? UISizes.POPUP_GAP + popupWidth : 0);
+        int groupHeight = Math.max(height + tabsHeight, popupHeight);
+        int groupLeft = Math.max(margin, (screenWidth - groupWidth) / 2);
+        int groupTop = Math.max(margin, Math.min((screenHeight - groupHeight) / 2, bottom - groupHeight));
+        int left = groupLeft + configuratorWidth;
+        int top = groupTop + (groupHeight - height - tabsHeight) / 2 + tabsHeight;
+        int popupTop = Math.min(top, groupTop + groupHeight - popupHeight);
+
+        // ModularUI is centered independently. Enclose the group even when a screen margin shifts it off center.
+        int guiWidth = Math.min(screenWidth, Math.max(screenWidth - 2 * groupLeft, 2 * (groupLeft + groupWidth) - screenWidth));
+        int guiHeight = Math.min(screenHeight, Math.max(screenHeight - 2 * groupTop, 2 * (groupTop + groupHeight) - screenHeight));
+        getGui().setSize(guiWidth, guiHeight);
+        setWindowBasePosition(left - (screenWidth - guiWidth) / 2, top - (screenHeight - guiHeight) / 2);
+        popups.setSelfPosition(new Position(width + UISizes.POPUP_GAP, popupTop - top));
     }
 
     @Override
