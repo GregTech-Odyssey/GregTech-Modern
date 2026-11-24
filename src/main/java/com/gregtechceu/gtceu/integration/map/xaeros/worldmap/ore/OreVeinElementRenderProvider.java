@@ -24,7 +24,7 @@ public class OreVeinElementRenderProvider extends MapElementRenderProvider<OreVe
             ResourceKey<Level> currentDim = Minecraft.getInstance().level.dimension();
             this.iterator = XaerosRenderer.oreElements.get(currentDim).values()
                     .stream()
-                    .map(element -> new OreVeinElement(element.getVein(), element.getName()))
+                    .map(element -> new OreVeinElement(element.getVein(), element.getName(), element.getIcon()))
                     .iterator();
             context.worldmapWaypointsScale = WorldMap.INSTANCE.getConfigs().getClientConfigManager()
                     .getEffective(WorldMapProfiledConfigOptions.WAYPOINT_SCALE).floatValue();

@@ -298,9 +298,7 @@ public class ProspectingMapWidget extends WidgetGroup implements SearchComponent
         if (!vein.isEmpty()) {
             vein.sort((o1, o2) -> (int) (o1.center().distToCenterSqr(xPos, o1.center().getY(), zPos) - o2.center().distToCenterSqr(xPos, o2.center().getY(), zPos)));
             var name = OreRenderLayer.getName(vein.getFirst()).getString();
-            var materials = vein.getFirst().definition().veinGenerator().getAllMaterials();
-            var mostCommonItem = materials.getLast();
-            var color = mostCommonItem.getMaterialRGB();
+            var color = OreRenderLayer.getIcon(vein.getFirst()).color() & 0xFFFFFF;
             return new WaypointItem(blockPos, name, color);
         }
         return new WaypointItem(blockPos, "Depleted Vein", 10027008);

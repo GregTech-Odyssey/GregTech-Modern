@@ -494,7 +494,7 @@ public class ProspectorMapView extends UIElement {
             if (!veins.isEmpty()) {
                 veins.sort((a, b) -> (int) (a.center().distToCenterSqr(xPos, a.center().getY(), zPos) - b.center().distToCenterSqr(xPos, b.center().getY(), zPos)));
                 var vein = veins.getFirst();
-                return new Waypoint(pos, OreRenderLayer.getName(vein).getString(), vein.definition().veinGenerator().getAllMaterials().getLast().getMaterialRGB());
+                return new Waypoint(pos, OreRenderLayer.getName(vein).getString(), OreRenderLayer.getIcon(vein).color() & 0xFFFFFF);
             }
             return new Waypoint(pos, "Depleted Vein", 10027008);
         }

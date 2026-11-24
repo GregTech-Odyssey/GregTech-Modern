@@ -83,29 +83,32 @@ public class OreVeinElementRenderer extends
         GeneratedVeinMetadata vein = element.getVein();
         int iconSize = ConfigHolder.INSTANCE.compat.minimap.oreIconSize;
 
-        Material firstMaterial = vein.definition().veinGenerator().getAllMaterials().getFirst();
-        int materialARGB = firstMaterial.getMaterialARGB();
-        float[] colors = DrawUtil.floats(materialARGB);
+        var icon = element.getIcon();
+        Material firstMaterial = icon.material();
+        int materialARGB = icon.color();
         RenderSystem.setShaderColor(1, 1, 1, 1);
 
-        ResourceLocation oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(),
-                true);
-        if (oreTexture != null) {
-            var oreSprite = Minecraft.getInstance()
-                    .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-                    .apply(oreTexture);
+        if (firstMaterial == null) {
+            var oreSprite = mc.getBlockRenderer().getBlockModel(icon.block()).getParticleIcon();
             graphics.blit(-iconSize / 2, -iconSize / 2, 200, iconSize, iconSize,
-                    oreSprite, colors[0], colors[1], colors[2], 1);
-        }
-        oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(), "secondary", true);
-        if (oreTexture != null) {
-            int materialSecondaryARGB = firstMaterial.getMaterialSecondaryARGB();
-            colors = DrawUtil.floats(materialSecondaryARGB);
-            var oreSprite = Minecraft.getInstance()
-                    .getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-                    .apply(oreTexture);
-            graphics.blit(-iconSize / 2, -iconSize / 2, 200, iconSize, iconSize,
-                    oreSprite, colors[0], colors[1], colors[2], 1);
+                    oreSprite, 1, 1, 1, 1);
+        } else {
+            float[] colors = DrawUtil.floats(materialARGB);
+            ResourceLocation oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(),
+                    true);
+            if (oreTexture != null) {
+                var oreSprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(oreTexture);
+                graphics.blit(-iconSize / 2, -iconSize / 2, 200, iconSize, iconSize,
+                        oreSprite, colors[0], colors[1], colors[2], 1);
+            }
+            oreTexture = MaterialIconType.rawOre.getItemTexturePath(firstMaterial.getMaterialIconSet(), "secondary", true);
+            if (oreTexture != null) {
+                int materialSecondaryARGB = firstMaterial.getMaterialSecondaryARGB();
+                colors = DrawUtil.floats(materialSecondaryARGB);
+                var oreSprite = mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(oreTexture);
+                graphics.blit(-iconSize / 2, -iconSize / 2, 200, iconSize, iconSize,
+                        oreSprite, colors[0], colors[1], colors[2], 1);
+            }
         }
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
