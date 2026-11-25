@@ -2,6 +2,8 @@ package com.gregtechceu.gtceu.api.machine.multiblockpro;
 
 import com.gregtechceu.gtceu.api.blockentity.MetaMachineBlockEntity;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
+import com.gregtechceu.gtceu.api.machine.feature.multiblock.IRotorHolderMachine;
+import com.gregtechceu.gtceu.api.machine.multiblock.PartAbility;
 import com.gregtechceu.gtceu.api.pattern.ControllerPredicate;
 import com.gregtechceu.gtceu.api.pattern.MultiblockWorldData;
 import com.gregtechceu.gtceu.api.pattern.TraceabilityPredicate;
@@ -23,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
@@ -132,14 +135,15 @@ public final class StructureBuild {
         var allowed = new Reference2ObjectOpenHashMap<TraceabilityPredicate, ReferenceOpenHashSet<Item>>();
         int placed = 0, replaced = 0, missing = 0;
         var supply = player.isCreative() ? null : PlayerSupply.of(player, true, useNetwork);
+        var aligned = replace ? alignSwaps(level, origin, front, up, flip, layout, choices) : choices;
         var cells = layout.cells();
         var retry = new IntArrayList();
         for (int pass = 0; pass < 2; pass++) {
             var indices = pass == 0 ? null : retry.toIntArray();
-            int count = pass == 0 ? choices.length : indices.length;
+            int count = pass == 0 ? aligned.length : indices.length;
             for (int n = 0; n < count; n++) {
                 int i = pass == 0 ? n : indices[n];
-                var item = choices[i];
+                var item = aligned[i];
                 var predicate = cells.get(i).predicate();
                 if (item == null || predicate instanceof ControllerPredicate) continue;
                 boolean isBlock = item instanceof BlockItem;
@@ -173,27 +177,56 @@ public final class StructureBuild {
                     continue;
                 }
                 List<ItemStack> drops = Collections.emptyList();
+                ItemStack savedRotor = ItemStack.EMPTY;
+                Direction oldFacing = null;
                 if (swapping) {
-                    drops = Block.getDrops(level.getBlockState(pos), level, pos, null, player, ItemStack.EMPTY);
+                    var oldState = level.getBlockState(pos);
+                    var oldBe = level.getBlockEntity(pos);
+                    if (oldBe instanceof MetaMachineBlockEntity oldHolder && oldHolder.getMetaMachine() instanceof IRotorHolderMachine oldRotor) {
+                        oldFacing = oldRotor.self().getFrontFacing();
+                        var rotor = oldRotor.getRotorStack();
+                        if (!rotor.isEmpty()) {
+                            savedRotor = rotor.copy();
+                            oldRotor.setRotorStack(ItemStack.EMPTY);
+                        }
+                    }
+                    drops = Block.getDrops(oldState, level, pos, oldBe, player, ItemStack.EMPTY);
                     level.removeBlock(pos, false);
                 }
-                var facing = layout.outwardWorld(i, front, up, flip);
+                var facing = oldFacing != null ? oldFacing : layout.outwardWorld(i, front, up, flip);
                 var context = new BlockPlaceContext(level, player, InteractionHand.MAIN_HAND, taken.copy(),
                         BlockHitResult.miss(player.getEyePosition(0), Direction.UP, pos));
                 if (((BlockItem) item).place(context) == InteractionResult.FAIL) {
                     if (supply != null) {
                         supply.giveBack(player, taken);
                         for (var drop : drops) supply.giveBack(player, drop);
+                        if (!savedRotor.isEmpty()) supply.giveBack(player, savedRotor);
+                    } else if (!savedRotor.isEmpty()) {
+                        player.getInventory().placeItemBackInInventory(savedRotor);
                     }
                     if (pass == 0) retry.add(i);
                     continue;
                 }
                 if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity holder) {
-                    if (facing != null && holder.getMetaMachine().isFacingValid(facing)) holder.getMetaMachine().setFrontFacing(facing);
+                    var metaMachine = holder.getMetaMachine();
+                    if (facing != null && metaMachine.isFacingValid(facing)) metaMachine.setFrontFacing(facing);
+                    if (!savedRotor.isEmpty()) {
+                        if (metaMachine instanceof IRotorHolderMachine newRotor) {
+                            newRotor.setRotorStack(savedRotor);
+                        } else if (supply != null) {
+                            supply.giveBack(player, savedRotor);
+                        } else {
+                            player.getInventory().placeItemBackInInventory(savedRotor);
+                        }
+                    }
                 } else {
                     var state = level.getBlockState(pos);
                     var faced = StructureBlocks.face(state, facing);
                     if (faced != state && faced.canSurvive(level, pos)) level.setBlock(pos, faced, 3);
+                    if (!savedRotor.isEmpty()) {
+                        if (supply != null) supply.giveBack(player, savedRotor);
+                        else player.getInventory().placeItemBackInInventory(savedRotor);
+                    }
                 }
                 if (swapping) {
                     if (supply != null) {
@@ -213,12 +246,59 @@ public final class StructureBuild {
         else controller.asyncCheckPattern(MultiblockWorldData.getOrCreate(level));
     }
 
+    public static boolean isSwappablePart(Block block) {
+        return PartAbility.ROTOR_HOLDER.isApplicable(block);
+    }
+
+    /**
+     * 对同谓词、同节点内与世界位置错位的可替换部件（如大型涡轮 R 槽位的转子支架与动力仓）重新对齐，避免替换扫描和建造漏判。
+     */
+    public static Item[] alignSwaps(Level level, BlockPos origin, Direction front, Direction up, boolean flip, Layout layout, Item[] choices) {
+        var cells = layout.cells();
+        int count = Math.min(choices.length, cells.size());
+        Item[] aligned = choices;
+        BlockPos.MutableBlockPos pos = null;
+        BlockPos.MutableBlockPos otherPos = null;
+        for (int i = 0; i < count; i++) {
+            var item = aligned[i];
+            if (!(item instanceof BlockItem bi) || !isSwappablePart(bi.getBlock())) continue;
+            var cell = cells.get(i);
+            var predicate = cell.predicate();
+            if (predicate instanceof ControllerPredicate) continue;
+            if (pos == null) pos = new BlockPos.MutableBlockPos();
+            layout.worldPos(origin, i, front, up, flip, pos);
+            if (!level.isLoaded(pos) || isSwappablePart(level.getBlockState(pos).getBlock())) continue;
+            int node = cell.node();
+            if (otherPos == null) otherPos = new BlockPos.MutableBlockPos();
+            for (int j = 0; j < count; j++) {
+                if (j == i) continue;
+                var otherCell = cells.get(j);
+                if (otherCell.predicate() != predicate || otherCell.node() != node) continue;
+                var otherItem = aligned[j];
+                if (otherItem instanceof BlockItem obi && isSwappablePart(obi.getBlock())) continue;
+                layout.worldPos(origin, j, front, up, flip, otherPos);
+                if (!level.isLoaded(otherPos) || !isSwappablePart(level.getBlockState(otherPos).getBlock())) continue;
+                if (aligned == choices) aligned = choices.clone();
+                aligned[i] = otherItem;
+                aligned[j] = item;
+                break;
+            }
+        }
+        return aligned;
+    }
+
     @Nullable
     public static Item swapFrom(BlockGetter level, BlockPos pos, Item chosen) {
-        if (!(chosen instanceof BlockItem blockItem) || blockItem.getBlock().defaultBlockState().hasBlockEntity()) return null;
+        if (!(chosen instanceof BlockItem blockItem)) return null;
+        var targetBlock = blockItem.getBlock();
         var state = level.getBlockState(pos);
-        if (state.isAir() || state.hasBlockEntity() || state.getBlock() instanceof LiquidBlock || !state.getFluidState().isEmpty()) return null;
+        if (state.isAir() || state.getBlock() instanceof LiquidBlock || !state.getFluidState().isEmpty()) return null;
         if (state.getDestroySpeed(level, pos) < 0) return null;
+        boolean targetBe = targetBlock.defaultBlockState().hasBlockEntity();
+        boolean currentBe = state.hasBlockEntity();
+        if (targetBe || currentBe) {
+            if (!targetBe || !currentBe || !isSwappablePart(targetBlock) || !isSwappablePart(state.getBlock())) return null;
+        }
         var from = SimplePredicate.toItem(state.getBlock());
         return from == Items.AIR || from == chosen ? null : from;
     }

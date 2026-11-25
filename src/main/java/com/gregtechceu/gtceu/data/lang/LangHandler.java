@@ -1397,7 +1397,7 @@ public class LangHandler {
         provider.add("gtceu.structure_build.network", "Use ME network");
         provider.add("gtceu.structure_build.network.desc", "Blocks missing from your inventory are taken from the ME network bound to a wireless terminal you carry; demolished blocks are returned to it");
         provider.add("gtceu.structure_build.replace", "Replace mode");
-        provider.add("gtceu.structure_build.replace.desc", "When on, the preview frames the blocks to be replaced in orange; the build step also swaps blocks in the structure that differ from the chosen ones and returns the removed blocks. Blocks with block entities, such as hatches, machines and containers, are never swapped");
+        provider.add("gtceu.structure_build.replace.desc", "When on, the preview frames the blocks to be replaced in orange; the build step also swaps blocks in the structure that differ from the chosen ones and returns the removed blocks. Blocks with block entities are not swapped, except rotor holders");
         provider.add("gtceu.structure_build.replace.confirm", "Replace");
         provider.add("gtceu.structure_build.replace.section", "Blocks to Replace");
         provider.add("gtceu.structure_build.replace.count", "%s blocks");

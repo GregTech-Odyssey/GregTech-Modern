@@ -2552,7 +2552,7 @@
     "gtceu.structure_build.network": "从 ME 网络取料",
     "gtceu.structure_build.network.desc": "背包中不足的方块从随身无线终端绑定的 ME 网络中取用，拆除的方块也存回该网络",
     "gtceu.structure_build.replace": "替换模式",
-    "gtceu.structure_build.replace.desc": "开启后，预览用橙框标出将被替换的方块；建造步骤同时把结构内与所选方块不同的方块换成所选方块，换下的方块返还。仓室、机器、容器等带方块实体的方块不参与替换",
+    "gtceu.structure_build.replace.desc": "开启后，预览用橙框标出将被替换的方块；建造步骤同时把结构内与所选方块不同的方块换成所选方块，换下的方块返还。除转子支架外，其他带方块实体的方块不参与替换",
     "gtceu.structure_build.replace.confirm": "替换建造",
     "gtceu.structure_build.replace.section": "替换方块",
     "gtceu.structure_build.replace.count": "%s 个",
