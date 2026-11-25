@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.utils.GTUtil;
 import com.gregtechceu.gtceu.utils.WeightedEntry;
@@ -31,7 +31,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -58,15 +57,15 @@ public class DikeVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         NormalNoise normalNoise = createNoise(level.getSeed());
         ChunkPos chunkPos = new ChunkPos(origin);
         int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
         int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
-        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> generatedBlocks
-                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, pos, entry)));
-        return generatedBlocks;
+        var collector = new SectionOreBlockPlacer.Collector(
+                (access, section, pos, current, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, current, randomSeed, pos, entry));
+        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> collector.add(pos.asLong(), randomSeed));
+        return collector.sections();
     }
 
     @Override
@@ -132,11 +131,11 @@ public class DikeVeinGenerator extends VeinGenerator {
         return blockDefinition != null && y >= blockDefinition.minY() && y <= blockDefinition.maxY() ? blockDefinition : null;
     }
 
-    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, BlockPos pos, GTOreDefinition entry) {
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current, long randomSeed, BlockPos pos, GTOreDefinition entry) {
         var random = new XoroshiroRandomSource(randomSeed);
         DikeBlockDefinition blockDefinition = chooseBlock(random, pos.getY());
         if (blockDefinition != null) {
-            OreVeinUtil.placeOre(blockDefinition.block, access.getBlockState(pos), access, section, random, pos, entry);
+            OreVeinUtil.placeOre(blockDefinition.block, current, access, section, random, pos, entry);
         }
     }
 

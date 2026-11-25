@@ -4,8 +4,8 @@ import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTLayerPattern;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,7 +28,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -69,13 +68,14 @@ public class LayeredVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
-                                                   BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
+                                                          BlockPos origin) {
         float density = entry.density();
-        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> generatedBlocks
-                .put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, density, state, pos)));
-        return traced ? generatedBlocks : Long2ObjectMaps.emptyMap();
+        var collector = new SectionOreBlockPlacer.Collector(
+                (access, section, pos, current, randomSeed, ignored, state) -> placeBlock(access, section, current, randomSeed, entry, density,
+                        (Either<List<OreConfiguration.TargetBlockState>, Material>) state, pos));
+        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> collector.add(pos.asLong(), randomSeed, state));
+        return traced ? collector.sections() : Long2ObjectMaps.emptyMap();
     }
 
     @Override
@@ -86,13 +86,13 @@ public class LayeredVeinGenerator extends VeinGenerator {
     }
 
     @FunctionalInterface
-    private interface LayerSink {
+    protected interface LayerSink {
 
         void accept(BlockPos pos, Either<List<OreConfiguration.TargetBlockState>, Material> state, long randomSeed);
     }
 
-    private boolean trace(RandomSource random, GTOreDefinition entry, BlockPos origin, LevelHeightAccessor heights,
-                          @Nullable BoundingBox area, LayerSink sink) {
+    protected boolean trace(RandomSource random, GTOreDefinition entry, BlockPos origin, LevelHeightAccessor heights,
+                            @Nullable BoundingBox area, LayerSink sink) {
         var patternPool = this.getLayerPatterns();
 
         if (patternPool.isEmpty())
@@ -179,15 +179,14 @@ public class LayeredVeinGenerator extends VeinGenerator {
         return true;
     }
 
-    private static boolean passesDensity(RandomSource random, float density) {
+    protected static boolean passesDensity(RandomSource random, float density) {
         return random.nextFloat() <= density;
     }
 
-    private static void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed,
-                                   GTOreDefinition entry, float density,
-                                   Either<List<OreConfiguration.TargetBlockState>, Material> state, BlockPos pos) {
+    protected static void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current,
+                                     long randomSeed, GTOreDefinition entry, float density,
+                                     Either<List<OreConfiguration.TargetBlockState>, Material> state, BlockPos pos) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
-        BlockState current = OreVeinUtil.sectionState(section, pos);
         if (passesDensity(random, density)) {
             OreVeinUtil.placeOre(state, current, access, section, random, pos, entry);
         }

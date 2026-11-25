@@ -3,8 +3,8 @@ package com.gregtechceu.gtceu.api.data.worldgen.generator.veins;
 import com.gregtechceu.gtceu.api.data.chemical.material.Material;
 import com.gregtechceu.gtceu.api.data.worldgen.GTOreDefinition;
 import com.gregtechceu.gtceu.api.data.worldgen.generator.VeinGenerator;
-import com.gregtechceu.gtceu.api.data.worldgen.ores.OreBlockPlacer;
 import com.gregtechceu.gtceu.api.data.worldgen.ores.OreVeinUtil;
+import com.gregtechceu.gtceu.api.data.worldgen.ores.SectionOreBlockPlacer;
 import com.gregtechceu.gtceu.api.registry.GTRegistries;
 import com.gregtechceu.gtceu.common.data.GTFeatures;
 import com.gregtechceu.gtceu.utils.GTUtil;
@@ -16,6 +16,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.WorldGenRegion;
+import net.minecraft.util.KeyDispatchDataCodec;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.XoroshiroRandomSource;
 import net.minecraft.world.level.levelgen.blending.Blender;
@@ -38,6 +40,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -79,8 +82,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
     }
 
     @Override
-    public Long2ObjectMap<OreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<OreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+    public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
+        Long2ObjectOpenHashMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         Registry<? extends DensityFunction> densityFunctions = level.registryAccess().registry(Registries.DENSITY_FUNCTION).get();
         RandomState randomState = level.getLevel().getChunkSource().randomState();
         Blender blender;
@@ -92,73 +95,262 @@ public class VeinedVeinGenerator extends VeinGenerator {
         final Blender finalizedBlender = blender;
         DensityFunction veinToggle = mapToNoise(densityFunctions.get(GTFeatures.NEW_ORE_VEIN_TOGGLE), randomState);
         DensityFunction veinRidged = mapToNoise(densityFunctions.get(GTFeatures.NEW_ORE_VEIN_RIDGED), randomState);
+        int originY = origin.getY();
+        int minY = originY - this.minYLevel;
+        int maxY = this.maxYLevel - originY;
+        if (minY < 0 || maxY < 0) return generatedBlocks;
+
+        int lowY = Math.min(maxY, minY);
+        double edgeRoundoff = Mth.clampedMap(lowY, 0.0, edgeRoundoffBegin, -maxEdgeRoundoff, 0.0);
         int size = entry.clusterSize().sample(random);
         int radius = Mth.ceil(size / 2.0F);
-        int placedCount = 0;
         int randOffsetX = random.nextInt(16);
         int randOffsetY = random.nextInt(16);
         int randOffsetZ = random.nextInt(16);
-        var posMin = origin.offset(-radius, -radius, -radius);
-        var posMax = origin.offset(+radius, +radius, +radius);
-        for (BlockPos chunkedPos : BlockPos.betweenClosed(posMin, posMax)) {
-            final int x = chunkedPos.getX();
-            final int y = chunkedPos.getY();
-            final int z = chunkedPos.getZ();
-            DensityFunction.FunctionContext functionContext = new DensityFunction.FunctionContext() {
+        int minBlockX = origin.getX() - radius;
+        int maxBlockX = origin.getX() + radius;
+        int minBlockY = Math.max(originY - radius, level.getMinBuildHeight());
+        int maxBlockY = Math.min(originY + radius, level.getMaxBuildHeight() - 1);
+        if (minBlockY > maxBlockY) return generatedBlocks;
 
-                @Override
-                public int blockX() {
-                    return x + randOffsetX;
-                }
+        int minBlockZ = origin.getZ() - radius;
+        int maxBlockZ = origin.getZ() + radius;
+        int minSectionX = SectionPos.blockToSectionCoord(minBlockX);
+        int maxSectionX = SectionPos.blockToSectionCoord(maxBlockX);
+        int minSectionY = SectionPos.blockToSectionCoord(minBlockY);
+        int maxSectionY = SectionPos.blockToSectionCoord(maxBlockY);
+        int minSectionZ = SectionPos.blockToSectionCoord(minBlockZ);
+        int maxSectionZ = SectionPos.blockToSectionCoord(maxBlockZ);
+        InterpolatedNoiseCache noiseCache = new InterpolatedNoiseCache(veinToggle, veinRidged,
+                finalizedBlender, randOffsetX, randOffsetY, randOffsetZ,
+                minBlockX, minBlockY, minBlockZ, maxBlockX, maxBlockY, maxBlockZ);
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, chance, ignored) -> placeBlock(access, section, current, randomSeed, entry, Double.longBitsToDouble(chance), rareBlocks, pos, oreBlocks);
 
-                @Override
-                public int blockY() {
-                    return y + randOffsetY;
-                }
+        for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
+            int sectionMinX = SectionPos.sectionToBlockCoord(sectionX);
+            int fromX = Math.max(sectionMinX, minBlockX);
+            int toX = Math.min(sectionMinX + 15, maxBlockX);
+            for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+                int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+                int fromY = Math.max(sectionMinY, minBlockY);
+                int toY = Math.min(sectionMinY + 15, maxBlockY);
+                for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
+                    int sectionMinZ = SectionPos.sectionToBlockCoord(sectionZ);
+                    int fromZ = Math.max(sectionMinZ, minBlockZ);
+                    int toZ = Math.min(sectionMinZ + 15, maxBlockZ);
+                    SectionOreBlockPlacer sectionPlacer = null;
 
-                @Override
-                public int blockZ() {
-                    return z + randOffsetZ;
-                }
+                    for (int x = fromX; x <= toX; x++) {
+                        for (int y = fromY; y <= toY; y++) {
+                            for (int z = fromZ; z <= toZ; z++) {
+                                double absToggleNoise = Math.abs(noiseCache.toggle(x, y, z));
+                                if (absToggleNoise + edgeRoundoff < veininessThreshold) continue;
+                                if (random.nextFloat() > entry.density()) continue;
+                                if (noiseCache.ridged(x, y, z) >= 0.0) continue;
 
-                @Override
-                public Blender getBlender() {
-                    return finalizedBlender;
+                                double chance = Mth.clampedMap(absToggleNoise, veininessThreshold,
+                                        maxRichnessThreshold, minRichness, maxRichness);
+                                long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
+                                if (sectionPlacer == null) {
+                                    sectionPlacer = SectionOreBlockPlacer.create(blockPlacer);
+                                    generatedBlocks.put(SectionPos.asLong(sectionX, sectionY, sectionZ), sectionPlacer);
+                                }
+                                sectionPlacer.add(BlockPos.asLong(x, y, z), randomSeed, Double.doubleToRawLongBits(chance));
+                            }
+                        }
+                    }
                 }
-            };
-            double toggleNoise = veinToggle.compute(functionContext);
-            int blockY = origin.getY();
-            double absToggleNoise = Math.abs(toggleNoise);
-            int minY = blockY - this.minYLevel;
-            int maxY = this.maxYLevel - blockY;
-            if (minY < 0 || maxY < 0) {
-                continue;
             }
-            int lowY = Math.min(maxY, minY);
-            double edgeRoundoff = Mth.clampedMap(lowY, 0.0, edgeRoundoffBegin, -maxEdgeRoundoff, 0.0);
-            if (absToggleNoise + edgeRoundoff < veininessThreshold) {
-                continue;
-            }
-            if (random.nextFloat() > entry.density()) {
-                continue;
-            }
-            if (veinRidged.compute(functionContext) >= 0.0) {
-                continue;
-            }
-            double chance = Mth.clampedMap(absToggleNoise, veininessThreshold, maxRichnessThreshold, minRichness, maxRichness);
-            BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, y, z);
-            final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-            generatedBlocks.put(pos.asLong(), (access, section) -> placeBlock(access, section, randomSeed, entry, chance, rareBlocks, pos, oreBlocks));
         }
         return generatedBlocks;
     }
 
-    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, double chance, List<VeinBlockDefinition> rareEntries, BlockPos.MutableBlockPos pos, List<VeinBlockDefinition> commonEntries) {
+    private static final class InterpolatedNoiseCache implements DensityFunction.FunctionContext {
+
+        private static final KeyDispatchDataCodec<? extends DensityFunction> INTERPOLATED_CODEC = DensityFunctions.interpolated(DensityFunctions.zero()).codec();
+
+        // shortcut: assumes vanilla 4x8 noise cells; derive spacing from dimension NoiseSettings if custom settings
+        // need support.
+        private static final int XZ_SHIFT = 2;
+        private static final int XZ_MASK = (1 << XZ_SHIFT) - 1;
+        private static final double INV_XZ_STEP = 1.0 / (1 << XZ_SHIFT);
+        private static final int Y_SHIFT = 3;
+        private static final int Y_MASK = (1 << Y_SHIFT) - 1;
+        private static final double INV_Y_STEP = 1.0 / (1 << Y_SHIFT);
+
+        private final DensityFunction toggleFunction;
+        private final DensityFunction ridgedFunction;
+        private final Blender blender;
+        private final int offsetX;
+        private final int offsetY;
+        private final int offsetZ;
+        private final int minCellX;
+        private final int minCellY;
+        private final int minCellZ;
+        private final int sizeX;
+        private final int sizeY;
+        private final int sizeZ;
+        private int sampleX;
+        private int sampleY;
+        private int sampleZ;
+
+        private InterpolatedNoiseCache(DensityFunction toggleFunction, DensityFunction ridgedFunction,
+                                       Blender blender, int offsetX, int offsetY, int offsetZ,
+                                       int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+            this.blender = blender;
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
+            this.offsetZ = offsetZ;
+            this.minCellX = (minX + offsetX) >> XZ_SHIFT;
+            this.minCellY = (minY + offsetY) >> Y_SHIFT;
+            this.minCellZ = (minZ + offsetZ) >> XZ_SHIFT;
+            int maxShiftedX = maxX + offsetX;
+            int maxShiftedY = maxY + offsetY;
+            int maxShiftedZ = maxZ + offsetZ;
+            this.sizeX = (maxShiftedX >> XZ_SHIFT) - minCellX + ((maxShiftedX & XZ_MASK) == 0 ? 1 : 2);
+            this.sizeY = (maxShiftedY >> Y_SHIFT) - minCellY + ((maxShiftedY & Y_MASK) == 0 ? 1 : 2);
+            this.sizeZ = (maxShiftedZ >> XZ_SHIFT) - minCellZ + ((maxShiftedZ & XZ_MASK) == 0 ? 1 : 2);
+            // Preserve registry expressions: abs/max must run after their interpolated inputs.
+            DensityFunction.Visitor visitor = function -> function instanceof DensityFunctions.MarkerOrMarked marker && marker.codec() == INTERPOLATED_CODEC ?
+                    new InterpolatedFunction(marker.wrapped()) : function;
+            this.toggleFunction = toggleFunction.mapAll(visitor);
+            this.ridgedFunction = ridgedFunction.mapAll(visitor);
+        }
+
+        private double toggle(int x, int y, int z) {
+            return compute(toggleFunction, x, y, z);
+        }
+
+        private double ridged(int x, int y, int z) {
+            return compute(ridgedFunction, x, y, z);
+        }
+
+        private double compute(DensityFunction function, int x, int y, int z) {
+            sampleX = x + offsetX;
+            sampleY = y + offsetY;
+            sampleZ = z + offsetZ;
+            return function.compute(this);
+        }
+
+        private final class InterpolatedFunction implements DensityFunction.SimpleFunction, DensityFunction.FunctionContext {
+
+            private final DensityFunction function;
+            private final double[] values = new double[sizeX * sizeY * sizeZ];
+            private int sampleX;
+            private int sampleY;
+            private int sampleZ;
+
+            private InterpolatedFunction(DensityFunction function) {
+                this.function = function;
+                Arrays.fill(values, Double.NaN);
+            }
+
+            @Override
+            public double compute(DensityFunction.FunctionContext context) {
+                int x = context.blockX();
+                int y = context.blockY();
+                int z = context.blockZ();
+                int cellX = (x >> XZ_SHIFT) - minCellX;
+                int cellY = (y >> Y_SHIFT) - minCellY;
+                int cellZ = (z >> XZ_SHIFT) - minCellZ;
+                int modX = x & XZ_MASK;
+                int modY = y & Y_MASK;
+                int modZ = z & XZ_MASK;
+                int maxCellX = modX == 0 ? cellX : cellX + 1;
+                int maxCellY = modY == 0 ? cellY : cellY + 1;
+                int maxCellZ = modZ == 0 ? cellZ : cellZ + 1;
+                if (cellX < 0 || maxCellX >= sizeX || cellY < 0 || maxCellY >= sizeY || cellZ < 0 || maxCellZ >= sizeZ) {
+                    return function.compute(context);
+                }
+                if (modX == 0 && modY == 0 && modZ == 0) return sample(cellX, cellY, cellZ);
+
+                double deltaX = modX * INV_XZ_STEP;
+                double deltaY = modY * INV_Y_STEP;
+                double z0 = interpolateXY(cellX, maxCellX, cellY, maxCellY, cellZ, deltaX, deltaY);
+                if (modZ == 0) return z0;
+                double z1 = interpolateXY(cellX, maxCellX, cellY, maxCellY, maxCellZ, deltaX, deltaY);
+                return Mth.lerp(modZ * INV_XZ_STEP, z0, z1);
+            }
+
+            private double interpolateXY(int x0, int x1, int y0, int y1, int z, double deltaX, double deltaY) {
+                double y0Val = x0 == x1 ? sample(x0, y0, z) : Mth.lerp(deltaX, sample(x0, y0, z), sample(x1, y0, z));
+                if (y0 == y1) return y0Val;
+                double y1Val = x0 == x1 ? sample(x0, y1, z) : Mth.lerp(deltaX, sample(x0, y1, z), sample(x1, y1, z));
+                return Mth.lerp(deltaY, y0Val, y1Val);
+            }
+
+            private double sample(int cellX, int cellY, int cellZ) {
+                int index = (cellX * sizeY + cellY) * sizeZ + cellZ;
+                double value = values[index];
+                if (Double.isNaN(value)) {
+                    sampleX = (minCellX + cellX) << XZ_SHIFT;
+                    sampleY = (minCellY + cellY) << Y_SHIFT;
+                    sampleZ = (minCellZ + cellZ) << XZ_SHIFT;
+                    value = function.compute(this);
+                    values[index] = value;
+                }
+                return value;
+            }
+
+            @Override
+            public double minValue() {
+                return function.minValue();
+            }
+
+            @Override
+            public double maxValue() {
+                return function.maxValue();
+            }
+
+            @Override
+            public KeyDispatchDataCodec<? extends DensityFunction> codec() {
+                throw new UnsupportedOperationException("Cannot serialize vein noise cache");
+            }
+
+            @Override
+            public int blockX() {
+                return sampleX;
+            }
+
+            @Override
+            public int blockY() {
+                return sampleY;
+            }
+
+            @Override
+            public int blockZ() {
+                return sampleZ;
+            }
+
+            @Override
+            public Blender getBlender() {
+                return blender;
+            }
+        }
+
+        @Override
+        public int blockX() {
+            return sampleX;
+        }
+
+        @Override
+        public int blockY() {
+            return sampleY;
+        }
+
+        @Override
+        public int blockZ() {
+            return sampleZ;
+        }
+
+        @Override
+        public Blender getBlender() {
+            return blender;
+        }
+    }
+
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current, long randomSeed, GTOreDefinition entry, double chance, List<VeinBlockDefinition> rareEntries, BlockPos.MutableBlockPos pos, List<VeinBlockDefinition> commonEntries) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
-        int sectionX = SectionPos.sectionRelative(pos.getX());
-        int sectionY = SectionPos.sectionRelative(pos.getY());
-        int sectionZ = SectionPos.sectionRelative(pos.getZ());
-        BlockState current = section.getBlockState(sectionX, sectionY, sectionZ);
         if (random.nextFloat() <= entry.density()) {
             if (random.nextFloat() < chance) {
                 if (rareBlocks != null && !rareBlocks.isEmpty() && random.nextFloat() < rareBlockChance) {
@@ -173,7 +365,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
             } else {
                 if (fillerBlock == null || fillerBlock.isAir()) return;
                 if (!OreVeinUtil.canPlaceOre(current, access::getBlockState, random, entry, pos)) return;
-                section.setBlockState(sectionX, sectionY, sectionZ, fillerBlock, false);
+                section.setBlockState(SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getY()), SectionPos.sectionRelative(pos.getZ()), fillerBlock, false);
             }
         }
     }
