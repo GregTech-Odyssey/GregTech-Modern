@@ -77,9 +77,11 @@ public class ClassicVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
         Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, layer, ignored) -> placeBlock(access, section, randomSeed, entry, pos, (int) layer);
-        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
-                .add(pos.asLong(), randomSeed, layer));
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, layer, ignored) -> placeBlock(access, section, current, randomSeed, entry, pos, (int) layer);
+        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> {
+            long packed = pos.asLong();
+            SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed, layer);
+        });
         return generatedBlocks;
     }
 
@@ -145,8 +147,7 @@ public class ClassicVeinGenerator extends VeinGenerator {
         return random.nextFloat() <= density / sporadicDivisor ? sporadic : null;
     }
 
-    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, BlockPos blockPos, int layer) {
-        BlockState current = OreVeinUtil.sectionState(section, blockPos);
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current, long randomSeed, GTOreDefinition entry, BlockPos blockPos, int layer) {
         Layer chosen = chooseLayer(new XoroshiroRandomSource(randomSeed), layer, entry.density());
         if (chosen != null) {
             OreVeinUtil.placeOre(chosen.target, current, access, section, new XoroshiroRandomSource(randomSeed), blockPos, entry);

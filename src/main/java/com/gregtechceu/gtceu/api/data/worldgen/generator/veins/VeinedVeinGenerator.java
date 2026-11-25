@@ -108,8 +108,10 @@ public class VeinedVeinGenerator extends VeinGenerator {
         int randOffsetZ = random.nextInt(16);
         int minBlockX = origin.getX() - radius;
         int maxBlockX = origin.getX() + radius;
-        int minBlockY = originY - radius;
-        int maxBlockY = originY + radius;
+        int minBlockY = Math.max(originY - radius, level.getMinBuildHeight());
+        int maxBlockY = Math.min(originY + radius, level.getMaxBuildHeight() - 1);
+        if (minBlockY > maxBlockY) return generatedBlocks;
+
         int minBlockZ = origin.getZ() - radius;
         int maxBlockZ = origin.getZ() + radius;
         int minSectionX = SectionPos.blockToSectionCoord(minBlockX);
@@ -118,27 +120,24 @@ public class VeinedVeinGenerator extends VeinGenerator {
         int maxSectionY = SectionPos.blockToSectionCoord(maxBlockY);
         int minSectionZ = SectionPos.blockToSectionCoord(minBlockZ);
         int maxSectionZ = SectionPos.blockToSectionCoord(maxBlockZ);
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, chance, ignored) -> placeBlock(access, section, randomSeed, entry, Double.longBitsToDouble(chance), rareBlocks, pos, oreBlocks);
-        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        InterpolatedNoiseCache noiseCache = new InterpolatedNoiseCache(veinToggle, veinRidged,
+                finalizedBlender, randOffsetX, randOffsetY, randOffsetZ,
+                minBlockX, minBlockY, minBlockZ, maxBlockX, maxBlockY, maxBlockZ);
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, chance, ignored) -> placeBlock(access, section, current, randomSeed, entry, Double.longBitsToDouble(chance), rareBlocks, pos, oreBlocks);
 
         for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
+            int sectionMinX = SectionPos.sectionToBlockCoord(sectionX);
+            int fromX = Math.max(sectionMinX, minBlockX);
+            int toX = Math.min(sectionMinX + 15, maxBlockX);
             for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+                int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
+                int fromY = Math.max(sectionMinY, minBlockY);
+                int toY = Math.min(sectionMinY + 15, maxBlockY);
                 for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
-                    int sectionMinX = SectionPos.sectionToBlockCoord(sectionX);
-                    int sectionMaxX = sectionMinX + 15;
-                    int sectionMinY = SectionPos.sectionToBlockCoord(sectionY);
-                    int sectionMaxY = sectionMinY + 15;
                     int sectionMinZ = SectionPos.sectionToBlockCoord(sectionZ);
-                    int sectionMaxZ = sectionMinZ + 15;
-                    int fromX = Math.max(sectionMinX, minBlockX);
-                    int toX = Math.min(sectionMaxX, maxBlockX);
-                    int fromY = Math.max(sectionMinY, minBlockY);
-                    int toY = Math.min(sectionMaxY, maxBlockY);
                     int fromZ = Math.max(sectionMinZ, minBlockZ);
-                    int toZ = Math.min(sectionMaxZ, maxBlockZ);
-                    InterpolatedNoiseCache noiseCache = new InterpolatedNoiseCache(veinToggle, veinRidged,
-                            finalizedBlender, randOffsetX, randOffsetY, randOffsetZ,
-                            fromX, fromY, fromZ, toX, toY, toZ);
+                    int toZ = Math.min(sectionMinZ + 15, maxBlockZ);
+                    SectionOreBlockPlacer sectionPlacer = null;
 
                     for (int x = fromX; x <= toX; x++) {
                         for (int y = fromY; y <= toY; y++) {
@@ -150,10 +149,12 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
                                 double chance = Mth.clampedMap(absToggleNoise, veininessThreshold,
                                         maxRichnessThreshold, minRichness, maxRichness);
-                                pos.set(x, y, z);
                                 long randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                                SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
-                                        .add(pos.asLong(), randomSeed, Double.doubleToRawLongBits(chance));
+                                if (sectionPlacer == null) {
+                                    sectionPlacer = SectionOreBlockPlacer.create(blockPlacer);
+                                    generatedBlocks.put(SectionPos.asLong(sectionX, sectionY, sectionZ), sectionPlacer);
+                                }
+                                sectionPlacer.add(BlockPos.asLong(x, y, z), randomSeed, Double.doubleToRawLongBits(chance));
                             }
                         }
                     }
@@ -169,8 +170,12 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
         // shortcut: assumes vanilla 4x8 noise cells; derive spacing from dimension NoiseSettings if custom settings
         // need support.
-        private static final int XZ_STEP = 4;
-        private static final int Y_STEP = 8;
+        private static final int XZ_SHIFT = 2;
+        private static final int XZ_MASK = (1 << XZ_SHIFT) - 1;
+        private static final double INV_XZ_STEP = 1.0 / (1 << XZ_SHIFT);
+        private static final int Y_SHIFT = 3;
+        private static final int Y_MASK = (1 << Y_SHIFT) - 1;
+        private static final double INV_Y_STEP = 1.0 / (1 << Y_SHIFT);
 
         private final DensityFunction toggleFunction;
         private final DensityFunction ridgedFunction;
@@ -195,12 +200,15 @@ public class VeinedVeinGenerator extends VeinGenerator {
             this.offsetX = offsetX;
             this.offsetY = offsetY;
             this.offsetZ = offsetZ;
-            this.minCellX = Math.floorDiv(minX + offsetX, XZ_STEP);
-            this.minCellY = Math.floorDiv(minY + offsetY, Y_STEP);
-            this.minCellZ = Math.floorDiv(minZ + offsetZ, XZ_STEP);
-            this.sizeX = Math.floorDiv(maxX + offsetX, XZ_STEP) - minCellX + 2;
-            this.sizeY = Math.floorDiv(maxY + offsetY, Y_STEP) - minCellY + 2;
-            this.sizeZ = Math.floorDiv(maxZ + offsetZ, XZ_STEP) - minCellZ + 2;
+            this.minCellX = (minX + offsetX) >> XZ_SHIFT;
+            this.minCellY = (minY + offsetY) >> Y_SHIFT;
+            this.minCellZ = (minZ + offsetZ) >> XZ_SHIFT;
+            int maxShiftedX = maxX + offsetX;
+            int maxShiftedY = maxY + offsetY;
+            int maxShiftedZ = maxZ + offsetZ;
+            this.sizeX = (maxShiftedX >> XZ_SHIFT) - minCellX + ((maxShiftedX & XZ_MASK) == 0 ? 1 : 2);
+            this.sizeY = (maxShiftedY >> Y_SHIFT) - minCellY + ((maxShiftedY & Y_MASK) == 0 ? 1 : 2);
+            this.sizeZ = (maxShiftedZ >> XZ_SHIFT) - minCellZ + ((maxShiftedZ & XZ_MASK) == 0 ? 1 : 2);
             // Preserve registry expressions: abs/max must run after their interpolated inputs.
             DensityFunction.Visitor visitor = function -> function instanceof DensityFunctions.MarkerOrMarked marker && marker.codec() == INTERPOLATED_CODEC ?
                     new InterpolatedFunction(marker.wrapped()) : function;
@@ -241,31 +249,41 @@ public class VeinedVeinGenerator extends VeinGenerator {
                 int x = context.blockX();
                 int y = context.blockY();
                 int z = context.blockZ();
-                int cellX = Math.floorDiv(x, XZ_STEP) - minCellX;
-                int cellY = Math.floorDiv(y, Y_STEP) - minCellY;
-                int cellZ = Math.floorDiv(z, XZ_STEP) - minCellZ;
-                assert cellX >= 0 && cellX < sizeX;
-                assert cellY >= 0 && cellY < sizeY;
-                assert cellZ >= 0 && cellZ < sizeZ;
-                double deltaX = Math.floorMod(x, XZ_STEP) / (double) XZ_STEP;
-                double deltaY = Math.floorMod(y, Y_STEP) / (double) Y_STEP;
-                double deltaZ = Math.floorMod(z, XZ_STEP) / (double) XZ_STEP;
-                if (deltaX == 0.0 && deltaY == 0.0 && deltaZ == 0.0) return sample(cellX, cellY, cellZ);
-                assert cellX + 1 < sizeX && cellY + 1 < sizeY && cellZ + 1 < sizeZ;
+                int cellX = (x >> XZ_SHIFT) - minCellX;
+                int cellY = (y >> Y_SHIFT) - minCellY;
+                int cellZ = (z >> XZ_SHIFT) - minCellZ;
+                int modX = x & XZ_MASK;
+                int modY = y & Y_MASK;
+                int modZ = z & XZ_MASK;
+                int maxCellX = modX == 0 ? cellX : cellX + 1;
+                int maxCellY = modY == 0 ? cellY : cellY + 1;
+                int maxCellZ = modZ == 0 ? cellZ : cellZ + 1;
+                if (cellX < 0 || maxCellX >= sizeX || cellY < 0 || maxCellY >= sizeY || cellZ < 0 || maxCellZ >= sizeZ) {
+                    return function.compute(context);
+                }
+                if (modX == 0 && modY == 0 && modZ == 0) return sample(cellX, cellY, cellZ);
 
-                double x00 = Mth.lerp(deltaX, sample(cellX, cellY, cellZ), sample(cellX + 1, cellY, cellZ));
-                double x10 = Mth.lerp(deltaX, sample(cellX, cellY + 1, cellZ), sample(cellX + 1, cellY + 1, cellZ));
-                double x01 = Mth.lerp(deltaX, sample(cellX, cellY, cellZ + 1), sample(cellX + 1, cellY, cellZ + 1));
-                double x11 = Mth.lerp(deltaX, sample(cellX, cellY + 1, cellZ + 1), sample(cellX + 1, cellY + 1, cellZ + 1));
-                return Mth.lerp(deltaZ, Mth.lerp(deltaY, x00, x10), Mth.lerp(deltaY, x01, x11));
+                double deltaX = modX * INV_XZ_STEP;
+                double deltaY = modY * INV_Y_STEP;
+                double z0 = interpolateXY(cellX, maxCellX, cellY, maxCellY, cellZ, deltaX, deltaY);
+                if (modZ == 0) return z0;
+                double z1 = interpolateXY(cellX, maxCellX, cellY, maxCellY, maxCellZ, deltaX, deltaY);
+                return Mth.lerp(modZ * INV_XZ_STEP, z0, z1);
+            }
+
+            private double interpolateXY(int x0, int x1, int y0, int y1, int z, double deltaX, double deltaY) {
+                double y0Val = x0 == x1 ? sample(x0, y0, z) : Mth.lerp(deltaX, sample(x0, y0, z), sample(x1, y0, z));
+                if (y0 == y1) return y0Val;
+                double y1Val = x0 == x1 ? sample(x0, y1, z) : Mth.lerp(deltaX, sample(x0, y1, z), sample(x1, y1, z));
+                return Mth.lerp(deltaY, y0Val, y1Val);
             }
 
             private double sample(int cellX, int cellY, int cellZ) {
                 int index = (cellX * sizeY + cellY) * sizeZ + cellZ;
                 if (sampled[index] == 0) {
-                    sampleX = (minCellX + cellX) * XZ_STEP;
-                    sampleY = (minCellY + cellY) * Y_STEP;
-                    sampleZ = (minCellZ + cellZ) * XZ_STEP;
+                    sampleX = (minCellX + cellX) << XZ_SHIFT;
+                    sampleY = (minCellY + cellY) << Y_SHIFT;
+                    sampleZ = (minCellZ + cellZ) << XZ_SHIFT;
                     values[index] = function.compute(this);
                     sampled[index] = 1;
                 }
@@ -329,12 +347,8 @@ public class VeinedVeinGenerator extends VeinGenerator {
         }
     }
 
-    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, GTOreDefinition entry, double chance, List<VeinBlockDefinition> rareEntries, BlockPos.MutableBlockPos pos, List<VeinBlockDefinition> commonEntries) {
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current, long randomSeed, GTOreDefinition entry, double chance, List<VeinBlockDefinition> rareEntries, BlockPos.MutableBlockPos pos, List<VeinBlockDefinition> commonEntries) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
-        int sectionX = SectionPos.sectionRelative(pos.getX());
-        int sectionY = SectionPos.sectionRelative(pos.getY());
-        int sectionZ = SectionPos.sectionRelative(pos.getZ());
-        BlockState current = section.getBlockState(sectionX, sectionY, sectionZ);
         if (random.nextFloat() <= entry.density()) {
             if (random.nextFloat() < chance) {
                 if (rareBlocks != null && !rareBlocks.isEmpty() && random.nextFloat() < rareBlockChance) {
@@ -349,7 +363,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
             } else {
                 if (fillerBlock == null || fillerBlock.isAir()) return;
                 if (!OreVeinUtil.canPlaceOre(current, access::getBlockState, random, entry, pos)) return;
-                section.setBlockState(sectionX, sectionY, sectionZ, fillerBlock, false);
+                section.setBlockState(SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getY()), SectionPos.sectionRelative(pos.getZ()), fillerBlock, false);
             }
         }
     }

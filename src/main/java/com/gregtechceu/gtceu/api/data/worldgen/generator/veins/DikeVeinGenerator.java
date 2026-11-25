@@ -64,9 +64,11 @@ public class DikeVeinGenerator extends VeinGenerator {
         ChunkPos chunkPos = new ChunkPos(origin);
         int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
         int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, randomSeed, pos, entry);
-        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
-                .add(pos.asLong(), randomSeed));
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, current, randomSeed, pos, entry);
+        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> {
+            long packed = pos.asLong();
+            SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed);
+        });
         return generatedBlocks;
     }
 
@@ -133,11 +135,11 @@ public class DikeVeinGenerator extends VeinGenerator {
         return blockDefinition != null && y >= blockDefinition.minY() && y <= blockDefinition.maxY() ? blockDefinition : null;
     }
 
-    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed, BlockPos pos, GTOreDefinition entry) {
+    private void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current, long randomSeed, BlockPos pos, GTOreDefinition entry) {
         var random = new XoroshiroRandomSource(randomSeed);
         DikeBlockDefinition blockDefinition = chooseBlock(random, pos.getY());
         if (blockDefinition != null) {
-            OreVeinUtil.placeOre(blockDefinition.block, access.getBlockState(pos), access, section, random, pos, entry);
+            OreVeinUtil.placeOre(blockDefinition.block, current, access, section, random, pos, entry);
         }
     }
 

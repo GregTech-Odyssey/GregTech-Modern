@@ -19,8 +19,6 @@ public class GTFeatures {
 
     public static final ResourceLocation NEW_ORE_VEIN_TOGGLE = GTCEu.id("vein_toggle");
     public static final ResourceLocation NEW_ORE_VEIN_RIDGED = GTCEu.id("vein_ridged");
-    public static final float NEW_ORE_VEIN_RIDGED_OFFSET = -0.08F;
-    public static final float NEW_ORE_VEIN_RIDGED_SCALE = 4.0F;
 
     public static final DeferredRegister<Feature<?>> FEATURE_REGISTER = DeferredRegister.create(Registries.FEATURE,
             GTCEu.MOD_ID);

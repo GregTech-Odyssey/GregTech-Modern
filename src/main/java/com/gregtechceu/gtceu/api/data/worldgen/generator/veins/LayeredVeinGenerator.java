@@ -73,10 +73,12 @@ public class LayeredVeinGenerator extends VeinGenerator {
                                                           BlockPos origin) {
         Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         float density = entry.density();
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, randomSeed, ignored, state) -> placeBlock(access, section, randomSeed, entry, density,
+        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, ignored, state) -> placeBlock(access, section, current, randomSeed, entry, density,
                 (Either<List<OreConfiguration.TargetBlockState>, Material>) state, pos);
-        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> SectionOreBlockPlacer.getOrCreate(generatedBlocks, pos.asLong(), blockPlacer)
-                .add(pos.asLong(), randomSeed, state));
+        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> {
+            long packed = pos.asLong();
+            SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed, state);
+        });
         return traced ? generatedBlocks : Long2ObjectMaps.emptyMap();
     }
 
@@ -88,13 +90,13 @@ public class LayeredVeinGenerator extends VeinGenerator {
     }
 
     @FunctionalInterface
-    private interface LayerSink {
+    protected interface LayerSink {
 
         void accept(BlockPos pos, Either<List<OreConfiguration.TargetBlockState>, Material> state, long randomSeed);
     }
 
-    private boolean trace(RandomSource random, GTOreDefinition entry, BlockPos origin, LevelHeightAccessor heights,
-                          @Nullable BoundingBox area, LayerSink sink) {
+    protected boolean trace(RandomSource random, GTOreDefinition entry, BlockPos origin, LevelHeightAccessor heights,
+                            @Nullable BoundingBox area, LayerSink sink) {
         var patternPool = this.getLayerPatterns();
 
         if (patternPool.isEmpty())
@@ -181,15 +183,14 @@ public class LayeredVeinGenerator extends VeinGenerator {
         return true;
     }
 
-    private static boolean passesDensity(RandomSource random, float density) {
+    protected static boolean passesDensity(RandomSource random, float density) {
         return random.nextFloat() <= density;
     }
 
-    private static void placeBlock(BulkSectionAccess access, LevelChunkSection section, long randomSeed,
-                                   GTOreDefinition entry, float density,
-                                   Either<List<OreConfiguration.TargetBlockState>, Material> state, BlockPos pos) {
+    protected static void placeBlock(BulkSectionAccess access, LevelChunkSection section, BlockState current,
+                                     long randomSeed, GTOreDefinition entry, float density,
+                                     Either<List<OreConfiguration.TargetBlockState>, Material> state, BlockPos pos) {
         RandomSource random = new XoroshiroRandomSource(randomSeed);
-        BlockState current = OreVeinUtil.sectionState(section, pos);
         if (passesDensity(random, density)) {
             OreVeinUtil.placeOre(state, current, access, section, random, pos, entry);
         }
