@@ -27,7 +27,7 @@ public class GeneratedVein {
     private final ChunkPos origin;
     @Getter
     private final IWorldGenLayer layer;
-    private final Long2ObjectOpenHashMap<Long2ObjectMap<SectionOreBlockPlacer>> generatedOres;
+    private final Long2ObjectOpenHashMap<Long2ObjectOpenHashMap<SectionOreBlockPlacer>> generatedOres;
 
     /**
      * @param origin        The vein's origin chunk (NOT its actual center, which may be outside the origin chunk)
@@ -47,7 +47,8 @@ public class GeneratedVein {
 
     /** Retrieves section batches for the specified chunk without copying them. */
     public Long2ObjectMap<SectionOreBlockPlacer> consumeOres(long chunk) {
-        return this.generatedOres.getOrDefault(chunk, Long2ObjectMaps.emptyMap());
+        var sections = this.generatedOres.get(chunk);
+        return sections != null ? sections : Long2ObjectMaps.emptyMap();
     }
 
     public LongSet getGeneratedChunks() {

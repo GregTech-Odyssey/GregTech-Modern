@@ -146,7 +146,7 @@ public class StandardVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                           BlockPos origin) {
-        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectOpenHashMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
 
         int size = entry.clusterSize().sample(random);
         float f = random.nextFloat() * (float) Math.PI;
@@ -169,7 +169,7 @@ public class StandardVeinGenerator extends VeinGenerator {
         return generatedBlocks;
     }
 
-    protected void doPlaceNormal(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, RandomSource random,
+    protected void doPlaceNormal(Long2ObjectOpenHashMap<SectionOreBlockPlacer> generatedBlocks, RandomSource random,
                                  GTOreDefinition entry, BlockPos origin,
                                  Either<List<OreConfiguration.TargetBlockState>, Material> targets,
                                  double pMinX, double pMaxX, double pMinZ, double pMaxZ, double pMinY, double pMaxY,
@@ -179,7 +179,8 @@ public class StandardVeinGenerator extends VeinGenerator {
         int size = entry.clusterSize().sample(random);
         float density = entry.density();
         double[] shape = new double[size * 4];
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, pos, current, randomSeed, entry, targets, density);
+        var collector = new SectionOreBlockPlacer.Collector(generatedBlocks,
+                (access, section, pos, current, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, pos, current, randomSeed, entry, targets, density));
 
         for (int centerOffset = 0; centerOffset < size; ++centerOffset) {
             float centerOffsetFraction = (float) centerOffset / (float) size;
@@ -228,16 +229,15 @@ public class StandardVeinGenerator extends VeinGenerator {
             int shapeIdxOffset = centerOffset * 4;
 
             generateShape(
-                    generatedBlocks, random, pX, pY, pZ, pWidth, pHeight,
-                    shape, shapeIdxOffset, placedBlocks, posCursor, blockPlacer);
+                    collector, random, pX, pY, pZ, pWidth, pHeight,
+                    shape, shapeIdxOffset, placedBlocks, posCursor);
         }
     }
 
-    private static void generateShape(Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks, RandomSource random,
+    private static void generateShape(SectionOreBlockPlacer.Collector collector, RandomSource random,
                                       int pX, int pY, int pZ, int pWidth, int pHeight, double[] shape,
                                       int shapeIdxOffset,
-                                      BitSet placedBlocks, BlockPos.MutableBlockPos posCursor,
-                                      SectionOreBlockPlacer.BlockPlacer blockPlacer) {
+                                      BitSet placedBlocks, BlockPos.MutableBlockPos posCursor) {
         double randomShapeOffset = shape[shapeIdxOffset + 3];
         if (randomShapeOffset < 0.0D)
             return;
@@ -277,8 +277,7 @@ public class StandardVeinGenerator extends VeinGenerator {
 
                     placedBlocks.set(isPlaced);
                     final var randomSeed = random.nextLong(); // Fully deterministic regardless of chunk order
-                    long packed = posCursor.asLong();
-                    SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed);
+                    collector.add(posCursor.asLong(), randomSeed);
                 }
             }
         }

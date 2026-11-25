@@ -40,6 +40,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -82,7 +83,7 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
     @Override
     public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
+        Long2ObjectOpenHashMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         Registry<? extends DensityFunction> densityFunctions = level.registryAccess().registry(Registries.DENSITY_FUNCTION).get();
         RandomState randomState = level.getLevel().getChunkSource().randomState();
         Blender blender;
@@ -235,13 +236,13 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
             private final DensityFunction function;
             private final double[] values = new double[sizeX * sizeY * sizeZ];
-            private final byte[] sampled = new byte[values.length];
             private int sampleX;
             private int sampleY;
             private int sampleZ;
 
             private InterpolatedFunction(DensityFunction function) {
                 this.function = function;
+                Arrays.fill(values, Double.NaN);
             }
 
             @Override
@@ -280,14 +281,15 @@ public class VeinedVeinGenerator extends VeinGenerator {
 
             private double sample(int cellX, int cellY, int cellZ) {
                 int index = (cellX * sizeY + cellY) * sizeZ + cellZ;
-                if (sampled[index] == 0) {
+                double value = values[index];
+                if (Double.isNaN(value)) {
                     sampleX = (minCellX + cellX) << XZ_SHIFT;
                     sampleY = (minCellY + cellY) << Y_SHIFT;
                     sampleZ = (minCellZ + cellZ) << XZ_SHIFT;
-                    values[index] = function.compute(this);
-                    sampled[index] = 1;
+                    value = function.compute(this);
+                    values[index] = value;
                 }
-                return values[index];
+                return value;
             }
 
             @Override

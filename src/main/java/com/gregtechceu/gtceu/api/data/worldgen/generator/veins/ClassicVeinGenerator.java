@@ -28,7 +28,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -76,13 +75,10 @@ public class ClassicVeinGenerator extends VeinGenerator {
 
     @Override
     public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, layer, ignored) -> placeBlock(access, section, current, randomSeed, entry, pos, (int) layer);
-        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> {
-            long packed = pos.asLong();
-            SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed, layer);
-        });
-        return generatedBlocks;
+        var collector = new SectionOreBlockPlacer.Collector(
+                (access, section, pos, current, randomSeed, layer, ignored) -> placeBlock(access, section, current, randomSeed, entry, pos, (int) layer));
+        trace(random, entry, origin, level, null, (pos, randomSeed, layer) -> collector.add(pos.asLong(), randomSeed, layer));
+        return collector.sections();
     }
 
     @Override

@@ -9,7 +9,7 @@ import net.minecraft.world.level.chunk.BulkSectionAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTest;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
@@ -24,6 +24,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public final class SectionOreBlockPlacer {
 
+    private static final int DEFAULT_INITIAL_CAPACITY = 32;
+
     @FunctionalInterface
     public interface BlockPlacer {
 
@@ -32,9 +34,59 @@ public final class SectionOreBlockPlacer {
                    BlockState current, long randomSeed, long extraValue, @Nullable Object extraObject);
     }
 
+    /** Single-threaded section batch collector with a 1-slot cache to avoid per-block map lookups. */
+    public static final class Collector {
+
+        private final Long2ObjectOpenHashMap<SectionOreBlockPlacer> sections;
+        private final BlockPlacer blockPlacer;
+        private long lastSectionPos;
+        @Nullable
+        private SectionOreBlockPlacer lastPlacer;
+
+        public Collector(Long2ObjectOpenHashMap<SectionOreBlockPlacer> sections, BlockPlacer blockPlacer) {
+            this.sections = sections;
+            this.blockPlacer = blockPlacer;
+        }
+
+        public Collector(BlockPlacer blockPlacer) {
+            this(new Long2ObjectOpenHashMap<>(), blockPlacer);
+        }
+
+        public Long2ObjectOpenHashMap<SectionOreBlockPlacer> sections() {
+            return sections;
+        }
+
+        private SectionOreBlockPlacer batchFor(long blockPos) {
+            long sectionPos = SectionPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getY(blockPos) >> 4,
+                    BlockPos.getZ(blockPos) >> 4);
+            SectionOreBlockPlacer placer = lastPlacer;
+            if (placer != null && sectionPos == lastSectionPos) return placer;
+            placer = sections.get(sectionPos);
+            if (placer == null) {
+                placer = new SectionOreBlockPlacer(blockPlacer);
+                sections.put(sectionPos, placer);
+            }
+            lastSectionPos = sectionPos;
+            lastPlacer = placer;
+            return placer;
+        }
+
+        public void add(long blockPos, long randomSeed) {
+            batchFor(blockPos).add(blockPos, randomSeed);
+        }
+
+        public void add(long blockPos, long randomSeed, long extraValue) {
+            batchFor(blockPos).add(blockPos, randomSeed, extraValue);
+        }
+
+        public void add(long blockPos, long randomSeed, @Nullable Object extraObject) {
+            batchFor(blockPos).add(blockPos, randomSeed, extraObject);
+        }
+    }
+
     private final BlockPlacer blockPlacer;
-    private final LongArrayList positions = new LongArrayList();
-    private final LongArrayList randomSeeds = new LongArrayList();
+    private final LongArrayList positions = new LongArrayList(DEFAULT_INITIAL_CAPACITY);
+    private final LongArrayList randomSeeds = new LongArrayList(DEFAULT_INITIAL_CAPACITY);
     @Nullable
     private LongArrayList extraValues;
     @Nullable
@@ -50,8 +102,8 @@ public final class SectionOreBlockPlacer {
     }
 
     /** Returns the section batch containing the supplied packed block position. */
-    public static SectionOreBlockPlacer getOrCreate(Long2ObjectMap<SectionOreBlockPlacer> sections, long blockPos,
-                                                    BlockPlacer blockPlacer) {
+    public static SectionOreBlockPlacer getOrCreate(Long2ObjectOpenHashMap<SectionOreBlockPlacer> sections,
+                                                    long blockPos, BlockPlacer blockPlacer) {
         long sectionPos = SectionPos.asLong(BlockPos.getX(blockPos) >> 4, BlockPos.getY(blockPos) >> 4,
                 BlockPos.getZ(blockPos) >> 4);
         SectionOreBlockPlacer existing = sections.get(sectionPos);
@@ -76,7 +128,7 @@ public final class SectionOreBlockPlacer {
         positions.add(blockPos);
         randomSeeds.add(randomSeed);
         if (extraValues == null) {
-            extraValues = new LongArrayList(prevSize + 1);
+            extraValues = new LongArrayList(Math.max(DEFAULT_INITIAL_CAPACITY, positions.elements().length));
             if (prevSize > 0) extraValues.size(prevSize);
         }
         extraValues.add(extraValue);
@@ -90,7 +142,7 @@ public final class SectionOreBlockPlacer {
         randomSeeds.add(randomSeed);
         if (extraValues != null) extraValues.add(0L);
         if (extraObjects == null) {
-            extraObjects = new ObjectArrayList<>(prevSize + 1);
+            extraObjects = new ObjectArrayList<>(Math.max(DEFAULT_INITIAL_CAPACITY, positions.elements().length));
             if (prevSize > 0) extraObjects.size(prevSize);
         }
         extraObjects.add(extraObject);
@@ -100,17 +152,21 @@ public final class SectionOreBlockPlacer {
     public void placeSectionBlocks(BulkSectionAccess access, LevelChunkSection section,
                                    RuleTest layerTarget, RandomSource random) {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        long[] posArr = positions.elements();
+        long[] seedArr = randomSeeds.elements();
+        long[] valArr = extraValues == null ? null : extraValues.elements();
+        Object[] objArr = extraObjects == null ? null : extraObjects.elements();
         for (int i = 0, size = positions.size(); i < size; i++) {
-            long blockPos = positions.getLong(i);
+            long blockPos = posArr[i];
             int x = BlockPos.getX(blockPos);
             int y = BlockPos.getY(blockPos);
             int z = BlockPos.getZ(blockPos);
             BlockState current = section.getBlockState(x & 15, y & 15, z & 15);
             if (!layerTarget.test(current, random)) continue;
             pos.set(x, y, z);
-            blockPlacer.place(access, section, pos, current, randomSeeds.getLong(i),
-                    extraValues == null ? 0L : extraValues.getLong(i),
-                    extraObjects == null ? null : extraObjects.get(i));
+            blockPlacer.place(access, section, pos, current, seedArr[i],
+                    valArr == null ? 0L : valArr[i],
+                    objArr == null ? null : objArr[i]);
         }
     }
 }

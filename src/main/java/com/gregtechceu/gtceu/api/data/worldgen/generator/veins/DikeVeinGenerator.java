@@ -31,7 +31,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -59,17 +58,14 @@ public class DikeVeinGenerator extends VeinGenerator {
 
     @Override
     public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry, BlockPos origin) {
-        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         NormalNoise normalNoise = createNoise(level.getSeed());
         ChunkPos chunkPos = new ChunkPos(origin);
         int xPos = chunkPos.getMinBlockX() + level.getRandom().nextInt(16);
         int zPos = chunkPos.getMinBlockZ() + level.getRandom().nextInt(16);
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, current, randomSeed, pos, entry);
-        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> {
-            long packed = pos.asLong();
-            SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed);
-        });
-        return generatedBlocks;
+        var collector = new SectionOreBlockPlacer.Collector(
+                (access, section, pos, current, randomSeed, ignored, ignoredObject) -> placeBlock(access, section, current, randomSeed, pos, entry));
+        trace(random, entry, normalNoise, xPos, zPos, null, (pos, randomSeed) -> collector.add(pos.asLong(), randomSeed));
+        return collector.sections();
     }
 
     @Override

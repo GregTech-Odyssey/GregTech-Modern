@@ -28,7 +28,6 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import it.unimi.dsi.fastutil.floats.FloatList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -71,15 +70,12 @@ public class LayeredVeinGenerator extends VeinGenerator {
     @Override
     public Long2ObjectMap<SectionOreBlockPlacer> generate(WorldGenLevel level, RandomSource random, GTOreDefinition entry,
                                                           BlockPos origin) {
-        Long2ObjectMap<SectionOreBlockPlacer> generatedBlocks = new Long2ObjectOpenHashMap<>();
         float density = entry.density();
-        SectionOreBlockPlacer.BlockPlacer blockPlacer = (access, section, pos, current, randomSeed, ignored, state) -> placeBlock(access, section, current, randomSeed, entry, density,
-                (Either<List<OreConfiguration.TargetBlockState>, Material>) state, pos);
-        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> {
-            long packed = pos.asLong();
-            SectionOreBlockPlacer.getOrCreate(generatedBlocks, packed, blockPlacer).add(packed, randomSeed, state);
-        });
-        return traced ? generatedBlocks : Long2ObjectMaps.emptyMap();
+        var collector = new SectionOreBlockPlacer.Collector(
+                (access, section, pos, current, randomSeed, ignored, state) -> placeBlock(access, section, current, randomSeed, entry, density,
+                        (Either<List<OreConfiguration.TargetBlockState>, Material>) state, pos));
+        boolean traced = trace(random, entry, origin, level, null, (pos, state, randomSeed) -> collector.add(pos.asLong(), randomSeed, state));
+        return traced ? collector.sections() : Long2ObjectMaps.emptyMap();
     }
 
     @Override
