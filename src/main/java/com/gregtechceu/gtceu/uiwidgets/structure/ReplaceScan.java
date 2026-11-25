@@ -36,11 +36,12 @@ public final class ReplaceScan {
         var front = machine.getFrontFacing();
         var up = machine.getUpwardsFacing();
         boolean mirror = flip && machine.allowFlip();
+        var aligned = StructureBuild.alignSwaps(level, origin, front, up, mirror, layout, items);
         var layoutCells = layout.cells();
         var pos = new BlockPos.MutableBlockPos();
-        int count = Math.min(items.length, layoutCells.size());
+        int count = Math.min(aligned.length, layoutCells.size());
         for (int i = 0; i < count; i++) {
-            var item = items[i];
+            var item = aligned[i];
             if (item == null || layoutCells.get(i).predicate() instanceof ControllerPredicate) continue;
             layout.worldPos(origin, i, front, up, mirror, pos);
             if (!level.isLoaded(pos)) continue;
