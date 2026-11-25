@@ -210,11 +210,23 @@ public final class StructureBuild {
                 if (level.getBlockEntity(pos) instanceof MetaMachineBlockEntity holder) {
                     var metaMachine = holder.getMetaMachine();
                     if (facing != null && metaMachine.isFacingValid(facing)) metaMachine.setFrontFacing(facing);
-                    if (!savedRotor.isEmpty() && metaMachine instanceof IRotorHolderMachine newRotor) newRotor.setRotorStack(savedRotor);
+                    if (!savedRotor.isEmpty()) {
+                        if (metaMachine instanceof IRotorHolderMachine newRotor) {
+                            newRotor.setRotorStack(savedRotor);
+                        } else if (supply != null) {
+                            supply.giveBack(player, savedRotor);
+                        } else {
+                            player.getInventory().placeItemBackInInventory(savedRotor);
+                        }
+                    }
                 } else {
                     var state = level.getBlockState(pos);
                     var faced = StructureBlocks.face(state, facing);
                     if (faced != state && faced.canSurvive(level, pos)) level.setBlock(pos, faced, 3);
+                    if (!savedRotor.isEmpty()) {
+                        if (supply != null) supply.giveBack(player, savedRotor);
+                        else player.getInventory().placeItemBackInInventory(savedRotor);
+                    }
                 }
                 if (swapping) {
                     if (supply != null) {
